@@ -1,0 +1,16 @@
+["AXIS_TYPE": Code,Name,IDLRoutineCode,MultipleChoice, Description]
+0;(x)-Models*(y)-Scenarios;100;0110000;Descr of:(x)-Models*(y)-Scenarios;
+1;(x)-Observations*(y)-Models;100;0101000;Descr of:(x)-Observations*(y)-Models;
+2;(x)-Observations*(y)-Scenarios;100;0011000;Descr of:(x)-Observations*(y)-Scenarios;
+3;(x)-Observations*(y)-Species;100;0001100;Descr of:(x)-Observations*(y)-Species;
+4;(x)-Observations*(y)-Season;100;0001010;Descr of:(x)-Observations*(y)-Season;
+5;(x)-Observations*(y)-Days;100;0001001;Descr of:(x)-Observations*(y)-Days;
+6;(x)-Models*(y)-Seasons;100;0100010;Descr of:(x)-Models*(y)-Seasons;
+7;(x)-Time*(y)-Scenarios;100;1010000;Descr of:(x)-Time*(y)-Scenarios;
+8;(x)-Time*(y)-Models;100;1100000;Descr of:(x)-Time*(y)-Models;
+9;(x)-Time*(y)-Species;100;1000100;Descr of:(x)-Time*(y)-Species;
+10;(x)-Time*(y)-Seasons;100;1000010;Descr of:(x)-Time*(y)-Seasons;
+11;(x)-Time*(y)-Days;100;1000001;Descr of:(x)-Time*(y)-Days;
+12;(xy)-Grid mode1;100;1000010;Descr of:(xy)-GridMode;
+13;(xy)-Grid mode2;100;1000010;Descr of:(xy)-GridMode2;
+14;Composite;100;1000001;Descr of:Composite;
