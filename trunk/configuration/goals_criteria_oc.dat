@@ -1,0 +1,35 @@
+; link column statNickName with name/code in elaboration.dat
+; NO! link column timeAvg with name/code in season.dat/dayperiod.dat
+; link column timeAvg with name/code in elaboration.dat
+[GOALS_CRITERIA_OC:  Code; parCode; scaleName; statNickName; timeAvg; Values; Description]";;;;;;
+0;O3;URBAN;OU;8HMAX;15*15*;Descr of: GC 48
+2;O3;URBAN;RDE;8HMAX;50*40*;Descr of: GC 54
+3;O3;URBAN;RPE;8HMAX;50*40*;Descr of: GC 55
+
+5;PM10;URBAN;OU;PMEAN;25*30*;Descr of: GC 56
+8;PM10;URBAN;RDE;PMEAN;50*42*;Descr of: GC 62
+9;PM10;URBAN;RPE;PMEAN;50*42*;Descr of: GC 63
+10;PM10;URBAN;OU;YEAR;25*30*;Descr of: GC 56
+11;PM10;URBAN;RDE;YEAR;50*42*;Descr of: GC 62
+12;PM10;URBAN;RPE;YEAR;50*42*;Descr of: GC 63
+
+13;PM25;URBAN;OU;PMEAN;25*30*;Descr of: GC 56
+16;PM25;URBAN;RDE;PMEAN;50*42*;Descr of: GC 62
+17;PM25;URBAN;RPE;PMEAN;50*42*;Descr of: GC 63
+18;PM25;URBAN;OU;YEAR;25*30*;Descr of: GC 56
+19;PM25;URBAN;RDE;YEAR;50*42*;Descr of: GC 62
+20;PM25;URBAN;RPE;YEAR;50*42*;Descr of: GC 63
+
+21;NO2;URBAN;OU;PP;15*15*;Descr of: GC 64
+24;NO2;URBAN;RDE;PP;50*42*;Descr of: GC 70
+25;NO2;URBAN;RPE;PP;50*42*;Descr of: GC 71
+
+26;WS;URBAN;IOA;ALL;0.6*0.72*;Descr of: GC 78
+27;WS;URBAN;BIAS;ALL;0.5*0.4*;Descr of: GC 80
+28;WS;URBAN;RMSE;ALL;2*1.6*;Descr of: GC 81
+
+
+
+
+
+
