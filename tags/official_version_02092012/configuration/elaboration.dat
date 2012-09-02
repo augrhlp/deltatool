@@ -1,0 +1,84 @@
+[ELABORATION: Code,IDLRoutineCode,DisplayName,DiagramCode,GroupByTimeCode,GroupByStatCode,SeasonCode,DailyCode,List of MultipleChoiceFlags(parameters, models, scenarios, observations),NumberRefValue,GCAVailable,StdAdvancedUserFlags,Description,ExtraInfos(* separator)
+0;1;Mean;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of mean values;NONE;NONE
+1;1;Stddev;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of standard deviation values;NONE;NONE
+2;1;R;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of correlation coeficient values;R;NONE
+3;1;MBias;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of bias values;NONE;NONE
+4;1;RMSE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of RMSE values;NONE;NONE
+5;1;RMSEs/RMSEu;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;00;Barplots of RMSEs/RMSEu ratio values;NONE;NONE
+6;1;Mean Values (Hourly/Daily);2;FREE;FREE;FREE;FREE;1000*0100*0001*1001*0101*;0;NO;11;Scatter plot of stations mean values. Each single point represents average statistics for a given station.;NONE;NONE
+7;1;IOA;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of IOA values;IOA;NONE
+8;1;RDE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of RDE values. One threshold value is required: the limit value;RDE;NONE
+9;1;ExcDays;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of the number of exceedance days values. One threshold value is required: the limit value;NONE;NONE
+10;1;Bias (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;11;NMB category plot. All stations MFB are classified in terms of their category (first station selection filter);OU;PMEAN
+11;1;Correlation (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;11;All stations R are classified in terms of their category (first station selection filter);OU;PMEAN
+12;2;All Values;1;FREE;FREE;FREE;FREE;0100*0010*;0;NO;11;Time series;NONE;NONE
+13;3;One station/Group - All Values;2;FREE;FREE;FREE;FREE;1000*0100*;0;NO;11;Scatter plot of entire time series;NONE;NONE
+14;1;Mean Values (OU);3;FREE;FREE;FREE;FREE;1000*0100*0001*1001*0101*;0;NO;11;Taylor plots provides information on standard deviation, CRMSE and corelation. Each point represents the statistics of a given station.;OU;NONE
+15;1;Correlation (OU);5;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Bugle type (R vs. Observed mean/stdDev ratio). Each point represents the statistics of a given station.;OU;PMEAN
+16;1;Bias (OU);5;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Bugle type (Bias vs. Observation uncertainty). Each point represents the statistics of a given station.;OU;PMEAN
+17;1;Meteo;6;FREE;FREE;FREE;FREE;0001*0100*0101*;0;NO;11;The Soccer diagram plots RMSE vs. Bias and is dedicated more to meteo variables;NONE;NONE
+18;1;Std. deviation (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;11;All stations NMSD are classified in terms of their category (first station selection filter);OU;PMEAN
+19;1;Normalized (SigmaO);3;FREE;FREE;FREE;FREE;1000*0100*0001*1001*0101*;0;NO;11;Taylor plots provides information on standard deviation, CRMSE and corelation. Each point represents the statistics of a given station.;NONE;NONE
+20;1;Air Quality (OU) values;6;FREE;FREE;FREE;FREE;0001*0100*0101*;0;NO;11;The Soccer diagram plots RMSE vs. Bias and is dedicated more to meteo variables;OU;NONE
+21;1;Mean Values (Yearly/Season);2;0;0;FREE;0;1000*0100*0001*1001*0101*;0;NO;11;Scatter plot of stations mean values. Each single point represents average statistics for a given station.;NONE;NONE
+23;1;NMB;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of Mean Normalised bias values;MNB;NONE
+24;1;MFE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;00;Barplots of Mean Fractional error values;NONE;NONE
+25;1;Std. deviation (OU);5;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Bugle type (MFS vs. Observed concentration). Each point represents the statistics of a given station.;OU;PMEAN
+26;1;AOTx;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of AOT values (DailyStats: Preserve);NONE;NONE
+27;1;SOMOx;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of SOMO values (DailyStats: Max);NONE;NONE
+28;1;Target;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of Target radius values;TARGET;NONE
+29;3;One station/Group - All Values;8;FREE;FREE;FREE;FREE;1000*0100*;0;NO;11;Quantile-quantile plot for a given station. Independance of time. All points of the time series for a given station are represented.;NONE;NONE
+30;1;RPE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of RPE values. One threshold value is required: the number of exceedance days;RPE;NONE
+31;7;Hourly/Daily Values (OU);10;FREE;FREE;FREE;FREE;0001*;1;YES;11;summary report: The threshold value is the limit value.;OU;PMEAN
+32;7;Yearly averages (OU);10;0;0;FREE;0;0001*;1;YES;11;Summary report: The threshold value is the limit value.;OU;PMEAN
+33;1;FAC2;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of FAC2 values;NONE;NONE
+52;1;Normalized (OU);4;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Target diagram. Based on Target for daily and hourly values and on Bugle for annual averages. This diagram is based on the normalized RMSE (or MFB for annual) and will work only if a performance criteria is available (check configuration file) and the choice of the users are fulfilling the conditions of application of this criteria.;OU;PP
+53;4;ModModObs;12;FREE;FREE;FREE;FREE;0100*0101*;0;YES;11;Statistics for comparing 2 model versions with observations;OU;PMEAN
+54;1;NMSD;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of sigma ratio values;MFS;NONE
+55;1;Normalized (OU);4;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;00;Target diagram. Based on Target for daily and hourly values and on Bugle for annual averages. This diagram is based on the normalized RMSE (or MFB for annual) and will work only if a performance criteria is available (check configuration file) and the choice of the users are fulfilling the conditions of application of this criteria.;OU;PMEAN
+56;5;Conditional Multi Stations;2;FREE;FREE;FREE;FREE;1000*1001*;3;NO;11;Conditional Scatter plot of stations mean values. Each single point represents average statistics for a given station. Three input values: 1) the variable index (0 or 1) on wich the condition applies and 2 and 3) the threshold values;NONE;NONE
+57;6;Param1 vs Param2 Single station;2;FREE;FREE;FREE;FREE;1000*;0;NO;11;Scatter plot with one parameter against a second one. Available for one station at a time.;NONE;NONE
+58;8;Mean;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;1;NO;11;Google Earth mean values. Val1=Target value. Example: NO2 40, PM10 40, PM25 25.;NONE;NONE
+59;8;ExcHrs/Days;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;2;NO;11;Google Earth ExcDays/ExcHours. Val1=Reference level. Val2=Target Value. ExcDays: Examples: O3 120 25, PM10 50 35, SO2 125 3. ExcHrs: Examples: NO2 200 18, SO2 350 24.;NONE;NONE
+60;8;Bias;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth Bias ;NONE;NONE
+61;8;NMB;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth Mean Fractional Bias;NONE;NONE
+62;8;Stddev;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth Stddev;NONE;NONE
+63;8;R;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth CorrCoeff. Val1=Target value. Example .8;NONE;NONE
+64;8;RMSE;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth RMSE;NONE;NONE
+65;8;AOTx;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;2;NO;11;Google Earth AOTx. DailyStats=Preserve. Val1=Reference level. Val2=Target Value. Example: O3 80 6;NONE;NONE
+66;8;SOMOx;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;2;NO;11;Google Earth SOMOx. DailyStats=Max. Val1=Reference level. Val2=Target Value. Example O3 35 5;NONE;NONE
+67;8;RDEx;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;2;NO;11;Google Earth RDEx. Val1=Reference level. Val2=Target Value;NONE;NONE
+68;8;sigM/sigO;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth SigM/sigO;NONE;NONE
+69;8;NMSD;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth MeanFractionalStddev;NONE;NONE
+70;8;Target;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth Target;NONE;NONE
+71;1;Delta (Day-Night);12;FREE;FREE;FREE;0;*1000*0100*0001*1001*0101*;0;NO;11;Dynamic Evaluation (Day-Night), additional selection fixed: Year, Summer(JJA), Winter(DJF);NONE;NONE
+72;1;Delta (Summer-Winter);12;FREE;FREE;0;FREE;*1000*0100*0001*1001*0101*;0;NO;11;Dynamic Evaluation (Summer-Winter), additional selection fixed: Day(7-19), Night(0-6,19-24), WD(Mo-Fr), WE(Sa-Su);NONE;NONE
+73;1;Delta (Weekdays-WeekEnd);12;FREE;FREE;FREE;0;*1000*0100*0001*1001*0101*;0;NO;11;Dynamic Evaluation (WD-WE), additional selection fixed: Year, Summer(JJA), Winter(DJF);NONE;NONE
+74;1;Forecast;4;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Target diagram for forecast. Based on Target for daily and hourly values and on Bugle for annual averages. This diagram is based on the normalized RMSE (or MFB for annual) and will work only if a performance criteria is available (check configuration file) and the choice of the users are fulfilling the conditions of application of this criteria.;OU;PMEAN
+9991;1;Test O3 GC 1;0;NONE;NONE;NONE;1;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;R;8HMAX
+9992;1;Test O3 GC 2;0;NONE;NONE;NONE;1;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;OU;8HMAX
+9993;1;Test O3 GC 3;0;NONE;NONE;NONE;1;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RDE;8HMAX
+9981;1;Test PM10 GC 1;0;NONE;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;OU;PMEAN
+9982;1;Test PM10 GC 2;0;NONE;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RDE;PMEAN
+9983;1;Test PM10 GC 3;0;NONE;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RPE;PMEAN
+9984;1;Test PM10 GC 4;0;NONE;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;OU;YEAR
+9985;1;Test PM10 GC 5;0;NONE;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RDE;YEAR
+9986;1;Test PM10 GC 6;0;NONE;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RPE;YEAR
+9971;1;Test PM25 GC 1;0;NONE;1;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;OU;PMEAN
+9972;1;Test PM25 GC 2;0;NONE;1;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RDE;PMEAN
+9973;1;Test PM25 GC 3;0;NONE;1;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RPE;PMEAN
+9974;1;Test PM25 GC 4;0;NONE;1;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;OU;YEAR
+9975;1;Test PM25 GC 5;0;NONE;1;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RDE;YEAR
+9976;1;Test PM25 GC 6;0;NONE;1;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RPE;YEAR
+9961;1;Test NO2 GC 1;0;1;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;OU;PP
+9962;1;Test NO2 GC 2;0;1;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RDE;PP
+9963;1;Test NO2 GC 3;0;1;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RPE;PP
+9951;1;Test WS GC 1;0;NONE;NONE;1;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;IOA;ALL
+9952;1;Test WS GC 2;0;NONE;NONE;1;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;BIAS;ALL
+9953;1;Test WS GC 3;0;NONE;NONE;1;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RMSE;ALL
+993;1;Test Negative;0;NONE;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;R;PMEAN
+992;1;Test Negative 1;0;NONE;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;IOA;8HMAX
+991;1;Test Negative 2;0;NONE;1;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;MNB;YEAR
+990;1;Test Negative 3;0;2;NONE;NONE;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;Target;PP
+989;1;Test Negative 4;0;NONE;NONE;1;NONE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;RPE;ALL
+988;1;Test Negative 5;0;FREE;NONE;NONE;3;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;YES;11;Barplots of mean values;MFS;ALL
