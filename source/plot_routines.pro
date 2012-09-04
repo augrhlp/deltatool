@@ -188,7 +188,7 @@ PRO FM_PlotBars, plotter, request, result
   musstr=''
   for i=0,n_elements(mus)-1 do musstr=musstr+'['+mus(i)+'] '
   ytitle='Units '+musstr
-  if elabCode eq 2 or elabCode eq 15 then ytitle='Units [1] '
+  if elabCode eq 2 or elabCode eq 14 then ytitle='Units [1] '
   if elabCode eq 9  then ytitle='Units [Number of days] '
   if elabCode eq 8  or elabCode eq 30 or elabCode eq 33 $
     or elabCode eq 23 or elabCode eq 24 or elabCode eq 3 then ytitle='Units [%] '
@@ -847,7 +847,7 @@ PRO FM_PlotScatter, plotter, request, result
   allDataColor=targetInfo->getColors()
   modelCodes=request->getModelCodes()
   nobs=request->getSingleObsNumber()
-  totalStationNb=nobs
+
   groupTitles=request->getGroupTitles()
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
@@ -860,6 +860,8 @@ PRO FM_PlotScatter, plotter, request, result
   psFact=plotter->getPSCharSizeFactor()
   dims=size(allDataXY,/dimensions)
   nobs=dims(0)/npar/nmod/nsce
+  ; KeesC 31AUG2012
+  totalStationNb=nobs
   nmulti=npar*nsce*nmod*nobs
   maxAxis=max([0,max(allDataXY,/nan)])*1.2
   minAxis=min([0,min(allDataXY,/nan)])

@@ -23,6 +23,7 @@ PRO FM_Generic, request, result
   nreg=0
   if isSingleSelection then begin
     obsNames=request->getSingleObsNames()
+    obsCodes=request->getSingleObsCodes()
     nobsS=request->getSingleObsNumber()
     singleRawData=result->getSingleRawData()
     singleRDMatrix=result->getSingleRawDataCheckMatrix(sMonitIndexes, sRunIndexes)
@@ -92,6 +93,87 @@ PRO FM_Generic, request, result
     statXYResult
 
   nobs=nobsS+ngroup   ; redefined = number of single stations + number of groups
+  
+; Make dump file
+  atxt=systime()
+  atxt=strsplit(atxt,' ',/extract)
+  ctxt=strsplit(atxt(3),':',/extract)
+  dtxt=ctxt(0)+'h'+ctxt(1)+'m'+ctxt(2)
+  btxt=atxt(2)+'-'+atxt(1)+'-'+atxt(4)+'-'+dtxt
+  fname='DumpFile.txt'   ;+btxt+'.txt'
+  request->openDataDumpFile, fname
+  fsm=obj_new('FMFileSystemManager')
+  PATHDUMP=fsm->getDumpDir()
+  PATHDUMP=PATHDUMP+'\'
+  txthlp=systime()
+  request->writeDataDumpFileRecord, txthlp
+  txthlp='elabCode = '+strcompress(fix(elabCode),/remove_all)
+  request->writeDataDumpFileRecord, txthlp
+  txthlp='npar = '+strcompress(fix(npar),/remove_all)
+  request->writeDataDumpFileRecord, txthlp
+  txthlp='nmod = '+strcompress(fix(nmod),/remove_all)
+  request->writeDataDumpFileRecord, txthlp
+  txthlp='nsce = '+strcompress(fix(nsce),/remove_all)
+  request->writeDataDumpFileRecord, txthlp
+  txthlp='nstat = '+strcompress(fix(nobsS),/remove_all)
+  request->writeDataDumpFileRecord, txthlp
+  txthlp='ngroup = '+strcompress(fix(ngroup),/remove_all)
+  request->writeDataDumpFileRecord, txthlp
+  atxt=''
+  for ipar=0,npar-1 do atxt=atxt+parCodes(ipar)+' '
+  txthlp='parCodes = '+atxt
+  request->writeDataDumpFileRecord, txthlp
+  atxt=''
+  for imod=0,nmod-1 do atxt=atxt+modelCodes(imod)+' '
+  txthlp='modelCodes = '+atxt
+  request->writeDataDumpFileRecord, txthlp
+  atxt=''
+  for isce=0,nsce-1 do atxt=atxt+scenarioCodes(isce)+' '
+  txthlp='scenarioCodes = '+atxt
+  request->writeDataDumpFileRecord, txthlp
+  if nobsS ge 1 then begin
+    atxt=''
+    for istat=0,nobsS-1 do atxt=atxt+obsCodes(istat)+' '
+    txthlp='stationCodes = '+atxt
+    request->writeDataDumpFileRecord, txthlp
+  endif
+  if ngroup ge 1 then begin
+    atxt=''
+    for igr=0,ngroup-1 do atxt=atxt+groupTitles(igr)+' '
+    txthlp='groupCodes = '+atxt
+    request->writeDataDumpFileRecord, txthlp
+    for igr=0,ngroup-1 do begin
+      atxt=''
+      groupigr=*groupCodes[igr]
+      ngr=n_elements(groupigr)
+      for iigr=0,ngr-1 do atxt=atxt+groupigr[iigr]+' '
+      txthlp=groupTitles[igr]+':  '+atxt
+      request->writeDataDumpFileRecord, txthlp
+    endfor
+  endif
+  for ipar=0,npar-1 do begin
+  for imod=0,nmod-1 do begin
+  for isce=0,nsce-1 do begin  
+    if nobsS ge 1 then begin
+      for istat=0,nobsS-1 do begin
+        atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' S '+obsCodes(istat)
+        txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,istat,0),/remove_all)+' '+$
+          strcompress(statXYResult(ipar,imod,isce,istat,1),/remove_all)
+        request->writeDataDumpFileRecord, txthlp
+      endfor  
+    endif
+    if ngroup ge 1 then begin
+      for igr=0,ngroup-1 do begin
+        atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' G '+groupTitles(igr)
+        txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
+          strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)
+        request->writeDataDumpFileRecord, txthlp
+      endfor
+    endif
+  endfor
+  endfor
+  endfor
+  request->closeDataDumpFile
   
 ; KeesC suppress stations with NaN: station should have values for all pars, all mods, and all sceno  
   statValidO=intarr(nobs) & statValidO(*)=-1 
@@ -1178,16 +1260,16 @@ if isSingleSelection then begin
 
     txt=string(obsnames(i),obsCodes(i), regNamesAll(i),categoryInfo(1,i),$
       obsLongitudes(i), obsLatitudes(i), obsAltitudes(i),$
-      rmse(obsTemp, runTemp)/(2.*CriteriaOU(0)),$
-      bias(obsTemp, runTemp)/(2.*CriteriaOU(0)),crmse(obsTemp, runTemp)/(2.*CriteriaOU(0)),$
+      rmse(obsTemp, runTemp)/stddevOM(obsTemp),$
+      bias(obsTemp, runTemp)/stddevOM(obsTemp),crmse(obsTemp, runTemp)/stddevOM(obsTemp),$
       mean(obsTemp),mean(runTemp),stddevOM(obsTemp),stddevOM(runTemp),$
       nmb(obsTemp, runTemp)/100.,$
       correlate(obsTemp, runTemp),rde(obsTemp,runTemp,extraVal(0))/100.,$
       nmb(stddevOM(runTemp),stddevOM(obsTemp)),$
       statXYResultS(i,1),statXYResultS(i,5), $
-      rmse(obsTemp, runTemp)/(2.*CriteriaOU(0)),CriteriaOU(0),$
-      format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
-    request->writeDataDumpFileRecord, txt
+      rmse(obsTemp, runTemp)/(2.*CriteriaOU(0)),$
+      format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,20(1x,f8.3))')
+    request->writeDataFileRecord, txt
 
   endfor
   request->closeDataDumpFile
