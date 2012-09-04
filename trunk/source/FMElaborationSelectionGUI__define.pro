@@ -1,5 +1,12 @@
 ;getExtraFlagsLongLabelXSize+ getExtraFlagsLongLabelXSize+getExtraFlagsShortLabelXSize
 ; external
+
+FUNCTION FMElaborationSelectionGUI::getMainMgr
+
+ return, self->getMgr()
+
+END
+
 FUNCTION FMElaborationSelectionGUI::checkIntegrity
 
  return, self.info->checkIntegrity(self)

@@ -1,3 +1,9 @@
+FUNCTION GUI::getMgr
+
+ return, self.mgr
+
+END
+
 FUNCTION GUI::getScreenSize
 
  return, self.screenSize

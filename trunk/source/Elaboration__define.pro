@@ -34,7 +34,7 @@ PRO Elaboration::fillDataFromFile, fileName
     ERROR=1
     catch, /CANCEL
     close, /all
-    errMsg=dialog_message('problem with file: <'+fileName+'> check existence or read permission.', /ERROR)
+    errMsg=dialog_message('problem with file: <'+fileName+'> check existence, version or read permission.', /ERROR)
   endif
   
   openr, unit, fileName, /GET_LUN
@@ -58,7 +58,10 @@ PRO Elaboration::fillDataFromFile, fileName
     ;print, bufferString
     endif else begin
       info=strsplit(bufferString, ';', /EXTRACT)
-      if n_elements(info) eq 13 then begin
+      ; Modified summer 2012 MM start
+      fixedInfoNo=13
+      totInfoNo=n_elements(info)
+      if totInfoNo ge fixedInfoNo then begin
         thisElab=getFMElaboration()
         thisElab.code=fix(info[0])
         thisElab.idlRoutineCode=fix(info[1])
@@ -76,7 +79,9 @@ PRO Elaboration::fillDataFromFile, fileName
         if strupcase(info[10]) eq 'YES' then thisElab.goalsCriteriaOCFlag=1 else thisElab.goalsCriteriaOCFlag=0
         thisElab.mode=info[11]
         thisElab.description=info[12]
+        if totInfoNo gt fixedInfoNo then thisElab.extraInfos=ptr_new(info[13:*], /NO_COPY)  
         elabs=[elabs, thisElab]
+      ; Modified summer 2012 MM end
       endif else begin
         print, 'Bad conf file at line', i, bufferString
       endelse
@@ -110,6 +115,26 @@ END
 ; return, thisList[idx].plotCodes
 ;
 ;END
+
+FUNCTION Elaboration::getGoalsCriteriaOCFlagByCode, code
+
+  thisList=*self.list
+  idx=(where(code eq thisList.code))[0]
+  return, thisList[idx].goalsCriteriaOCFlag
+  
+END
+
+; MM summer 2012 Start
+FUNCTION Elaboration::getExtraInfosByCode, code, index=index
+
+  thisList=*self.list
+  idx=(where(code eq thisList.code))[0]
+  
+  if ptr_valid(thisList[idx].extraInfos) then infos=*thisList[idx].extraInfos else return, ''
+  if n_elements(index) ne 0 then return, infos[index] else return, infos
+  
+END
+; MM summer 2012 End
 
 FUNCTION Elaboration::getIDLRoutineByCode, code
 
@@ -212,6 +237,13 @@ FUNCTION Elaboration::getDescriptions, NOFILTER=NOFILTER
   return, thisList[*].description
   
 END
+
+FUNCTION Elaboration::getExtraInfos, NOFILTER=NOFILTER
+
+  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  return, thisList[*].extraInfos
+  
+END
 ;*******************************
 ;constructor/destructor
 ;*******************************
@@ -240,6 +272,7 @@ PRO Elaboration::streamPrint
     print, '**** numberRefValue:<', thisList[i].numberRefValue, '>'
     print, '**** StdAdvancedUserFlags:<', thisList[i].mode, '>'
     print, '**** description:<', thisList[i].description, '>'
+    print, '**** extra info:<', thisList[i].extraInfo, '>'
     print, '**'
   endfor
   

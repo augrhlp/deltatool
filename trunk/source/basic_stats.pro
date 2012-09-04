@@ -1,6 +1,12 @@
 ;********************
 @structure_definition
 ;********************
+;  ;MM summer 2012 Start
+;  ;for Goals & Criteria now you can use (two new columns added in elaboration.dat)
+;  ;elaboration related info called OCTimeAvgName & OCStat 
+;  OCTimeAvgName=request->getElaborationOCTimeAvgName()
+;  OCStat=request->getElaborationOCStat()
+;  ;MM summer 2012 End
 function rmses, obsValues, runValues
 
   valNum=n_elements(obsValues)
@@ -207,11 +213,22 @@ function sumsquare, obsValues
 end
 pro obs_run_nan, request,result,obsValues, runValues
 
-  scaleInfo=request->getScaleInfo()
-  res_scale=strsplit(scaleInfo,';',/extract)
-  year=fix(strcompress(res_scale[1],/remove_all))
+  ;MM summer 2012 Start
+  ;Now you have 
+  ;request->getModelInfo()
+  modelInfo=request->getModelInfo()
+  ;use in this way:
+  year=modelInfo.year
+  scale=modelInfo.scale
+  dataAssimilation=modelInfo.dataAssimilation
+  ;MM summer 2012 End
+  ;JRC Version Start
+  ;scaleInfo=request->getScaleInfo()
+  ;res_scale=strsplit(scaleInfo,';',/extract)
+  ;year=fix(strcompress(res_scale[1],/remove_all))
 ; KeesC 2009
-  year=2009
+  ;year=2009
+  ;JRC Version End
   elabcode=request->getElaborationCode()
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
@@ -789,11 +806,22 @@ pro time_operations, request, result, obsTemp, runTemp
   ; selection of averaging time information
   ;************************************
 
-  scaleInfo=request->getScaleInfo()
-  res_scale=strsplit(scaleInfo,';',/extract)
-  year=fix(strcompress(res_scale[1],/remove_all))
+  ;MM summer 2012 Start
+  ;Now you have 
+  ;request->getModelInfo()
+  modelInfo=request->getModelInfo()
+  ;use in this way:
+  year=modelInfo.year
+  scale=modelInfo.scale
+  dataAssimilation=modelInfo.dataAssimilation
+  ;MM summer 2012 End
+  ;JRC VErsion Start
+  ;scaleInfo=request->getScaleInfo()
+  ;res_scale=strsplit(scaleInfo,';',/extract)
+  ;year=fix(strcompress(res_scale[1],/remove_all))
  ;KeesC 2009
-  year=2009
+  ;year=2009
+  ;JRC Version End
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
   elabcode=request->getElaborationCode()

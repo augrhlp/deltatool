@@ -119,7 +119,12 @@ FUNCTION ElaborationDisplayInfo::checkIntegrity, view, NODISPLAYCHECK=NODISPLAYC
     endelse
   endif
   ;KeesC leapyear
-  year=2009
+  ;year=2009
+  ;MM summer 2012 Start
+  mainMgr=view->getMainMgr()
+  mInfo=mainMgr->getModelInfo()
+  year=mInfo.year
+  ;MM summer 2012 End
   dateExists=self.dtu->checkDate(year, month=self->getStartMonthSelection()+1, day=self->getStartDaySelection()+1, hour=self->getStartHourSelection(), julnumber=sDate)
   if dateExists ne 1 then begin
     msg=view->dialogMessage('Check start date existence',title='Check your data')

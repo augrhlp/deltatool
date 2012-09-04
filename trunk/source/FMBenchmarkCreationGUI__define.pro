@@ -81,6 +81,13 @@ FUNCTION FMBenchMarkCreationGUI::checkIntegrity
   
 END
 
+PRO FMBenchMarkCreationGUI::displaySummary
+
+  help, self.mgr
+;self.mgr
+  
+END
+
 PRO FMBenchMarkCreationGUI::okRequest
 
   if self->checkIntegrity() then begin
@@ -106,6 +113,18 @@ PRO FMBenchMarkCreationGUI::userEditBatch
 
   self->disable
   self.mgr->userEditBatch
+  
+END
+
+PRO FMBenchMarkCreationGUI::userShowRequestBatch
+
+  if self.mgr->selectionIsFilled() then begin
+    self->disable
+    self.mgr->userShowRequestBatch
+  endif else begin
+    message=['Fill with a selection to get summary info.']
+    dlgResult=dialog_message(message, dialog_parent=self->getTopBase(), Title='Warning')
+  endelse
   
 END
 
@@ -580,6 +599,8 @@ PRO FMBenchMarkCreationGUI::buildSplitStyleSection, base
     
   editBtt=widget_button(batchOperationBase, value='Edit', UNAME='EDITBATCH', $
     event_pro=self.eventprefix+'editBatch', SCR_XSIZE=55, SCR_YSIZE=55, /ALIGN_CENTER)
+  showBtt=widget_button(batchOperationBase, value='Show', UNAME='SHOWBATCH', $
+    event_pro=self.eventprefix+'showRequestBatch', SCR_XSIZE=55, SCR_YSIZE=55, /ALIGN_CENTER)
     
 END
 
@@ -832,7 +853,6 @@ PRO FMBenchMarkCreationGUI::cleanUp
 
   ptr_free, self.pageModeButtons
   self -> GUI::cleanUp
-  
   
 END
 

@@ -1,3 +1,9 @@
+FUNCTION FMBatchElaborationSelectionGUI::getMainMgr
+
+ return, self.mgr->getMainMgr()
+
+END
+
 PRO FMBatchElaborationSelectionGUI::updateToCaller
 
   ; change the back calling

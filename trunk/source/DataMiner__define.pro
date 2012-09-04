@@ -59,7 +59,7 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
           infoyr=info[0]
           iyear=1
         endif
-        HEADER=strcompress(info,/remove_all)
+        HEADER=info
         storeData=strarr(n_elements(info), 8784)  ;8760
         k=0
       endif else begin

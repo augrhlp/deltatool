@@ -951,18 +951,21 @@ END
 ; ****************************
 FUNCTION FMFileSystemManager::readStartUpFile, filename
 
-  ERROR=0
-  catch, error_status
-  
-  if error_status NE 0 THEN BEGIN
-    ERROR=1
-    catch, /CANCEL
-    errMsg=dialog_message('problem with file: <'+fileName+'> check existence or read permission.', /ERROR)
-  endif
+;  ERROR=0
+;  catch, error_status
+;  
+;  if error_status NE 0 THEN BEGIN
+;    ERROR=1
+;    catch, /CANCEL
+;    errMsg=dialog_message('problem with file: <'+fileName+'> check existence, contents or read permission.', /ERROR)
+;  endif
   
   openr, unit, fileName, /GET_LUN
   
   bufferString=''
+  ;MM summer 2012 start
+  modelTypeInfo=getFMModelInfoStruct()
+  ;MM summer 2012 end
   i=0
   while not(eof(unit)) do begin
     readf, unit, bufferString
@@ -976,14 +979,17 @@ FUNCTION FMFileSystemManager::readStartUpFile, filename
     ; void string string is discarded
     ; [ header is discarded
     if (check1+check2) gt 0 or null then begin
-;      print, 'Discard row', i
-;      print, bufferString
+    ;      print, 'Discard row', i
+    ;      print, bufferString
     endif else begin
-      ; New february 1st 2011 MM
-      if strmid(strupcase(bufferString),1,5) eq 'SCALE' then begin
-        scaleInfo=self->readScaleSection(unit)
+      ; MM summer 2012 Start
+      ;      if strupcase(bufferString) eq self.scaleHeader then begin
+      ;        scaleInfo=self->readScaleSection(unit)
+      ;      endif
+      if strupcase(bufferString) eq self.modelHeader then begin
+        modelInfo=self->readModelSection(unit)
       endif
-      ; End MM
+      ; MM summer 2012 End
       if strupcase(bufferString) eq self.parameterHeader then begin
         parameterInfo=self->readParametersSection(unit, monitInfo=monitInfo)
       endif
@@ -1010,7 +1016,9 @@ FUNCTION FMFileSystemManager::readStartUpFile, filename
   
   close, unit & free_lun, unit
   ; New february 1st 2011 MM
-  return, {statData:monitInfo.data, statSummary:statSummary, parametersSummary:parameterInfo, scaleSummary:scaleInfo}
+  ;return, {statData:monitInfo.data, statSummary:statSummary, parametersSummary:parameterInfo, scaleSummary:scaleInfo, modelTypeSummary:modelTypeInfo}
+  ; MM summer 2012 MM
+  return, {statData:monitInfo.data, statSummary:statSummary, parametersSummary:parameterInfo, modelSummary:modelInfo}
   
 END
 
@@ -1050,8 +1058,8 @@ PRO FMFileSystemManager::loadInitFileData, parameterNames=parameterNames, parame
     check3=(strpos(checkFirst, '#')+1) > 0
     null=strlen(checkFirst) eq 0
     if (check1+check2+check3+void) gt 0 or null then begin
-;      print, 'Discard row', i
-;      print, bufferString
+    ;      print, 'Discard row', i
+    ;      print, bufferString
     endif else begin
       info=strsplit(bufferString, '=', /EXTRACT)
       parameterNames=[parameterNames, info[0]]
@@ -1064,8 +1072,8 @@ PRO FMFileSystemManager::loadInitFileData, parameterNames=parameterNames, parame
   
 END
 
-; Modified february 1st 2011 MM
-PRO FMFileSystemManager::lookUpSystemData, scaleInfo=scaleInfo
+; Modified summer 2012 MM (V 3_0)
+PRO FMFileSystemManager::lookUpSystemData, modelInfo=modelInfo
 
   ; parameters from startup.ini
   ; stations from startup.ini
@@ -1087,8 +1095,12 @@ PRO FMFileSystemManager::lookUpSystemData, scaleInfo=scaleInfo
   ;parameters=self->buildUniqParameterList(monitStruct.parameters, runStruct.parameters)
   self->writeConfigurationFile, startUpInfo.statData, startUpInfo.statSummary, runInfo.data, runInfo.summary, startUpInfo.parametersSummary
   ; Start Modified february 1st 2011 MM
-  scaleInfo=startUpInfo.scaleSummary
-; End Modified february 1st 2011 MM
+  ;  scaleInfo=startUpInfo.scaleSummary
+  ;  modelTypeInfo=startUpInfo.modelTypeSummary
+  ; End Modified february 1st 2011 MM
+  ; MM summer 2012 MM start
+  modelInfo=startUpInfo.modelSummary
+; MM summer 2012 MM end
 ;stations data file - csv (category + observed_category + observed)
 ;parameter data - header of station_data files and header of monitoring (parameter, run_parameter, observed_parameter)
 ;model_file model+scenario (scenario, model, run)
@@ -1116,8 +1128,8 @@ FUNCTION FMFileSystemManager::readMonitoringSection, unit, parameterInfo=paramet
     ; #, ; is a comment
     ; void string string is discarded
     if (check1+check2) gt 0 or null then begin
-;      print, 'Discard row', i
-;      print, bufferString
+    ;      print, 'Discard row', i
+    ;      print, bufferString
     endif else begin
       info=strsplit(bufferString, ';', /EXTRACT)
       if n_elements(info) eq 12 then begin
@@ -1151,7 +1163,7 @@ FUNCTION FMFileSystemManager::readMonitoringSection, unit, parameterInfo=paramet
 END
 
 FUNCTION FMFileSystemManager::readRunFiles, runDir
-; KeesC 31MAY2012
+  ; KeesC 31MAY2012
   wild='*.cdf'
   filenamescdf=file_search(runDir+wild)
   wild='*.csv'
@@ -1171,7 +1183,7 @@ FUNCTION FMFileSystemManager::readRunFiles, runDir
     filename=strsplit(filenames[i], self->getSystemDirSeparator(), /EXTRACT)
     filename=filename[n_elements(filename)-1]
     extPos=strpos(filename, '.', /REVERSE_SEARCH)
-;    name=strmid(filename, 0, extPos-1)  ; KeesC 31MAY2012
+    ;    name=strmid(filename, 0, extPos-1)  ; KeesC 31MAY2012
     name=strmid(filename, 0, extPos)
     ext=strmid(filename,extPos+1,3)
     info=strsplit(name, '_', /EXTRACT)
@@ -1202,10 +1214,43 @@ FUNCTION FMFileSystemManager::readRunFiles, runDir
   
 END
 
-FUNCTION FMFileSystemManager::readScaleSection, unit
+;FUNCTION FMFileSystemManager::readScaleSection, unit
+;
+;  bufferString=''
+;  i=0
+;  while not(eof(unit)) do begin
+;    readf, unit, bufferString
+;    i++
+;    checkFirst=strmid(bufferString, 0,1)
+;    check1=(strpos(checkFirst, ';')+1) > 0
+;    check2=(strpos(checkFirst, '#')+1) > 0
+;    null=strlen(strcompress(bufferString, /REMOVE)) eq 0
+;    ; #, ; is a comment
+;    ; void string string is discarded
+;    if (check1+check2) gt 0 or null then begin
+;    ;      print, 'Discard row', i
+;    ;      print, bufferString
+;    endif else begin
+;      scaleName=bufferString
+;      break
+;    endelse
+;  endwhile
+;  return, scaleName
+;  
+;END
+
+; MM summer 2012 Start
+FUNCTION FMFileSystemManager::readModelSection, unit
 
   bufferString=''
+  undefined='Undefined'
+  ;default values
+  modelInfo=getFMModelInfoStruct()
+  modelInfo.scale=undefined
+  modelInfo.dataAssimilation=undefined
+  modelInfo.year=2009
   i=0
+  pos=1
   while not(eof(unit)) do begin
     readf, unit, bufferString
     i++
@@ -1216,17 +1261,22 @@ FUNCTION FMFileSystemManager::readScaleSection, unit
     ; #, ; is a comment
     ; void string string is discarded
     if (check1+check2) gt 0 or null then begin
-;      print, 'Discard row', i
-;      print, bufferString
+    ;      print, 'Discard row', i
+    ;      print, bufferString
     endif else begin
-      scaleName=bufferString
-      break
+      if pos eq 1 then modelInfo.year=fix(bufferString)
+      if pos eq 2 then modelInfo.dataAssimilation=bufferString
+      if pos eq 3 then begin
+        modelInfo.scale=bufferString
+        break
+      endif
+      pos++
     endelse
   endwhile
-  return, scaleName
+  return, modelInfo
   
 END
-; End MM
+; MM summer 2012 End
 
 FUNCTION FMFileSystemManager::readParametersSection, unit, monitInfo=monitInfo
 
@@ -1248,8 +1298,8 @@ FUNCTION FMFileSystemManager::readParametersSection, unit, monitInfo=monitInfo
     ; #, ; is a comment
     ; void string string is discarded
     if (check1+check2) gt 0 or null then begin
-;      print, 'Discard row', i
-;      print, bufferString
+    ;      print, 'Discard row', i
+    ;      print, bufferString
     endif else begin
       info=strsplit(bufferString, ';', /EXTRACT)
       if n_elements(info) eq 3 then begin
@@ -1409,8 +1459,8 @@ PRO FMFileSystemManager::loadObservationList, fileName, singleCodes, groupNames,
     check3=(strpos(checkFirst, '#')+1) > 0
     null=strlen(checkFirst) eq 0
     if (check1+check2+check3) gt 0 or null then begin
-;      print, 'Discard row', i
-;      print, bufferString
+    ;      print, 'Discard row', i
+    ;      print, bufferString
     endif else begin
       info=strsplit(bufferString, '=', /EXTRACT)
       parameterNames=[parameterNames, info[0]]
@@ -1631,6 +1681,12 @@ FUNCTION FMFileSystemManager::getRunFileExtension
   
 END
 
+FUNCTION FMFileSystemManager::getAvailableRunFileExtension
+
+  return, ['.cdf', '.csv']
+  
+END
+
 FUNCTION FMFileSystemManager::getSplashLogoFileName
 
   fileName=self->getResourceDir(/WITH)
@@ -1753,6 +1809,9 @@ FUNCTION FMFileSystemManager::init
   self.utility=obj_new('FMUtility')
   self.parameterHeader='[PARAMETERS]'
   self.monitoringHeader='[MONITORING]'
+  ;self.scaleHeader='[SCALE]'
+  ;self.modelTypeHeader='[MODELTYPE]'
+  self.modelHeader='[MODEL]'
   self.singlePrefix='SINGLE*'
   self.groupNamePrefix='GROUP*'
   self.groupCodesPrefix='GROUPCODES*'
@@ -1780,6 +1839,11 @@ PRO FMFileSystemManager__Define
     singlePrefix: '', $
     parameterHeader: '', $
     monitoringHeader:'', $
+    ;MM summer 2012 Start
+;    scaleHeader:'', $
+;    modelTypeHeader:'', $
+    modelHeader: '', $
+    ;MM summer 2012 End
     groupStatPrefix: '', $
     groupNamePrefix: '', $
     groupCodesPrefix: '', $

@@ -1,3 +1,14 @@
+FUNCTION getFMModelInfoStruct
+
+ struct = { modelInfo, $
+      scale: '', $
+      dataAssimilation: '', $
+      year: 0 $
+ }
+ return, struct
+
+END
+
 FUNCTION getSplitInfoStruct
 
  struct = { splitInfo, $
@@ -649,9 +660,11 @@ FUNCTION getFMElaboration
       numberRefValue: 0, $
       goalsCriteriaOCFlag: 0, $
       mode: '', $
-			description: '' $
+      description: '', $
+      extraInfos: ptr_new() $
  }
  ptr_free, struct.multipleChoiceFlags
+ ptr_free, struct.extraInfos
  return, struct
 
 END
