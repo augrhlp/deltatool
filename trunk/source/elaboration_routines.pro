@@ -216,9 +216,10 @@ PRO SG_Computing, $
             time_operations, request, result, obsTemp, runTemp
             obs_run_nan,request,result,obsTemp, runTemp
           endif
-          longShort=0
-          if elabCode eq 10 then longShort=1
-          CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, longShort,alpha,criteriaOrig,LV,nobsAv
+   
+          longshort=0
+          if elabCode eq 10 then longshort=1       
+          CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, longshort,alpha,criteriaOrig,LV,nobsAv
           
           if elabcode eq 0 then begin
             statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
@@ -235,11 +236,6 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=correlate(obsTemp,runtemp)
             statXYGroup[i1,i2,i3,i4]=abs(correlate(obsTemp,runtemp))
           endif
-;          if elabcode eq 22 then begin
-;            statxyresult[i1,i2,i3,i4,0]=mean(obstemp)
-;            statxyresult[i1,i2,i3,i4,1]=mean(runtemp)
-;            statxygroup[i1,i2,i3,i4]=abs(correlate(obstemp,runtemp))  ;not used
-;          endif
           if elabcode eq 3 then begin
             statXYResult[i1,i2,i3,i4,0]=mean(runTemp)-mean(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp)-mean(obsTemp)
@@ -301,10 +297,11 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=i4  ;not used
             statXYGroup[i1,i2,i3,i4]=abs(statXYResult[i1,i2,i3,i4,0])
           endif
-          if elabcode eq 14 then begin  ;Taylor
-            statXYResult[i1,i2,i3,i4,0]=stddevOM(runTemp)/(2.*criteriaOU)
-            statXYResult[i1,i2,i3,i4,1]=correlate(obsTemp,runTemp)
-            statXYGroup[i1,i2,i3,i4]=crmse(obsTemp,runTemp)
+          if elabcode eq 14 then begin  ;Spatial Corr
+          ; KeesC
+            statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
+            statXYResult[i1,i2,i3,i4,1]=mean(runTemp)
+            statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))  ;??
           endif
           if elabcode eq 15 then begin ; R buggle
             statXYResult[i1,i2,i3,i4,0]=criteriaOU/stddevOM(obsTemp)
@@ -477,6 +474,11 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp)
           endif
         endfor  ;i4
+        if elabCode eq 14 then begin       
+          spatCorr=!values.f_nan
+          statXYResult[i1,i2,i3,0,0]=spatCorr   ; other i4 values not used
+          statXYResult[i1,i2,i3,0,1]=spatCorr
+        endif
       endfor  ;i3  nsce
     endfor  ;i2  nmod
   endfor  ;i1  npar        
@@ -523,8 +525,19 @@ PRO SG_Computing, $
           if countFinite gt 0 then begin
             obsGroupStatResult=reform(statXY0(ccFin))
             runGroupStatResult=reform(statXY1(ccFin))
-            obsStatResult=mean(obsGroupStatResult)
-            runStatResult=mean(runGroupStatResult)
+            if elabCode ne 14 then begin
+              obsStatResult=mean(obsGroupStatResult)
+              runStatResult=mean(runGroupStatResult)
+            endif  
+            if elabCode eq 14 then begin
+              if ncurrNames ge 2 then begin
+                spatCorr=correlate(obsGroupStatResult,runGroupStatResult)
+              endif else begin
+                spatCorr=!values.f_nan
+              endelse
+              obsStatResult=spatCorr 
+              RunStatResult=spatCorr
+            endif
             if elabCode eq 20 or elabcode eq 52 then begin            
               ccNeg=where(statXYGroupHlp lt 0.,countNeg)
               ccPos=where(statXYGroupHlp ge 0.,countPos)
@@ -1127,7 +1140,7 @@ if isSingleSelection then begin
 
   fileName=  modelCodes(0)+'_'+parcodes(0)+'.dat'  ;Printing only in case of single stations choice
   request->openDataDumpFile, fileName;/ADDSYSTIME; --> filename=StatisticName+systime+.txt
-  request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt targ targY targX MO MM SO SM NMB R RDE NMSD ExcO ExcM TargOU OU'
+  request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt targ targY targX MO MM SO SM NMB R RDE NMSD ExcO ExcM TargOU'
 
   statXYResultS=fltarr(forSLastIndex+1,nvar)
 
@@ -1154,12 +1167,10 @@ if isSingleSelection then begin
     statXYResultS(i,5)=countExcMod
     if statType gt 0 then statXYResultS(i,5)=statXYResultS(i,5)/24.
     if statType gt 0 then statXYResultS(i,1)=statXYResultS(i,1)/24.
-    
-    CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
+    CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv  
     statXYResultS(i,2)=(mean(runTemp)-mean(obsTemp))/(2*CriteriaOU)
     if elabCode eq 31 then CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
     if elabCode eq 32 then CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
-    
     statXYResultS(i,3)=(1.-correlate(obsTemp, runTemp))/(2*(CriteriaOU/stddevOM(obsTemp))^2)
     statXYResultS(i,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(2.*CriteriaOU)
     statXYResultS(i,7)=rde(obsTemp,runTemp,limitValue)
@@ -1240,6 +1251,10 @@ if isGroupSelection then begin
       statXYResultInt(j,2)=(mean(runTemp)-mean(obsTemp))/(2*CriteriaOU)
       statXYResultInt(j,3)=(1.-correlate(obsTemp, runTemp))/(2*(CriteriaOU/stddevOM(obsTemp))^2)
       statXYResultInt(j,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(2.*CriteriaOU)
+
+      ;      statXYResultInt(j,2)=nmb(obsTemp,runTemp)
+      ;      statXYResultInt(j,3)=abs(correlate(obsTemp, runTemp)/(1.-2*(CriteriaOU*mean(obsTemp)/stddevOM(obsTemp))^2))
+      ;      statXYResultInt(j,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(CriteriaOU*mean(obsTemp))
       statXYResultInt(j,7)=rde(obsTemp,runTemp,limitValue)
     endfor
 
