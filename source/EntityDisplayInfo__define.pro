@@ -203,9 +203,9 @@ FUNCTION EntityDisplayInfo::filterStationsCodesByParameters, originalCodes, NOMA
     ;singleNumber=n_elements(singleCodes)
     codeNumber=n_elements(originalCodes)
     valids=intarr(codeNumber)
-        hlp=strcompress(originalCodes,/remove_all)
+    hlp=strcompress(originalCodes,/remove_all)
     if hlp[0] ne '-1' then $
-      for i=0, codeNumber-1 do valids[i]=(where(originalCodes[i] eq selParStat))[0]     
+      for i=0, codeNumber-1 do valids[i]=(where(originalCodes[i] eq selParStat))[0]
     subsIndexes=where(valids ne -1, count)
     if count ne 0 then begin
       validCodes=originalCodes[where(valids ne -1)]
@@ -744,7 +744,7 @@ END
 ;  endif
 ;  ptr_free, self.parameterSelections
 ;  self.parameterSelections=ptr_new(list, /NO_COPY)
-;  
+;
 ;END
 ;
 ;FUNCTION EntityDisplayInfo::getParameterSelections, FILEMODE=FILEMODE
@@ -756,7 +756,7 @@ END
 ;  endif
 ;  if ptr_valid(self.parameterSelections) then return, *self.parameterSelections
 ;  return, -1
-;  
+;
 ;END
 
 PRO EntityDisplayInfo::setParameterCodeSelections, list, FILEMODE=FILEMODE
@@ -3111,10 +3111,10 @@ FUNCTION EntityDisplayInfo::clone, super, DEEP=DEEP
       list=*self.observedGroupStatNames
       clone.observedGroupStatNames=ptr_new(list, /NO_COPY)
     endif
-;    if ptr_valid(self.parameterSelections) then begin
-;      list=*self.parameterSelections
-;      clone.parameterSelections=ptr_new(list, /NO_COPY)
-;    endif
+    ;    if ptr_valid(self.parameterSelections) then begin
+    ;      list=*self.parameterSelections
+    ;      clone.parameterSelections=ptr_new(list, /NO_COPY)
+    ;    endif
     if ptr_valid(self.parameterCodeSelections) then begin
       list=*self.parameterCodeSelections
       clone.parameterCodeSelections=ptr_new(list, /NO_COPY)

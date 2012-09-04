@@ -1,6 +1,12 @@
 ;********************
 @structure_definition
 ;********************
+;  ;MM summer 2012 Start
+;  ;for Goals & Criteria now you can use (inside elaboration.dat)
+;  ;elaboration related info called OCTimeAvgName & OCStat 
+;  OCTimeAvgName=request->getElaborationOCTimeAvgName()
+;  OCStat=request->getElaborationOCStat()
+;  ;MM summer 2012 End
 FUNCTION CIRCLE, xcenter, ycenter, radius
 
   points = (2 * !PI / 99.0) * FINDGEN(100)
@@ -38,6 +44,12 @@ PRO FM_PlotBars, plotter, request, result
   elabcode=request->getElaborationCode()
   elabname=request->getElaborationName()
   mus=request->getParameterMeasureUnits()
+  ;MM summer 2012 Start
+  ;for Goals & Criteria now you can use
+  ;elaboration related info called OCTimeAvgName & OCStat 
+  OCTimeAvgName=request->getElaborationOCTimeAvgName()
+  OCStat=request->getElaborationOCStat()
+  ;MM summer 2012 End
   nmulti=npar*nsce*nmod
   ifree=reform(legNames(0,5))
   
@@ -45,7 +57,6 @@ PRO FM_PlotBars, plotter, request, result
   
   !y.range=[min([0,min(allDataXY,/nan)])*1.1, max([0,max(allDataXY,/nan)])*1.1]
   obsbar=1
-  ;KeesC
   if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54])) ge 0 then begin
     allDataXY(*,*,*,*,0)=0.
     obsbar=0
@@ -62,6 +73,7 @@ PRO FM_PlotBars, plotter, request, result
     allDataXY(*,*,*,*,0)=(!y.range(1)-!y.range(0))/50.
     obsbar=1
   endif
+  
   if ifree eq '1000' then begin
     plotVarObs=reform(allDataXY(*,*,0,0,0))
     plotVarMod=reform(allDataXY(*,*,0,0,1))
@@ -3849,16 +3861,32 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
   parCodes=request->getParameterCodes()
-  scaleInfo=request->getScaleInfo()
-  resScale=strsplit(scaleinfo,';',/extract)
-  scaleName=resScale(0)
-  scaleName=STRUPCASE(scaleName)
+;  scaleInfo=request->getScaleInfo()
+;  resScale=strsplit(scaleinfo,';',/extract)
+;  scaleName=resScale(0)
+;  scaleName=STRUPCASE(scaleName)
+  ;MM summer 2012 Start
+  ;Now you have 
+  ;request->getModelInfo()
+  modelInfo=request->getModelInfo()
+  ;use it in this way:
+  year=modelInfo.year
+  scale=modelInfo.scale
+  dataAssimilation=modelInfo.dataAssimilation
+  scaleName=strupcase(scale)
+  ;MM summer 2012 End
   hourStat=request->getGroupByTimeInfo() ;HourType
   flag_average=hourStat[0].value
   statType=request->getGroupByStatInfo() ;HourType
   isGroupSelection=request->isGroupObsPresent()
   isSingleSelection=request->isSingleObsPresent()
   elabcode=request->getElaborationCode()
+  ;MM summer 2012 Start
+  ;for Goals & Criteria now you can use
+  ;elaboration related info called OCTimeAvgName & OCStat 
+  OCTimeAvgName=request->getElaborationOCTimeAvgName()
+  OCStat=request->getElaborationOCStat()
+  ;MM summer 2012 End
   GroupModeOKmode=0
   if isSingleSelection then GroupModeOKmode=1
   if isGroupSelection then GroupModeOKmode=request->getGroupStatToApplyCode()
@@ -3884,6 +3912,11 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
   if statType eq 3 then flagDailyStat='MIN'
   
   dailyStatOp=flag_average+flagDailyStat
+  ; MM summer 2012 Start
+  ; You can replace all these with request->get
+  ; OCTimeAvgName=request->getElaborationOCTimeAvgName()
+  ; OCStat=request->getElaborationOCStat()
+  ; MM summer 2012 End
   if elabCode eq 32 or elabcode eq 21 then begin  ;annual averages
     if parcodes[0] eq 'PM10' then dailyStatOp='PMEAN'
     if parcodes[0] eq 'NO2'  then dailyStatOp='PP'

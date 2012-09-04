@@ -1,3 +1,16 @@
+PRO FMMainGUI::checkDataIntegrity
+
+ self.mgr->checkDataIntegrity
+ ; DeltaCheck_IO
+
+END
+
+FUNCTION  FMMainGUI::getMainMgr
+
+ return, self->getMgr()
+
+END
+
 FUNCTION FMMainGUI::getPSCharSizeFactor
 
  return, self.mgr->getPSCharSizeFactor()
@@ -612,6 +625,7 @@ PRO FMMainGUI::build
   elaborationRestoreButton=widget_button(elaborationMenu, UVALUE=0, value='Restore Analysis', UNAME='ELABORATIONLOAD_BTT', event_pro=self.eventprefix+'restoreElaboration')
   
   helpDescBtt=widget_Button(helpMenu, VALUE='Help file', UNAME='HELPBTT', UVALUE='OPENHELP_BTT', event_pro=self.eventPrefix+'helpMenuSelection')
+  checkIntegrityBtt=widget_Button(helpMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
   wwwPageBtt=widget_Button(helpMenu, VALUE='FairMode WWW', UNAME='Download site...', UVALUE='OPENWWW_BTT', event_pro=self.eventPrefix+'downloadMenuSelection')
   aboutBtt=widget_Button(helpMenu, VALUE='About...', UNAME='About', UVALUE='DISPMAP', event_pro=self.eventprefix+'aboutSplash')
   disclaimerBtt=widget_Button(helpMenu, VALUE='Disclaimer...', UNAME='Disclaimer', UVALUE='DISPMAP', event_pro=self.eventprefix+'disclaimer')
@@ -1441,7 +1455,11 @@ FUNCTION FMMainGUI::checkIntegrity, confInfo
 ;  res_scale=strsplit(scaleInfo,';',/extract)
 ;  year=fix(strcompress(res_scale[1],/remove_all))
 ;  print,'year',year
-  year=2009 
+  ;year=2009 
+  ;MM summer 2012 Start
+  mInfo=self.mgr->getModelInfo()
+  year=mInfo.year
+  ;MM summer 2012 Start
   dateExists=dtu->checkDate(year, month=self.info->getStartMonthSelection()+1, day=self.info->getStartDaySelection()+1, hour=self.info->getStartHourSelection(), julnumber=sDate)
   if dateExists ne 1 then begin
     msg=self->dialogMessage('Check start date existence',title='Check your data')

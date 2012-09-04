@@ -1,12 +1,17 @@
 ;PRO fairmode_destroyBenchMarkCreationWindow, ev
 ;
 ;  widget_control, ev, get_uvalue=view
-;  
+;
 ;  ;print, 'fairmode_destroyBenchMarkCreationWindow'
 ;  view->exitRequest
 ;  ;view->setObsGroupStatIndex, index
 ;
 ;END
+PRO fairmode_doNothing, ev
+
+  print, 'Nothing to do'
+  
+END
 
 PRO fairmode_benchmarkOKRequest, ev
 
@@ -15,8 +20,8 @@ PRO fairmode_benchmarkOKRequest, ev
   
   ;print, 'fairmode_benchmarkOKRequest'
   view->okRequest
-  ;view->setObsGroupStatIndex, index
-
+;view->setObsGroupStatIndex, index
+  
 END
 
 PRO fairmode_benchmarkTreeSelection, ev
@@ -29,7 +34,7 @@ PRO fairmode_benchmarkTreeSelection, ev
   ;print, 'fairmode_obsModMainBtt'
   ;view->userBenchMarkTreeUpdate, benchMarkTreeElemInfo
   view->userBenchMarkTreeUpdate, treeElemCode
-
+  
 END
 
 PRO fairmode_groupStatSelection, ev
@@ -38,7 +43,7 @@ PRO fairmode_groupStatSelection, ev
   widget_control, ev.id, get_uvalue=index
   
   view->setObsGroupStatIndex, index
-
+  
 END
 
 PRO fairmode_groupNameOKRequest, ev
@@ -51,7 +56,7 @@ PRO fairmode_groupNameOKRequest, ev
   
   ;print, 'fairmode_groupNameOKRequest'
   view->groupNameOKRequest, ev.top, groupName, selectedCodes
-
+  
 END
 
 PRO fairmode_editBatch, ev
@@ -62,8 +67,20 @@ PRO fairmode_editBatch, ev
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_graphicTypeRadioButton'
-  view->userEditBatch 
+  view->userEditBatch
+  
+END
 
+PRO fairmode_showRequestBatch, ev
+
+  ;help, ev, /str
+  widget_control, ev.id, get_uvalue=type
+  widgetId=ev.id
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  ;print, 'fairmode_graphicTypeRadioButton'
+  view->userShowRequestBatch
+  
 END
 
 PRO fairmode_printOrientRadioButton, ev
@@ -73,8 +90,8 @@ PRO fairmode_printOrientRadioButton, ev
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_pageModeRadioButton'
-  view->userUpdatePrintOrientCode, type, widgetId 
-
+  view->userUpdatePrintOrientCode, type, widgetId
+  
 END
 
 PRO fairmode_benchMarkSaveModeRadioButton, ev
@@ -84,8 +101,8 @@ PRO fairmode_benchMarkSaveModeRadioButton, ev
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_pageModeRadioButton'
-  view->userUpdateBenchMarkSaveModeCode, type, widgetId 
-
+  view->userUpdateBenchMarkSaveModeCode, type, widgetId
+  
 END
 
 PRO fairmode_pageModeRadioButton, ev
@@ -96,8 +113,8 @@ PRO fairmode_pageModeRadioButton, ev
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_pageModeRadioButton'
-  view->userUpdatePageModeCode, type, widgetId 
-
+  view->userUpdatePageModeCode, type, widgetId
+  
 END
 
 PRO fairmode_graphicTypeRadioButton, ev
@@ -108,8 +125,8 @@ PRO fairmode_graphicTypeRadioButton, ev
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_graphicTypeRadioButton'
-  view->userUpdateGraphicTypeCode, type, widgetId 
-
+  view->userUpdateGraphicTypeCode, type, widgetId
+  
 END
 
 ;PRO fairmode_iterateOptionRadioButton, ev
@@ -133,7 +150,7 @@ PRO fairmode_splitStyleRadioButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_splitStyleRadioButton'
   view->userUpdateSplitStyleCode, type, widgetId
-
+  
 END
 
 PRO fairmode_splitDrawMouse, ev
@@ -147,8 +164,8 @@ PRO fairmode_splitDrawMouse, ev
     widget_control, ev, get_uvalue=view
     view->splitMouseClick, xCoord, yCoord
   endif
-  ;print, 'fairmode_mapDrawMouse'
-
+;print, 'fairmode_mapDrawMouse'
+  
 END
 
 PRO fairmode_benchmarkOperationButton, ev
@@ -158,8 +175,15 @@ PRO fairmode_benchmarkOperationButton, ev
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
   print, 'fairmode_benchmarkOperationButton'
-  ;view->userAllStationsButton, select
+;view->userAllStationsButton, select
+  
+END
 
+PRO fairmode_checkDataIntegrityMenuSelection, ev
+
+  widget_control, ev.top, get_uvalue=view
+  view->checkDataIntegrity
+  
 END
 
 PRO fairmode_helpMenuSelection, ev
@@ -178,7 +202,7 @@ PRO fairmode_flagAllObservationsButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_singleObsRadioButton'
   view->userAllObservationsButton, select
-
+  
 END
 
 PRO fairmode_flagAllModelsButton, ev
@@ -189,7 +213,7 @@ PRO fairmode_flagAllModelsButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_singleObsRadioButton'
   view->userAllModelsButton, select
-
+  
 END
 
 PRO fairmode_flagAllScenariosButton, ev
@@ -200,7 +224,7 @@ PRO fairmode_flagAllScenariosButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_singleObsRadioButton'
   view->userAllScenariosButton, select
-
+  
 END
 
 PRO fairmode_flagAllParametersButton, ev
@@ -211,7 +235,7 @@ PRO fairmode_flagAllParametersButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_singleObsRadioButton'
   view->userAllParametersButton, select
-
+  
 END
 
 PRO fairmode_recognizeSwitchBtt, ev
@@ -219,7 +243,7 @@ PRO fairmode_recognizeSwitchBtt, ev
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
   view->SwitchRecognize
-
+  
 END
 
 PRO fairmode_aboutOKBTT, ev
@@ -227,8 +251,8 @@ PRO fairmode_aboutOKBTT, ev
   ;;help, ev, /str
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
-  ;print, 'fairmode_aboutOKBTT'
-  ;view->exitRequest
+;print, 'fairmode_aboutOKBTT'
+;view->exitRequest
   
 END
 
@@ -624,12 +648,12 @@ PRO fairmode_parameterListSelection, ev
   indexes=widget_info(ev.id, /LIST_SELECT)
   widget_control, ev.id, get_uvalue=codes
   selCodes=codes[indexes]
-;  print, selCodes 
+  ;  print, selCodes
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_parameterListSelection'
   ;view->userParameterSelections, indexes
-  view->userParameterCodeSelections, selCodes 
+  view->userParameterCodeSelections, selCodes
   
 END
 
@@ -909,6 +933,6 @@ PRO fairmode_mapDrawMouse, ev
     widget_control, ev, get_uvalue=view
     view->recognize, xCoord, yCoord
   endif
-  ;print, 'fairmode_mapDrawMouse'
+;print, 'fairmode_mapDrawMouse'
   
 END

@@ -1,3 +1,18 @@
+; MM summer 2012 start
+FUNCTION CompositeBatchManager::selectionIsFilled
+
+ return, obj_valid(self.batchEntityInfos[self.batchIndex]) and $
+  obj_valid(self.batchElaborationInfos[self.batchIndex])
+
+END
+
+FUNCTION CompositeBatchManager::getMainMgr
+
+  return, self.mainMgr
+  
+END
+; MM summer 2012 end
+
 FUNCTION CompositeBatchManager::getBenchMarkTreeFatherLevel
 
   return, self.benchMarkTreeFatherLevel
@@ -39,8 +54,8 @@ END
 
 FUNCTION CompositeBatchManager::checkTreeMenuNameIntegrity, testString
 
-  if self->getbenchMarkSaveMode() eq 'MENU' then begin
-    utility=obj_new("FMUtility")
+  if self->getBenchMarkSaveMode() eq 'MENU' then begin
+    utility=obj_new('FMUtility')
     res=utility->IsFileNameCompatible(testString)
     obj_destroy, utility
     if ~res then begin
@@ -264,18 +279,35 @@ END
 
 FUNCTION CompositeBatchManager::checkIntegrity
 
-  for i=0, self->getSplitNumber()-1 do begin
+  ; MM summer 2012 Start
+  frameNumber=self->getSplitNumber()
+  multipleUserChoices=[0,0,0,0]
+  if self->checkTreeMenuNameIntegrity(self.refView->getTreeMenuTextName()) ne 1 then return, 0
+  for i=0, frameNumber-1 do begin
     if self.modified[i] eq 0 then begin
-      aa=self.refView->dialogMessage(['Request element #'+strcompress(i+1, /REMOVE)+' not filled.'], title=['Check your selections'])
+      aa=self.refView->dialogMessage(['Request element #'+strcompress(i+1, /REMOVE)+' not filled or the selections are invalid.'], title=['Check your selections'])
       return, 0
     endif
-    if obj_valid(self.batchEntityInfos[i]) and obj_valid(self.batchElaborationInfos[i]) then continue
-    
+    if obj_valid(self.batchEntityInfos[i]) and obj_valid(self.batchElaborationInfos[i]) then begin
+      ; MM summer 2012 start
+      mainMgr=self->getMainMgr()
+      tempReq=mainMgr->buildRequest(multipleUserChoices, location, self.batchEntityInfos[i], self.batchElaborationInfos[i])
+      useGoalsAndCriteria=tempReq->getElaborationOCUse()
+      dummy=tempReq->getGoalsCriteriaValues(/CONTENTS, NOVALUES=NOVALUES)
+      if keyword_set(NOVALUES) then GC_EXISTS=0 else GC_EXISTS=1
+      ;if keyword_set(GC_EXISTS) and useGoalsAndCriteria then goalsAndCriteriaText[i]=strcompress(goalsAndCriteriaInfo, /REMOVE)
+      if not(keyword_set(GC_EXISTS)) and useGoalsAndCriteria then begin
+        aa=self.refView->dialogMessage(['Request element #'+strcompress(i+1, /REMOVE)+' K_CriteriaNotAvailable.', 'Check elaboration, parameter and/or configuration files.'], title=['Check your selections'])
+        obj_destroy, tempReq
+        return, 0b
+      endif
+      obj_destroy, tempReq
+      continue
+    endif
     aa=self.refView->dialogMessage(['Request element no.:'+strcompress(i+1, /REMOVE)+' not filled.'], title=['Check your selections'])
     return, 0
   endfor
-  return, self->checkTreeMenuNameIntegrity(self.refView->getTreeMenuTextName())
-  
+  ; MM summer 2012 end
   return, 1
   
 END
@@ -334,12 +366,32 @@ PRO CompositeBatchManager::userEditBatch
   
 END
 
+PRO CompositeBatchManager::userShowRequestBatch
+
+  if obj_valid(self.batchEntityInfos[self.batchIndex]) then self.tempBatchEntityInfo=self.batchEntityInfos[self.batchIndex]->Clone(/DEEP)
+  if obj_valid(self.batchElaborationInfos[self.batchIndex]) then self.tempBatchElaborationInfo=self.batchElaborationInfos[self.batchIndex]->Clone(/DEEP)
+  self->displayRequest
+  
+END
+
 PRO CompositeBatchManager::displayEntity
 
   ;batchEntityView=obj_new("FMBatchEntitySelectionGUI", self.batchEntityInfo, self)
   ;October 2011 use clone and delegate obj_destroy inside
-  batchEntityView=obj_new("FMBatchEntitySelectionGUI", self.tempBatchEntityInfo, self)
+  batchEntityView=obj_new('FMBatchEntitySelectionGUI', self.tempBatchEntityInfo, self)
   batchEntityView->realize
+  self.refView->disable
+  
+END
+
+PRO CompositeBatchManager::displayRequest
+
+  ;MM summer 2012 Start
+  mainMgr=self->getMainMgr()
+  multipleUserChoices=[0,0,0,0]
+  fakeReq=mainMgr->buildRequest(multipleUserChoices, location, self.tempBatchEntityInfo, self.tempBatchElaborationInfo)
+  batchShowView=obj_new('FMBatchShowRequestGUI', fakeReq, self)
+  batchShowView->realize
   self.refView->disable
   
 END
@@ -366,6 +418,14 @@ PRO CompositeBatchManager::elaborationOK, elabInfo
 ; October 2011 saving memory
 ;if obj_valid(self.refView) then obj_destroy, self.refView
 ;self.refView=obj_new("")
+  
+END
+
+PRO CompositeBatchManager::showRequestOK, requestView
+
+  ;obj_destroy, requestView.info
+  obj_destroy, requestView
+  self.refView->enable
   
 END
 
