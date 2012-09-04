@@ -232,12 +232,10 @@ pro obs_run_nan, request,result,obsValues, runValues
   elabcode=request->getElaborationCode()
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-  ddn=request->getHourType()
 
 ;KeesC move next to lines to .dat conf file
   minDataAvail=0.9 
   minDayAvail=18 ; minimal 18 8-hour-mean values should be available per day
-  if ddn eq 1 or ddn eq 2 then minDayAvail=9 
 
   for i=0,364 do begin
     kcobs=where(obsValues(i*24:i*24+23) gt -990,nkcobs)
@@ -535,17 +533,10 @@ pro mypsym,number,size_symb
     end
 
     13:begin ; circle empty
-      A = FINDGEN(17) * (!PI*2/16.)
-      USERSYM, size_symb*1.7*COS(A), 1.7*SIN(A),thick=2,/fill
-    end
-  
-; KeesC 20JUN2012    
-    14: begin ; square line
-      X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*.75
-      Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*.75
-      USERSYM, X, Y, color=0
-    end
-      
+    A = FINDGEN(17) * (!PI*2/16.)
+    USERSYM, size_symb*1.7*COS(A), 1.7*SIN(A),thick=2,/fill
+  end
+
 endcase
 
 end

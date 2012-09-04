@@ -57,7 +57,7 @@ PRO FM_PlotBars, plotter, request, result
   
   !y.range=[min([0,min(allDataXY,/nan)])*1.1, max([0,max(allDataXY,/nan)])*1.1]
   obsbar=1
-  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54])) ge 0 then begin
+  if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0 then begin
     allDataXY(*,*,*,*,0)=0.
     obsbar=0
     if ifree eq '1101' then begin
@@ -117,8 +117,7 @@ PRO FM_PlotBars, plotter, request, result
     plotVarMod=transpose(plotVarMod)
     nBars=nstat & nSubBars=npar & nDots=1
     ntxt1=3 & ntxt2=0 & ntxt3=0
-    ; KeesC
-    if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54])) ge 0 then begin
+    if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0 then begin
       nBars=nstat & nSubBars=1 & nDots=npar
       ntxt1=3 & ntxt2=0 & ntxt3=0
     endif
@@ -139,8 +138,7 @@ PRO FM_PlotBars, plotter, request, result
     plotVarMod=transpose(plotVarMod)
     nBars=nstat & nSubBars=1 & nDots=nmod
     ntxt1=3 & ntxt2=0 & ntxt3=1
-    ;KeesC
-    if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54])) ge 0 then begin
+    if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0 then begin
       nBars=nstat & nSubBars=1 & nDots=nmod
       ntxt1=3 & ntxt2=0 & ntxt3=1
     endif
@@ -196,11 +194,11 @@ PRO FM_PlotBars, plotter, request, result
   if ifree eq '0001' and nstat gt 12 then longBarNames1=strcompress(indgen(nstat)+1,/remove_all)
   
   colors=intarr(n_elements(plotVarObs))
-  colors[*]=15
+  colors[*]=14
   musstr=''
   for i=0,n_elements(mus)-1 do musstr=musstr+'['+mus(i)+'] '
   ytitle='Units '+musstr
-  if elabCode eq 2 or elabCode eq 14 then ytitle='Units [1] '
+  if elabCode eq 2 then ytitle='Units [1] '
   if elabCode eq 9  then ytitle='Units [Number of days] '
   if elabCode eq 8  or elabCode eq 30 or elabCode eq 33 $
     or elabCode eq 23 or elabCode eq 24 or elabCode eq 3 then ytitle='Units [%] '
@@ -239,7 +237,7 @@ PRO FM_PlotBars, plotter, request, result
     plotHlp=reform(plotVarObs(0:nBars-1,isubbar))
     chlp=where(finite(plotHlp) eq 0,nchlp)
     if nchlp ge 1 then plotHlp(chlp)=0
-    colors[*]=15-isubbar
+    colors[*]=14-isubbar
     bo=.5+isubbar
     mybar_plot,plotHlp,nsubbars,barnames=strmid(longBarNames1,0,7),colors=colors,background=255,$
       ytitle=ytitle,outline=1,tickV0,request,result,title=elabname,$
@@ -251,7 +249,7 @@ PRO FM_PlotBars, plotter, request, result
         charsize=1.5,charthick=1.5,orientation=90
     endif
   endfor
-  colors[*]=15
+  colors[*]=14
   
   if nBars gt 1 then recognizeRangeX=(tickV(1)-tickV(0))/(nsubbars+0.75)/2.  ; 0.75 = bs in barplot
   if nBars eq 1 then recognizeRangeX=0.25
@@ -309,7 +307,7 @@ PRO FM_PlotBars, plotter, request, result
         if obsbar eq 0 or ifree eq '1011' or ifree eq '0111' or $
           (ifree eq '1101' and total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0) then begin
           if ifree eq '1101' or ifree eq '1011' or ifree eq '1110' or ifree eq '0111' then begin
-            col2=15-isubbar
+            col2=14-isubbar
           endif else begin
             col2=0
           endelse
@@ -335,7 +333,7 @@ PRO FM_PlotBars, plotter, request, result
           top=max(plotVarMod(ibar,*),/nan)
           bot=min([!y.range(0),0.],/nan)
           if ifree eq '1101' or ifree eq '1011' or ifree eq '1110' or ifree eq '0111' then begin
-            col2=15-isubbar
+            col2=14-isubbar
           endif else begin
             col2=0
           endelse
@@ -859,7 +857,7 @@ PRO FM_PlotScatter, plotter, request, result
   allDataColor=targetInfo->getColors()
   modelCodes=request->getModelCodes()
   nobs=request->getSingleObsNumber()
-
+  totalStationNb=nobs
   groupTitles=request->getGroupTitles()
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
@@ -872,8 +870,6 @@ PRO FM_PlotScatter, plotter, request, result
   psFact=plotter->getPSCharSizeFactor()
   dims=size(allDataXY,/dimensions)
   nobs=dims(0)/npar/nmod/nsce
-  ; KeesC 31AUG2012
-  totalStationNb=nobs
   nmulti=npar*nsce*nmod*nobs
   maxAxis=max([0,max(allDataXY,/nan)])*1.2
   minAxis=min([0,min(allDataXY,/nan)])
@@ -914,15 +910,10 @@ PRO FM_PlotScatter, plotter, request, result
     critPolyfill05=fltarr(1000,2)
     for ii=0,999 do begin
        iix=float(ii)*float(maxAxis)/1000.
-;       critPolyfill(ii,1)=min([iix+2.*criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MaxAxis])
-;       critPolyfill(ii,0)=max([iix-2.*criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MinAxis])
-;       critPolyfill05(ii,1)=min([iix+criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MaxAxis])
-;       critPolyfill05(ii,0)=max([iix-criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MinAxis])
-       critPolyfill(ii,1)=min([iix+2.*criteriaOrig/100.*float(iix),MaxAxis])
-       critPolyfill(ii,0)=max([iix-2.*criteriaOrig/100.*float(iix),MinAxis])
-       critPolyfill05(ii,1)=min([iix+criteriaOrig/100.*float(iix),MaxAxis])
-       critPolyfill05(ii,0)=max([iix-criteriaOrig/100.*float(iix),MinAxis])
- 
+       critPolyfill(ii,1)=min([iix+2.*criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MaxAxis])
+       critPolyfill(ii,0)=max([iix-2.*criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MinAxis])
+       critPolyfill05(ii,1)=min([iix+criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MaxAxis])
+       critPolyfill05(ii,0)=max([iix-criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MinAxis])
     endfor
     xx=findgen(1000)*maxAxis/1000.
     xx(fix(maxAxis+1))=min([xx(maxAxis+1),maxAxis])
@@ -1366,7 +1357,7 @@ PRO FM_PlotGoogleEarth, plotter, request, result
         obsHLPtxt='OBS'  ; this is the standard
         if elabCode eq 60 or elabCode eq 61 then obsHLPtxt='MeanOBS !!'  ; for Bias ans MBias
         if elabCode eq 69 then obsHLPtxt='StddevOBS !!'    ; for MFS
-        pChlp=parCodes(ipar)+'*'
+        pChlp='*'+parCodes(ipar)
         if npar eq 1 then pChlp=''
         if finite(obsValues(istat,ipar,0)) eq 0 then goto,noValStat
         if iObsRun eq 0 then begin
@@ -1374,16 +1365,16 @@ PRO FM_PlotGoogleEarth, plotter, request, result
         endif else begin
           obsHlp=strtrim(reform(obsValues(istat,ipar,0)),2)
         endelse
-        ObsModString=ObsModString+'<tr><td>'+pChlp+obsHLPtxt+'</td>,<td>'+$
+        ObsModString=ObsModString+'<tr><td>'+obsHLPtxt+pChlp+'</td>,<td>'+$
           obsHLP+unitVarObs[ipar]+'</td></tr>'
         for imod=0,nmod-1 do begin
           modHlp=reform(modValues(*,ipar,imod))
           plusje=''
           if (elabCode eq 60 or elabCode eq 61 or elabCode eq 69) and modHlp(istat) gt 0. then plusje='+'
-          pChlp=parCodes(ipar)+'*'
+          pChlp='*'+parCodes(ipar)
           if npar eq 1 then pChlp=''
           if finite(modHlp(istat)) eq 0 then goto,noValStat
-          ObsModString=ObsModstring+'<tr><td>'+PChlp+modCodes(imod)+$
+          ObsModString=ObsModstring+'<tr><td>'+modCodes(imod)+PChlp+$
             '</td>,<td>'+plusje+strtrim(modHlp(istat),2)+unitVar[ipar]+'</td></tr>'
         endfor
       endfor
@@ -3831,12 +3822,12 @@ pro mytek_color, Start_index, Ncolors
     b_orig = r_orig
   endif
   
-; KeesC 20JUN2012:
-  r = bytscl([ 0,100,100,0,100,0,100,100,0,   60,0,0,55,100,55,70, $   
+  ; The tektronix colors
+  r = bytscl([ 0,100,100,0,100,0,100,100,0,   60,0,0,55,100,33,67, $
     100,75,45,17,25,50,75,100,67,40,17,17,17,45,75,90])
-  g = bytscl([ 0,100,0,0,50,100,0,100,100,    83,100,50,0,0,55,70, $
+  g = bytscl([ 0,100,0,0,50,100,0,100,100,    83,100,50,0,0,33,67, $
     100,100,100,100,83,67,55,33,90,90,90,67,50,33,17,9])
-  b = bytscl([ 0,100,0,100,0,100,83,0,0,      0,60,100,83,55,55,70, $
+  b = bytscl([ 0,100,0,100,0,100,83,0,0,      0,60,100,83,55,33,67, $
     33,45,60,75,83,83,83,90,45,55,67,90,100,100,100,100])
     
   if ncolors lt 32 then begin   ;Trim?
@@ -4176,8 +4167,7 @@ pro legendGenericBuildDiag0,request,result,plotter
       legPrint2=['']
     endif
     if ifree eq '0101' then begin
-; KeesC 20JUN2012: (0,*) changed into (*,0)    
-      legPrint=modelCodes & legColors2=legColors(*,0) & legSyms2=legSyms(*,0) & legPrint2='OBS'
+      legPrint=modelCodes & legColors2=legColors(0,*) & legSyms2=legSyms(0,*) & legPrint2='OBS'
       if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0  then legPrint2=['']
     endif
     if ifree eq '0011' then begin
@@ -4213,19 +4203,17 @@ pro legendGenericBuildDiag0,request,result,plotter
     if legprint2[0] ne '' then begin
       for i=0, n_elements(legprint2)-1 do begin
         jheight = i MOD 9
-        startx = .30 + .10*fix(i/9)
+        startx = .25
         startY=1.-((jheight+1)*legoHeight*2)
         thisStartX=startX+maxWidth+legoWidth+.02
         lego=[[thisStartX,startY], [thisStartX,startY+legoHeight], [thisStartX+legoWidth,startY+legoHeight], [thisStartX+legoWidth,startY], [thisStartX,startY]]
+        mypsym,5,1.5
         coords=[thisStartX+(legoWidth/2), startY+.002]
         coords=plotter->legendNormalize(coords)
-        mypsym,5,1.5
-        plots, coords[0], coords[1], psym=8, color=15-i, /NORM, symsize=1.
-        mypsym,14,1.5
-        plots,coords[0],coords[1],psym=8,color=0,/norm,symsize=1.   
+        plots, coords[0], coords[1], psym=8, color=14-i, /NORM, symsize=1.
         coords=[thisStartX+legoWidth+.01, startY+.002]
         coords=plotter->legendNormalize(coords)
-        xyouts, coords[0], coords[1]-.5*legoHeight , legPrint2[i], COLOR=0, /NORM, charsize=.8, charthick=.8,  WIDTH=textWidth
+        xyouts, coords[0], coords[1] , legPrint2[i], COLOR=0, /NORM, charsize=.8, charthick=.8,  WIDTH=textWidth
       endfor
     endif
   endif

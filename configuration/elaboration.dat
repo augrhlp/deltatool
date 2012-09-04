@@ -5,7 +5,7 @@
 3;1;MBias;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of bias values;NONE;NONE
 4;1;RMSE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of RMSE values;NONE;NONE
 5;1;RMSEs/RMSEu;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;00;Barplots of RMSEs/RMSEu ratio values;NONE;NONE
-6;1;Mean Values (Hourly/Daily);2;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1001*0101*;0;NO;11;Scatter plot of stations mean values. Each single point represents average statistics for a given station.;NONE;NONE
+6;1;Mean Values (Hourly/Daily);2;FREE;FREE;FREE;FREE;1000*0100*0001*1001*0101*;0;NO;11;Scatter plot of stations mean values. Each single point represents average statistics for a given station.;NONE;NONE
 7;1;IOA;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of IOA values;IOA;NONE
 8;1;RDE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of RDE values. One threshold value is required: the limit value;RDE;NONE
 9;1;ExcDays;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of the number of exceedance days values. One threshold value is required: the limit value;NONE;NONE
@@ -13,14 +13,14 @@
 11;1;Correlation (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;11;All stations R are classified in terms of their category (first station selection filter);OU;PMEAN
 12;2;All Values;1;FREE;FREE;FREE;FREE;0100*0010*;0;NO;11;Time series;NONE;NONE
 13;3;One station/Group - All Values;2;FREE;FREE;FREE;FREE;1000*0100*;0;NO;11;Scatter plot of entire time series;NONE;NONE
-14;1;Spatial Corr;0;FREE;FREE;FREE;FREE;1000*0100*0001*1001*0101*;0;NO;11;Spatial correlation within a group - Number of stations gt 1.;OU;NONE
+14;1;Mean Values (OU);3;FREE;FREE;FREE;FREE;1000*0100*0001*1001*0101*;0;NO;11;Taylor plots provides information on standard deviation, CRMSE and corelation. Each point represents the statistics of a given station.;OU;NONE
 15;1;Correlation (OU);5;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Bugle type (R vs. Observed mean/stdDev ratio). Each point represents the statistics of a given station.;OU;PMEAN
 16;1;Bias (OU);5;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Bugle type (Bias vs. Observation uncertainty). Each point represents the statistics of a given station.;OU;PMEAN
 17;1;Meteo;6;FREE;FREE;FREE;FREE;0001*0100*0101*;0;NO;11;The Soccer diagram plots RMSE vs. Bias and is dedicated more to meteo variables;NONE;NONE
 18;1;Std. deviation (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;11;All stations NMSD are classified in terms of their category (first station selection filter);OU;PMEAN
 19;1;Normalized (SigmaO);3;FREE;FREE;FREE;FREE;1000*0100*0001*1001*0101*;0;NO;11;Taylor plots provides information on standard deviation, CRMSE and corelation. Each point represents the statistics of a given station.;NONE;NONE
 20;1;Air Quality (OU) values;6;FREE;FREE;FREE;FREE;0001*0100*0101*;0;NO;11;The Soccer diagram plots RMSE vs. Bias and is dedicated more to meteo variables;OU;NONE
-21;1;Mean Values (Yearly/Season);2;0;0;FREE;0;1000*0100*0010*0001*1001*0101*;0;NO;11;Scatter plot of stations mean values. Each single point represents average statistics for a given station.;NONE;NONE
+21;1;Mean Values (Yearly/Season);2;0;0;FREE;0;1000*0100*0001*1001*0101*;0;NO;11;Scatter plot of stations mean values. Each single point represents average statistics for a given station.;NONE;NONE
 23;1;NMB;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of Mean Normalised bias values;MNB;NONE
 24;1;MFE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;00;Barplots of Mean Fractional error values;NONE;NONE
 25;1;Std. deviation (OU);5;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Bugle type (MFS vs. Observed concentration). Each point represents the statistics of a given station.;OU;PMEAN

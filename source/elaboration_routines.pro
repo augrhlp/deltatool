@@ -30,7 +30,6 @@ PRO FM_Generic, request, result
   nreg=0
   if isSingleSelection then begin
     obsNames=request->getSingleObsNames()
-    obsCodes=request->getSingleObsCodes()
     nobsS=request->getSingleObsNumber()
     singleRawData=result->getSingleRawData()
     singleRDMatrix=result->getSingleRawDataCheckMatrix(sMonitIndexes, sRunIndexes)
@@ -107,89 +106,8 @@ PRO FM_Generic, request, result
     
   nobs=nobsS+ngroup   ; redefined = number of single stations + number of groups
   
-; Make dump file
-  atxt=systime()
-  atxt=strsplit(atxt,' ',/extract)
-  ctxt=strsplit(atxt(3),':',/extract)
-  dtxt=ctxt(0)+'h'+ctxt(1)+'m'+ctxt(2)
-  btxt=atxt(2)+'-'+atxt(1)+'-'+atxt(4)+'-'+dtxt
-  fname='DumpFile.txt'   ;+btxt+'.txt'
-  request->openDataDumpFile, fname
-  fsm=obj_new('FMFileSystemManager')
-  PATHDUMP=fsm->getDumpDir()
-  PATHDUMP=PATHDUMP+'\'
-  txthlp=systime()
-  request->writeDataDumpFileRecord, txthlp
-  txthlp='elabCode = '+strcompress(fix(elabCode),/remove_all)
-  request->writeDataDumpFileRecord, txthlp
-  txthlp='npar = '+strcompress(fix(npar),/remove_all)
-  request->writeDataDumpFileRecord, txthlp
-  txthlp='nmod = '+strcompress(fix(nmod),/remove_all)
-  request->writeDataDumpFileRecord, txthlp
-  txthlp='nsce = '+strcompress(fix(nsce),/remove_all)
-  request->writeDataDumpFileRecord, txthlp
-  txthlp='nstat = '+strcompress(fix(nobsS),/remove_all)
-  request->writeDataDumpFileRecord, txthlp
-  txthlp='ngroup = '+strcompress(fix(ngroup),/remove_all)
-  request->writeDataDumpFileRecord, txthlp
-  atxt=''
-  for ipar=0,npar-1 do atxt=atxt+parCodes(ipar)+' '
-  txthlp='parCodes = '+atxt
-  request->writeDataDumpFileRecord, txthlp
-  atxt=''
-  for imod=0,nmod-1 do atxt=atxt+modelCodes(imod)+' '
-  txthlp='modelCodes = '+atxt
-  request->writeDataDumpFileRecord, txthlp
-  atxt=''
-  for isce=0,nsce-1 do atxt=atxt+scenarioCodes(isce)+' '
-  txthlp='scenarioCodes = '+atxt
-  request->writeDataDumpFileRecord, txthlp
-  if nobsS ge 1 then begin
-    atxt=''
-    for istat=0,nobsS-1 do atxt=atxt+obsCodes(istat)+' '
-    txthlp='stationCodes = '+atxt
-    request->writeDataDumpFileRecord, txthlp
-  endif
-  if ngroup ge 1 then begin
-    atxt=''
-    for igr=0,ngroup-1 do atxt=atxt+groupTitles(igr)+' '
-    txthlp='groupCodes = '+atxt
-    request->writeDataDumpFileRecord, txthlp
-    for igr=0,ngroup-1 do begin
-      atxt=''
-      groupigr=*groupCodes[igr]
-      ngr=n_elements(groupigr)
-      for iigr=0,ngr-1 do atxt=atxt+groupigr[iigr]+' '
-      txthlp=groupTitles[igr]+':  '+atxt
-      request->writeDataDumpFileRecord, txthlp
-    endfor
-  endif
-  for ipar=0,npar-1 do begin
-  for imod=0,nmod-1 do begin
-  for isce=0,nsce-1 do begin  
-    if nobsS ge 1 then begin
-      for istat=0,nobsS-1 do begin
-        atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' S '+obsCodes(istat)
-        txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,istat,0),/remove_all)+' '+$
-          strcompress(statXYResult(ipar,imod,isce,istat,1),/remove_all)
-        request->writeDataDumpFileRecord, txthlp
-      endfor  
-    endif
-    if ngroup ge 1 then begin
-      for igr=0,ngroup-1 do begin
-        atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' G '+groupTitles(igr)
-        txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
-          strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)
-        request->writeDataDumpFileRecord, txthlp
-      endfor
-    endif
-  endfor
-  endfor
-  endfor
-  request->closeDataDumpFile
-  
-; KeesC suppress stations with NaN: station should have values for all pars, all mods, and all sceno  
-  statValidO=intarr(nobs) & statValidO(*)=-1 
+  ; KeesC suppress stations with NaN: station should have values for all pars, all mods, and all sceno
+  statValidO=intarr(nobs) & statValidO(*)=-1
   statValidR=intarr(nobs) & statValidR(*)=-1
   for iobs=0,nobs-1 do begin
     if total(finite(statXYResult(*,*,*,iobs,0))) eq npar*nmod*nsce then statValidO[iobs]=iobs
@@ -315,9 +233,7 @@ PRO SG_Computing, $
           ;MM summer 2012 Start
           ; Replace hard coded 'OU' with specific parameter from elaboration.dat
           ;CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
-          longshort=0
-          if elabCode eq 10 then longshort=1
-          CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,longshort,alpha,criteriaOrig,LV,nobsAv
+          CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
           ;MM summer 2012 End
           if elabcode eq 0 then begin
             statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
@@ -395,11 +311,10 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=i4  ;not used
             statXYGroup[i1,i2,i3,i4]=abs(statXYResult[i1,i2,i3,i4,0])
           endif
-          if elabcode eq 14 then begin  ;Spatial Corr
-          ; KeesC
-            statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
-            statXYResult[i1,i2,i3,i4,1]=mean(runTemp)
-            statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))  ;??
+          if elabcode eq 14 then begin  ;Taylor
+            statXYResult[i1,i2,i3,i4,0]=stddevOM(runTemp)/(2.*criteriaOU)
+            statXYResult[i1,i2,i3,i4,1]=correlate(obsTemp,runTemp)
+            statXYGroup[i1,i2,i3,i4]=crmse(obsTemp,runTemp)
           endif
           if elabcode eq 15 then begin ; R buggle
             statXYResult[i1,i2,i3,i4,0]=criteriaOU/stddevOM(obsTemp)
@@ -576,11 +491,6 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp)
           endif
         endfor  ;i4
-        if elabCode eq 14 then begin       
-          spatCorr=!values.f_nan
-          statXYResult[i1,i2,i3,0,0]=spatCorr   ; other i4 values not used
-          statXYResult[i1,i2,i3,0,1]=spatCorr
-        endif
       endfor  ;i3  nsce
     endfor  ;i2  nmod
   endfor  ;i1  npar
@@ -614,68 +524,57 @@ PRO SG_Computing, $
       for i=0,ncurrNames-1 do begin ; select stations in groupi4
         chlp=where(currNames[i] eq allGroupStations,ihlp)
         if ihlp ge 1 then currNumber[i]=chlp[0]
-      endfor    
-      for i1=0,Index1-1 do begin 
-      for i2=0,Index2-1 do begin
-      for i3=0,Index3-1 do begin 
-        statXYGroupHlp=reform(statXYGroup(i1,i2,i3,nobsS+currNumber))
-        statXY0=reform(statXYResult(i1,i2,i3,nobsS+currNumber,0))
-        statXY1=reform(statXYResult(i1,i2,i3,nobsS+currNumber,1))
-        ccFin=where(finite(statXY0) eq 1 and finite(statXY0) eq 1,countfinite)
-        ;Mean 100% group         
-        if groupStatToApplyCode eq 0 then begin      
-          if countFinite gt 0 then begin
-            obsGroupStatResult=reform(statXY0(ccFin))
-            runGroupStatResult=reform(statXY1(ccFin))
-            if elabCode ne 14 then begin
-              obsStatResult=mean(obsGroupStatResult)
-              runStatResult=mean(runGroupStatResult)
-            endif  
-            if elabCode eq 14 then begin
-              if ncurrNames ge 2 then begin
-                spatCorr=correlate(obsGroupStatResult,runGroupStatResult)
+      endfor
+      for i1=0,Index1-1 do begin
+        for i2=0,Index2-1 do begin
+          for i3=0,Index3-1 do begin
+            statXYGroupHlp=reform(statXYGroup(i1,i2,i3,nobsS+currNumber))
+            statXY0=reform(statXYResult(i1,i2,i3,nobsS+currNumber,0))
+            statXY1=reform(statXYResult(i1,i2,i3,nobsS+currNumber,1))
+            ccFin=where(finite(statXY0) eq 1 and finite(statXY0) eq 1,countfinite)
+            ;Mean 100% group
+            if groupStatToApplyCode eq 0 then begin
+              if countFinite gt 0 then begin
+                obsGroupStatResult=reform(statXY0(ccFin))
+                runGroupStatResult=reform(statXY1(ccFin))
+                obsStatResult=mean(obsGroupStatResult)
+                runStatResult=mean(runGroupStatResult)
+                if elabCode eq 20 or elabcode eq 52 then begin
+                  ccNeg=where(statXYGroupHlp lt 0.,countNeg)
+                  ccPos=where(statXYGroupHlp ge 0.,countPos)
+                  if countNeg gt countPos then obsStatResult=-obsStatResult
+                endif
               endif else begin
-                spatCorr=!values.f_nan
+                obsStatResult=!values.f_nan
+                runStatResult=!values.f_nan
               endelse
-              obsStatResult=spatCorr 
-              RunStatResult=spatCorr
             endif
-            if elabCode eq 20 or elabcode eq 52 then begin            
-              ccNeg=where(statXYGroupHlp lt 0.,countNeg)
-              ccPos=where(statXYGroupHlp ge 0.,countPos)
-              if countNeg gt countPos then obsStatResult=-obsStatResult
-            endif 
-          endif else begin
-            obsStatResult=!values.f_nan
-            runStatResult=!values.f_nan
-          endelse
-        endif  
-        ;Worst 90%% group           
-        if groupStatToApplyCode eq 1 then begin 
-          if countFinite gt 0 then begin
-            obsGroupStatResult=reform(statXY0(ccFin))
-            runGroupStatResult=reform(statXY1(ccFin))
-            GroupStatResult=reform(statXYGroupHlp(ccFin))
-            resSort=sort(GroupStatResult)
-            if elabcode eq 2 or elabcode eq 7 or elabcode eq 11 or elabCode eq 15 or elabcode eq 33 then resSort=reverse(resSort)
-            medIdx=resSort[fix(0.9*n_elements(resSort))]
-            obsStatResult=obsGroupStatResult(medIdx)
-            runStatResult=runGroupStatResult(medIdx)
-            if elabCode eq 20 or elabCode eq 52 then begin     
-              ccNeg=where(statXYGroupHlp(0:medIdx) lt 0.,countNeg)
-              ccPos=where(statXYGroupHlp(0:medIdx) ge 0.,countPos)
-              if countNeg gt countPos then obsStatResult=-abs(obsStatResult)     
+            ;Worst 90%% group
+            if groupStatToApplyCode eq 1 then begin
+              if countFinite gt 0 then begin
+                obsGroupStatResult=reform(statXY0(ccFin))
+                runGroupStatResult=reform(statXY1(ccFin))
+                GroupStatResult=reform(statXYGroupHlp(ccFin))
+                resSort=sort(GroupStatResult)
+                if elabcode eq 2 or elabcode eq 7 or elabcode eq 11 or elabCode eq 15 or elabcode eq 33 then resSort=reverse(resSort)
+                medIdx=resSort[fix(0.9*n_elements(resSort))]
+                obsStatResult=obsGroupStatResult(medIdx)
+                runStatResult=runGroupStatResult(medIdx)
+                if elabCode eq 20 or elabCode eq 52 then begin
+                  ccNeg=where(statXYGroupHlp(0:medIdx) lt 0.,countNeg)
+                  ccPos=where(statXYGroupHlp(0:medIdx) ge 0.,countPos)
+                  if countNeg gt countPos then obsStatResult=-abs(obsStatResult)
+                endif
+              endif else begin
+                obsStatResult=!values.f_nan
+                runStatResult=!values.f_nan
+              endelse
             endif
-          endif else begin
-            obsStatResult=!values.f_nan
-            runStatResult=!values.f_nan
-          endelse
-        endif
-        statXYResultHlp[i1,i2,i3,nobsS+iG,0]=obsStatResult
-        statXYResultHlp[i1,i2,i3,nobsS+iG,1]=runStatResult
-      endfor ;i3
-      endfor ;i2
-      endfor  ;i1    
+            statXYResultHlp[i1,i2,i3,nobsS+iG,0]=obsStatResult
+            statXYResultHlp[i1,i2,i3,nobsS+iG,1]=runStatResult
+          endfor ;i3
+        endfor ;i2
+      endfor  ;i1
     endfor   ;iG
     statXYResult[*,*,*,nobsS:nobsS+ngroup-1,*]=statXYResultHlp[*,*,*,nobsS:nobsS+ngroup-1,*]
   endif
@@ -1287,10 +1186,7 @@ if isSingleSelection then begin
     statXYResultS(i,5)=countExcMod
     if statType gt 0 then statXYResultS(i,5)=statXYResultS(i,5)/24.
     if statType gt 0 then statXYResultS(i,1)=statXYResultS(i,1)/24.
-    CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv  
     statXYResultS(i,2)=(mean(runTemp)-mean(obsTemp))/(2*CriteriaOU)
-    if elabCode eq 31 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
-    if elabCode eq 32 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
     statXYResultS(i,3)=(1.-correlate(obsTemp, runTemp))/(2*(CriteriaOU/stddevOM(obsTemp))^2)
     statXYResultS(i,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(2.*CriteriaOU)
     statXYResultS(i,7)=rde(obsTemp,runTemp,limitValue)
