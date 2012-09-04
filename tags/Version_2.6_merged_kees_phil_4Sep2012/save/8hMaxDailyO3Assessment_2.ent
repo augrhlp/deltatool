@@ -1,0 +1,17 @@
+#EntityDisplayInfo - Save File - Never change order of contents
+Version=3.1
+AllModelsFlag=0
+AllObservationsFlag=1
+AllScenariosFlag=0
+ParameterTypeSelections=0*1
+ParameterCodeSelections=O3
+RunSelections=-1
+ScenarioSelections=0
+ModelSelections=0
+CategorySelections=-1*-1*-1*-1
+ObservedQueryCodesSelections=FR02001*FR02019*FR03019*FR03027*FR03029*FR03036*FR03037*FR03043*FR03045*FR03046*FR03048*FR04002*FR04004*FR04008*FR04017*FR04018*FR04034*FR04037*FR04048*FR04049*FR04055*FR04098*FR04100*FR04101*FR04145*FR04149*FR04160*FR04319*FR20004*FR20017*FR20036*FR20037*FR20045*FR20046*FR20047*FR20048*FR20061*FR20062*FR20204*FR27004
+ObservedCodesSelections=ALL
+ObservedGroupTitles=NONE
+ObservedCodesGroupSelections=NONE
+UseObservedModelFlag=0
+ObservedGroupStatCodeSelection=0

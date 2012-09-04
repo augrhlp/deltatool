@@ -1,0 +1,10 @@
+["IDL_ROUTINE": Code,RoutineName,Description]
+0;FM_Barplot;Descr of: barplot
+1;FM_Generic;Descr generic Scatter - Target
+2;FM_MeanTS;Descr of: Mean (Time series diagram)
+3;FM_QQ_SC_ALLTIME;Descr of: QQ (all points for each station plotted)
+4;FM_StatModelDelta;Descr of: all stat for model delta
+5;FM_ConditionScatter;Descr of conditional scatter plot
+6;FM_MultiParScatter;Descr of scatter plot for 2 parameters
+7;FM_statTable2; Descr MOT
+8;FM_GoogleEarth;Descr GE

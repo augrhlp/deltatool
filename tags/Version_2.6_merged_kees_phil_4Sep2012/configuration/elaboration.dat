@@ -1,0 +1,57 @@
+[ELABORATION: Code,IDLRoutineCode,DisplayName,DiagramCode,GroupByTimeCode,GroupByStatCode,SeasonCode,DailyCode,List of MultipleChoiceFlags(parameters, models, scenarios, observations),NumberRefValue,GCAVailable,StdAdvancedUserFlags,Description
+0;1;Mean;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of mean values
+1;1;Stddev;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of standard deviation values
+2;1;R;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of correlation coeficient values
+3;1;MBias;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of bias values
+4;1;RMSE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of RMSE values
+5;1;RMSEs/RMSEu;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;00;Barplots of RMSEs/RMSEu ratio values
+6;1;Mean Values (Hourly/Daily);2;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1001*0101*;0;NO;11;Scatter plot of stations mean values. Each single point represents average statistics for a given station.
+7;1;IOA;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of IOA values
+8;1;RDE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of RDE values. One threshold value is required: the limit value
+9;1;ExcDays;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of the number of exceedance days values. One threshold value is required: the limit value
+10;1;Bias (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;11;NMB category plot. All stations MFB are classified in terms of their category (first station selection filter)
+11;1;Correlation (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;11;All stations R are classified in terms of their category (first station selection filter)
+12;2;All Values;1;FREE;FREE;FREE;FREE;0100*0010*;0;NO;11;Time series
+13;3;One station/Group - All Values;2;FREE;FREE;FREE;FREE;1000*0100*;0;NO;11;Scatter plot of entire time series
+14;1;Spatial Corr;0;FREE;FREE;FREE;FREE;1000*0100*0001*1001*0101*;0;NO;11;Spatial correlation within a group - Number of stations gt 1.
+15;1;Correlation (OU);5;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Bugle type (R vs. Observed mean/stdDev ratio). Each point represents the statistics of a given station.
+16;1;Bias (OU);5;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Bugle type (Bias vs. Observation uncertainty). Each point represents the statistics of a given station.
+17;1;Meteo;6;FREE;FREE;FREE;FREE;0001*0100*0101*;0;NO;11;The Soccer diagram plots RMSE vs. Bias and is dedicated more to meteo variables
+18;1;Std. deviation (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;11;All stations NMSD are classified in terms of their category (first station selection filter)
+19;1;Normalized (SigmaO);3;FREE;FREE;FREE;FREE;1000*0100*0001*1001*0101*;0;NO;11;Taylor plots provides information on standard deviation, CRMSE and corelation. Each point represents the statistics of a given station.
+20;1;Air Quality (OU) values;6;FREE;FREE;FREE;FREE;0001*0100*0101*;0;NO;11;The Soccer diagram plots RMSE vs. Bias and is dedicated more to meteo variables
+21;1;Mean Values (Yearly/Season);2;0;0;FREE;0;1000*0100*0010*0001*1001*0101*;0;NO;11;Scatter plot of stations mean values. Each single point represents average statistics for a given station.
+23;1;NMB;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of Mean Normalised bias values
+24;1;MFE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;00;Barplots of Mean Fractional error values
+25;1;Std. deviation (OU);5;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Bugle type (MFS vs. Observed concentration). Each point represents the statistics of a given station.
+26;1;AOTx;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of AOT values (DailyStats: Preserve)
+27;1;SOMOx;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of SOMO values (DailyStats: Max)
+28;1;Target;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of Target radius values
+29;3;One station/Group - All Values;8;FREE;FREE;FREE;FREE;1000*0100*;0;NO;11;Quantile-quantile plot for a given station. Independance of time. All points of the time series for a given station are represented.
+30;1;RPE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;11;Barplots of RPE values. One threshold value is required: the number of exceedance days
+31;7;Hourly/Daily Values (OU);10;FREE;FREE;FREE;FREE;0001*;1;YES;11;summary report: The threshold value is the limit value.
+32;7;Yearly averages (OU);10;0;0;FREE;0;0001*;1;YES;11;Summary report: The threshold value is the limit value.
+33;1;FAC2;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of FAC2 values
+52;1;Normalized (OU);4;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Target diagram. Based on Target for daily and hourly values and on Bugle for annual averages. This diagram is based on the normalized RMSE (or MFB for annual) and will work only if a performance criteria is available (check configuration file) and the choice of the users are fulfilling the conditions of application of this criteria.
+53;4;ModModObs;12;FREE;FREE;FREE;FREE;0100*0101*;0;YES;11;Statistics for comparing 2 model versions with observations
+54;1;NMSD;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of sigma ratio values
+55;1;Normalized (OU);4;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;00;Target diagram. Based on Target for daily and hourly values and on Bugle for annual averages. This diagram is based on the normalized RMSE (or MFB for annual) and will work only if a performance criteria is available (check configuration file) and the choice of the users are fulfilling the conditions of application of this criteria.
+56;5;Conditional Multi Stations;2;FREE;FREE;FREE;FREE;1000*1001*;3;NO;11;Conditional Scatter plot of stations mean values. Each single point represents average statistics for a given station. Three input values: 1) the variable index (0 or 1) on wich the condition applies and 2 and 3) the threshold values
+57;6;Param1 vs Param2 Single station;2;FREE;FREE;FREE;FREE;1000*;0;NO;11;Scatter plot with one parameter against a second one. Available for one station at a time.
+58;8;Mean;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;1;NO;11;Google Earth mean values. Val1=Target value. Example: NO2 40, PM10 40, PM25 25.
+59;8;ExcHrs/Days;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;2;NO;11;Google Earth ExcDays/ExcHours. Val1=Reference level. Val2=Target Value. ExcDays: Examples: O3 120 25, PM10 50 35, SO2 125 3. ExcHrs: Examples: NO2 200 18, SO2 350 24.
+60;8;Bias;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth Bias 
+61;8;NMB;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth Mean Fractional Bias
+62;8;Stddev;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth Stddev
+63;8;R;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth CorrCoeff. Val1=Target value. Example .8
+64;8;RMSE;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth RMSE
+65;8;AOTx;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;2;NO;11;Google Earth AOTx. DailyStats=Preserve. Val1=Reference level. Val2=Target Value. Example: O3 80 6
+66;8;SOMOx;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;2;NO;11;Google Earth SOMOx. DailyStats=Max. Val1=Reference level. Val2=Target Value. Example O3 35 5
+67;8;RDEx;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;2;NO;11;Google Earth RDEx. Val1=Reference level. Val2=Target Value
+68;8;sigM/sigO;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth SigM/sigO
+69;8;NMSD;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth MeanFractionalStddev
+70;8;Target;13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;11;Google Earth Target
+71;1;Delta (Day-Night);12;FREE;FREE;FREE;0;*1000*0100*0001*1001*0101*;0;NO;11;Dynamic Evaluation (Day-Night), additional selection fixed: Year, Summer(JJA), Winter(DJF)
+72;1;Delta (Summer-Winter);12;FREE;FREE;0;FREE;*1000*0100*0001*1001*0101*;0;NO;11;Dynamic Evaluation (Summer-Winter), additional selection fixed: Day(7-19), Night(0-6,19-24), WD(Mo-Fr), WE(Sa-Su)
+73;1;Delta (Weekdays-WeekEnd);12;FREE;FREE;FREE;0;*1000*0100*0001*1001*0101*;0;NO;11;Dynamic Evaluation (WD-WE), additional selection fixed: Year, Summer(JJA), Winter(DJF)
+74;1;Forecast;4;FREE;FREE;FREE;FREE;0100*0001*0101*;0;YES;11;Target diagram for forecast. Based on Target for daily and hourly values and on Bugle for annual averages. This diagram is based on the normalized RMSE (or MFB for annual) and will work only if a performance criteria is available (check configuration file) and the choice of the users are fulfilling the conditions of application of this criteria.
