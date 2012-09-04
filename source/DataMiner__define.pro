@@ -5,9 +5,9 @@ FUNCTION DataMiner::getRunFileInfo, fileName
 
   ;print, fileName
   name=self.fileSystemMgr->getBaseFileName(fileName, /PRESERVE_PATH)
-;  print, 'DataMiner::getRunFileInfo'
-;  print, 'fullefilename', fileName
-;  print, 'remove extension... result->', name
+  ;  print, 'DataMiner::getRunFileInfo'
+  ;  print, 'fullefilename', fileName
+  ;  print, 'remove extension... result->', name
   ;name=(strsplit(fileName, '.', /EXTRACT))[0]
   return, strsplit(name, '_', /EXTRACT)
   
@@ -38,35 +38,43 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
   
   openr, unit, fileName, /GET_LUN
   bufferString=''
-  i=0
   firstRow=1
+  iyear=0
   while not(eof(unit)) do begin
     readf, unit, bufferString
-    i++
     checkFirst=strmid(bufferString, 0,1)
     check1=(strpos(checkFirst, '[')+1) > 0
     check2=(strpos(checkFirst, ';')+1) > 0
     check3=(strpos(checkFirst, '#')+1) > 0
-    null=strlen(strcompress(bufferString, /REMOVE)) eq 0
-    ; #, ; is a comment
-    ; void string is discarded
-    ; [ header is discarded
+    null=strlen(strcompress(bufferString, /REMOVE_all)) eq 0
     if (check1+check2+check3) gt 0 or null then begin
-;      print, 'Discard row', i
-;      print, bufferString
+    ;      print, 'Discard row', i
+    ;      print, bufferString
     endif else begin
       info=strsplit(bufferString, ';', /EXTRACT, count=count, /PRESERVE_NULL)
       if firstRow eq 1 then begin
         firstRow=0
-        HEADER=info      
+        if strcompress(strlowcase(info[0]),/remove_all) eq 'yearlyavg' then begin
+          info=['YearlyAvg','mm','dd','hh',info[2:n_elements(info)-1]]
+          infoyr=info[0]
+          iyear=1
+        endif
+        HEADER=strcompress(info,/remove_all)
         storeData=strarr(n_elements(info), 8784)  ;8760
         k=0
       endif else begin
-        storeData[*, k]=strcompress(info, /REMOVE)
+        if iyear eq 1 then info=[infoyr,'mm','dd','hh',info]
+        storeData[*, k]=strcompress(info, /REMOVE_all)
         k++
+        if iyear eq 1 then goto,kIsOne
       endelse
     endelse
   endwhile
+  ; KeesC 31MAY2012  for Yearly OBS values
+  kIsOne:
+  if k eq 1 then begin
+    for kk=1,8783 do storeData(*,kk)=storeData(*,0)
+  endif
   storeData=reform(storeData(*,0:8759))
   close, unit & free_lun, unit
   return, storeData
@@ -119,7 +127,7 @@ FUNCTION DataMiner::buildRunDataBlockName, statCode, parameterCode
 END
 
 PRO DataMiner::readAllData, request, result, screensize=screensize
-  
+
   result=obj_new('Result', '', self.fileSystemMgr->getTempDataFile())
   isSingleSelection=request->IsSingleObsPresent()
   isGroupSelection=request->IsGroupObsPresent()
@@ -167,8 +175,8 @@ PRO DataMiner::readAllData, request, result, screensize=screensize
         IF updateOk eq 0 THEN BEGIN
           percent=float(count)/nloop*100
           progressbar -> Update, percent
-        ENDIF      
-;        print, count, '/', nloop
+        ENDIF
+        ;        print, count, '/', nloop
         count++
         
         singleMonitFileName=self->buildMonitoringFileName(singleMonits[j])
@@ -190,7 +198,7 @@ PRO DataMiner::readAllData, request, result, screensize=screensize
             singleMonMinVal=max([singleMonMaxVal, singleResultData[sl].observedMaxVal], /NAN)
             singleResultData[sl].observedData=ptr_new(mParData, /NO_COPY)
           endelse
-          ;print, '--> Run'       
+          ;print, '--> Run'
           rParData=self->readRunData(runFileName, singleMonits[j], parameters,k, NOTPRESENT=NOTPRESENT)
           if NOTPRESENT eq 1 then begin
             ;print, 'NOT PRESENT'
@@ -223,8 +231,8 @@ PRO DataMiner::readAllData, request, result, screensize=screensize
         IF updateOk eq 0 THEN BEGIN
           percent=float(count)/nloop*100
           progressbar -> Update, percent
-        ENDIF   
-;        print, count, '/', nloop
+        ENDIF
+        ;        print, count, '/', nloop
         count++
         
         monitFileName=self->buildMonitoringFileName(groupMonits[j])
@@ -246,7 +254,7 @@ PRO DataMiner::readAllData, request, result, screensize=screensize
             groupMonMinVal=max([groupMonMaxVal, groupResultData[gl].observedMaxVal], /NAN)
             groupResultData[gl].observedData=ptr_new(mParData, /NO_COPY)
           endelse
-          ;print, '--> Run'         
+          ;print, '--> Run'
           rParData=self->readRunData(runFileName, groupMonits[j], parameters,k, NOTPRESENT=NOTPRESENT)
           if NOTPRESENT eq 1 then begin
             ;print, 'NOT PRESENT'
@@ -263,7 +271,7 @@ PRO DataMiner::readAllData, request, result, screensize=screensize
             groupRunMaxVal=min([groupRunMinVal, groupResultData[gl].runMinVal], /NAN)
             groupRunMinVal=max([groupRunMaxVal, groupResultData[gl].runMaxVal], /NAN)
             groupResultData[gl].runData=ptr_new(rParData, /NO_COPY)
-;            print,'DataMiner',groupResultData
+          ;            print,'DataMiner',groupResultData
           endelse
           ;help,  groupResultData[gl], /STR
           gl++
@@ -273,7 +281,7 @@ PRO DataMiner::readAllData, request, result, screensize=screensize
     endif
     
   endfor
-;  print, count, nloop
+  ;  print, count, nloop
   
   progressbar -> Destroy
   
@@ -330,7 +338,7 @@ FUNCTION DataMiner::readMonitoringDataForAllParameters, fileName, parameterCodes
 END
 
 FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESENT=NOTPRESENT
-
+  ;KeesC 31MAY2012
   ;fsm=obj_new('FMFileSystemManager')
   ERROR=0
   catch, error_status
@@ -341,32 +349,83 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
     NOTPRESENT=1
     return, -1
   endif
-  
-;  !quiet=1
   NOTPRESENT=0
-  !quiet=1
-  Id = ncdf_open(fileName)
-  cdfBlockName=statCode+'_'+parameterCodes[k]
-  checkName=ncdf_varid(Id,cdfBlockName)
-  !quiet=0
-;Old: variable = StationName_Parameter 
-  if checkName ne -1 then begin
-    ncdf_varget, Id, cdfBlockName, data
-    ncdf_close, Id
-    return, data
-  endif else begin
-;New: Variable = StationName  
-    cdfBlockName=statCode
-    ncdf_varget, Id, cdfBlockName, dataAll
-    ncdf_attget,Id,'Parameters',pollout,/global
-    pollout=string(pollout)
-    pollout=strsplit(pollout,' ',/extract)
-    pollout=strcompress(pollout,/remove_all)
-    cc=where(pollout eq parameterCodes[k],ncc)
-    data=reform(dataAll(cc[0],*))
-    ncdf_close, Id
+  
+  extPos=strpos(filename, '.', /REVERSE_SEARCH)
+  ext=strmid(filename,extPos+1,3)   ; = cdf  or   csv
+  
+  if ext eq 'cdf' then begin
+    !quiet=1
+    Id = ncdf_open(fileName)
+    cdfBlockName=statCode+'_'+parameterCodes[k]
+    checkName=ncdf_varid(Id,cdfBlockName)
+    !quiet=0
+    ;Old: variable = StationName_Parameter
+    if checkName ne -1 then begin
+      ncdf_varget, Id, cdfBlockName, data
+      ncdf_close, Id
+      return, data
+    endif else begin
+      ;New: Variable = StationName
+      cdfBlockName=statCode
+      ncdf_varget, Id, cdfBlockName, dataAll
+      ncdf_attget,Id,'Parameters',pollout,/global
+      pollout=string(pollout)
+      pollout=strsplit(pollout,' ',/extract)
+      pollout=strcompress(pollout,/remove_all)
+      cc=where(pollout eq parameterCodes[k],ncc)
+      data=reform(dataAll(cc[0],*))
+      ncdf_close, Id
+      return,data
+    endelse
+  endif
+  if ext eq 'csv' then begin
+    openr, unit, fileName, /GET_LUN
+    bufferString=''
+    RowNr=0
+    kk=0
+    iyear=0
+    while not(eof(unit)) do begin
+      readf, unit, bufferString
+      checkFirst=strmid(bufferString, 0,1)
+      check1=(strpos(checkFirst, '[')+1) > 0
+      check2=(strpos(checkFirst, ';')+1) > 0
+      check3=(strpos(checkFirst, '#')+1) > 0
+      null=strlen(strcompress(bufferString, /REMOVE_all)) eq 0
+      if (check1+check2+check3) gt 0 or null then begin
+      endif else begin
+        info=strsplit(bufferString, ';', /EXTRACT, count=count)
+        if RowNr eq 0 then begin
+          RowNr=1
+          if strlowcase(info[0]) eq 'yearlyavg' then begin
+            pollout=strcompress(info[2:n_elements(info)-1],/remove_all)
+            infoyr=info[0]
+            iyear=1           
+          endif else begin  
+            pollout=strcompress(info[4:n_elements(info)-1],/remove_all)
+          endelse
+          npol=n_elements(pollout)
+          storeData=fltarr(8784)  ;8760
+        endif else begin
+          if strupcase(strcompress(info[0],/remove_all)) eq strupcase(statCode) then begin
+            kpol=where(pollout eq parameterCodes[k],nc)
+            nr=1+kpol[0]
+            storeData[kk]=float(info(nr))
+            kk=kk+1
+            if iyear eq 1 then goto,kkIsOne
+          endif
+        endelse
+      endelse
+    endwhile
+    kkIsOne:
+    if kk eq 1 then begin
+      for kkk=1,8783 do storeData(kkk)=storeData(0)
+    endif
+    close, unit & free_lun, unit
+    data=reform(storeData(0:8759))
     return,data
-  endelse  
+  endif
+  
 END
 ;****************************************************************************************
 ; constructor/destructor

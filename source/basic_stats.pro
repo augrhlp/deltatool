@@ -516,10 +516,17 @@ pro mypsym,number,size_symb
     end
 
     13:begin ; circle empty
-    A = FINDGEN(17) * (!PI*2/16.)
-    USERSYM, size_symb*1.7*COS(A), 1.7*SIN(A),thick=2,/fill
-  end
-
+      A = FINDGEN(17) * (!PI*2/16.)
+      USERSYM, size_symb*1.7*COS(A), 1.7*SIN(A),thick=2,/fill
+    end
+  
+; KeesC 20JUN2012    
+    14: begin ; square line
+      X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*.75
+      Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*.75
+      USERSYM, X, Y, color=0
+    end
+      
 endcase
 
 end

@@ -652,270 +652,6 @@ PRO FMFileSystemManager::buildRun, unit, fileName, runData, WRITE=WRITE
   if keyword_set(WRITE) then close, unit else print, '************EOF***************'
   
 END
-; *****************************
-; methods only for test
-; *****************************
-;PRO FMFileSystemManager::test_BuildResourceConfigFiles, WRITE=WRITE
-;
-;  testDir="E:\mirko\develop\FAIR_MODE\test_resource\"
-;
-;  names=['startup.ini']
-;
-;  models_postfix=['TIME', '2D']
-;
-;  regionValuesList=['Lombardia','Veneto','Emilia-Romagna','Piemonte','Friuli Venezia Giulia']
-;  typeValuesList=['Background','Traffic','Industrial','Unknown']
-;  areaTypeValuesList=['Urban','SubUrban','Rural','Unknown']
-;  sitingValuesList=['Plane','Hilly','Valley','Mountain','Coastal']
-;  year='2005'
-;  months=strcompress(indgen(12)+1, /REMOVE)
-;  days=[31,28,31,30,31,30,31,31,30,31,30,31]
-;  hours=strcompress(indgen(24), /REMOVE)
-;
-;  sep=';'
-;
-;  stationPrefix='Stat'
-;  statNumber=30
-;  stationNames=stationPrefix+strcompress(indgen(statNumber), /REMOVE)
-;  regions=strarr(statNumber)
-;  types=strarr(statNumber)
-;  areaTypes=strarr(statNumber)
-;  sites=strarr(statNumber)
-;  idxs1=floor(randomu(seed, statNumber)*100 mod n_elements(regionValuesList))
-;  idxs2=floor(randomu(seed, statNumber)*100 mod n_elements(typeValuesList))
-;  idxs3=floor(randomu(seed, statNumber)*100 mod n_elements(areaTypeValuesList))
-;  idxs4=floor(randomu(seed, statNumber)*100 mod n_elements(sitingValuesList))
-;
-;
-;  statLon=9.05
-;  statLat=45.26
-;  ;countryList=['Italy', 'Germany', 'Spain', 'Greece', 'Great Britain']
-;  ;countryGMTList=['0', '0', '0', '+1', '-1']
-;  hAboveSeas=strmid(strcompress(RANDOMu(seed, statNumber)*1000, /REMOVE), 0, 4)
-;  yGeoLocations=strmid(strcompress(RANDOMn(seed, statNumber)+statLat, /REMOVE), 0, 5)
-;  xGeoLocations=strmid(strcompress(RANDOMn(seed, statNumber)+statLon, /REMOVE), 0, 5)
-;  regions=regionValuesList[idxs1]
-;  stationTypes=typeValuesList[idxs2]
-;  areaTypes=areaTypeValuesList[idxs3]
-;  sitings=sitingValuesList[idxs4]
-;
-;  airQualityList=['NO2','NO','NOx','SO2','O3','PM10','PM10g','PM25','PM25g']
-;  meteoList=['u','v','uv','diruv','w','t','pres','q','rhum','clw','rnw','kzmom','kzheat','graupel','molngth',$
-;    'ground_t','rain_con','rain_non','rain_tot','pbl_hgt','ust','t2','q2','rhum2','tseasfc',$
-;    'shflux','lhflux','soil_t_1','soil_m_1','soil_w_1','u10','v10',$
-;    'uv10','diruv10','PT_10-2','PT_50-10','PT_100-10','PT_150-10']
-;  allParList=[airQualityList, meteoList]
-;  totParNumbers=n_elements(allSpecList)
-;
-;  if keyword_set(WRITE) then openw, unit, testDir+names[0], /GET_LUN else print, "<startup.ini>"
-;
-;  ; ************ parameter/variable section
-;  header1=self.parameterHeader
-;  comment1='    '
-;  comment2=';each blank row or beginning with ";" or "#" will be discarded'
-;  comment3='    '
-;  comment4='#Parameter name*Type*Measure unit'
-;
-;  if keyword_set(WRITE) then begin
-;    printf, unit, header1
-;    printf, unit, comment1
-;    printf, unit, comment2
-;    printf, unit, comment3
-;    printf, unit, comment4
-;  endif else begin
-;    print, header1
-;    print, comment1
-;    print, comment2
-;    print, comment3
-;    print, comment4
-;  endelse
-;
-;  for i=0, n_elements(airQualityList)-1 do begin
-;    ;code=strcompress(j, /REMOVE)
-;    typeCode='AQ'
-;    displayName=airQualityList[i]
-;    measureUnit='Mu of:'+airQualityList[i]
-;    record=displayName+';'+typeCode+';'+measureUnit
-;    if keyword_set(WRITE) then printf, unit, record else print, record
-;  endfor
-;  for i=0, n_elements(meteoList)-1 do begin
-;    typeCode='METEO'
-;    displayName=meteoList[i]
-;    measureUnit='Mu of:'+meteoList[i]
-;    record=displayName+';'+typeCode+';'+measureUnit
-;    if keyword_set(WRITE) then printf, unit, record else print, record
-;  endfor
-;  comment5='    '
-;  if keyword_set(WRITE) then printf, unit, comment5 else print, comment5
-;
-;  ; ************ monitoring section
-;  header=self.monitoringHeader
-;  comment6='    '
-;  comment7=';Here need header row without ";". Take care of 6th, 7th, 8th and 9th field (will be the titles of stations categories)'
-;  header2='Station Code;Station Name;Altitude(m);Lon;Lat;Region;StationType;AreaType;Siting'
-;
-;  if keyword_set(WRITE) then begin
-;    printf, unit, header
-;    printf, unit, comment6
-;    printf, unit, comment7
-;    printf, unit, header2
-;  endif else begin
-;    print, header
-;    print, comment6
-;    print, comment7
-;    print, header2
-;  endelse
-;
-;  for i=0, statNumber-1 do begin
-;    code=strcompress(i, /REMOVE)
-;    ;countryIndex=randomu(seed)*100 mod n_elements(countryList)
-;    ;statName=stationPrefix+string(i)
-;    stationName=stationNames[i]
-;    lon=xGeoLocations[i]
-;    lat=yGeoLocations[i]
-;    ;country=countryList[countryIndex]
-;    ;countryGMT=countryGMTList[countryIndex]
-;    altitude=hAboveSeas[i]
-;    ;descr='Descr of:'+statName
-;    record=code+';'+stationName+';'+altitude+";"+$
-;    lon+";"+lat+';'+regions[i]+";"+stationTypes[i]+';'+areaTypes[i]+';'+$
-;    sitings[i]
-;    if keyword_set(WRITE) then printf, unit, record else print,record
-;  endfor
-;  if keyword_set(WRITE) then begin
-;    close, unit
-;    free_lun, unit
-;  endif else print, '************EOF***************'
-;
-;END
-
-;FUNCTION FMFileSystemManager::test_GetElaboration, nelabs=nelabs
-;
-;  bpElaborationList=['Mean_T','CorrCoef_T','Stddev_T','RMSE_T','Bias_T','ExcDays']
-;  tsElaborationList=['Value','Bias_T']
-;  spElaborationList=['Value']
-;  tpElaborationList=['Value']
-;  tdElaborationList=['Value', 'Difference']
-;
-;  elabs={bpElaborationList:bpElaborationList,$
-;    tsElaborationList:tsElaborationList, $
-;    spElaborationList:spElaborationList, $
-;    tpElaborationList:tpElaborationList, $
-;    tdElaborationList:tdElaborationList}
-;
-;  nelabs=n_elements([bpElaborationList, tsElaborationList, spElaborationList, tpElaborationList, tdElaborationList])
-;  return, elabs
-;
-;END
-
-;FUNCTION FMFileSystemManager::test_BuildCategoryValue, catIndex
-;
-;  zoneValuesList=['Lombardia','Veneto','Emilia-Romagna','Piemonte','Friuli Venezia Giulia']
-;  toposValuesList=['Plane','Hilly','Valley','Mountain']
-;  typeValuesList=['Urban','SubUrban','Rural']
-;
-;  case catIndex of
-;    0:return, zoneValuesList[randomu(seed)*100 mod n_elements(zoneValuesList)]
-;    1:return, toposValuesList[randomu(seed)*100 mod n_elements(toposValuesList)]
-;    2:return, typeValuesList[randomu(seed)*100 mod n_elements(typeValuesList)]
-;    else:return, 'Undef'
-;  endcase
-;
-;END
-
-
-;PRO FMFileSystemManager::test_BuildObserved, unit, fileName, statNumber, WRITE=WRITE
-;
-;  ; ************ Observed section
-;  ; indexes=1, 6
-;  if keyword_set(WRITE) then OPENW, unit, fileName ;"OBSERVED"
-;  ;Code,Name,Display_Name,XGeoLocation,YGeoLocation,Country,Country_GMT,Height_Above_Sea,Description
-;
-;  stationPrefix=['Stat']
-;  statLon=10.20
-;  statLat=45.26
-;  countryList=['Italy', 'Germany', 'Spain', 'Greece', 'Great Britain']
-;  countryGMTList=['0', '0', '0', '+1', '-1']
-;  hAboveSeas=strmid(strcompress(RANDOMu(seed, statNumber)*1000, /REMOVE), 0, 4)
-;  yGeoLocations=strmid(strcompress(RANDOMn(seed, statNumber)+statLat, /REMOVE), 0, 5)
-;  xGeoLocations=strmid(strcompress(RANDOMn(seed, statNumber)+statLon, /REMOVE), 0, 5)
-;
-;  header='["OBSERVED": Code,Name,DisplayName,XGeoLocation,YGeoLocation,Country,CountryGMT,HeightAboveSea,Description]'
-;  if keyword_set(WRITE) then printf, unit, header else print, header
-;  for i=0, statNumber-1 do begin
-;    code=strcompress(i, /REMOVE)
-;    countryIndex=randomu(seed)*100 mod n_elements(countryList)
-;    statName=stationPrefix+string(i)
-;    displayName=strcompress(statName, /REMOVE)
-;    xLoc=xGeoLocations[i]
-;    yLoc=yGeoLocations[i]
-;    country=countryList[countryIndex]
-;    countryGMT=countryGMTList[countryIndex]
-;    heightAboveSeas=hAboveSeas[i]
-;    descr='Descr of:'+statName
-;    record=code+';'+statName+';'+displayName+';'+xLoc+";"+yLoc+";"+$
-;    country+";"+countryGMT+';'+heightAboveSeas+';'+descr
-;    if keyword_set(WRITE) then printf, unit, record else print,record
-;  endfor
-;  if keyword_set(WRITE) then close, unit else print, '************EOF***************'
-;
-;END
-
-;PRO FMFileSystemManager::test_BuildObservedCategory, unit, filename, statNumber, catNumber, WRITE=WRITE
-;
-;  if keyword_set(WRITE) then OPENW, unit, filename ;"OBSERVED_CATEGORY"
-;  ;Code,Observed_Code,Category_Code,Value
-;
-;  header='["OBSERVED_CATEGORY": Code,ObservedCode,CategoryCode,Value]'
-;  if keyword_set(WRITE) then printf, unit, header else print, header
-;  for i=0, catNumber*statNumber-1 do begin
-;    code=strcompress(i, /REMOVE)
-;    obsIndex=i/catNumber
-;    catIndex=i mod catNumber
-;    obsCode=strcompress(obsIndex, /REMOVE)
-;    catCode=strcompress(catIndex, /REMOVE)
-;    catValue=self->test_BuildCategoryValue(catIndex)
-;    record=code+';'+obsCode+';'+catCode+';'+catValue
-;    if keyword_set(WRITE) then printf, unit, record else print,record
-;  endfor
-;  if keyword_set(WRITE) then close, unit else print, '************EOF***************'
-;
-;END
-
-;PRO FMFileSystemManager::test_BuildParameter, unit, fileName, airQualityList, meteoList, WRITE=WRITE
-;
-;  if keyword_set(WRITE) then OPENW, unit, fileName ;"parameter"
-;  ;Code,TypeCode,DisplayName,MeasureUnit,Description
-;
-;  allParList=[airQualityList, meteoList]
-;  totParNumbers=n_elements(allParList)
-;
-;  header='["PARAMETER": Code,TypeCode,DisplayName,MeasureUnit,Description]'
-;  if keyword_set(WRITE) then printf, unit, header else print, header
-;  j=0
-;  for i=0, n_elements(airQualityList)-1 do begin
-;    code=strcompress(j, /REMOVE)
-;    typeCode='0'
-;    displayName=airQualityList[i]
-;    measureUnit='Mu of:'+airQualityList[i]
-;    descr='Descr of:'+airQualityList[i]
-;    record=code+';'+typeCode+';'+displayName+';'+measureUnit+';'+descr
-;    if keyword_set(WRITE) then printf, unit, record else print,record
-;    j++
-;  endfor
-;  for i=0, n_elements(meteoList)-1 do begin
-;    code=strcompress(j, /REMOVE)
-;    type='1'
-;    displayName=meteoList[i]
-;    measureUnit='Mu of:'+meteoList[i]
-;    descr='Descr of:'+meteoList[i]
-;    record=code+';'+type+';'+displayName+';'+measureUnit+';'+descr
-;    if keyword_set(WRITE) then printf, unit, record else print,record
-;    j++
-;  endfor
-;  if keyword_set(WRITE) then close, unit else print, '************EOF***************'
-;
-;END
 
 PRO  FMFileSystemManager::test_BuildRun, unit, fileName, scenarioList, modelList, WRITE=WRITE
   if keyword_set(WRITE) then OPENW, unit, fileName ;"RUN"
@@ -1415,10 +1151,14 @@ FUNCTION FMFileSystemManager::readMonitoringSection, unit, parameterInfo=paramet
 END
 
 FUNCTION FMFileSystemManager::readRunFiles, runDir
-
+; KeesC 31MAY2012
   wild='*.cdf'
-  
-  filenames=file_search(runDir+wild)
+  filenamescdf=file_search(runDir+wild)
+  wild='*.csv'
+  filenamescsv=file_search(runDir+wild)
+  filenames=[filenamescdf,filenamescsv]
+  if filenamescsv[0] eq '' then filenames=filenamescdf
+  if filenamescdf[0] eq '' then filenames=filenamescsv
   fInfo=file_info(filenames)
   execDate=fInfo.ctime
   models=['']
@@ -1430,9 +1170,10 @@ FUNCTION FMFileSystemManager::readRunFiles, runDir
     ;cut extensions...
     filename=strsplit(filenames[i], self->getSystemDirSeparator(), /EXTRACT)
     filename=filename[n_elements(filename)-1]
-    ;name=strsplit(filename, '.', /EXTRACT)
     extPos=strpos(filename, '.', /REVERSE_SEARCH)
-    name=strmid(filename, 0, extPos-1)
+;    name=strmid(filename, 0, extPos-1)  ; KeesC 31MAY2012
+    name=strmid(filename, 0, extPos)
+    ext=strmid(filename,extPos+1,3)
     info=strsplit(name, '_', /EXTRACT)
     testScen=info[0] & testModel=info[1]
     if prevModel eq testModel and prevScen eq testScen then begin
@@ -1444,9 +1185,7 @@ FUNCTION FMFileSystemManager::readRunFiles, runDir
     runInfo=getFMRunFile()
     runInfo.model=testModel
     runInfo.scenario=testScen
-    ;runInfo.parameters=ptr_new(self->readCSVParameters(filenames[i]), /NO_COPY)
-    ;build generic file name (no "TIME" or "2D" postfix)
-    runInfo.filename=info[0]+'_'+info[1]+'.cdf'
+    runInfo.filename=info[0]+'_'+info[1]+'.'+ext
     runInfo.execDate=systime(0, execDate[i])
     ;print, info
     runInfos=[runInfos, runInfo]
@@ -1463,100 +1202,6 @@ FUNCTION FMFileSystemManager::readRunFiles, runDir
   
 END
 
-;FUNCTION FMFileSystemManager::readCSVParameters, filename
-;
-;  ERROR=0
-;  catch, error_status
-;
-;  if error_status NE 0 THEN BEGIN
-;    ERROR=1
-;    catch, /CANCEL
-;    errMsg=dialog_message('problem with file: <'+fileName+'> check existence or read permission.', /ERROR)
-;  endif
-;
-;  openr, unit, fileName, /GET_LUN
-;
-;  bufferString=''
-;  i=0
-;  firstRow=1
-;  while not(eof(unit)) and firstRow do begin
-;    readf, unit, bufferString
-;    i++
-;    checkFirst=strmid(bufferString, 0,1)
-;    check1=(strpos(checkFirst, '[')+1) > 0
-;    check2=(strpos(checkFirst, ';')+1) > 0
-;    check3=(strpos(checkFirst, '#')+1) > 0
-;    null=strlen(strcompress(bufferString, /REMOVE)) eq 0
-;    ; #, ; is a comment
-;    ; void string string is discarded
-;    ; [ header is discarded
-;    if (check1+check2+check3) gt 0 or null then begin
-;      print, 'Discard row', i
-;      print, bufferString
-;    endif else begin
-;      parameters=strsplit(bufferString, ';', /EXTRACT)
-;      close, unit & free_lun, unit
-;      firstRow=0
-;      return, parameters
-;    endelse
-;  endwhile
-;  close, unit & free_lun, unit
-;  return, ''
-;
-;END
-
-;PRO FMFileSystemManager::readMonitoringParameters, monitoringDir, monitStruct
-;
-;  ;monitStruct={codes, names, altitudes, lons, lats, regions, stationTypes, areaTypes, sitings, parameters}
-;  ;use FILE_SEARCH
-;  ERROR=0
-;  catch, error_status
-;
-;  if error_status NE 0 THEN BEGIN
-;    ERROR=1
-;    catch, /CANCEL
-;    errMsg=dialog_message('problem with file: <'+fileName+'> check existence or read permission.', /ERROR)
-;  endif
-;  extension='.csv'
-;
-;  for i=0, n_elements(monitStruct)-1 do begin
-;    filename=file_search(monitoringDir+monitStruct[i].stationname+extension)
-;    if filename eq '' then continue
-;    bufferString=''
-;    j=0
-;    openr, unit, fileName, /GET_LUN
-;    headerToBeRead=1
-;    while not(eof(unit)) and headerToBeRead do begin
-;      readf, unit, bufferString
-;      j++
-;      checkFirst=strmid(bufferString, 0,1)
-;      check1=(strpos(checkFirst, '[')+1) > 0
-;      check2=(strpos(checkFirst, ';')+1) > 0
-;      check3=(strpos(checkFirst, '#')+1) > 0
-;      null=strlen(strcompress(bufferString, /REMOVE)) eq 0
-;      ; #, ; is a comment
-;      ; void string string is discarded
-;      ; [ header is discarded
-;      if (check1+check2+check3) gt 0 or null then begin
-;        print, 'Discard row', i
-;        print, bufferString
-;      endif else begin
-;        info=strsplit(bufferString, ';', /EXTRACT)
-;        ;take a look only at first row!!!
-;        if n_elements(info) ge 5 then begin
-;          parameters=info[4:*]
-;          print, '-->', monitStruct[i].stationname, parameters
-;          monitStruct[i].parameters=ptr_new(parameters, /NO_COPY)
-;          headerToBeRead=0
-;        endif
-;      endelse
-;    endwhile
-;    close, unit & free_lun, unit
-;  endfor
-;
-;END
-
-; New february 1st 2011 MM
 FUNCTION FMFileSystemManager::readScaleSection, unit
 
   bufferString=''
