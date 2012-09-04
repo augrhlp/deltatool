@@ -1,0 +1,30 @@
+; link column statNickName with name/code in elaboration.dat
+; NO! link column timeAvg with name/code in season.dat/dayperiod.dat
+; link column timeAvg with name/code in elaboration.dat
+[GOALS_CRITERIA_OC:  Code; parCode; scaleName; statNickName; timeAvg; Values; Description]";;;;;;
+0;O3;URBAN;OU;ALL;15*15*;Descr of: GC 48
+1;O3;URBAN;RDE;8HMAX;50*40*;Descr of: GC 54
+2;O3;URBAN;RPE;8HMAX;50*40*;Descr of: GC 55
+
+3;PM10;URBAN;OU;ALL;25*30*;Descr of: GC 56
+4;PM10;URBAN;RDE;PMEAN;50*42*;Descr of: GC 62
+5;PM10;URBAN;RPE;PMEAN;50*42*;Descr of: GC 63
+
+6;PM25;URBAN;OU;ALL;30*30*;Descr of: GC 56
+7;PM25;URBAN;RDE;PMEAN;50*42*;Descr of: GC 62
+8;PM25;URBAN;RPE;PMEAN;50*42*;Descr of: GC 63
+
+9;NO2;URBAN;OU;ALL;20*15*;Descr of: GC 64
+10;NO2;URBAN;RDE;PP;50*42*;Descr of: GC 70
+11;NO2;URBAN;RPE;PP;50*42*;Descr of: GC 71
+
+12;WS;URBAN;IOA;ALL;0.6*0.72*;Descr of: GC 78
+13;WS;URBAN;BIAS;ALL;0.5*0.4*;Descr of: GC 80
+14;WS;URBAN;RMSE;ALL;2*1.6*;Descr of: GC 81
+15;WS;URBAN;OU;ALL;10*1.6*;Descr of: GC 81
+
+
+
+
+
+

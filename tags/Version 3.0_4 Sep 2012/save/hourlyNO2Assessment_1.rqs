@@ -1,0 +1,9 @@
+#Request - Save File - Never change order of contents
+Version=3.2
+RequestFileName=hourlyNO2Assessment_1.rqs
+EntityFileName=hourlyNO2Assessment_1.ent
+ElaborationFileName=hourlyNO2Assessment_1.elb
+PageBreak=FALSE
+PrintOrient=PORTRAIT
+RequestLocation=0.0500000*0.000000*0.950000*0.480000
+PlotDeviceName=PS
