@@ -193,7 +193,7 @@ PRO FM_PlotBars, plotter, request, result
   if ntxt1 ge 0 then longBarNames1=reform(legNames(*,ntxt1))
   if ntxt2 ge 0 then longBarNames2=reform(legNames(*,ntxt2))
   if ntxt3 ge 0 then longBarNames3=reform(legNames(*,ntxt3))
-  if ifree eq '0001' and nstat gt 12 then longBarNames1=strcompress(indgen(nstat)+1,/remove_all)
+  ;if ifree eq '0001' and nstat gt 12 then longBarNames1=strcompress(indgen(nstat)+1,/remove_all)
   
   colors=intarr(n_elements(plotVarObs))
   colors[*]=15
@@ -279,7 +279,7 @@ PRO FM_PlotBars, plotter, request, result
         if ifree eq '0001' then begin
           longBarNames4=reform(legNames(*,ntxt1))
           recognizeNames[j]=longBarNames4[j]
-          if nstat gt 12 then recognizeNames[j]=strcompress(j+1,/remove_all)+'='+recognizeNames[j]
+ ;         if nstat gt 12 then recognizeNames[j]=strcompress(j+1,/remove_all)+'='+recognizeNames[j]
         endif
       endif
       recognizeValues[j]=strtrim(plotVarObs[i, isubbar], 2)
