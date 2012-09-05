@@ -4,7 +4,6 @@
 ;  OCTimeAvgName=request->getElaborationOCTimeAvgName()
 ;  OCStat=request->getElaborationOCStat()
 ;  ;MM summer 2012 End
-
 PRO FM_Generic, request, result
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
@@ -17,6 +16,11 @@ PRO FM_Generic, request, result
   diagramCode=request->getDiagramCode()
   elabcode=request->getElaborationCode()
   statType=request->getGroupByStatInfo()
+  stattypeArr=['Preserve','Mean','Max','Min']
+  hourStat=request->getGroupByTimeInfo() 
+  flag_average=hourStat[0].value
+  if flag_average eq 'preserve' then flagArr='Preserve'
+  if flag_average eq '08' then flagArr='8-hr Avg'
   isSingleSelection=request->isSingleObsPresent()
   isGroupSelection=request->isGroupObsPresent()
   extraValNumber=request->getExtraValuesNumber()
@@ -121,6 +125,7 @@ PRO FM_Generic, request, result
   txthlp=systime()
   request->writeDataDumpFileRecord, txthlp
   txthlp='elabCode = '+strcompress(fix(elabCode),/remove_all)
+  txthlp='PlotInfo = '+title
   request->writeDataDumpFileRecord, txthlp
   txthlp='npar = '+strcompress(fix(npar),/remove_all)
   request->writeDataDumpFileRecord, txthlp
@@ -135,6 +140,10 @@ PRO FM_Generic, request, result
   atxt=''
   for ipar=0,npar-1 do atxt=atxt+parCodes(ipar)+' '
   txthlp='parCodes = '+atxt
+  request->writeDataDumpFileRecord, txthlp
+  txthlp='Daily Avg = '+statTypeArr[statType]
+  request->writeDataDumpFileRecord, txthlp
+  txthlp='Time Avg = '+flagArr
   request->writeDataDumpFileRecord, txthlp
   atxt=''
   for imod=0,nmod-1 do atxt=atxt+modelCodes(imod)+' '
@@ -169,18 +178,22 @@ PRO FM_Generic, request, result
   for isce=0,nsce-1 do begin  
     if nobsS ge 1 then begin
       for istat=0,nobsS-1 do begin
-        atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' S '+obsCodes(istat)
-        txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,istat,0),/remove_all)+' '+$
+        if finite(statXYResult(ipar,imod,isce,istat,0)) eq 1 and finite(statXYResult(ipar,imod,isce,istat,1)) eq 1 then begin
+          atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' S '+obsCodes(istat)
+          txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,istat,0),/remove_all)+' '+$
           strcompress(statXYResult(ipar,imod,isce,istat,1),/remove_all)
-        request->writeDataDumpFileRecord, txthlp
+          request->writeDataDumpFileRecord, txthlp
+        endif
       endfor  
     endif
     if ngroup ge 1 then begin
       for igr=0,ngroup-1 do begin
-        atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' G '+groupTitles(igr)
-        txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
+        if finite(statXYResult(ipar,imod,isce,nobsS+igr,0)) eq 1 and finite(statXYResult(ipar,imod,isce,nobsS+igr,1)) eq 1 then begin      
+          atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' G '+groupTitles(igr)
+          txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
           strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)
-        request->writeDataDumpFileRecord, txthlp
+          request->writeDataDumpFileRecord, txthlp
+        endif  
       endfor
     endif
   endfor
@@ -192,7 +205,7 @@ PRO FM_Generic, request, result
   statValidO=intarr(nobs) & statValidO(*)=-1 
   statValidR=intarr(nobs) & statValidR(*)=-1
   for iobs=0,nobs-1 do begin
-    if total(finite(statXYResult(*,*,*,iobs,0))) eq npar*nmod*nsce then statValidO[iobs]=iobs
+    if total(finite(statXYResult(*,*,*,iobs,0))) eq npar*nmod*nsce then statValidO[iobs]=iobs  
     if total(finite(statXYResult(*,*,*,iobs,1))) eq npar*nmod*nsce then statValidR[iobs]=iobs
   endfor
   statValid=intarr(nobs)
