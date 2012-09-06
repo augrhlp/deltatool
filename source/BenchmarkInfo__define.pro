@@ -4,6 +4,12 @@ PRO BenchmarkInfo::setDescription, value
   
 END
 
+FUNCTION BenchmarkInfo::getDescription2
+
+  return, self.description
+  
+END
+
 FUNCTION BenchmarkInfo::getDescription
 
   return, self.description
