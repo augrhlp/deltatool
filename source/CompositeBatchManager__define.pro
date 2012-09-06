@@ -6,6 +6,12 @@ FUNCTION CompositeBatchManager::selectionIsFilled
 
 END
 
+FUNCTION CompositeBatchManager::getMainMgr2
+
+  return, self.mainMgr
+  
+END
+
 FUNCTION CompositeBatchManager::getMainMgr
 
   return, self.mainMgr
