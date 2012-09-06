@@ -237,7 +237,7 @@ pro obs_run_nan, request,result,obsValues, runValues
 ;KeesC move next to lines to .dat conf file
   minDataAvail=0.9 
   minDayAvail=18 ; minimal 18 8-hour-mean values should be available per day
-  if ddn eq 1 or ddn eq 2 then minDayAvail=9 
+  if ddn eq 1 or ddn eq 2 or abs(elabcode) eq 71 then minDayAvail=9 
 
   for i=0,364 do begin
     kcobs=where(obsValues(i*24:i*24+23) gt -990,nkcobs)
