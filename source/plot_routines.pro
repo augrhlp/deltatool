@@ -557,13 +557,15 @@ PRO FM_PLOTDYNAMICEVALUATIONLEGEND, plotter, request, result
 END
 PRO FM_PlotCategory, plotter, request, result
 
-  !y.range=0
-  DEVICE,DECOMPOSE=0
-  LOADCT,39
-  !P.color=0
   plotter->wsetMainDataDraw
   plotInfo=result->getPlotInfo()
-  resPoscript=plotter->currentDeviceIsPostscript()
+  targetInfo=result->getGenericPlotInfo()
+  DEVICE,decomposed=0
+  LOADCT,39
+  mytek_color;, 0, 32
+  !p.color=0
+  !y.range=0
+;  resPoscript=plotter->currentDeviceIsPostscript()
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
   if string(allDataXY[0]) eq 'AllNaN' then begin
@@ -647,7 +649,7 @@ PRO FM_PlotCategory, plotter, request, result
   maxx=max(allDataXY(*,0),/nan)
   minn=min(allDataXY(*,0),/nan)
   recognizeRangeX=(Maxx-Minn)*0.1
-  if elabcode eq 10 then begin
+  if elabcode eq 10 or elabcode eq 75 then begin
     title='Bias Indicator'
     ;    CheckCriteria, request, result, 'OU', criteria, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
     criteria=1
@@ -657,7 +659,7 @@ PRO FM_PlotCategory, plotter, request, result
     ;    recognizeRangeX=1
     xtitle='Bias/2U'
   endif
-  if elabcode eq 18 then begin
+  if elabcode eq 18 or elabcode eq 77 then begin
     title='Standard Deviation Indicator'
     criteria=1.
     !x.range=[-3,3]
@@ -666,7 +668,7 @@ PRO FM_PlotCategory, plotter, request, result
     ;    recognizeRangeX=1
     xtitle='(SigM-SigO)/2U'
   endif
-  if elabcode eq 11 then begin
+  if elabcode eq 11 or elabCode eq 76 then begin
     title='Correlation Indicator'
     criteria=1
     !x.range=[0,3]
@@ -681,7 +683,7 @@ PRO FM_PlotCategory, plotter, request, result
   ahlp=fltarr(n_elements(legnames)) & ahlp(*)=0.
   ccc=intarr(n_elements(legnames)) & ccc(*)=1
   
-  if resPoscript eq 1 then !position=plotter->getPosition()
+  ;if resPoscript eq 1 then !position=plotter->getPosition()
   
   if n_elements(legNames) eq 1 then begin
     legNamesPrint=[' ',' ',legnames(0),' ',' ',' ']
@@ -889,7 +891,7 @@ PRO FM_PlotScatter, plotter, request, result
   endif
   
   adummy=fltarr(10) & adummy(*)=1.
-  if elabCode ne 21 then CheckCriteria, request, result, 'OU', criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv  ;hourly/daily
+  if elabCode ne 21 then CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv  ;hourly/daily
   if elabCode eq 21 then CheckCriteria, request, result, 'OU', criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv  ;yearly
   
   musstr=''
@@ -914,15 +916,10 @@ PRO FM_PlotScatter, plotter, request, result
     critPolyfill05=fltarr(1000,2)
     for ii=0,999 do begin
        iix=float(ii)*float(maxAxis)/1000.
-;       critPolyfill(ii,1)=min([iix+2.*criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MaxAxis])
-;       critPolyfill(ii,0)=max([iix-2.*criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MinAxis])
-;       critPolyfill05(ii,1)=min([iix+criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MaxAxis])
-;       critPolyfill05(ii,0)=max([iix-criteriaOrig/100.*sqrt( (1.-alpha)*float(iix)^2/nobsAv +alpha*LV^2),MinAxis])
        critPolyfill(ii,1)=min([iix+2.*criteriaOrig/100.*float(iix),MaxAxis])
        critPolyfill(ii,0)=max([iix-2.*criteriaOrig/100.*float(iix),MinAxis])
        critPolyfill05(ii,1)=min([iix+criteriaOrig/100.*float(iix),MaxAxis])
        critPolyfill05(ii,0)=max([iix-criteriaOrig/100.*float(iix),MinAxis])
- 
     endfor
     xx=findgen(1000)*maxAxis/1000.
     xx(fix(maxAxis+1))=min([xx(maxAxis+1),maxAxis])
@@ -1879,7 +1876,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   
   dims=get_screen_size(RESOLUTION=resolution)
    
-  if (criteria eq 0 or countValidStations eq 0) and elabCode eq 55 then begin
+  if (criteria eq 0 or countValidStations eq 0) and (elabCode eq 55 or elabCode eq 81) then begin
     plot,indgen(10),/nodata,color=255,background=255
     xyouts,1,9,'No Diagram available for current choice',charsize=2,charthick=2,/data,color=0
     xyouts,2,7,'Check criteria availability for selected parameter',charsize=1.5,charthick=1,/data,color=0
@@ -1900,16 +1897,16 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   plot, indgen(10), color=0,xrange=[-plotRange,plotRange], yrange=[-plotRange,plotRange], xstyle=1,$
     ystyle=1,/nodata, title='TARGET PLOT', charsize=facSize, background=255, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
   ; plot referring circles (4)
-  if criteria gt 0 and (elabcode eq 55 or elabcode eq 52) then begin
+  if criteria gt 0 and (elabcode eq 55 or elabcode eq 52 or elabCode eq 81) then begin
     POLYFILL, CIRCLE(0, 0, 1), /data, thick=2, color=8
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
     plots, CIRCLE(0, 0, 0.5), /data, thick=2, color=0,linestyle=2
   endif else begin
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
   endelse
-  if elabcode eq 55 then xyouts,0.1,1,'T=1',color=0,/data,charthick=3,charsize=facSize*1.3
+  if elabcode eq 55 or elabCode eq 81 then xyouts,0.1,1,'T=1',color=0,/data,charthick=3,charsize=facSize*1.3
   
-  if criteria gt 0 and elabcode eq 55 and nmod eq 1 and isGroupSelection eq 0 then begin
+  if criteria gt 0 and (elabcode eq 55 or elabCode eq 81) and nmod eq 1 and isGroupSelection eq 0 then begin
   
     coords1=[-plotRange+plotRange*0.1, plotrange-plotRange*0.25]
     coords2=[-plotRange*0.05, plotrange-plotRange*0.25]
@@ -1923,17 +1920,17 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   endif
   
   fixedLabels=strarr(4)
-  if (elabcode eq 55 or elabcode eq 52) then begin
-    if elabcode eq 55 then fixedLabels[0]='BIAS'
-    if elabcode eq 55 then fixedLabels[1]='CRMSE'
-    if elabcode eq 55 then fixedLabels[2]='MU > OU'
+  if (elabcode eq 55 or elabcode eq 52 or elabCode eq 81) then begin
+    if elabcode eq 55 or elabCode eq 81 then fixedLabels[0]='BIAS'
+    if elabcode eq 55 or elabCode eq 81 then fixedLabels[1]='CRMSE'
+    if elabcode eq 55 or elabCode eq 81 then fixedLabels[2]='MU > OU'
   endif else begin
     fixedLabels[2]='MEF < 0'
     fixedLabels[0]='BIAS/SigO'
     fixedLabels[1]='CRMSE/SigO'
   endelse
-  if elabcode ne 52 then fixedLabels[3]='SigM > SigO          SigO > SigM'
-  if elabcode eq 52 then begin
+  if elabcode ne 52 and elabCode eq 81 then fixedLabels[3]='SigM > SigO          SigO > SigM'
+  if elabcode eq 52 or elabCode eq 81 then begin
     xfac=0.1
     ;PHILTH 27032012  Change of axis in test target diagram
     plots,[-plotRange,-xfac],[-plotRange,-xfac],/data,color=0,thick=2
@@ -1979,8 +1976,8 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   axisXLine=[[-plotRange,0], [plotRange,0]]
   axisYLine=[[0,-plotRange], [0,plotRange]]
   
-  if elabcode ne 52 then plots, axisXLine, /data, color=0
-  if elabcode ne 52 then plots, axisYLine, /data, color=0
+  if elabcode ne 52 and elabCode eq 81 then plots, axisXLine, /data, color=0
+  if elabcode ne 52 and elabCode eq 81 then plots, axisYLine, /data, color=0
   
   for i=0, n_elements(fixedLabels)-1 do begin
     ;      coords=plotter->plotNormalize([posLabels[i,0], posLabels[i,1]])
@@ -2009,7 +2006,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     recognizeValues[iobs]=strcompress(allDataXY(iObs, 0),/remove_all)+','+strcompress(allDataXY(iObs, 1),/remove_all)
   endfor
   
-  if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 and elabcode ne 52 then begin
+  if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 and elabcode ne 52 and elabCode eq 81 then begin
     cc=where(finite(allDataXY[*, 0]) eq 1,countValidStations)
     if countValidStations gt 0 then begin
       radius = sqrt(allDataXY[cc, 0]^2+allDataXY[cc, 1]^2)
@@ -2512,7 +2509,7 @@ PRO FM_PlotTable2, plotter, request, result
     goto,jumpend
   endif
   
-  if elabcode eq 31 then begin  ;Hourly/daily values
+  if elabcode eq 31 or elabCode eq 83 then begin  ;Hourly/daily values
   
     statis=['Mean','Exc','NMB','R','NMSD','Rspace','NMSDspace','RDE']
     nvar=8
@@ -2872,45 +2869,45 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   npoints=n_elements(allDataXY(*,0))
   adummy=fltarr(10) & adummy(*)=1.
   
-  if elabcode eq 16 then begin  ;NMB
+;  if elabcode eq 16 then begin  ;NMB
+;  
+;    CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv
+;    maxxAxis=max(allDataXY(*,0),/nan)*1.1
+;    if finite(maxxAxis) eq 0 then maxxAxis=100
+;    minxAxis=0
+;    minyAxis=-200
+;    maxyAxis=200
+;    
+;    ymax=max([max(abs(alldataXY(*,1)),/nan)*1.2,1.1*maxxaxis])
+;    recognizeRangeX=(maxxAxis-minxAxis)*0.01
+;    recognizeRangeY=(ymax+ymax)*0.01
+;    
+;    plot, indgen(2), color=0,/nodata, xtitle='2*OU',ytitle='Mean Bias', title='Buggle PLOT', charsize=1, background=255,$
+;      yrange=[-ymax,ymax],xrange=[minxAxis,maxxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
+;    if criteria gt 0 then begin
+;      polyfill,[0,maxxaxis,maxxaxis,0],[0,maxxaxis,-maxxaxis,0],/data,color=160
+;    endif
+;    plots,[0,maxxaxis],[0,0],color=0,/data
+;    for iObs=0, npoints-1 do begin
+;      mypsym,allDataSymbol[iObs],1
+;      plots, allDataXY[iObs, 0], allDataXY[iObs, 1], psym=8, color=2+allDataColor[iObs], symsize=1.5
+;      recognizePoint[0,*]=[allDataXY[iObs, 0]-recognizeRangeX,allDataXY[iObs, 1] -recognizeRangeY]
+;      recognizePoint[1,*]=[allDataXY[iObs, 0]-recognizeRangeX,allDataXY[iObs, 1] +recognizeRangeY]
+;      recognizePoint[2,*]=[allDataXY[iObs, 0]+recognizeRangeX,allDataXY[iObs, 1] +recognizeRangeY]
+;      recognizePoint[3,*]=[allDataXY[iObs, 0]+recognizeRangeX,allDataXY[iObs, 1] -recognizeRangeY]
+;      recognizePoint1=transpose(recognizePoint)
+;      normRecognizePoint=convert_coord(recognizePoint1, /DATA, /TO_NORMAL)
+;      normRecognizePoint=transpose(normRecognizePoint)
+;      normRecognizePoint=normRecognizePoint[*, 0:1]
+;      recognizePointPtr=ptr_new(normRecognizePoint, /NO_COPY)
+;      recognizeRegionEdges[iobs]=recognizePointPtr
+;      recognizeNames[iobs]=legNames[iobs]
+;      recognizeValues[iobs]=strcompress(allDataXY(iObs, 0),/remove_all)+'/'+strcompress(allDataXY(iObs, 1),/remove_all)
+;    endfor
+;    
+;  endif
   
-    CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv
-    maxxAxis=max(allDataXY(*,0),/nan)*1.1
-    if finite(maxxAxis) eq 0 then maxxAxis=100
-    minxAxis=0
-    minyAxis=-200
-    maxyAxis=200
-    
-    ymax=max([max(abs(alldataXY(*,1)),/nan)*1.2,1.1*maxxaxis])
-    recognizeRangeX=(maxxAxis-minxAxis)*0.01
-    recognizeRangeY=(ymax+ymax)*0.01
-    
-    plot, indgen(2), color=0,/nodata, xtitle='2*OU',ytitle='Mean Bias', title='Buggle PLOT', charsize=1, background=255,$
-      yrange=[-ymax,ymax],xrange=[minxAxis,maxxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
-    if criteria gt 0 then begin
-      polyfill,[0,maxxaxis,maxxaxis,0],[0,maxxaxis,-maxxaxis,0],/data,color=160
-    endif
-    plots,[0,maxxaxis],[0,0],color=0,/data
-    for iObs=0, npoints-1 do begin
-      mypsym,allDataSymbol[iObs],1
-      plots, allDataXY[iObs, 0], allDataXY[iObs, 1], psym=8, color=2+allDataColor[iObs], symsize=1.5
-      recognizePoint[0,*]=[allDataXY[iObs, 0]-recognizeRangeX,allDataXY[iObs, 1] -recognizeRangeY]
-      recognizePoint[1,*]=[allDataXY[iObs, 0]-recognizeRangeX,allDataXY[iObs, 1] +recognizeRangeY]
-      recognizePoint[2,*]=[allDataXY[iObs, 0]+recognizeRangeX,allDataXY[iObs, 1] +recognizeRangeY]
-      recognizePoint[3,*]=[allDataXY[iObs, 0]+recognizeRangeX,allDataXY[iObs, 1] -recognizeRangeY]
-      recognizePoint1=transpose(recognizePoint)
-      normRecognizePoint=convert_coord(recognizePoint1, /DATA, /TO_NORMAL)
-      normRecognizePoint=transpose(normRecognizePoint)
-      normRecognizePoint=normRecognizePoint[*, 0:1]
-      recognizePointPtr=ptr_new(normRecognizePoint, /NO_COPY)
-      recognizeRegionEdges[iobs]=recognizePointPtr
-      recognizeNames[iobs]=legNames[iobs]
-      recognizeValues[iobs]=strcompress(allDataXY(iObs, 0),/remove_all)+'/'+strcompress(allDataXY(iObs, 1),/remove_all)
-    endfor
-    
-  endif
-  
-  if elabcode eq 25 then begin  ;NMSD
+  if elabcode eq 25 or elabCode eq 79 then begin  ;NMSD
   
     CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv
     
@@ -2961,7 +2958,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
     
   endif
   
-  if elabcode eq 15 then begin  ;R
+  if elabcode eq 15 or elabCode eq 78 then begin  ;R
   
     CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv
     
@@ -3917,7 +3914,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
   ; OCTimeAvgName=request->getElaborationOCTimeAvgName()
   ; OCStat=request->getElaborationOCStat()
   ; MM summer 2012 End
-  if elabCode eq 32 or elabcode eq 21 then begin  ;annual averages
+  if elabCode eq 32 or elabcode eq 21 or elabCode eq 84 then begin  ;annual averages
     if parcodes[0] eq 'PM10' then dailyStatOp='PMEAN'
     if parcodes[0] eq 'NO2'  then dailyStatOp='PP'
     if parcodes[0] eq 'O3'   then dailyStatOp='8HMAX'
@@ -3984,10 +3981,10 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
     BB=0.003
   endif
   
-  facSD=1.+(AA*exp(-BB*mean(obsTimeSeries)))^2
+  ;facSD=1.+(AA*exp(-BB*mean(obsTimeSeries)))^2
   
   if statistics eq 'OU' then $
-  criteria=criteria/100.*sqrt( (1.-alpha)*facSD*mean(obsTimeSeries)^2/nobsAv +alpha*LV^2)
+  criteria=criteria/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)/nobsAv +alpha*LV^2)
   jumpend:
 ;**********************
 end
