@@ -198,20 +198,34 @@ PRO FM_Generic, request, result
       endfor
     endif
     if ngroup ge 1 then begin
-      if finite(statXYResult(ipar,imod,isce,istat,0)) eq 1 and finite(statXYResult(ipar,imod,isce,istat,1)) eq 1 then begin
-          atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' S '+obsCodes(istat)
+      for igr=0,ngroup-1 do begin
+        if finite(statXYResult(ipar,imod,isce,nobsS+igr,0)) eq 1 and finite(statXYResult(ipar,imod,isce,nobsS+igr,1)) eq 1 then begin      
+          atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' G '+groupTitles(igr)
           if iprintnr eq 2 then $
-            txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,istat,0),/remove_all)+' '+$
-            strcompress(statXYResult(ipar,imod,isce,istat,1),/remove_all)
+            txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)
           if iprintnr eq 1 then $
-            txthlp=atxt+' -999 '+strcompress(statXYResult(ipar,imod,isce,istat,1),/remove_all)
+            txthlp=atxt+' -999 '+strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)
           if iprintnr eq 3 then $
             txthlp=atxt+' '+$
-            strcompress(statXYResult(ipar,imod,isce,istat,0),/remove_all)+' '+$
-            strcompress(statXYResult(ipar,imod,isce,istat,1),/remove_all)+' '+$
-            strcompress(statXYResult(ipar,imod,isce,istat,2),/remove_all)
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,2),/remove_all)
+;          if iprintnr eq 10 then $
+;            txthlp=atxt+' '+$
+;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
+;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)+' '+$
+;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,2),/remove_all)+' '+$
+;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,3),/remove_all)+' '+$
+;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,4),/remove_all)+' '+$
+;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,5),/remove_all)+' '+$
+;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,6),/remove_all)+' '+$
+;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,7),/remove_all)+' '+$
+;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,8),/remove_all)+' '+$
+;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,9),/remove_all)
           request->writeDataDumpFileRecord, txthlp
-        endif
+        endif  
+      endfor
     endif
   endfor
   endfor
