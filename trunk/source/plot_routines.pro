@@ -891,8 +891,27 @@ PRO FM_PlotScatter, plotter, request, result
   endif
   
   adummy=fltarr(10) & adummy(*)=1.
-  if elabCode ne 21 then CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv  ;hourly/daily
-  if elabCode eq 21 then CheckCriteria, request, result, 'OU', criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv  ;yearly
+  if elabCode ne 21 then begin ; hourly values
+     CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv  ;hourly/daily
+     if Criteria(0) ne -1 then begin
+        UrLV=criteriaOrig(0)
+        alpha=criteriaOrig(1)
+        Neff=1
+        Nnp=1
+        LV=criteriaOrig(4)
+     endif 
+   endif
+   if elabCode eq 21 then begin ; yearly values
+     CheckCriteria, request, result, 'OU', criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv  ;hourly/daily
+     if Criteria(0) ne -1 then begin
+        UrLV=criteriaOrig(0)
+        alpha=criteriaOrig(1)
+        Neff=criteriaOrig(2)
+        Nnp=criteriaOrig(3)
+        LV=criteriaOrig(4)
+     endif 
+   endif
+  ;if elabCode eq 21 then CheckCriteria, request, result, 'OU', criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv  ;yearly
   
   musstr=''
   for i=0,n_elements(mus)-1 do musstr=musstr+'/'+mus(i)
@@ -914,12 +933,14 @@ PRO FM_PlotScatter, plotter, request, result
   if elabcode ne 57 and criteria gt 0 then begin
     critPolyfill  =fltarr(1000,2)
     critPolyfill05=fltarr(1000,2)
+    crit_ii=fltarr(1000)
     for ii=0,999 do begin
        iix=float(ii)*float(maxAxis)/1000.
-       critPolyfill(ii,1)=min([iix+2.*criteriaOrig/100.*float(iix),MaxAxis])
-       critPolyfill(ii,0)=max([iix-2.*criteriaOrig/100.*float(iix),MinAxis])
-       critPolyfill05(ii,1)=min([iix+criteriaOrig/100.*float(iix),MaxAxis])
-       critPolyfill05(ii,0)=max([iix-criteriaOrig/100.*float(iix),MinAxis])
+       crit_ii(ii)=UrLV/100.*sqrt( (1.-alpha)*float(iix)^2/float(Neff) +alpha*LV^2/float(Nnp))
+       critPolyfill(ii,1)=min([iix+2.*crit_ii(ii),MaxAxis])
+       critPolyfill(ii,0)=max([iix-2.*crit_ii(ii),MinAxis])
+       critPolyfill05(ii,1)=min([iix+crit_ii(ii),MaxAxis])
+       critPolyfill05(ii,0)=max([iix-crit_ii(ii),MinAxis])
     endfor
     xx=findgen(1000)*maxAxis/1000.
     xx(fix(maxAxis+1))=min([xx(maxAxis+1),maxAxis])
@@ -1904,32 +1925,32 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   endif else begin
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
   endelse
-  if elabcode eq 55 or elabCode eq 81 then xyouts,0.1,1,'T=1',color=0,/data,charthick=3,charsize=facSize*1.3
+  if elabCode eq 81 then xyouts,0.1,1,'T=1',color=0,/data,charthick=3,charsize=facSize*1.3
   
-  if criteria gt 0 and (elabcode eq 55 or elabCode eq 81) and nmod eq 1 and isGroupSelection eq 0 then begin
+  if criteria gt 0 and (elabCode eq 81) and nmod eq 1 and isGroupSelection eq 0 then begin
   
-    coords1=[-plotRange+plotRange*0.1, plotrange-plotRange*0.25]
-    coords2=[-plotRange*0.05, plotrange-plotRange*0.25]
-    coords3=[-plotRange*0.05, plotrange-plotRange*0.05]
-    coords4=[-plotRange+plotRange*0.1, plotrange-plotRange*0.05]
+    coords1=[-plotRange+plotRange*0.05, plotrange-plotRange*0.25]
+    coords2=[-plotRange*0.15, plotrange-plotRange*0.25]
+    coords3=[-plotRange*0.15, plotrange-plotRange*0.05]
+    coords4=[-plotRange+plotRange*0.05, plotrange-plotRange*0.05]
     
     polyfill,[coords1[0],coords2[0],coords3[0],coords4[0]],[coords1[1],coords2[1],coords3[1],coords4[1]],color=15,/data
-    coords=[-plotRange+plotRange*0.15,plotrange-plotRange*0.15]
+    coords=[-plotRange+plotRange*0.10,plotrange-plotRange*0.15]
     psFact=plotter->getPSCharSizeFactor()
     xyouts,coords[0],coords[1],'Stations within Crit (T=1):',color=3,/data,charthick=3,charsize=facSize*1.3*psFact
   endif
   
   fixedLabels=strarr(4)
-  if (elabcode eq 55 or elabcode eq 52 or elabCode eq 81) then begin
-    if elabcode eq 55 or elabCode eq 81 then fixedLabels[0]='BIAS'
-    if elabcode eq 55 or elabCode eq 81 then fixedLabels[1]='CRMSE'
-    if elabcode eq 55 or elabCode eq 81 then fixedLabels[2]='MU > OU'
+  if (elabcode eq 52 or elabCode eq 81) then begin
+    if elabCode eq 81 then fixedLabels[0]='BIAS'
+    if elabCode eq 81 then fixedLabels[1]='CRMSE'
+    if elabCode eq 81 then fixedLabels[2]='MU > OU'
   endif else begin
     fixedLabels[2]='MEF < 0'
     fixedLabels[0]='BIAS/SigO'
     fixedLabels[1]='CRMSE/SigO'
   endelse
-  if elabcode ne 52 and elabCode eq 81 then fixedLabels[3]='SigM > SigO          SigO > SigM'
+  ;if elabCode eq 81 then fixedLabels[3]='SigM > SigO          SigO > SigM'
   if elabcode eq 52 or elabCode eq 81 then begin
     xfac=0.1
     ;PHILTH 27032012  Change of axis in test target diagram
@@ -1976,8 +1997,8 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   axisXLine=[[-plotRange,0], [plotRange,0]]
   axisYLine=[[0,-plotRange], [0,plotRange]]
   
-  if elabcode ne 52 and elabCode eq 81 then plots, axisXLine, /data, color=0
-  if elabcode ne 52 and elabCode eq 81 then plots, axisYLine, /data, color=0
+  plots, axisXLine, /data, color=0
+  plots, axisYLine, /data, color=0
   
   for i=0, n_elements(fixedLabels)-1 do begin
     ;      coords=plotter->plotNormalize([posLabels[i,0], posLabels[i,1]])
@@ -2006,13 +2027,13 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     recognizeValues[iobs]=strcompress(allDataXY(iObs, 0),/remove_all)+','+strcompress(allDataXY(iObs, 1),/remove_all)
   endfor
   
-  if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 and elabcode ne 52 and elabCode eq 81 then begin
+  if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
     cc=where(finite(allDataXY[*, 0]) eq 1,countValidStations)
     if countValidStations gt 0 then begin
       radius = sqrt(allDataXY[cc, 0]^2+allDataXY[cc, 1]^2)
       ccCrit=where(radius le 1,countCritPerc)
       percentageCrit=fix(100.*float(countCritPerc)/float(countValidStations))
-      xyouts,-plotRange*0.24,plotrange-plotRange*0.17,strtrim(percentageCrit,2)+'%',/data,charsize=2*facSize,charthick=2,color=0
+      xyouts,-plotRange*0.33,plotrange-plotRange*0.17,strtrim(percentageCrit,2)+'%',/data,charsize=2*facSize,charthick=2,color=0
     endif
   endif
   
@@ -2629,12 +2650,21 @@ PRO FM_PlotTable2, plotter, request, result
       if ii eq 7 then cc=where(abs(allDataXY(*,ii)) le 50.,countC)
       color_indic=250
       
-      if ii ge 2 and ii le 7 and criteria gt 0 then begin
+      if (ii eq 2 or ii eq 3 or ii eq 4 or ii eq 7) and criteria gt 0 then begin
         if countC/float(allDataAxis(1)) lt 0.9 and countC/float(allDataAxis(1)) gt .75 then color_indic=210
         if countC/float(allDataAxis(1)) ge 0.9 then color_indic=160
         mypsym,9,1
         if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*0.095,psym=8,color=color_indic,symsize=3,/data
       endif
+      
+      if (ii eq 5 or ii eq 6) and criteria gt 0 and n_elements(allDataSymbol) gt 1 then begin
+        if countC/float(allDataAxis(1)) lt 0.9 and countC/float(allDataAxis(1)) gt .75 then color_indic=210
+        if countC/float(allDataAxis(1)) ge 0.9 then color_indic=160
+        mypsym,9,1
+        if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*0.095,psym=8,color=color_indic,symsize=3,/data
+      endif 
+      
+      
     endfor
     
     xyouts,xmin-0.03,ymax-0.20,'O',/data,charsize=1.5*psFact,color=3,charthick=2
@@ -3858,15 +3888,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
   parCodes=request->getParameterCodes()
-;  scaleInfo=request->getScaleInfo()
-;  resScale=strsplit(scaleinfo,';',/extract)
-;  scaleName=resScale(0)
-;  scaleName=STRUPCASE(scaleName)
-  ;MM summer 2012 Start
-  ;Now you have 
-  ;request->getModelInfo()
   modelInfo=request->getModelInfo()
-  ;use it in this way:
   year=modelInfo.year
   scale=modelInfo.scale
   dataAssimilation=modelInfo.dataAssimilation
@@ -3892,7 +3914,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
   LV=0
   alpha=0
   criteriaOrig=0
-  criteria=0
+  Neff=1
   
   ;if more than one pollutant or group mode statistic ne 90 percentile, no criteria found
   if n_elements(parCodes) gt 1 or GroupModeOKmode ne 1 then begin
@@ -3912,79 +3934,46 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
   ; MM summer 2012 Start
   ; You can replace all these with request->get
   ; OCTimeAvgName=request->getElaborationOCTimeAvgName()
-  ; OCStat=request->getElaborationOCStat()
+  ;OCStat=request->getElaborationOCStat()
   ; MM summer 2012 End
   if elabCode eq 32 or elabcode eq 21 or elabCode eq 84 then begin  ;annual averages
     if parcodes[0] eq 'PM10' then dailyStatOp='PMEAN'
     if parcodes[0] eq 'NO2'  then dailyStatOp='PP'
-    if parcodes[0] eq 'O3'   then dailyStatOp='8HMAX'
+    if parcodes[0] eq 'O3'   then dailyStatOp='N/A'
   endif
   
   FlagAll=0
   
   ; request criteria: check existence
   Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname=statistics, timeAvgName=dailyStatOp, NOVALUES=NOVALUES)
-  Criteria=criteria(0)
-  
-  
-  ; if no criteria found with specific user selection, check whether criteria for All conditions is available
-  if criteria eq -1 then begin
-    Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname=statistics, timeAvgName='ALL', NOVALUES=NOVALUES)
-    Criteria=criteria(0)
-    if criteria gt 0 then FlagAll=1
+  if Criteria(0) eq -1 then begin
+     Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname=statistics, timeAvgName='ALL', NOVALUES=NOVALUES)
+     if criteria(0) gt 0 then FlagAll=1
+  endif
+  if Criteria(0) ne -1 then begin
+    UrLV=criteria(0)
+    alpha=criteria(1)
+    Neff=criteria(2)
+    Nnp=criteria(3)
+    LV=criteria(4)
   endif
   CriteriaOrig=criteria
-  if keyword_set(NOVALUES) then Criteria=0
+  if keyword_set(NOVALUES) then UrLV=0
   
   ; calculation of absolute error
   
   nobsAv=endIndex-startIndex+1
   if statType eq 1 or statType eq 2 or statType eq 3 then nobsAv=nobsAv/24.
-  if statType eq 0 and (parcodes eq 'PM10' or parCodes eq 'O3') then nobsAv=nobsAv/24.
+  if statType eq 0 and (parcodes eq 'PM10' or parCodes eq 'PM25') then nobsAv=nobsAv/24.
   if nobsAv lt 1 then nobsAv=1
   if longtoShort eq 0 then nobsAv=1
   
-  if parcodes eq 'PM10' then begin
-    alpha=0.30
-    LV=50.
-    AA=1.5
-    BB=0.002
-  endif
-  if parcodes eq 'PM25' then begin
-    alpha=0.30
-    LV=25.
-    AA=2
-    BB=0.013
-  endif
-  if parcodes eq 'WS' then begin
-    alpha=0.25
-    LV=10.
-    AA=2
-    BB=0.5
-  endif
-  if parcodes eq 'TEMP' then begin
-    alpha=0.95
-    LV=20.
-    AA=1.5
-    BB=0.02
-  endif
-  if parcodes eq 'O3' then begin
-    alpha=0.15
-    LV=120.
-    AA=1.
-    BB=0.0035
-  endif
-  if parcodes eq 'NO2' then begin
-    alpha=0.20
-    LV=40.
-    AA=1.25
-    BB=0.003
-  endif
   
-  ;facSD=1.+(AA*exp(-BB*mean(obsTimeSeries)))^2
-  
-  if statistics eq 'OU' then $
-  criteria=criteria/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)/nobsAv +alpha*LV^2)
+  if statistics eq 'OU' and criteria(0) ne -1 then begin 
+     if longtoshort eq 0 then criteria=UrLV/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)+alpha*LV^2)
+     if longtoshort eq 1 then criteria=UrLV/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)/Neff +alpha*LV^2/Nnp)
+     if Neff eq -999 and longtoShort eq 1 then criteria=-1
+  endif
   jumpend:
 ;**********************
 end
