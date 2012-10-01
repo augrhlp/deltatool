@@ -1897,7 +1897,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   
   dims=get_screen_size(RESOLUTION=resolution)
    
-  if (criteria eq 0 or countValidStations eq 0) and (elabCode eq 55 or elabCode eq 81) then begin
+  if (criteria eq 0 or countValidStations eq 0) then begin
     plot,indgen(10),/nodata,color=255,background=255
     xyouts,1,9,'No Diagram available for current choice',charsize=2,charthick=2,/data,color=0
     xyouts,2,7,'Check criteria availability for selected parameter',charsize=1.5,charthick=1,/data,color=0
@@ -1918,16 +1918,16 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   plot, indgen(10), color=0,xrange=[-plotRange,plotRange], yrange=[-plotRange,plotRange], xstyle=1,$
     ystyle=1,/nodata, title='TARGET PLOT', charsize=facSize, background=255, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
   ; plot referring circles (4)
-  if criteria gt 0 and (elabcode eq 55 or elabcode eq 52 or elabCode eq 81) then begin
+  if criteria gt 0 then begin
     POLYFILL, CIRCLE(0, 0, 1), /data, thick=2, color=8
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
     plots, CIRCLE(0, 0, 0.5), /data, thick=2, color=0,linestyle=2
   endif else begin
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
   endelse
-  if elabCode eq 81 then xyouts,0.1,1,'T=1',color=0,/data,charthick=3,charsize=facSize*1.3
+  xyouts,0.1,1,'T=1',color=0,/data,charthick=3,charsize=facSize*1.3
   
-  if criteria gt 0 and (elabCode eq 81) and nmod eq 1 and isGroupSelection eq 0 then begin
+  if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
   
     coords1=[-plotRange+plotRange*0.05, plotrange-plotRange*0.25]
     coords2=[-plotRange*0.15, plotrange-plotRange*0.25]
@@ -1941,17 +1941,11 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   endif
   
   fixedLabels=strarr(4)
-  if (elabcode eq 52 or elabCode eq 81) then begin
-    if elabCode eq 81 then fixedLabels[0]='BIAS'
-    if elabCode eq 81 then fixedLabels[1]='CRMSE'
-    if elabCode eq 81 then fixedLabels[2]='MU > OU'
-  endif else begin
-    fixedLabels[2]='MEF < 0'
-    fixedLabels[0]='BIAS/SigO'
-    fixedLabels[1]='CRMSE/SigO'
-  endelse
+  fixedLabels[0]='BIAS'
+  fixedLabels[1]='CRMSE'
+  fixedLabels[2]='MU > OU'
+  
   ;if elabCode eq 81 then fixedLabels[3]='SigM > SigO          SigO > SigM'
-  if elabcode eq 52 or elabCode eq 81 then begin
     xfac=0.1
     ;PHILTH 27032012  Change of axis in test target diagram
     plots,[-plotRange,-xfac],[-plotRange,-xfac],/data,color=0,thick=2
@@ -1974,7 +1968,6 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     ;      xyouts, plotRange*0.60, -plotRange*0.95, 'BIAS < 0 / SD',charthick=2, color=0,/data,charsize=facSize*1.5
     xyouts, -plotRange*0.95, -plotRange*0.05, 'R',charthick=2, color=0,/data,charsize=facSize*1.5
     xyouts, plotRange*0.85, -plotRange*0.05, 'SD',charthick=2, color=0,/data,charsize=facSize*1.5
-  endif
   
   posLabels=fltarr(4,2)
   posLabels[0, *]=[0.1, 1.3]
@@ -2000,8 +1993,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   plots, axisXLine, /data, color=0
   plots, axisYLine, /data, color=0
   
-  for i=0, n_elements(fixedLabels)-1 do begin
-    ;      coords=plotter->plotNormalize([posLabels[i,0], posLabels[i,1]])
+  for i=0, 1 do begin
     xyouts, posLabels[i,0], posLabels[i,1], fixedLabels[i], orient=orientLabels[i], $
       charthick=thickLabels[i], color=0,/data,charsize=facSize*1.2
   endfor
