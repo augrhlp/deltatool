@@ -3906,6 +3906,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
   LV=0
   alpha=0
   criteriaOrig=0
+  criteria=0
   Neff=1
   
   ;if more than one pollutant or group mode statistic ne 90 percentile, no criteria found
