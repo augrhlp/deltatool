@@ -568,7 +568,7 @@ PRO SG_Computing, $
             if criteriaOU gt 0 then begin
               statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*2.)
               statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/(CriteriaOU*2.)
-              statXYGroup[i1,i2,i3,i4]=sign*rmse(obsTemp,runTemp)
+              statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)
             endif else begin
               statXYResult[i1,i2,i3,i4,0]=!values.f_nan
               statXYResult[i1,i2,i3,i4,1]=!values.f_nan
