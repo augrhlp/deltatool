@@ -1066,15 +1066,13 @@ if itmod eq 1 then begin
     close,1
   endif
   if iprob eq 1 then begin
-    txt='STEP 14: STOP! Inconsistent speclist in STARTUPfile and MODfile'
+    txt='STEP 14: WARNING! Inconsistent speclist in STARTUPfile and MODfile'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
-    txtall=['STOP',txtall]
+    txtall=['WARNING',txtall]
     widget_control,labcom_txt,set_value=txtall
     close,11
     close,12
-    ierror=1
-    return
   endif
   if iprob eq 0 then begin
     printf,11,'STEP 14 OK: Species consistent in STARTUPfile and MODfile'

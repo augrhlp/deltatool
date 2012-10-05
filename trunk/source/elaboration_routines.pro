@@ -176,6 +176,7 @@ PRO FM_Generic, request, result
   iprintnr=2 ; 2 values are dumped
   if total(where(elabCode eq [3,4,5,7,8,23,24,28,30,33,54])) ge 0 then iprintnr=1 ; 1 value
   if elabCode eq 2 or elabCode eq 14 then iprintnr=3
+; set iprintnr=10 for 10x dump
   for ipar=0,npar-1 do begin
   for imod=0,nmod-1 do begin
   for isce=0,nsce-1 do begin
@@ -331,6 +332,7 @@ PRO SG_Computing, $
   flag_average=hourStat[0].value
 
   dimAll=(Index1)*(Index2)*(Index3)*(Index4)
+; change 3 into 10 for 10x dump
   statXYResult=fltarr(Index1,Index2,Index3,Index4,3)   ;0=obs, 1=run;
   statXYGroup=fltarr(index1,index2,index3,index4) & statXYGroup(*,*,*,*)=!values.f_nan
 
@@ -447,9 +449,15 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=abs(statXYResult[i1,i2,i3,i4,0])
           endif
           if elabcode eq 14 then begin  ;Spatial Corr
-          ; KeesC
             statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp)
+;            statXYResult[i1,i2,i3,i4,3]=mean(runTemp)-mean(obsTemp)
+;            statXYResult[i1,i2,i3,i4,4]=rmse(obsTemp,runTemp)
+;            statXYResult[i1,i2,i3,i4,5]=100.*(stddevOM(runTemp)-stddevOM(obsTemp))/stddevOM(obsTemp)
+;            statXYResult[i1,i2,i3,i4,6]=mean(obsTemp)
+;            statXYResult[i1,i2,i3,i4,7]=mean(runTemp)
+;            statXYResult[i1,i2,i3,i4,8]=stddevOM(obsTemp)
+;            statXYResult[i1,i2,i3,i4,9]=stddevOM(runTemp)
             statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))  ;??
           endif
           if elabcode eq 15 or elabCode eq 78 then begin ; R buggle
@@ -643,9 +651,7 @@ PRO SG_Computing, $
         for i3=0,Index3-1 do begin
           for i1=0,Index1-1 do begin
             if finite(statXYResult(i1,i2,i3,i4,0)) eq 0 or finite(statXYResult(i1,i2,i3,i4,1)) eq 0 then begin
-              statXYResult(*,*,*,i4,0)=!values.f_nan
-              statXYResult(*,*,*,i4,1)=!values.f_nan
-              statXYResult(*,*,*,i4,2)=!values.f_nan
+              statXYResult(*,*,*,i4,*)=!values.f_nan
               statXYGroup[*,*,*,i4]=!values.f_nan
             endif
           endfor
@@ -668,78 +674,128 @@ PRO SG_Computing, $
         if ihlp ge 1 then currNumber[i]=chlp[0]
       endfor
       for i1=0,Index1-1 do begin
-      for i2=0,Index2-1 do begin
-      for i3=0,Index3-1 do begin
-        statXYGroupHlp=reform(statXYGroup(i1,i2,i3,nobsS+currNumber))
-        statXY0=reform(statXYResult(i1,i2,i3,nobsS+currNumber,0))
-        statXY1=reform(statXYResult(i1,i2,i3,nobsS+currNumber,1))
-        statXY2=reform(statXYResult(i1,i2,i3,nobsS+currNumber,2))
-        ccFin=where(finite(statXY0) eq 1 and finite(statXY0) eq 1,countfinite)
-        ;Mean 100% group
-        if groupStatToApplyCode eq 0 then begin
-          if countFinite gt 0 then begin
-            obsGroupStatResult=reform(statXY0(ccFin))
-            runGroupStatResult=reform(statXY1(ccFin))
-            run2GroupStatResult=reform(statXY2(ccFin))
-            if elabCode ne 14 then begin
-              obsStatResult=mean(obsGroupStatResult)
-              runStatResult=mean(runGroupStatResult)
-              run2StatResult=mean(run2GroupStatResult)
-            endif
-            if elabCode eq 14 then begin
-              if ncurrNames ge 2 then begin
-                spatCorr=correlate(obsGroupStatResult,runGroupStatResult)
-                regres=regress(obsGroupStatResult,runGroupStatResult,const=regcnst,correlation=spatCorr)
-                regres=regres[0]
+        for i2=0,Index2-1 do begin
+          for i3=0,Index3-1 do begin
+            statXYGroupHlp=reform(statXYGroup(i1,i2,i3,nobsS+currNumber))
+            ;KeesC 11SEP2012
+            statXY0=reform(statXYResult(i1,i2,i3,nobsS+currNumber,0))
+            statXY1=reform(statXYResult(i1,i2,i3,nobsS+currNumber,1))
+            statXY2=reform(statXYResult(i1,i2,i3,nobsS+currNumber,2))
+;            statXY3=reform(statXYResult(i1,i2,i3,nobsS+currNumber,3))
+;            statXY4=reform(statXYResult(i1,i2,i3,nobsS+currNumber,4))
+;            statXY5=reform(statXYResult(i1,i2,i3,nobsS+currNumber,5))
+;            statXY6=reform(statXYResult(i1,i2,i3,nobsS+currNumber,6))
+;            statXY7=reform(statXYResult(i1,i2,i3,nobsS+currNumber,7))
+;            statXY8=reform(statXYResult(i1,i2,i3,nobsS+currNumber,8))
+;            statXY9=reform(statXYResult(i1,i2,i3,nobsS+currNumber,9))
+            ccFin=where(finite(statXY0) eq 1 and finite(statXY0) eq 1,countfinite)
+            ;Mean 100% group
+            if groupStatToApplyCode eq 0 then begin
+              if countFinite gt 0 then begin
+                obsGroupStatResult=reform(statXY0(ccFin))
+                runGroupStatResult=reform(statXY1(ccFin))
+                ;KeesC 11SEP2012
+                run2GroupStatResult=reform(statXY2(ccFin))
+;                run3GroupStatResult=reform(statXY3(ccFin))
+;                run4GroupStatResult=reform(statXY4(ccFin))
+;                run5GroupStatResult=reform(statXY5(ccFin))
+;                run6GroupStatResult=reform(statXY6(ccFin))
+;                run7GroupStatResult=reform(statXY7(ccFin))
+;                run8GroupStatResult=reform(statXY8(ccFin))
+;                run9GroupStatResult=reform(statXY9(ccFin))
+                if elabCode ne 14 then begin
+                  obsStatResult=mean(obsGroupStatResult)
+                  runStatResult=mean(runGroupStatResult)
+                  ;KeesC 11SEP2012
+                  run2StatResult=mean(run2GroupStatResult)
+;                  run3StatResult=mean(run3GroupStatResult)
+;                  run4StatResult=mean(run4GroupStatResult)
+;                  run5StatResult=mean(run5GroupStatResult)
+;                  run6StatResult=mean(run6GroupStatResult)
+;                  run7StatResult=mean(run7GroupStatResult)
+;                  run8StatResult=mean(run8GroupStatResult)
+;                  run9StatResult=mean(run9GroupStatResult)
+                endif
+                if elabCode eq 14 then begin
+                  if ncurrNames ge 2 then begin
+                    ;KeesC 10SEP2012
+                    spatCorr=correlate(obsGroupStatResult,runGroupStatResult)
+                    regres=regress(obsGroupStatResult,runGroupStatResult,const=regcnst,correlation=spatCorr)
+                    regres=regres[0]
+                  endif else begin
+                    spatCorr=!values.f_nan
+                    regres=!values.f_nan
+                    regcnst=!values.f_nan
+                  endelse
+                  obsStatResult=regcnst
+                  RunStatResult=spatCorr
+                  Run2StatResult=regres
+;                  run3StatResult=mean(run3GroupStatResult)
+;                  run4StatResult=mean(run4GroupStatResult)
+;                  run5StatResult=mean(run5GroupStatResult)
+;                  run6StatResult=mean(run6GroupStatResult)
+;                  run7StatResult=mean(run7GroupStatResult)
+;                  run8StatResult=mean(run8GroupStatResult)
+;                  run9StatResult=mean(run9GroupStatResult)
+                endif
+                if elabCode eq 20 or elabcode eq 52 or elabCode eq 81 then begin
+                  ccNeg=where(statXYGroupHlp lt 0.,countNeg)
+                  ccPos=where(statXYGroupHlp ge 0.,countPos)
+                  if countNeg gt countPos then obsStatResult=-obsStatResult
+                endif
               endif else begin
-                spatCorr=!values.f_nan
-                regres=!values.f_nan
-                regcnst=!values.f_nan
+                obsStatResult=!values.f_nan
+                runStatResult=!values.f_nan
+                Run2StatResult=!values.f_nan
+;                Run3StatResult=!values.f_nan
+;                Run4StatResult=!values.f_nan
+;                Run5StatResult=!values.f_nan
+;                Run6StatResult=!values.f_nan
+;                Run7StatResult=!values.f_nan
+;                Run8StatResult=!values.f_nan
+;                Run9StatResult=!values.f_nan
               endelse
-              obsStatResult=spatCorr
-              RunStatResult=spatCorr
-              Run2StatResult=regres
             endif
-            if elabCode eq 20 or elabcode eq 52 or elabCode eq 81 then begin
-              ccNeg=where(statXYGroupHlp lt 0.,countNeg)
-              ccPos=where(statXYGroupHlp ge 0.,countPos)
-              if countNeg gt countPos then obsStatResult=-obsStatResult
+            ;Worst 90%% group
+            if groupStatToApplyCode eq 1 then begin
+              if countFinite gt 0 then begin
+                obsGroupStatResult=reform(statXY0(ccFin))
+                runGroupStatResult=reform(statXY1(ccFin))
+                ;KeesC 10SEP2012
+                run2GroupStatResult=reform(statXY2(ccFin))
+                GroupStatResult=reform(statXYGroupHlp(ccFin))
+                resSort=sort(GroupStatResult)
+                      if total(where(elabCode eq [2,7,11,15,78,33,76])) ge 0 then resSort=reverse(resSort)
+                medIdx=resSort[fix(0.9*n_elements(resSort))]
+                obsStatResult=obsGroupStatResult(medIdx)
+                runStatResult=runGroupStatResult(medIdx)
+                ;KeesC 10SEP2012
+                run2StatResult=run2GroupStatResult(medIdx)
+                if elabCode eq 20 or elabCode eq 52 or elabCode eq 81 then begin
+                  ccNeg=where(statXYGroupHlp(0:medIdx) lt 0.,countNeg)
+                  ccPos=where(statXYGroupHlp(0:medIdx) ge 0.,countPos)
+                  if countNeg gt countPos then obsStatResult=-abs(obsStatResult)
+                endif
+              endif else begin
+                obsStatResult=!values.f_nan
+                runStatResult=!values.f_nan
+                ;KeesC 10SEP2012
+                run2StatResult=!values.f_nan
+              endelse
             endif
-          endif else begin
-            obsStatResult=!values.f_nan
-            runStatResult=!values.f_nan
-            Run2StatResult=!values.f_nan
-          endelse
-        endif
-        ;Worst 90%% group
-        if groupStatToApplyCode eq 1 then begin
-          if countFinite gt 0 then begin
-            obsGroupStatResult=reform(statXY0(ccFin))
-            runGroupStatResult=reform(statXY1(ccFin))
-            run2GroupStatResult=reform(statXY2(ccFin))
-            GroupStatResult=reform(statXYGroupHlp(ccFin))
-            resSort=sort(GroupStatResult)
-            if total(where(elabCode eq [2,7,11,15,78,33,76])) ge 0 then resSort=reverse(resSort)
-            medIdx=resSort[fix(0.9*n_elements(resSort))]
-            obsStatResult=obsGroupStatResult(medIdx)
-            runStatResult=runGroupStatResult(medIdx)
-            run2StatResult=run2GroupStatResult(medIdx)
-            if elabCode eq 20 or elabCode eq 52 or elabCode eq 81 then begin
-              ccNeg=where(statXYGroupHlp(0:medIdx) lt 0.,countNeg)
-              ccPos=where(statXYGroupHlp(0:medIdx) ge 0.,countPos)
-              if countNeg gt countPos then obsStatResult=-abs(obsStatResult)
-            endif
-          endif else begin
-            obsStatResult=!values.f_nan
-            runStatResult=!values.f_nan
-            run2StatResult=!values.f_nan
-          endelse
-        endif
-        statXYResultHlp[i1,i2,i3,nobsS+iG,0]=obsStatResult
-        statXYResultHlp[i1,i2,i3,nobsS+iG,1]=runStatResult
-        statXYResultHlp[i1,i2,i3,nobsS+iG,2]=run2StatResult
-      endfor ;i3
-      endfor ;i2
+            ;KeesC 11SEP2012
+            statXYResultHlp[i1,i2,i3,nobsS+iG,0]=obsStatResult
+            statXYResultHlp[i1,i2,i3,nobsS+iG,1]=runStatResult
+            statXYResultHlp[i1,i2,i3,nobsS+iG,2]=run2StatResult
+;            statXYResultHlp[i1,i2,i3,nobsS+iG,3]=run3StatResult
+;            statXYResultHlp[i1,i2,i3,nobsS+iG,4]=run4StatResult
+;            statXYResultHlp[i1,i2,i3,nobsS+iG,5]=run5StatResult
+;            statXYResultHlp[i1,i2,i3,nobsS+iG,6]=run6StatResult
+;            statXYResultHlp[i1,i2,i3,nobsS+iG,7]=run7StatResult
+;            statXYResultHlp[i1,i2,i3,nobsS+iG,8]=run8StatResult
+;            statXYResultHlp[i1,i2,i3,nobsS+iG,9]=run9StatResult
+          endfor ;i3
+        endfor ;i2
       endfor  ;i1
     endfor   ;iG
     statXYResult[*,*,*,nobsS:nobsS+ngroup-1,*]=statXYResultHlp[*,*,*,nobsS:nobsS+ngroup-1,*]
@@ -2092,7 +2148,7 @@ endif
 result->setGenericPlotInfo, statXYResult, statSymbols, statColors, legendNames, legendColors, legendSymbols
 ; 2 multiple choices section **end**
 END
-PRO FM_MultiParScatter, request, result
+PRO FM_MultiParModScatter, request, result
   ;****************************************************************************************************
 
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
@@ -2189,8 +2245,19 @@ PRO FM_MultiParScatter, request, result
       test1=parCodes
       legendNames=['OBS vs OBS',modelCodes+' vs '+modelCodes]
       legoNames=parCodes
-      ;      statResult=fltarr(1)
-      ; tek color starts from index 2(red)
+      targetColors=intarr(2)
+      targetPointsNo=2
+      legendColors=indgen(n_elements(targetPointsNo))
+      legendSymbols=strarr(2)
+      legendColors=[0,1]
+      legendSymbols=[9,9]
+    end
+    1:begin ;modelss section
+      print, '--> Only modelss are multiple'
+      mChoice1run=SingleRawData[srunIndexes].modelCode
+      test1=modelCodes
+      legendNames=['MOD vs MOD',parCodes+' vs '+parCodes]
+      legoNames=modelCodes
       targetColors=intarr(2)
       targetPointsNo=2
       legendColors=indgen(n_elements(targetPointsNo))

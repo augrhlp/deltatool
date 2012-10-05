@@ -40,7 +40,7 @@ END
 
 PRO FMMainGUI::recognize, x, y
 
-  print, "Recognize point on device coord", x, y
+;  print, "Recognize point on device coord", x, y
   self->wsetMainDataDraw
   if self.mgr->isRecognizible() then self.mgr->DoRecognize, x, y
   

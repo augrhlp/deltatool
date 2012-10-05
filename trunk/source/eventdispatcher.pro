@@ -155,9 +155,9 @@ END
 
 PRO fairmode_splitDrawMouse, ev
 
-  print, "clicking...", ev.press
+;  print, "clicking...", ev.press
   if (ev.press eq 1) then begin
-    print, "left split click"
+;    print, "left split click"
     xCoord = ev.x
     yCoord = ev.y
     if size(ev, /TYPE) eq 8 then ev=ev.top
@@ -924,9 +924,9 @@ END
 
 PRO fairmode_mapDrawMouse, ev
 
-  print, "clicking...", ev.press
+;  print, "clicking...", ev.press
   if (ev.press eq 1) then begin
-    print, "left"
+;    print, "left"
     xCoord = ev.x
     yCoord = ev.y
     if size(ev, /TYPE) eq 8 then ev=ev.top

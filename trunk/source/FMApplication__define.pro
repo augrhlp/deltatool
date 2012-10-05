@@ -497,7 +497,7 @@ END
 
 PRO FMApplication::Recognize, coord
 
-  print, "do RecognizeJob"
+;  print, "do RecognizeJob"
   
   rInfo=self->getRecognizeInfo()
   rEdges=rInfo->getRegionEdges()
@@ -507,17 +507,17 @@ PRO FMApplication::Recognize, coord
   foundValue=""
   for i=n_elements(rEdges)-1, 0, -1 do begin
     thisRegion=*rEdges[i]
-    print, 'thisRegion:', thisRegion
-    print, 'coord:', coord
-    print, 'coord[0] ge thisRegion[0,0]', coord[0], thisRegion[0,0]
-    print, 'coord[0] le thisRegion[3,0]', coord[0], thisRegion[3,0]
-    print, 'coord[1] ge thisRegion[0,1]', coord[1], thisRegion[0,1]
-    print, 'coord[1] le thisRegion[1,1]', coord[1], thisRegion[1,1]
+;    print, 'thisRegion:', thisRegion
+;    print, 'coord:', coord
+;    print, 'coord[0] ge thisRegion[0,0]', coord[0], thisRegion[0,0]
+;    print, 'coord[0] le thisRegion[3,0]', coord[0], thisRegion[3,0]
+;    print, 'coord[1] ge thisRegion[0,1]', coord[1], thisRegion[0,1]
+;    print, 'coord[1] le thisRegion[1,1]', coord[1], thisRegion[1,1]
     if (coord[0] ge thisRegion[0,0]) and $
       (coord[0] le thisRegion[3,0]) and $
       (coord[1] ge thisRegion[0,1]) and $
       (coord[1] le thisRegion[1,1]) then begin
-      print, "found", i
+;      print, "found", i
       foundName=rNames[i]
       foundValue=rValues[i]
       break
