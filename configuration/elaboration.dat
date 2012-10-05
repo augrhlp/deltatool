@@ -31,6 +31,7 @@
 31;7;PM10 daily values Assessment (OU);10;0;1;FREE;NONE;0001*;1;YES;11;summary report: The threshold value is the limit value.;OU;PMEAN
 32;7;PM10 Yearly Assessment (OU);10;0;1;NONE;NONE;0001*;1;YES;11;Summary report: The threshold value is the limit value.;OU;PMEAN
 33;1;FAC2;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of FAC2 values;NONE;NONE
+50;6;Mod1 vs Mod2 Single station;2;FREE;FREE;FREE;FREE;1000*0100*;0;NO;00;Scatter plot with one model against a second one. Available for one station at a time.;NONE;NONE
 52;1;PM10;4;0;1;FREE;0;0100*0001*0101*;0;YES;11;Target diagram for PM10 daily averaged values. This diagram uses a normalisation based on Observation uncertainty (OU);OU;PMEAN
 53;4;ModModObs;12;FREE;FREE;FREE;FREE;0100*0101*;0;YES;00;Statistics for comparing 2 model versions with observations;OU;PMEAN
 54;1;NMSD;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;11;Barplots of sigma ratio values;MFS;NONE

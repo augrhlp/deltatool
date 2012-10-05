@@ -877,8 +877,14 @@ PRO FM_PlotScatter, plotter, request, result
   ; KeesC 31AUG2012
   totalStationNb=nobs
   nmulti=npar*nsce*nmod*nobs
-  maxAxis=max([0,max(allDataXY,/nan)])*1.2
-  minAxis=min([0,min(allDataXY,/nan)])
+  if elabCode ne 50 then begin
+    maxAxis=max([0,max(allDataXY,/nan)])*1.2
+    minAxis=min([0,min(allDataXY,/nan)])
+  endif
+  if elabCode eq 50 then begin
+    maxAxis=max([0,max(allDataXY(nmulti/2:nmulti-1,*),/nan)])*1.2
+    minAxis=min([0,min(allDataXY(nmulti/2:nmulti-1,*),/nan)])
+  endif
   if maxAxis eq 0 and minAxis eq 0 then maxAxis=1.
   recognizeRange=(maxAxis-minAxis)*0.01
   cc=where(finite(allDataXy(*,0)) eq 1 and finite(allDataXy(*,1)) eq 1,validStationNb)
@@ -919,6 +925,10 @@ PRO FM_PlotScatter, plotter, request, result
     xtitle='OBS '+musstr
     ytitle='MOD '+musstr
   endif
+  if elabCode eq 50 then begin
+    xtitle=modelCodes(0)+'/'+mus[0]
+    ytitle=modelCodes(1)+'/'+'EmisUnits'
+  endif
   if elabCode eq 56 then begin
     xtitle='OBS '+musstr
     ytitle='MOD '+musstr
@@ -930,7 +940,7 @@ PRO FM_PlotScatter, plotter, request, result
   plot, indgen(max([fix(maxaxis),fix(abs(minAxis))])),color=0, /nodata, xtitle=xtitle,ytitle=ytitle, title='Scatter PLOT', $
     charsize=1.5*psfact, background=255,xrange=[minAxis,maxAxis],$
     yrange=[minAxis,maxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
-  if elabcode ne 57 and criteria gt 0 then begin
+  if elabCode ne 50 and elabcode ne 57 and criteria gt 0 then begin
     critPolyfill  =fltarr(1000,2)
     critPolyfill05=fltarr(1000,2)
     crit_ii=fltarr(1000)
@@ -960,8 +970,11 @@ PRO FM_PlotScatter, plotter, request, result
   size_alldataXY=size(allDataXY)
   if size_alldataXY(0) eq 2 then begin    ; scatter mean
   
-    if elabcode eq 6 or elabCode eq 21 or elabcode eq 56 or elabcode eq 57 then begin
-    
+    if elabcode eq 6 or elabCode eq 21 or elabCode eq 50 or elabcode eq 56 or elabcode eq 57 then begin
+      if elabCode eq 50 then begin
+        allDataXY=allDataXY[nmulti/2:nmulti-1,*] 
+        nmulti=nmulti/2
+      endif  
       ;      nObs=n_elements(allDataColor)
       recognizeHighLight=bytarr(nmulti)
       recognizeRegionEdges=ptrarr(nmulti) ; coords (normalized standard)
@@ -987,6 +1000,9 @@ PRO FM_PlotScatter, plotter, request, result
         recognizeHighLight[iObs]=0b
         recognizeRegionEdges[iObs]=recognizePointPtr
         if elabCode eq 57 then begin
+          recognizeNames[iObs]='Hour = '+strcompress(iobs,/remove_all)
+        endif
+        if elabCode eq 50 then begin
           recognizeNames[iObs]='Hour = '+strcompress(iobs,/remove_all)
         endif
         if elabCode eq 56 then begin
@@ -1023,7 +1039,7 @@ PRO FM_PlotScatter, plotter, request, result
     endfor
   endelse
   ;  endif
-  if elabcode eq 6 or elabCode eq 21 or elabCode eq 56 or elabCode eq 57 then begin
+  if elabcode eq 6 or elabCode eq 21 or elabCode eq 50 or elabCode eq 56 or elabCode eq 57 then begin
     rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
     plotInfo->setRecognizeInfo, rInfo
   endif
