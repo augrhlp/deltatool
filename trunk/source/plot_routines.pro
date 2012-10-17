@@ -896,6 +896,7 @@ PRO FM_PlotScatter, plotter, request, result
     ngroups=n_elements(groupTitles)
   endif
   
+   if n_elements(parCodes) eq 1 and isGroupSelection eq 0 then begin
   adummy=fltarr(10) & adummy(*)=1.
   if elabCode ne 21 then begin ; hourly values
      CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv  ;hourly/daily
@@ -917,6 +918,10 @@ PRO FM_PlotScatter, plotter, request, result
         LV=criteriaOrig(4)
      endif 
    endif
+   
+   endif else begin
+   criteria=0
+   endelse
   ;if elabCode eq 21 then CheckCriteria, request, result, 'OU', criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv  ;yearly
   
   musstr=''
@@ -940,7 +945,7 @@ PRO FM_PlotScatter, plotter, request, result
   plot, indgen(max([fix(maxaxis),fix(abs(minAxis))])),color=0, /nodata, xtitle=xtitle,ytitle=ytitle, title='Scatter PLOT', $
     charsize=1.5*psfact, background=255,xrange=[minAxis,maxAxis],$
     yrange=[minAxis,maxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
-  if elabCode ne 50 and elabcode ne 57 and criteria gt 0 then begin
+  if elabCode ne 50 and elabcode ne 57 and criteria[0] gt 0 then begin
     critPolyfill  =fltarr(1000,2)
     critPolyfill05=fltarr(1000,2)
     crit_ii=fltarr(1000)
@@ -3927,6 +3932,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
   
   ;if more than one pollutant or group mode statistic ne 90 percentile, no criteria found
   if n_elements(parCodes) gt 1 or GroupModeOKmode ne 1 then begin
+    
     goto,jumpEnd
   endif
   
