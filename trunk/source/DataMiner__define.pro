@@ -367,14 +367,16 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
       return, data
     endif else begin
       ;New: Variable = StationName
-      cdfBlockName=statCode
-      ncdf_varget, Id, cdfBlockName, dataAll
       ncdf_attget,Id,'Parameters',pollout,/global
       pollout=string(pollout)
       pollout=strsplit(pollout,' ',/extract)
       pollout=strcompress(pollout,/remove_all)
       cc=where(pollout eq parameterCodes[k],ncc)
-      data=reform(dataAll(cc[0],*))
+      cdfBlockName=statCode
+      ncdf_varget, Id, cdfBlockName, data,count=[1,8760],offset=[cc(0),0]
+      
+ ;     data=reform(dataAll(cc[0],*))
+      data=reform(data)
       ncdf_close, Id
       return,data
     endelse
