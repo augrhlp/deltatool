@@ -1,5 +1,6 @@
 ;********************
 @structure_definition
+@/check_io/checkcriteria
 ;********************
 FUNCTION FMApplication::getElabFilterType
 
