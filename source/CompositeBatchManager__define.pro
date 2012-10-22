@@ -1,3 +1,4 @@
+@/check_io/checkcriteria
 ; MM summer 2012 start
 FUNCTION CompositeBatchManager::selectionIsFilled
 
