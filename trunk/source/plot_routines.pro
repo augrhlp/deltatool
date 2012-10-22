@@ -503,18 +503,18 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv  ;hourly/daily
    PolfX=fltarr(6)
    PolfY=fltarr(6)
-   if criteriaOrig gt 0. then begin
-     vY=2.*(criteriaOrig/100.)*sqrt(alpha*LV^2)
-     PolfX(0)=-Xaxis   & PolfY(0)=-Xaxis
-     PolfX(1)=-Xaxis   & PolfY(1)=-Xaxis+vY
-     PolfX(2)=Xaxis-vY & PolfY(2)=Xaxis
-     PolfX(3)=Xaxis    & PolfY(3)=Xaxis
-     PolfX(4)=Xaxis    & PolfY(4)=Xaxis-vY
-     PolfX(5)=-Xaxis+vY       & PolfY(5)=-Xaxis
-    polyfill,PolfX,PolfY,/data,color=8
-    oplot,[PolfX(1),PolfX(2)],[PolfY(1),PolfY(2)],linestyle=2,color=0,thick=2
-    oplot,[PolfX(5),PolfX(4)],[PolfY(5),PolfY(4)],linestyle=2,color=0,thick=2
-  endif
+;   if criteriaOrig gt 0. then begin
+;     vY=2.*(criteriaOrig/100.)*sqrt(alpha*LV^2)
+;     PolfX(0)=-Xaxis   & PolfY(0)=-Xaxis
+;     PolfX(1)=-Xaxis   & PolfY(1)=-Xaxis+vY
+;     PolfX(2)=Xaxis-vY & PolfY(2)=Xaxis
+;     PolfX(3)=Xaxis    & PolfY(3)=Xaxis
+;     PolfX(4)=Xaxis    & PolfY(4)=Xaxis-vY
+;     PolfX(5)=-Xaxis+vY       & PolfY(5)=-Xaxis
+;    polyfill,PolfX,PolfY,/data,color=8
+;    oplot,[PolfX(1),PolfX(2)],[PolfY(1),PolfY(2)],linestyle=2,color=0,thick=2
+;    oplot,[PolfX(5),PolfX(4)],[PolfY(5),PolfY(4)],linestyle=2,color=0,thick=2
+;  endif
   
 ;  plot, [-Xaxis,Xaxis], color=0,/nodata, xtitle=ntxt1,ytitle=titleY, title='DynamicEvaluation', charsize=1, background=255,$
 ;    yrange=[-Yaxis,Yaxis],xrange=[-Xaxis,Xaxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
