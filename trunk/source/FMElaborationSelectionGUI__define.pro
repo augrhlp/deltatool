@@ -149,6 +149,18 @@ END
 
 PRO FMElaborationSelectionGUI::userDiagramSelection, diagramIndex
 
+  prev=self.info->getDiagramSelection()
+  elabNames=self.info->getElabNamesByDiagramIndex(diagramIndex)
+  if elabNames[0] eq "" then begin
+    a=dialog_message('No elabs for this diagram')
+    all=self->getAllDiagramNames()
+    for i=0, n_elements(all)-1 do begin
+      elabNames=self.info->getElabNamesByDiagramIndex(i)
+      if elabNames[0] ne "" then self->userDiagramSelection, i
+      return
+    endfor
+  endif
+  
   widget_control, self.elaborationDescriptionText, set_value=self->getCurrentDescription()
   widget_control, self.diagramList, SET_LIST_SELECT=diagramIndex
   self.info->setDiagramSelection, diagramIndex
@@ -461,6 +473,7 @@ END
 PRO FMElaborationSelectionGUI::fillElaborationList
 
   elabNames=self.info->getElabNamesBySelectedDiagram()
+  if elabNames[0] eq "" then a=dialog_message('No elabs for this diagram')
   widget_control, self.elaborationList, set_value=elabNames
   
   self->userElabSelection, 0

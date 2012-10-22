@@ -288,15 +288,19 @@ PRO EntityDisplayInfo::executeObservationQuery, groupName=groupName, NORESULT=NO
 
   ;self->buildObservationTypeList, typeGroupName=typeGroupName, zeroTList=zeroTList
   self->buildObservationCategoryList, categoryGroupName=categoryGroupName, zeroTList=zeroTList
-  self->buildObservationParameterList, parGroupName=parGroupName, zeroPList=zeroPList
-  if keyword_set(zeroPList) or keyword_set(zeroTList) then begin
-    NORESULT=1
-    self->setObservedQueryCodesSelections, ['-1']
-  endif else begin
-    NORESULT=0
-  endelse
+  parGroupName=self->getParametersSelectedNames()
+  if not(self.useObservedModelFlag) then begin
+    self->buildObservationParameterList, parGroupName=parGroupName, zeroPList=zeroPList
+    if keyword_set(zeroPList) or keyword_set(zeroTList) then begin
+      NORESULT=1
+      self->setObservedQueryCodesSelections, ['-1']
+    endif else begin
+      NORESULT=0
+    endelse
+  endif
   ;groupName=parGroupName+'-'+typeGroupName
   groupName=parGroupName+'-'+categoryGroupName
+  
   
 END
 
@@ -363,6 +367,7 @@ END
 
 PRO EntityDisplayInfo::buildObservationParameterList, parGroupName=parGroupName, zeroPList=zeroPList
 
+  ;if (self.useObservedModelFlag) then parGroupName=self->getParameterCodes()
   codes=self->getObservationParameterList(self->getObservedQueryCodesSelections(), parGroupName=parGroupName, zeroPList=zeroPList)
   if zeroPList eq 1 then return
   self->setObservedQueryCodesSelections, codes
@@ -875,42 +880,49 @@ FUNCTION EntityDisplayInfo::checkIntegrity, view
   ; ToDO: check at least one element selected
   answer="Boh"
   obsCheck=0
-  if self->IsSingleObsSelected() eq 1 then begin
-    codes=self->getObservedCodesSelections()
-    ;aa=view->dialogMessage(['No single observations selected...'], title=['Check your selections'])
-    validCodes=self->filterStationsCodesByParameters(codes, NOMATCH=NOMATCH)
-    if n_elements(NOMATCH) eq 1 then begin
-      if validCodes[0] eq -1 then begin
-        answer=view->dialogMessage(['None of selected stations contain selected parameter.','Change selection'], title=['Check your selections'], /WARNING)
-        return, 0
-      endif
-      answer=view->dialogMessage(['Not all selected stations contain selected parameter.','Press "Yes" to auto correction, "No" to abort selection'], title=['Check your selections'], /QUESTION)
-      if answer eq "Yes" then self->setObservedCodesSelections, validCodes else return, 0
-    endif
-    obsCheck=1
-  endif
-  if self->IsGroupObsSelected() eq 1 then begin
-    gTitles=self->getObservedGroupTitles()
-    ptrToCodes=self->getObservedCodesGroupSelections()
-    newPtrToCodes=ptrarr(n_elements(ptrToCodes))
-    for i=0, n_elements(ptrToCodes)-1 do begin
-      thisCodes=*ptrToCodes[i]
-      validCodes=self->filterStationsCodesByParameters(thisCodes, NOMATCH=NOMATCH)
-      if n_elements(NOMATCH) eq 1 then begin
+  if not(self.useObservedModelFlag) then begin
+    if self->IsSingleObsSelected() eq 1 then begin
+      codes=self->getObservedCodesSelections()
+      ;aa=view->dialogMessage(['No single observations selected...'], title=['Check your selections'])
+      validCodes=self->filterStationsCodesByParameters(codes, NOMATCH=NOMATCH)
+      ; MM october 16th 2012
+      if ((n_elements(NOMATCH) eq 1) and not(self.useObservedModelFlag)) then begin
         if validCodes[0] eq -1 then begin
-          answer=view->dialogMessage(['None of selected stations in group <'+gTitles[i]+ '> contains selected parameter.','Change selection'], title=['Check your selections'], /WARNING)
+          answer=view->dialogMessage(['None of selected stations contain selected parameter.','Change selection'], title=['Check your selections'], /WARNING)
           return, 0
         endif
-        if answer eq "Boh" then answer=view->dialogMessage(['Not all selected stations contain selected parameter.','Press "Yes" to auto correction, "No" to abort selection'], title=['Check your selections'], /QUESTION)
-        if answer ne "Yes" then return, 0
-        a=ptr_new(NOMATCH, /NO_COPY)
+        answer=view->dialogMessage(['Not all selected stations contain selected parameter.','Press "Yes" to auto correction, "No" to abort selection'], title=['Check your selections'], /QUESTION)
+        if answer eq "Yes" then self->setObservedCodesSelections, validCodes else return, 0
       endif
-      newPtrToCodes[i]=ptr_new(validCodes, /NO_COPY)
-    endfor
-    self->setObservedCodesGroupSelections, newPtrToCodes
-    obsCheck=1
+      obsCheck=1
+    endif
+    if self->IsGroupObsSelected() eq 1 then begin
+      gTitles=self->getObservedGroupTitles()
+      ptrToCodes=self->getObservedCodesGroupSelections()
+      newPtrToCodes=ptrarr(n_elements(ptrToCodes))
+      for i=0, n_elements(ptrToCodes)-1 do begin
+        thisCodes=*ptrToCodes[i]
+        validCodes=self->filterStationsCodesByParameters(thisCodes, NOMATCH=NOMATCH)
+        if n_elements(NOMATCH) eq 1 then begin
+          if validCodes[0] eq -1 then begin
+            answer=view->dialogMessage(['None of selected stations in group <'+gTitles[i]+ '> contains selected parameter.','Change selection'], title=['Check your selections'], /WARNING)
+            return, 0
+          endif
+          if answer eq "Boh" then answer=view->dialogMessage(['Not all selected stations contain selected parameter.','Press "Yes" to auto correction, "No" to abort selection'], title=['Check your selections'], /QUESTION)
+          if answer ne "Yes" then return, 0
+          a=ptr_new(NOMATCH, /NO_COPY)
+        endif
+        newPtrToCodes[i]=ptr_new(validCodes, /NO_COPY)
+      endfor
+      self->setObservedCodesGroupSelections, newPtrToCodes
+      obsCheck=1
+    endif
+    if obsCheck ne 1 then begin
+      aa=view->dialogMessage(['No monitoring observations selected'], title=['Check your selections'])
+      return, 0
+    endif
   endif
-  if obsCheck ne 1 then begin
+  if self->IsGroupObsSelected() + self->IsSingleObsSelected() lt 1 then begin
     aa=view->dialogMessage(['No monitoring observations selected'], title=['Check your selections'])
     return, 0
   endif

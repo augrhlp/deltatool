@@ -1,9 +1,9 @@
 ; MM summer 2012 start
 FUNCTION CompositeBatchManager::selectionIsFilled
 
- return, obj_valid(self.batchEntityInfos[self.batchIndex]) and $
-  obj_valid(self.batchElaborationInfos[self.batchIndex])
-
+  return, obj_valid(self.batchEntityInfos[self.batchIndex]) and $
+    obj_valid(self.batchElaborationInfos[self.batchIndex])
+    
 END
 
 FUNCTION CompositeBatchManager::getMainMgr
@@ -289,18 +289,27 @@ FUNCTION CompositeBatchManager::checkIntegrity
       return, 0
     endif
     if obj_valid(self.batchEntityInfos[i]) and obj_valid(self.batchElaborationInfos[i]) then begin
-      ; MM summer 2012 start
+      ; MM summer/fall 2012 start
       mainMgr=self->getMainMgr()
       tempReq=mainMgr->buildRequest(multipleUserChoices, location, self.batchEntityInfos[i], self.batchElaborationInfos[i])
       useGoalsAndCriteria=tempReq->getElaborationOCUse()
       dummy=tempReq->getGoalsCriteriaValues(/CONTENTS, NOVALUES=NOVALUES)
-      if keyword_set(NOVALUES) then GC_EXISTS=0 else GC_EXISTS=1
-      ;if keyword_set(GC_EXISTS) and useGoalsAndCriteria then goalsAndCriteriaText[i]=strcompress(goalsAndCriteriaInfo, /REMOVE)
-      if not(keyword_set(GC_EXISTS)) and useGoalsAndCriteria then begin
-        aa=self.refView->dialogMessage(['Request element #'+strcompress(i+1, /REMOVE)+' K_CriteriaNotAvailable.', 'Check elaboration, parameter and/or configuration files.'], title=['Check your selections'])
-        obj_destroy, tempReq
-        return, 0b
+      if useGoalsAndCriteria then begin
+        if Check_Criteria(request, result) eq 0 then begin
+          aa=self.refView->dialogMessage(['Request element #'+strcompress(i+1, /REMOVE)+' K_CriteriaNotAvailable.', 'Check elaboration, parameter and/or configuration files.'], title=['Check your selections'])
+          obj_destroy, tempReq
+          return, 0b
+        endif
       endif
+      ;      insert here Philippe checkCriteriaRoutine(request, result...)
+      ;      dummy=tempReq->getGoalsCriteriaValues(/CONTENTS, NOVALUES=NOVALUES)
+      ;      if keyword_set(NOVALUES) then GC_EXISTS=0 else GC_EXISTS=1
+      ;      ;if keyword_set(GC_EXISTS) and useGoalsAndCriteria then goalsAndCriteriaText[i]=strcompress(goalsAndCriteriaInfo, /REMOVE)
+      ;      if not(keyword_set(GC_EXISTS)) and useGoalsAndCriteria then begin
+      ;        aa=self.refView->dialogMessage(['Request element #'+strcompress(i+1, /REMOVE)+' K_CriteriaNotAvailable.', 'Check elaboration, parameter and/or configuration files.'], title=['Check your selections'])
+      ;        obj_destroy, tempReq
+      ;        return, 0b
+      ;      endif
       obj_destroy, tempReq
       continue
     endif
@@ -342,11 +351,13 @@ PRO CompositeBatchManager::updateToCaller
   self.mainMgr->setBlockWindowControl, /OFF
   fileName=self.mainMgr->saveBatch("", "", splitBatchInfo, /GUI)
   if fileName ne '' and self->getBenchMarkSaveMode() eq 'MENU' then self.mainMgr->updateMenuBenchMarkInfoContents, fileName, self->getBenchMarkTreeElementName(), self->getBenchMarkTreeFatherElementCode()
+  self.mainMgr->restoreElabFilterType
   
 END
 
 PRO CompositeBatchManager::exitRequest
 
+  self.mainMgr->restoreElabFilterType
   self.mainMgr->enable
   
 END

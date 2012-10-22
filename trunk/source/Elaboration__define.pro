@@ -3,8 +3,8 @@
 ;********************
 FUNCTION Elaboration::buildMultipleChoiceFlags, dataField
 
-; (parameters, models, scenarios, observations)
-; Selection: 1) may be multiple, 2) must be single
+  ; (parameters, models, scenarios, observations)
+  ; Selection: 1) may be multiple, 2) must be single
   multFlags=strsplit(dataField, '*', /EXTRACT)
   length=n_elements(multFlags)
   flags=bytarr(4)
@@ -77,9 +77,17 @@ PRO Elaboration::fillDataFromFile, fileName
         thisElab.multipleChoiceFlags=ptr_new(self->buildMultipleChoiceFlags(info[8]), /NO_COPY)
         thisElab.numberRefValue=fix(info[9])
         if strupcase(info[10]) eq 'YES' then thisElab.goalsCriteriaOCFlag=1 else thisElab.goalsCriteriaOCFlag=0
-        thisElab.mode=info[11]
+        ;MM summer/fall 2012 start
+        ;Advanced*Standard*Benchmark*Observations Groups allowed*Observations Single allowed
+        flags=strsplit(info[11], '*', /EXTRACT)
+        thisElab.isAdvanced=fix(flags[0])
+        thisElab.isStandard=fix(flags[1])
+        thisElab.isBenchmark=fix(flags[2])
+        thisElab.isSingleObsAllowed=fix(flags[3])
+        thisElab.isGroupObsAllowed=fix(flags[4])
+        ;MM summer/fall 2012 end
         thisElab.description=info[12]
-        if totInfoNo gt fixedInfoNo then thisElab.extraInfos=ptr_new(info[13:*], /NO_COPY)  
+        if totInfoNo gt fixedInfoNo then thisElab.extraInfos=ptr_new(info[13:*], /NO_COPY)
         elabs=[elabs, thisElab]
       ; Modified summer 2012 MM end
       endif else begin
@@ -92,21 +100,64 @@ PRO Elaboration::fillDataFromFile, fileName
   
 END
 
-PRO Elaboration::updateMode
+;MM summer/fall 2012 start
+PRO Elaboration::setFilterType, filterType
 
-  modeList=self->getModes()
-  idxs=self->modeCompatibility(modeList)
-  ptr_free, self.modeFilterList
-  self.modeFilterList=ptr_new((*self.list)[idxs])
-  
-END
-
-FUNCTION Elaboration::getModes
+  ;filterType eq 0 --> Standard
+  ;filterType eq 1 --> Advanced
+  ;filterType eq 2 --> Benchmark
 
   thisList=*self.list
-  return, thisList[*].mode
+  
+  if n_elements(filterType) eq 0 then filterType=9 
+  
+  if filterType eq 0 then begin
+    idxs=where(thisList.isStandard)
+  endif
+  
+  if filterType eq 1 then begin
+    idxs=where(thisList.isAdvanced)
+  endif
+  
+  if filterType eq 2 then begin
+    idxs=where(thisList.isBenchmark)
+  endif
+
+  if filterType eq 9 then begin
+    idxs=indgen(n_elements(thisList))
+  endif
+  
+  print, '**filterType**'
+  print, filterType
+  print, '*************'
+  self->setModeFilterList, thisList[idxs]
   
 END
+
+PRO Elaboration::setModeFilterList, list
+
+  ptr_free, self.modeFilterList
+  self.modeFilterList = ptr_new(list, /NO_COPY)
+  
+END
+
+;No more used
+;PRO Elaboration::updateMode
+;
+;  modeList=self->getModes()
+;  idxs=self->modeCompatibility(modeList)
+;  ptr_free, self.modeFilterList
+;  self.modeFilterList=ptr_new((*self.list)[idxs])
+;
+;END
+;
+;FUNCTION Elaboration::getModes
+;
+;  thisList=*self.list
+;  return, thisList[*].mode
+;
+;END
+;MM summer/fall 2012 end
 
 ;FUNCTION Elaboration::getDisplayNameByCode, code
 ;
@@ -116,9 +167,32 @@ END
 ;
 ;END
 
+FUNCTION Elaboration::getFilteredList
+
+ filteredList=*self.modeFilterList
+ return, filteredList
+
+END
+
+FUNCTION Elaboration::getIsSingleObsAllowed, code
+
+  thisList=self->getFilteredList()
+  idx=(where(code eq thisList.code))[0]
+  return, thisList[idx].isSingleObsAllowed
+  
+END
+
+FUNCTION Elaboration::getIsGroupObsAllowed, code
+
+  thisList=self->getFilteredList()
+  idx=(where(code eq thisList.code))[0]
+  return, thisList[idx].isGroupObsAllowed
+  
+END
+
 FUNCTION Elaboration::getGoalsCriteriaOCFlagByCode, code
 
-  thisList=*self.list
+  thisList=self->getFilteredList()
   idx=(where(code eq thisList.code))[0]
   return, thisList[idx].goalsCriteriaOCFlag
   
@@ -127,7 +201,7 @@ END
 ; MM summer 2012 Start
 FUNCTION Elaboration::getExtraInfosByCode, code, index=index
 
-  thisList=*self.list
+  thisList=self->getFilteredList()
   idx=(where(code eq thisList.code))[0]
   
   if ptr_valid(thisList[idx].extraInfos) then infos=*thisList[idx].extraInfos else return, ''
@@ -138,7 +212,7 @@ END
 
 FUNCTION Elaboration::getIDLRoutineByCode, code
 
-  thisList=*self.list
+  thisList=self->getFilteredList()
   idx=(where(code eq thisList.code))[0]
   return, thisList[idx].IDLRoutineCode
   
@@ -148,43 +222,48 @@ END
 ;*******************************
 FUNCTION Elaboration::getMultipleChoiceFlagsByCode, code
 
-  thisList=*self.list
+  thisList=self->getFilteredList()
   idx=(where(code eq thisList.code))[0]
   return, *thisList[idx].multipleChoiceFlags
   
 END
 
-FUNCTION Elaboration::getMultipleChoiceFlags, NOFILTER=NOFILTER
+FUNCTION Elaboration::getMultipleChoiceFlags;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, thisList[*].multipleChoiceFlags
   
 END
 
-FUNCTION Elaboration::getGroupByTimeCodes, NOFILTER=NOFILTER
+FUNCTION Elaboration::getGroupByTimeCodes;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, thisList[*].groupByTimeCode
   
 END
 
-FUNCTION Elaboration::getGroupByStatCodes, NOFILTER=NOFILTER
+FUNCTION Elaboration::getGroupByStatCodes;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, thisList[*].groupByStatCode
   
 END
 
-FUNCTION Elaboration::getDayPeriodCodes, NOFILTER=NOFILTER
+FUNCTION Elaboration::getDayPeriodCodes;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, thisList[*].dayPeriodCode
   
 END
 
-FUNCTION Elaboration::getSeasonCodes, NOFILTER=NOFILTER
+FUNCTION Elaboration::getSeasonCodes;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, thisList[*].seasonCode
   
 END
@@ -196,51 +275,58 @@ END
 ;
 ;END
 
-FUNCTION Elaboration::getGoalsCriteriaOCFlags, NOFILTER=NOFILTER
+FUNCTION Elaboration::getGoalsCriteriaOCFlags;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, thisList[*].goalsCriteriaOCFlag
   
 END
 
-FUNCTION Elaboration::getNumberRefValues, NOFILTER=NOFILTER
+FUNCTION Elaboration::getNumberRefValues;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, thisList[*].numberRefValue
   
 END
 
-FUNCTION Elaboration::getDiagramCodes, NOFILTER=NOFILTER
+FUNCTION Elaboration::getDiagramCodes;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, thisList[*].diagramCode
   
 END
 
-FUNCTION Elaboration::getDisplayNames, NOFILTER=NOFILTER
+FUNCTION Elaboration::getDisplayNames;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, thisList[*].displayName
   
 END
 
-FUNCTION Elaboration::getCodes, NOFILTER=NOFILTER
+FUNCTION Elaboration::getCodes;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, (thisList[*].code)
   
 END
 
-FUNCTION Elaboration::getDescriptions, NOFILTER=NOFILTER
+FUNCTION Elaboration::getDescriptions;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, thisList[*].description
   
 END
 
-FUNCTION Elaboration::getExtraInfos, NOFILTER=NOFILTER
+FUNCTION Elaboration::getExtraInfos;, NOFILTER=NOFILTER
 
-  if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  ;if keyword_set(NOFILTER) then thisList=*self.list else thisList=*self.modeFilterList
+  thisList=self->getFilteredList()
   return, thisList[*].extraInfos
   
 END
