@@ -589,6 +589,14 @@ FUNCTION ElaborationDisplayInfo::getCurrentElabDescription
 
 END
 
+FUNCTION  ElaborationDisplayInfo::getElabNamesByDiagramIndex, diagramIndex
+
+  codes=self->getElaborationsCodesByDiagram(diagramIndex)
+  names=self->getElaborationsNamesByCodes(codes)
+  return, names
+
+END
+
 FUNCTION  ElaborationDisplayInfo::getElabNamesBySelectedDiagram
 
   diagramIndex=self->getDiagramSelection()

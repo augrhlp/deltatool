@@ -261,13 +261,18 @@ PRO FMBatchShowRequestGUI::configure
   
   ;  requestInfoFields[15]='groupCodes'
   infoLabel=infoElements[15]
-  infoText=strcompress(req->getGroupCodes(), /REMOVE)
-  self->setLineInfo, infoLabel, infoText
+  grCodes=req->getGroupCodes()
+  ;infoText=strcompress(req->getGroupCodes(), /REMOVE)
+  infoText=''
+  if size(grCodes, /TYPE) eq 2 then infoText=["", strcompress(grCodes, /REMOVE)] else for i=0, n_elements(grCodes)-1 do infoText=[infoText, *(grCodes[i]), "*"]  
+  self->setLineInfo, infoLabel, infoText[1:*]
   
   ;  requestInfoFields[16]='groupNames'
   infoLabel=infoElements[16]
-  infoText=strcompress(req->getGroupNames(), /REMOVE)
-  self->setLineInfo, infoLabel, infoText
+  grNames=req->getGroupNames()
+  infoText=''
+  if size(grNames, /TYPE) eq 2 then infoText=["", strcompress(grNames, /REMOVE)] else for i=0, n_elements(grNames)-1 do infoText=[infoText, *(grNames[i]), "*"]  
+  self->setLineInfo, infoLabel, infoText[1:*]
   
   ;  requestInfoFields[17]='groupStatToApplyName'
   infoLabel=infoElements[17]

@@ -1,6 +1,20 @@
 ;********************************
 ;
 ;********************************
+FUNCTION FMMainConfig::getElaborationFilterType
+
+ return, self.elabFilterType
+
+END
+
+PRO FMMainConfig::setElaborationFilterType, elabFilterType
+
+  if n_elements(elabFilterType) ne 0 then self.elabFilterType=elabFilterType
+  self.elaborationList->setFilterType, elabFilterType
+  
+
+END
+
 PRO FMMainConfig::fillFlexyData, confDir, parameterName=parameterName, parameterValue=parameterValue
 
  ;self.fileName = fileName
@@ -16,7 +30,7 @@ PRO FMMainConfig::fillFlexyData, confDir, parameterName=parameterName, parameter
 		;'OBSERVEDFILE' : self.observedList->FillDataFromFile, fileName
 		'ELABORATION_FILE' : self.elaborationList->FillDataFromFile, fileName
 		'GOALSCRITERIAOC_FILE' : self.goalsCriteriaOCList->FillDataFromFile, fileName
-		else : print, 'Unrecognized parameter on init file: <', parameterName[i], '=', parameterValue[i], '>'
+		else : print, 'Extra parameter on init file: <', parameterName[i], '=', parameterValue[i], '>'
  	endcase
  endfor
 
@@ -151,7 +165,8 @@ END
 PRO FMMainConfig__Define
 
 Struct = { FMMainConfig , $
-		elaborationList: obj_new(''), $
+    elabFilterType: 0, $
+    elaborationList: obj_new(''), $
 		runList: obj_new(''), $
 		runParameterList: obj_new(''), $
 		observedCategoryList: obj_new(''), $

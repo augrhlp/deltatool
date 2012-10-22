@@ -951,24 +951,26 @@ END
 ; ****************************
 FUNCTION FMFileSystemManager::readStartUpFile, filename
 
-;  ERROR=0
-;  catch, error_status
-;  
-;  if error_status NE 0 THEN BEGIN
-;    ERROR=1
-;    catch, /CANCEL
-;    errMsg=dialog_message('problem with file: <'+fileName+'> check existence, contents or read permission.', /ERROR)
-;  endif
-  
+  ;  ERROR=0
+  ;  catch, error_status
+  ;
+  ;  if error_status NE 0 THEN BEGIN
+  ;    ERROR=1
+  ;    catch, /CANCEL
+  ;    errMsg=dialog_message('problem with file: <'+fileName+'> check existence, contents or read permission.', /ERROR)
+  ;  endif
   openr, unit, fileName, /GET_LUN
   
   bufferString=''
+  lines=''
   ;MM summer 2012 start
   modelTypeInfo=getFMModelInfoStruct()
+  OLDVERSION=0
   ;MM summer 2012 end
   i=0
   while not(eof(unit)) do begin
     readf, unit, bufferString
+    lines=[lines, bufferString]
     i++
     checkFirst=strmid(bufferString, 0,1)
     ;check1=(strpos(checkFirst, '[')+1) > 0
@@ -983,18 +985,31 @@ FUNCTION FMFileSystemManager::readStartUpFile, filename
     ;      print, bufferString
     endif else begin
       ; MM summer 2012 Start
-      ;      if strupcase(bufferString) eq self.scaleHeader then begin
-      ;        scaleInfo=self->readScaleSection(unit)
-      ;      endif
+      if strupcase(bufferString) eq self.scaleHeader then begin
+        warningMessage = strarr(9)
+        warningMessage[n_elements(lines)]='check version of your startup.ini'
+        warningMessage[1]='replace [SCALE] section with'
+        warningMessage[2]='[MODEL]'
+        warningMessage[3]=';Year'
+        warningMessage[4]=';DataAssimilation'
+        warningMessage[5]=';Scale'
+        warningMessage[6]='2009'
+        warningMessage[7]='DataAssimilation1'
+        warningMessage[8]='urban'
+        warningMsg=dialog_message('Old configuration of startup.ini found')
+        modelInfo=self->readOldScaleAsModelSection(unit)
+        self->replaceModelLines, lines, modelInfo
+        OLDVERSION=1
+      endif
       if strupcase(bufferString) eq self.modelHeader then begin
-        modelInfo=self->readModelSection(unit)
+        modelInfo=self->readModelSection(unit, lines=lines)
       endif
       ; MM summer 2012 End
       if strupcase(bufferString) eq self.parameterHeader then begin
-        parameterInfo=self->readParametersSection(unit, monitInfo=monitInfo)
+        parameterInfo=self->readParametersSection(unit, monitInfo=monitInfo, lines=lines)
       endif
       if strupcase(bufferString) eq self.monitoringHeader then begin
-        monitInfo=self->readMonitoringSection(unit, parameterInfo=parameterInfo)
+        monitInfo=self->readMonitoringSection(unit, parameterInfo=parameterInfo, lines=lines)
       endif
     endelse
   endwhile
@@ -1015,10 +1030,37 @@ FUNCTION FMFileSystemManager::readStartUpFile, filename
   ;parametersSummary={titles:titles, regions:regionValueList, stationTypes:stationTypeValueList, areaTypes:areaTypeValueList, sitings:sitingValueList}
   
   close, unit & free_lun, unit
+  if (OLDVERSION) then begin
+    startUpFile=self->getStartUpFileName()
+    self->writeStartUpFile, startUpFile, lines
+  endif
   ; New february 1st 2011 MM
   ;return, {statData:monitInfo.data, statSummary:statSummary, parametersSummary:parameterInfo, scaleSummary:scaleInfo, modelTypeSummary:modelTypeInfo}
   ; MM summer 2012 MM
   return, {statData:monitInfo.data, statSummary:statSummary, parametersSummary:parameterInfo, modelSummary:modelInfo}
+  
+END
+
+PRO FMFileSystemManager::writeStartUpFile, fileName, lines
+
+  ;file_copy, 
+  openw, unit, fileName, /GET_LUN
+  for i=1, n_elements(lines)-1 do begin
+    printf, unit, lines[i]
+  endfor
+  close, unit & free_lun, unit
+  
+END
+
+PRO FMFileSystemManager::replaceModelLines, lines, modelInfo
+
+  lines[n_elements(lines)-1]='[MODEL]'
+  lines=[lines, ';Year']
+  lines=[lines, ';DataAssimilation']
+  lines=[lines, ';Scale']
+  lines=[lines, strcompress(modelInfo.year, /REMOVE)]
+  lines=[lines, modelInfo.dataAssimilation]
+  lines=[lines, modelInfo.scale]
   
 END
 
@@ -1107,7 +1149,7 @@ PRO FMFileSystemManager::lookUpSystemData, modelInfo=modelInfo
   
 END
 
-FUNCTION FMFileSystemManager::readMonitoringSection, unit, parameterInfo=parameterInfo
+FUNCTION FMFileSystemManager::readMonitoringSection, unit, parameterInfo=parameterInfo, lines=lines
 
   bufferString=''
   i=0
@@ -1115,8 +1157,9 @@ FUNCTION FMFileSystemManager::readMonitoringSection, unit, parameterInfo=paramet
   monitoreds=getFMMonitor()
   while not(eof(unit)) do begin
     readf, unit, bufferString
+    lines=[lines, bufferString]
     if strupcase(bufferString) eq self.parameterHeader then begin
-      parameterInfo=self->readParametersSection(unit, monitInfo=monitInfo)
+      parameterInfo=self->readParametersSection(unit, monitInfo=monitInfo, lines=lines)
       return, monitInfo
       break
     endif
@@ -1214,33 +1257,39 @@ FUNCTION FMFileSystemManager::readRunFiles, runDir
   
 END
 
-;FUNCTION FMFileSystemManager::readScaleSection, unit
-;
-;  bufferString=''
-;  i=0
-;  while not(eof(unit)) do begin
-;    readf, unit, bufferString
-;    i++
-;    checkFirst=strmid(bufferString, 0,1)
-;    check1=(strpos(checkFirst, ';')+1) > 0
-;    check2=(strpos(checkFirst, '#')+1) > 0
-;    null=strlen(strcompress(bufferString, /REMOVE)) eq 0
-;    ; #, ; is a comment
-;    ; void string string is discarded
-;    if (check1+check2) gt 0 or null then begin
-;    ;      print, 'Discard row', i
-;    ;      print, bufferString
-;    endif else begin
-;      scaleName=bufferString
-;      break
-;    endelse
-;  endwhile
-;  return, scaleName
-;  
-;END
+FUNCTION FMFileSystemManager::readOldScaleAsModelSection, unit, lines=lines
+
+  bufferString=''
+  i=0
+  lines=''
+  modelInfo=getFMModelInfoStruct()
+  modelInfo.dataAssimilation='DataAssimilation1'
+  while not(eof(unit)) do begin
+    readf, unit, bufferString
+    lines=[lines, bufferString]
+    i++
+    checkFirst=strmid(bufferString, 0,1)
+    check1=(strpos(checkFirst, ';')+1) > 0
+    check2=(strpos(checkFirst, '#')+1) > 0
+    null=strlen(strcompress(bufferString, /REMOVE)) eq 0
+    ; #, ; is a comment
+    ; void string string is discarded
+    if (check1+check2) gt 0 or null then begin
+    ;      print, 'Discard row', i
+    ;      print, bufferString
+    endif else begin
+      sInfo=strsplit(bufferString, ';', /EXTRACT)
+      modelInfo.scale=sInfo[0]
+      modelInfo.year=fix(sInfo[1])
+      break
+    endelse
+  endwhile
+  return, modelInfo
+  
+END
 
 ; MM summer 2012 Start
-FUNCTION FMFileSystemManager::readModelSection, unit
+FUNCTION FMFileSystemManager::readModelSection, unit, lines=lines
 
   bufferString=''
   undefined='Undefined'
@@ -1253,6 +1302,7 @@ FUNCTION FMFileSystemManager::readModelSection, unit
   pos=1
   while not(eof(unit)) do begin
     readf, unit, bufferString
+    lines=[lines, bufferString]
     i++
     checkFirst=strmid(bufferString, 0,1)
     check1=(strpos(checkFirst, ';')+1) > 0
@@ -1278,15 +1328,16 @@ FUNCTION FMFileSystemManager::readModelSection, unit
 END
 ; MM summer 2012 End
 
-FUNCTION FMFileSystemManager::readParametersSection, unit, monitInfo=monitInfo
+FUNCTION FMFileSystemManager::readParametersSection, unit, monitInfo=monitInfo, lines=lines
 
   bufferString=''
   i=0
   parameters=getFMParameterFile()
   while not(eof(unit)) do begin
     readf, unit, bufferString
+    lines=[lines, bufferString]
     if strupcase(bufferString) eq self.monitoringHeader then begin
-      monitInfo=self->readMonitoringSection(unit, parameterInfo=parameterInfo)
+      monitInfo=self->readMonitoringSection(unit, parameterInfo=parameterInfo, lines=lines)
       return, parameters[1:*]
     ;break
     endif
@@ -1809,7 +1860,7 @@ FUNCTION FMFileSystemManager::init
   self.utility=obj_new('FMUtility')
   self.parameterHeader='[PARAMETERS]'
   self.monitoringHeader='[MONITORING]'
-  ;self.scaleHeader='[SCALE]'
+  self.scaleHeader='[SCALE]'
   ;self.modelTypeHeader='[MODELTYPE]'
   self.modelHeader='[MODEL]'
   self.singlePrefix='SINGLE*'
@@ -1840,8 +1891,8 @@ PRO FMFileSystemManager__Define
     parameterHeader: '', $
     monitoringHeader:'', $
     ;MM summer 2012 Start
-;    scaleHeader:'', $
-;    modelTypeHeader:'', $
+    scaleHeader:'', $
+    ;    modelTypeHeader:'', $
     modelHeader: '', $
     ;MM summer 2012 End
     groupStatPrefix: '', $

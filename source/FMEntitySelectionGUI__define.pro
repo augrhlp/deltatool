@@ -312,6 +312,8 @@ PRO FMEntitySelectionGUI::userUseObsModButton, select
 
   widget_control, self.observedModelFlagButton, set_button=select
   self.info->setUseObservedModelFlag, select
+  parCodes=self.info->getParameterCodeSelections()
+  self->userParameterCodeSelections, parCodes
   
 END
 
@@ -1050,7 +1052,7 @@ PRO FMEntitySelectionGUI::buildModelSection, base
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
   self.observedModelFlagButton = widget_button(obsModelBase, $
     XOFFSET=0 ,YOFFSET=0, VALUE='Use OBS <-> MOD', event_pro=self.eventPrefix+'useObsModButton', $
-    SCR_YSIZE=self->getLabelYSize(), sensitive=0)
+    SCR_YSIZE=self->getLabelYSize(), sensitive=1)
     
 END
 

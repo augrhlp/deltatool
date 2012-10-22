@@ -1,35 +1,47 @@
 ;********************
 @structure_definition
 ;********************
+FUNCTION FMApplication::getElabFilterType
+
+  return, self.elabFilterType
+  
+END
+
 FUNCTION FMApplication::getModelList
 
- return, self.modelList
-
+  return, self.modelList
+  
 END
 
 FUNCTION FMApplication::getScenarioList
 
- return, self.scenarioList
-
+  return, self.scenarioList
+  
 END
 
 FUNCTION FMApplication::getFileSystemMgr
 
- return, self.fileSystemMgr
-
+  return, self.fileSystemMgr
+  
 END
 
 PRO FMApplication::checkDataIntegrityClose
 
- self->enable
-
+  self->enable
+  
 END
 
 PRO FMApplication::checkDataIntegrity
 
- self->disable
- DeltaCheck_IO, self
+  self->disable
+  DeltaCheck_IO, self
+  
+END
 
+PRO FMApplication::restoreElabFilterType
+
+  self.mainConfig->setElaborationFilterType, self.lastElabFilterType
+  
 END
 
 PRO FMApplication::updateMenuBenchMarkInfoContents, fileName, displayName, fatherCode
@@ -497,7 +509,7 @@ END
 
 PRO FMApplication::Recognize, coord
 
-;  print, "do RecognizeJob"
+  print, "do RecognizeJob"
   
   rInfo=self->getRecognizeInfo()
   rEdges=rInfo->getRegionEdges()
@@ -507,23 +519,35 @@ PRO FMApplication::Recognize, coord
   foundValue=""
   for i=n_elements(rEdges)-1, 0, -1 do begin
     thisRegion=*rEdges[i]
-;    print, 'thisRegion:', thisRegion
-;    print, 'coord:', coord
-;    print, 'coord[0] ge thisRegion[0,0]', coord[0], thisRegion[0,0]
-;    print, 'coord[0] le thisRegion[3,0]', coord[0], thisRegion[3,0]
-;    print, 'coord[1] ge thisRegion[0,1]', coord[1], thisRegion[0,1]
-;    print, 'coord[1] le thisRegion[1,1]', coord[1], thisRegion[1,1]
+    print, 'thisRegion:', thisRegion
+    print, 'coord:', coord
+    print, 'coord[0] ge thisRegion[0,0]', coord[0], thisRegion[0,0]
+    print, 'coord[0] le thisRegion[3,0]', coord[0], thisRegion[3,0]
+    print, 'coord[1] ge thisRegion[0,1]', coord[1], thisRegion[0,1]
+    print, 'coord[1] le thisRegion[1,1]', coord[1], thisRegion[1,1]
     if (coord[0] ge thisRegion[0,0]) and $
       (coord[0] le thisRegion[3,0]) and $
       (coord[1] ge thisRegion[0,1]) and $
       (coord[1] le thisRegion[1,1]) then begin
-;      print, "found", i
+      print, "found", i
       foundName=rNames[i]
       foundValue=rValues[i]
       break
     endif
   endfor
   self.mainView->updateRecognizer, foundName, foundValue
+  
+END
+
+FUNCTION FMApplication::entityDisplayIsValid
+
+  return, self.executeOk[0]
+  
+END
+
+FUNCTION FMApplication::elaborationDisplayIsValid
+
+  return, self.executeOk[1]
   
 END
 
@@ -631,12 +655,27 @@ FUNCTION FMApplication::checkMultiple, entityDisplay, elaborationDisplay, multip
   parNames=self.parameterList->getNamesByCodes(parCodes)
   elabName=elaborationDisplay->getSelectedElabName()
   diagramName=elaborationDisplay->getSelectedDiagramName()
+  elabList=self.mainConfig->getElaborationList()
+  elabCode=elaborationDisplay->getSelectedElabCode()
+  elabIsObsSingleAllowed=elabList->getIsSingleObsAllowed(elabCode)
+  elabIsObsGroupAllowed=elabList->getIsGroupObsAllowed(elabCode)
+  
+  if entityDisplay->isSingleObsSelected() and not(elabIsObsSingleAllowed) then begin
+    aa=self->dialogMessage(['K_NotAllowedCombination.', 'You cannot select -single- observation(s) with selected elaboration'], title=['Execute'])
+    return, 0
+  endif
   if entityDisplay->isSingleObsSelected() then begin
     singleObsList=entityDisplay->buildSinglesObsNames()
+  endif
+  
+  if entityDisplay->isGroupObsSelected() and not(elabIsObsGroupAllowed) then begin
+    aa=self->dialogMessage(['K_NotAllowedCombination.', 'You cannot select -group- observation(s) with selected elaboration'], title=['Execute'])
+    return, 0
   endif
   if entityDisplay->isGroupObsSelected() then begin
     groupObsList=self.entityDisplay->getObservedGroupTitles()
   endif
+  
   if entityDisplay->isRunPresent() then begin
     modsList=entityDisplay->buildModelNames()
     scenList=entityDisplay->buildScenarioNames()
@@ -1061,6 +1100,8 @@ PRO FMApplication::displayCompositeBatchGUI
     self.lastView->show
   endif else begin
     ;self.benchMarkView=obj_new('FMBenchMarkCreationGUI', self.benchMarkDisplay->Clone(/DEEP), self)
+    lastElabFilterType=self.mainConfig->getElaborationFilterType()
+    self.mainConfig->setElaborationFilterType, 2
     bEntityDI=obj_new('EntityDisplayInfo')
     self->initEntityDisplay, bEntityDI, self.mainConfig, self.categoryList, self.modelList, self.scenarioList, self.observedList, self.parameterTypeList, self.parameterList, self.monitoringGroupStatList
     bElabDI=obj_new('ElaborationDisplayInfo')
@@ -1091,8 +1132,8 @@ PRO FMApplication::updateElaborationDisplayInfo, elaborationDisplayInfo
 
   obj_destroy, self.elaborationDisplay
   self.elaborationDisplay=elaborationDisplayInfo
-  self.mainView->updateInfo
   self.executeOk[1]=1
+  self.mainView->updateInfo
   
 END
 
@@ -1522,6 +1563,9 @@ END
 FUNCTION FMApplication::restoreRequest, fileName, path
 
   request=obj_new('Request')
+  ;print, self.lastElabFilterType
+  lastElabFilterType=self.mainConfig->getElaborationFilterType()
+  self.mainConfig->setElaborationFilterType
   if (request->restoreData(fileName)) then begin
     ; MM summer 2012 Start
     ;request->setScaleInfo, self->getScaleInfo()
@@ -1535,6 +1579,7 @@ FUNCTION FMApplication::restoreRequest, fileName, path
   endif else begin
     msg=self.mainView->dialogMessage(['Batch restored failed from:', '<'+fileName+'> file.'], title=['Request'], /INFORMATION)
   endelse
+  self.mainConfig->setElaborationFilterType, lastElabFilterType
   
 END
 
@@ -1568,18 +1613,25 @@ PRO FMApplication::execRequest, passedRequest, NODISPLAYCHECK=NODISPLAYCHECK
     ;dummy=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname=statistics, timeAvgName='ALL', NOVALUES=NOVALUES)
     ; Modified summer 2012 MM Start
     if request->getElaborationOCUse() then begin
-      dummy=request->getGoalsCriteriaValues(/CONTENTS, NOVALUES=NOVALUES)
-      if keyword_set(NOVALUES) then begin
+      if Check_Criteria(request, result) eq 0 then begin
         aa=self->dialogMessage(['No criteria available. Check your selections and/or -elaboration.dat- file and/or', '-goals_criteria_oc.dat- file.'], title=['Execution not possible'])
-        print, '*******'
-        print, 'GC not founds'
-        print, '*******'
+        obj_destroy, request
         return
       endif
-      print, '*******'
-      print, 'GC founds'
-      print, dummy
-      print, '*******'
+      print, 'GC needed...'
+    ;      insert here Philippe checkCriteriaRoutine(request, result...)
+    ;      dummy=request->getGoalsCriteriaValues(/CONTENTS, NOVALUES=NOVALUES)
+    ;      if keyword_set(NOVALUES) then begin
+    ;        aa=self->dialogMessage(['No criteria available. Check your selections and/or -elaboration.dat- file and/or', '-goals_criteria_oc.dat- file.'], title=['Execution not possible'])
+    ;        print, '*******'
+    ;        print, 'GC not founds'
+    ;        print, '*******'
+    ;        return
+    ;      endif
+    ;      print, '*******'
+    ;      print, 'GC founds'
+    ;      print, dummy
+    ;      print, '*******'
     endif
     ; Modified summer 2012 MM End
     if n_elements(passedRequest) ne 0 then begin
@@ -1661,10 +1713,12 @@ PRO FMApplication::startUp
   self->startJournaling
   confDir=self.fileSystemMgr->getConfigurationDir(/WITH)
   self->LoadInitFileData, parameterName=parameterName, parameterValue=parameterValue
+  
   lookUpIdx=(where(parameterName eq 'STARTUP_LOOKUP'))[0]
   if lookUpIdx[0] eq -1 then doLookUp=1 else doLookUp=fix(parameterValue[lookUpIdx])
-  ; Modified summer 2012 MM (V 3_0) Start
   if doLookUp then self.fileSystemMgr->lookUpSystemData, modelInfo=modelInfo
+  
+  ; Modified summer 2012 MM (V 3_0) Start
   ;self->setScaleInfo, scaleInfo
   if n_elements(modelInfo) ne 0 then self->setModelInfo, modelInfo
   ; Modified summer 2012 MM (V 3_0) End
@@ -1815,7 +1869,6 @@ PRO FMApplication::initElaborationDisplay, elabDisplay, mainConfig, diagramList,
   ;elabDisplay->setDiagramAxisCodes, diagramList->getAxisCodes()
   elabDisplay->setDiagramSelection, [0]
   
-  elabList->updateMode
   elabDisplay->setElabCodes, elabList->getCodes()
   elabDisplay->setElabNames, elabList->getDisplayNames()
   elabDisplay->setElabDescriptions, elabList->getDescriptions()
@@ -1872,6 +1925,12 @@ END
 PRO FMApplication::fillMainConfigFromFile, confDir, parameterName=parameterName, parameterValue=parameterValue
 
   self.mainConfig->fillFlexyData, confDir, parameterName=parameterName, parameterValue=parameterValue
+  
+  elabFilterTypeIdx=(where(parameterName eq 'ELAB_FILTER_TYPE'))[0]
+  ; Available type: 0: Standard, 1: Advanced, 2: Benchmark
+  if elabFilterTypeIdx[0] eq -1 then elabFilterType=0 else elabFilterType=(where(parameterValue[elabFilterTypeIdx] eq self.elabFilterType))[0]
+  
+  self.mainConfig->setElaborationFilterType, elabFilterType
   
 END
 ;****************************************************************************************
@@ -1930,6 +1989,7 @@ FUNCTION FMApplication :: init
   ;self.request=obj_new('Request')
   self.dataMinerMgr=obj_new('DataMiner')
   self.benchMarkMenuList=obj_new('MenuInfo')
+  self.elabFilterType=["STANDARD", "ADVANCED", "BENCHMARK"]
   return, 1
   
 END
@@ -1974,6 +2034,7 @@ END
 PRO FMApplication__Define
 
   Struct = { FMApplication , $
+    lastElabFilterType: 0, $
     mainView : obj_new(), $
     benchmarkView: obj_new(), $
     entityView: obj_new(), $
@@ -2014,6 +2075,7 @@ PRO FMApplication__Define
     ;scaleInfo: '', $
     modelInfo: getFMModelInfoStruct(), $
     ;MM summer 2012 End
+    elabFilterType: strarr(3), $
     versionDate : '', $
     versionCode : '', $
     psCharSizeFactor: 0., $

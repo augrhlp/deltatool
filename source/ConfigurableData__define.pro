@@ -1,3 +1,10 @@
+PRO ConfigurableData::setList, list
+
+ ptr_free, self.list
+ self.list=ptr_new(list, /NO_COPY)
+
+END
+
 PRO ConfigurableData::FillDataFromFile, fileName
 
  message, 'You must implement this one on your child class!!!'

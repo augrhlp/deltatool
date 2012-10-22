@@ -1,20 +1,20 @@
 PRO FMMainGUI::checkDataIntegrity
 
- self.mgr->checkDataIntegrity
- ; DeltaCheck_IO
-
+  self.mgr->checkDataIntegrity
+; DeltaCheck_IO
+  
 END
 
 FUNCTION  FMMainGUI::getMainMgr
 
- return, self->getMgr()
-
+  return, self->getMgr()
+  
 END
 
 FUNCTION FMMainGUI::getPSCharSizeFactor
 
- return, self.mgr->getPSCharSizeFactor()
-
+  return, self.mgr->getPSCharSizeFactor()
+  
 END
 
 PRO FMMainGUI::updateRecognizer, dataName, dataValue
@@ -40,7 +40,7 @@ END
 
 PRO FMMainGUI::recognize, x, y
 
-;  print, "Recognize point on device coord", x, y
+  print, "Recognize point on device coord", x, y
   self->wsetMainDataDraw
   if self.mgr->isRecognizible() then self.mgr->DoRecognize, x, y
   
@@ -119,8 +119,8 @@ PRO FMMainGUI::saveImage, filename
   imageFileNameRes[0]=strmid(imageFileName, 0, imageFileNamePos)
   imageFileNameRes[1]=strmid(imageFileName, imageFileNamePos, strlen(imageFileName)-imageFileNamePos)
   imageFileName=imageFileNameRes[0]+'.'+strlowcase(suppList[0])
-;  imageFileName=strsplit(imageFileName, '.', /EXTRACT)
-;  imageFileName=imageFileName[0]+'.'+strlowcase(suppList[0])
+  ;  imageFileName=strsplit(imageFileName, '.', /EXTRACT)
+  ;  imageFileName=imageFileName[0]+'.'+strlowcase(suppList[0])
   ;imageToSave=self.mgr->getImageToSave(BACKGROUND=0)
   imageToSave=self->getImageToSave()
   ;
@@ -231,6 +231,7 @@ END
 PRO FMMainGUI::startBenchMark, fileName
 
   self->restoreBatch, fileName
+  self.mgr->restoreElabFilterType
   
 END
 
@@ -613,7 +614,7 @@ PRO FMMainGUI::build
   restoreBatch=widget_button(fileMenu, value='BatchRestore', UNAME='RESTOREBATCH', event_pro=self.eventprefix+'restoreBatch')
   exitButton=widget_button(fileMenu, value='Exit', UNAME='EXIT', event_pro=self.eventprefix+'destroyWindow')
   
-  modeBtt=widget_button(modeMenu, UVALUE=0, value='Select mode', UNAME='MODESELECT_BTT', event_pro=self.eventPrefix+'modeMenuSelection')
+  modeBtt=widget_button(modeMenu, UVALUE=0, value='Select mode', UNAME='MODESELECT_BTT', event_pro=self.eventPrefix+'modeMenuSelection', sensitive=0)
   recognizerBtt=widget_Button(modeMenu, VALUE='Hide/Show Recognizer Info', UNAME='Recognizer', UVALUE='DISPREC', event_pro=self.eventprefix+'recognizeSWITCHBTT')
   
   entitySelectButton=widget_button(entityMenu, UVALUE=0, value='Select data', UNAME='ENTITYSELECT_BTT', event_pro=self.eventprefix+'displayEntity')
@@ -1336,87 +1337,91 @@ END
 
 PRO FMMainGUI::updateObservedSection
 
-  entityDisp=self.mgr->getEntityDisplay()
-  widgets=lonarr(4)
-  unames=['SINGLEOBSTXT', 'GROUPOBSTXT', 'EXPANDOBSBTT', 'PARAMETERSTXT']
-  for i=0, n_elements(widgets) -1 do widgets[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=unames[i])
-  
-  singleNames=entityDisp->getSelectedSingleObsNames()
-  singles=''
-  for i=0, n_elements(singleNames)-1 do singles=singles+singleNames[i]+'*'
-  widget_control, widgets[0], set_value=singleNames
-  
-  groupNames=entityDisp->getSelectedGroupObsNames()
-  groups=''
-  for i=0, n_elements(groupNames)-1 do groups=groups+groupNames[i]+'*'
-  widget_control, widgets[1], set_value=groups
-  
-  widget_control, widgets[2], sensitive=entityDisp->isValidObservedGroupTitles()
-  
-  ; new october 19 2010
-  parameterNames=entityDisp->getParametersSelectedNames()
-  parameters=''
-  for i=0, n_elements(parameterNames)-1 do parameters=parameters+parameterNames[i]+'*'
-  widget_control, widgets[3], set_value=parameters
+  if self.mgr->entityDisplayIsValid() then begin
+    entityDisp=self.mgr->getEntityDisplay()
+    widgets=lonarr(4)
+    unames=['SINGLEOBSTXT', 'GROUPOBSTXT', 'EXPANDOBSBTT', 'PARAMETERSTXT']
+    for i=0, n_elements(widgets) -1 do widgets[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=unames[i])
+    
+    singleNames=entityDisp->getSelectedSingleObsNames()
+    singles=''
+    for i=0, n_elements(singleNames)-1 do singles=singles+singleNames[i]+'*'
+    widget_control, widgets[0], set_value=singleNames
+    
+    groupNames=entityDisp->getSelectedGroupObsNames()
+    groups=''
+    for i=0, n_elements(groupNames)-1 do groups=groups+groupNames[i]+'*'
+    widget_control, widgets[1], set_value=groups
+    
+    widget_control, widgets[2], sensitive=entityDisp->isValidObservedGroupTitles()
+    
+    ; new october 19 2010
+    parameterNames=entityDisp->getParametersSelectedNames()
+    parameters=''
+    for i=0, n_elements(parameterNames)-1 do parameters=parameters+parameterNames[i]+'*'
+    widget_control, widgets[3], set_value=parameters
+  endif
 ;end
   
 END
 
 PRO FMMainGUI::updateElaborationSection
 
-  elaborationDisp=self.mgr->getElaborationDisplay()
-  ;unames=['ELABNAMETXT', 'DIAGRAMTXT', 'PARAMETERSTXT', 'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT']
-  unames=['DIAGRAMTXT', 'ELABNAMETXT',  'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT', 'USEOBS']
-  widgets=lonarr(n_elements(unames))
-  for i=0, n_elements(widgets) -1 do widgets[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=unames[i])
-  
-  ;  axisName=elaborationDisp->getSelectedAxisName()
-  ;mods=''
-  ;for i=0, n_elements(modelNames)-1 do mods=mods+modelNames[i]+'*'
-  ;unames=['ELABAXISTXT', 'ELABNAMETXT', 'DIAGRAMTXT', 'PARAMETERSTXT', 'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT']
-  ;  widget_control, widgets[0], set_value=axisName
-  
-  diagramName=elaborationDisp->getSelectedDiagramName()
-  ;mods=''
-  ;for i=0, n_elements(modelNames)-1 do mods=mods+modelNames[i]+'*'
-  ;unames=['ELABAXISTXT', 'ELABNAMETXT', 'DIAGRAMTXT', 'PARAMETERSTXT', 'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT']
-  widget_control, widgets[0], set_value=diagramName
-  
-  elabName=elaborationDisp->getSelectedElabName()
-  ;scens=''
-  ;for i=0, n_elements(scenarioNames)-1 do scens=scens+scenarioNames[i]+'*'
-  widget_control, widgets[1], set_value=elabName
-  
-  
-  if elaborationDisp->getGoalsCriteriaOCFlag() then widget_control, widgets[2], /set_button else widget_control, widgets[2], set_button=0
-  ;  if elaborationDisp->getUseObservedModelFlag() then widget_control, widgets[2], /set_button else widget_control, widgets[3], set_button=0
-  
-  groupByStatName=elaborationDisp->getSelectedGroupByStatName()
-  ;scens=''
-  ;for i=0, n_elements(scenarioNames)-1 do scens=scens+scenarioNames[i]+'*'
-  ;unames=['ELABAXISTXT', 'ELABNAMETXT', 'DIAGRAMTXT', 'PARAMETERSTXT', 'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT']
-  widget_control, widgets[3], set_value=groupByStatName
-  
-  groupByTimeName=elaborationDisp->getSelectedGroupByTimeName()
-  ;scens=''
-  ;for i=0, n_elements(scenarioNames)-1 do scens=scens+scenarioNames[i]+'*'
-  ;unames=['ELABAXISTXT', 'ELABNAMETXT', 'DIAGRAMTXT', 'PARAMETERSTXT', 'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT']
-  widget_control, widgets[4], set_value=groupByTimeName
-  
-  extraValNoMax=3
-  extraValsUNames='EXTRAVAL#'+strcompress(indgen(extraValNoMax)+1, /REMOVE)
-  tFlag=elaborationDisp->getThresholdFlag()
-  extraValsWid=lonarr(extraValNoMax)
-  ;disable all
-  for i=0, extraValNoMax-1 do begin
-    extraValsWid[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=extraValsUNames[i])
-    widget_control, extraValsWid[i], sensitive=0, EDITABLE=0, set_value=''
-  endfor
-  ;enable if ref values were set by user
-  if tFlag eq 1 then begin
-    refValues=elaborationDisp->getThresholdValues()
-    extraValNo=n_elements(refValues)
-    for i=0, extraValNo-1 do widget_control, extraValsWid[i], set_value=strcompress(refValues[i], /REMOVE), sensitive=1, /EDITABLE
+  if self.mgr->elaborationDisplayIsValid() then begin
+    elaborationDisp=self.mgr->getElaborationDisplay()
+    ;unames=['ELABNAMETXT', 'DIAGRAMTXT', 'PARAMETERSTXT', 'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT']
+    unames=['DIAGRAMTXT', 'ELABNAMETXT',  'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT', 'USEOBS']
+    widgets=lonarr(n_elements(unames))
+    for i=0, n_elements(widgets) -1 do widgets[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=unames[i])
+    
+    ;  axisName=elaborationDisp->getSelectedAxisName()
+    ;mods=''
+    ;for i=0, n_elements(modelNames)-1 do mods=mods+modelNames[i]+'*'
+    ;unames=['ELABAXISTXT', 'ELABNAMETXT', 'DIAGRAMTXT', 'PARAMETERSTXT', 'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT']
+    ;  widget_control, widgets[0], set_value=axisName
+    
+    diagramName=elaborationDisp->getSelectedDiagramName()
+    ;mods=''
+    ;for i=0, n_elements(modelNames)-1 do mods=mods+modelNames[i]+'*'
+    ;unames=['ELABAXISTXT', 'ELABNAMETXT', 'DIAGRAMTXT', 'PARAMETERSTXT', 'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT']
+    widget_control, widgets[0], set_value=diagramName
+    
+    elabName=elaborationDisp->getSelectedElabName()
+    ;scens=''
+    ;for i=0, n_elements(scenarioNames)-1 do scens=scens+scenarioNames[i]+'*'
+    widget_control, widgets[1], set_value=elabName
+    
+    
+    if elaborationDisp->getGoalsCriteriaOCFlag() then widget_control, widgets[2], /set_button else widget_control, widgets[2], set_button=0
+    ;  if elaborationDisp->getUseObservedModelFlag() then widget_control, widgets[2], /set_button else widget_control, widgets[3], set_button=0
+    
+    groupByStatName=elaborationDisp->getSelectedGroupByStatName()
+    ;scens=''
+    ;for i=0, n_elements(scenarioNames)-1 do scens=scens+scenarioNames[i]+'*'
+    ;unames=['ELABAXISTXT', 'ELABNAMETXT', 'DIAGRAMTXT', 'PARAMETERSTXT', 'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT']
+    widget_control, widgets[3], set_value=groupByStatName
+    
+    groupByTimeName=elaborationDisp->getSelectedGroupByTimeName()
+    ;scens=''
+    ;for i=0, n_elements(scenarioNames)-1 do scens=scens+scenarioNames[i]+'*'
+    ;unames=['ELABAXISTXT', 'ELABNAMETXT', 'DIAGRAMTXT', 'PARAMETERSTXT', 'GOALSBTT', 'GROUPBYSTATTXT', 'GROUPBYTIMETXT']
+    widget_control, widgets[4], set_value=groupByTimeName
+    
+    extraValNoMax=3
+    extraValsUNames='EXTRAVAL#'+strcompress(indgen(extraValNoMax)+1, /REMOVE)
+    tFlag=elaborationDisp->getThresholdFlag()
+    extraValsWid=lonarr(extraValNoMax)
+    ;disable all
+    for i=0, extraValNoMax-1 do begin
+      extraValsWid[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=extraValsUNames[i])
+      widget_control, extraValsWid[i], sensitive=0, EDITABLE=0, set_value=''
+    endfor
+    ;enable if ref values were set by user
+    if tFlag eq 1 then begin
+      refValues=elaborationDisp->getThresholdValues()
+      extraValNo=n_elements(refValues)
+      for i=0, extraValNo-1 do widget_control, extraValsWid[i], set_value=strcompress(refValues[i], /REMOVE), sensitive=1, /EDITABLE
+    endif
   endif
   
 END
@@ -1450,12 +1455,12 @@ END
 
 FUNCTION FMMainGUI::checkIntegrity, confInfo
 
-; KeesC leapyear
-;  scaleInfo=request->getScaleInfo()
-;  res_scale=strsplit(scaleInfo,';',/extract)
-;  year=fix(strcompress(res_scale[1],/remove_all))
-;  print,'year',year
-  ;year=2009 
+  ; KeesC leapyear
+  ;  scaleInfo=request->getScaleInfo()
+  ;  res_scale=strsplit(scaleInfo,';',/extract)
+  ;  year=fix(strcompress(res_scale[1],/remove_all))
+  ;  print,'year',year
+  ;year=2009
   ;MM summer 2012 Start
   mInfo=self.mgr->getModelInfo()
   year=mInfo.year
