@@ -2093,6 +2093,8 @@ PRO FM_PlotSoccer, plotter, request, result, allDataXY, allDataColor, allDataSym
   adummy=fltarr(10) & adummy(*)=1.
   CheckCriteria, request, result, 'RMSE', criteriaRMSE, adummy, 0,alpha,criteriaOrig,LV,nobsAv
   CheckCriteria, request, result, 'BIAS', criteriaBIAS, adummy, 0,alpha,criteriaOrig,LV,nobsAv
+  criteriaRMSE=criteriaRMSE(0)
+  criteriaBIAS=criteriaBIAS(0)
   ;  CheckCriteria, request, result, 'RMSE', criteriaRMSE, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
   ;  CheckCriteria, request, result, 'BIAS', criteriaBIAS, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
   
@@ -3965,7 +3967,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
      Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname=statistics, timeAvgName='ALL', NOVALUES=NOVALUES)
      if criteria(0) gt 0 then FlagAll=1
   endif
-  if Criteria(0) ne -1 then begin
+  if Criteria(0) ne -1 and statistics ne 'OU' then begin
     UrLV=criteria(0)
     alpha=criteria(1)
     Neff=criteria(2)
