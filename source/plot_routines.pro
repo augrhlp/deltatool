@@ -3659,7 +3659,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
      Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname=statistics, timeAvgName='ALL', NOVALUES=NOVALUES)
      if criteria(0) gt 0 then FlagAll=1
   endif
-  if Criteria(0) ne -1 and statistics ne 'OU' then begin
+  if Criteria(0) ne -1 and statistics eq 'OU' then begin
     UrLV=criteria(0)
     alpha=criteria(1)
     Neff=criteria(2)
