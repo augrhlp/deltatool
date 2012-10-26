@@ -500,7 +500,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   plot, [-Xaxis,Xaxis], color=0,/nodata, xtitle=ntxt1,ytitle=titleY, title='DynamicEvaluation', charsize=1, background=255,$
     yrange=[-Yaxis,Yaxis],xrange=[-Xaxis,Xaxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
   adummy=fltarr(10) & adummy(*)=1.  
-  CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv  ;hourly/daily
+  CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV  ;hourly/daily
    PolfX=fltarr(6)
    PolfY=fltarr(6)
 ;   if criteriaOrig gt 0. then begin
@@ -898,18 +898,8 @@ PRO FM_PlotScatter, plotter, request, result
   
    if n_elements(parCodes) eq 1 and isGroupSelection eq 0 then begin
   adummy=fltarr(10) & adummy(*)=1.
-  if elabCode ne 21 then begin ; hourly values
-     CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv  ;hourly/daily
-     if Criteria(0) ne -1 then begin
-        UrLV=criteriaOrig(0)
-        alpha=criteriaOrig(1)
-        Neff=1
-        Nnp=1
-        LV=criteriaOrig(4)
-     endif 
-   endif
-   if elabCode eq 21 then begin ; yearly values
-     CheckCriteria, request, result, 'OU', criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv  ;hourly/daily
+  ;if elabCode ne 21 then begin ; hourly values
+     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV  ;hourly/daily
      if Criteria(0) ne -1 then begin
         UrLV=criteriaOrig(0)
         alpha=criteriaOrig(1)
@@ -917,7 +907,17 @@ PRO FM_PlotScatter, plotter, request, result
         Nnp=criteriaOrig(3)
         LV=criteriaOrig(4)
      endif 
-   endif
+   ;endif
+;   if elabCode eq 21 then begin ; yearly values
+;     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV  ;hourly/daily
+;     if Criteria(0) ne -1 then begin
+;        UrLV=criteriaOrig(0)
+;        alpha=criteriaOrig(1)
+;        Neff=criteriaOrig(2)
+;        Nnp=criteriaOrig(3)
+;        LV=criteriaOrig(4)
+;     endif 
+;   endif
    
    endif else begin
    criteria=0
@@ -926,7 +926,7 @@ PRO FM_PlotScatter, plotter, request, result
   
   musstr=''
   for i=0,n_elements(mus)-1 do musstr=musstr+'/'+mus(i)
-  if elabCode eq 6 or elabCode eq 21 then begin
+  if elabCode eq 6 then begin
     xtitle='OBS '+musstr
     ytitle='MOD '+musstr
   endif
@@ -975,7 +975,7 @@ PRO FM_PlotScatter, plotter, request, result
   size_alldataXY=size(allDataXY)
   if size_alldataXY(0) eq 2 then begin    ; scatter mean
   
-    if elabcode eq 6 or elabCode eq 21 or elabCode eq 50 or elabcode eq 56 or elabcode eq 57 then begin
+    if elabcode eq 6 or elabCode eq 50 or elabcode eq 56 or elabcode eq 57 then begin
       if elabCode eq 50 then begin
         allDataXY=allDataXY[nmulti/2:nmulti-1,*] 
         nmulti=nmulti/2
@@ -1044,7 +1044,7 @@ PRO FM_PlotScatter, plotter, request, result
     endfor
   endelse
   ;  endif
-  if elabcode eq 6 or elabCode eq 21 or elabCode eq 50 or elabCode eq 56 or elabCode eq 57 then begin
+  if elabcode eq 6 or elabCode eq 50 or elabCode eq 56 or elabCode eq 57 then begin
     rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
     plotInfo->setRecognizeInfo, rInfo
   endif
@@ -1639,7 +1639,7 @@ PRO FM_PlotTaylor, plotter, request, result
   allDataColor=tpInfo->getColors()
   
   adummy=fltarr(10) & adummy(*)=1.
-  CheckCriteria, request, result, 'OU', criteriaOU, adummy, 0,alpha,criteriaOrig,LV,nobsAv
+  CheckCriteria, request, result, 'OU', criteriaOU, adummy,alpha,criteriaOrig,LV
   
   nmodels=n_elements(alldataxy(*,0))
   tay_std=fltarr(nmodels+1) & tay_cor=fltarr(nmodels+1)
@@ -1904,7 +1904,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   countValidStations=countValidStations/(npar*nmod*nsce)
   
   adummy=fltarr(10) & adummy(*)=1.
-  CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv
+  CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
   ;  criteria=criteria/2.
   
   hourStat=request->getGroupByTimeInfo() ;HourType
@@ -2091,14 +2091,14 @@ PRO FM_PlotSoccer, plotter, request, result, allDataXY, allDataColor, allDataSym
   
   ; KeesC 30MAR2012: obsTemp undefined, changed into adummy
   adummy=fltarr(10) & adummy(*)=1.
-  CheckCriteria, request, result, 'RMSE', criteriaRMSE, adummy, 0,alpha,criteriaOrig,LV,nobsAv
-  CheckCriteria, request, result, 'BIAS', criteriaBIAS, adummy, 0,alpha,criteriaOrig,LV,nobsAv
+  CheckCriteria, request, result, 'RMSE', criteriaRMSE, adummy,alpha,criteriaOrig,LV
+  CheckCriteria, request, result, 'BIAS', criteriaBIAS, adummy,alpha,criteriaOrig,LV
   criteriaRMSE=criteriaRMSE(0)
   criteriaBIAS=criteriaBIAS(0)
   ;  CheckCriteria, request, result, 'RMSE', criteriaRMSE, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
   ;  CheckCriteria, request, result, 'BIAS', criteriaBIAS, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
   
-  if elabcode ne 20 then begin
+  if elabcode ne 20 and elabCode ne 22 and elabCode ne 34 then begin
   
     maxxAxis=max(abs(allDataXY(*,0)),/nan)*2
     maxyAxis=max(allDataXY(*,1),/nan)*2
@@ -2506,6 +2506,8 @@ END
 PRO FM_PlotTable2, plotter, request, result
   !y.range=0
   plotter->wsetMainDataDraw
+  modelInfo=request->getModelInfo()
+  frequency=modelInfo.dataAssimilation
   DEVICE,DECOMPOSE=0
   LOADCT,39
   mytek_color;, 0, 32
@@ -2533,7 +2535,7 @@ PRO FM_PlotTable2, plotter, request, result
   flag_average=hourStat[0].value
   
   adummy=fltarr(10) & adummy(*)=1.
-  CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv
+  CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
   if criteria eq 0 then begin
     plot,indgen(10),/nodata,color=255,background=255
     xyouts,1,9,'No Diagram available for current choice',charsize=2,charthick=2,/data,color=0
@@ -2545,7 +2547,7 @@ PRO FM_PlotTable2, plotter, request, result
     goto,jumpend
   endif
   
-  if elabcode eq 31 or elabCode eq 83 then begin  ;Hourly/daily values
+  if strupcase(frequency) eq 'HOUR' then begin  ;Hourly/daily values
   
     statis=['Mean','Exc','NMB','R','NMSD','Rspace','NMSDspace','RDE']
     nvar=8
@@ -2756,7 +2758,7 @@ PRO FM_PlotTable2, plotter, request, result
     for ii=0,4 do begin
     
       adummy=fltarr(10) & adummy(*)=1.
-      CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv
+      CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
       
       ;      if ii eq 1 then criteria=criteriaOU*200
       if ii eq 1 or ii eq 2 or ii eq 3 then criteria=1.
@@ -2952,9 +2954,9 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
 ;    
 ;  endif
   
-  if elabcode eq 25 or elabCode eq 79 then begin  ;NMSD
+  if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 then begin  ;NMSD
   
-    CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv
+    CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
     
     maxxAxis=max(allDataXY(*,0),/nan)*1.1
     if finite(maxxAxis) eq 0 then maxxAxis=100
@@ -3003,9 +3005,9 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
     
   endif
   
-  if elabcode eq 15 or elabCode eq 78 then begin  ;R
+  if elabcode eq 15 or elabCode eq 78 or elabCode eq 16 then begin  ;R
   
-    CheckCriteria, request, result, 'OU', criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv
+    CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
     
     maxxAxis=max(allDataXY(*,0),/nan)*1.1
     if finite(maxxAxis) eq 0 then maxxAxis=1
@@ -3590,15 +3592,14 @@ pro mytek_color, Start_index, Ncolors
   b_curr = b_orig
 end
 ;*************
-pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoShort,alpha,criteriaOrig,LV,nobsAv
-
+pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,criteriaOrig,LV
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
   parCodes=request->getParameterCodes()
   modelInfo=request->getModelInfo()
   year=modelInfo.year
   scale=modelInfo.scale
-  dataAssimilation=modelInfo.dataAssimilation
+  frequency=modelInfo.dataAssimilation
   scaleName=strupcase(scale)
   ;MM summer 2012 End
   hourStat=request->getGroupByTimeInfo() ;HourType
@@ -3623,10 +3624,10 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
   criteriaOrig=0
   criteria=0
   Neff=1
+  Nnp=1
   
   ;if more than one pollutant or group mode statistic ne 90 percentile, no criteria found
   if n_elements(parCodes) gt 1 or GroupModeOKmode ne 1 then begin
-    
     goto,jumpEnd
   endif
   
@@ -3645,7 +3646,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
   ; OCTimeAvgName=request->getElaborationOCTimeAvgName()
   ;OCStat=request->getElaborationOCStat()
   ; MM summer 2012 End
-  if elabCode eq 32 or elabcode eq 21 or elabCode eq 84 then begin  ;annual averages
+  if strupcase(frequency) eq 'YEAR' then begin  ;annual averages
     if parcodes[0] eq 'PM10' then dailyStatOp='PMEAN'
     if parcodes[0] eq 'NO2'  then dailyStatOp='PP'
     if parcodes[0] eq 'O3'   then dailyStatOp='N/A'
@@ -3665,23 +3666,24 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,longtoSh
     Neff=criteria(2)
     Nnp=criteria(3)
     LV=criteria(4)
+    if strupcase(frequency) eq 'HOUR' then criteria(2:3)=1
   endif
   CriteriaOrig=criteria
   if keyword_set(NOVALUES) then UrLV=0
   
   ; calculation of absolute error
   
-  nobsAv=endIndex-startIndex+1
-  if statType eq 1 or statType eq 2 or statType eq 3 then nobsAv=nobsAv/24.
-  if statType eq 0 and (parcodes eq 'PM10' or parCodes eq 'PM25') then nobsAv=nobsAv/24.
-  if nobsAv lt 1 then nobsAv=1
-  if longtoShort eq 0 then nobsAv=1
-  
+;  nobsAv=endIndex-startIndex+1
+;  if statType eq 1 or statType eq 2 or statType eq 3 then nobsAv=nobsAv/24.
+;  if statType eq 0 and (parcodes eq 'PM10' or parCodes eq 'PM25') then nobsAv=nobsAv/24.
+;  if nobsAv lt 1 then nobsAv=1
+;  if frequency eq 'HOUR' then nobsAv=1
   
   if statistics eq 'OU' and criteria(0) ne -1 then begin 
-     if longtoshort eq 0 then criteria=UrLV/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)+alpha*LV^2)
-     if longtoshort eq 1 then criteria=UrLV/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)/Neff +alpha*LV^2/Nnp)
-     if Neff eq -999 and longtoShort eq 1 then criteria=-1
+     if strupcase(frequency) eq 'HOUR' then criteria=UrLV/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)+alpha*LV^2)
+     if strupcase(frequency) eq 'YEAR' then criteria=UrLV/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)/Neff +alpha*LV^2/Nnp)
+     if (Neff eq -999 or Nnp eq -999) and strupcase(frequency) eq 'YEAR' then criteria=-1
+     if parcodes[0] eq 'O3' and strupcase(frequency) eq 'HOUR' then criteria=criteria/1.44
   endif
   jumpend:
 ;**********************
@@ -4018,7 +4020,7 @@ pro mybar_plot,values,nsubbars,baselines=baselines,colors=colors,barnames=barnam
   if elabcode eq 54 then statistics='MFS'
   if total(where(elabCode eq [2,7,8,23,28,30,54])) ge 0 then begin
     ;  KeesC 28MAR2012: obsTemp changed into values
-    CheckCriteria, request, result, statistics, criteria, values, 0,alpha,criteriaOrig,LV,nobsAv
+    CheckCriteria, request, result, statistics, criteria, values,alpha,criteriaOrig,LV
   endif else begin
     criteria=0
   endelse

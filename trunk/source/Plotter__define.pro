@@ -1161,7 +1161,7 @@ PRO Plotter::plotBars, request, result
 ;    CheckCriteria, request, result, statistics, criteria, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
 ; changed into dummy
   adummy=fltarr(10) & adummy(*)=1.
-    CheckCriteria, request, result, statistics, criteria, adummy, 0,alpha,criteriaOrig,LV,nobsAv
+    CheckCriteria, request, result, statistics, criteria, adummy,alpha,criteriaOrig,LV
   endif else begin
     criteria=0
   endelse
@@ -1240,7 +1240,9 @@ PRO Plotter::plotBars, request, result
     symbolColorsTest=self->buildSymbolColors(10)
     if elabcode eq 2 or elabcode eq 7 then polyfill,[0,0,1,1,0],[criteria,min([1,valuesRange(1)]),min([1,valuesRange(1)]),criteria,criteria],/data,color=symbolColorsTest(1)
     if elabcode eq 8 or elabcode eq 30 or elabcode eq 28 then polyfill,[0,0,1,1,0],[0,min([criteria,abs(valuesRange(1))]),min([criteria,abs(valuesRange(1))]),0,0],/data,color=symbolColorsTest(1)
-    if elabcode eq 23 or elabcode eq 54 then polyfill,[0,0,1,1,0],[-min([criteria,abs(valuesRange(0))]),min([criteria,abs(valuesRange(1))]),min([criteria,abs(valuesRange(1))]),-min([criteria,abs(valuesRange(0))]),-min([criteria,abs(valuesRange(0))])],/data,color=symbolColorsTest(1)
+    if elabcode eq 23 or elabcode eq 54 then polyfill,[0,0,1,1,0],[-min([criteria,abs(valuesRange(0))]),$
+       min([criteria,abs(valuesRange(1))]),min([criteria,abs(valuesRange(1))]),-min([criteria,abs(valuesRange(0))]),$
+      -min([criteria,abs(valuesRange(0))])],/data,color=symbolColorsTest(1)
   endif
   
   ;recognizeRegionEdges[0]=ptr_new(outLegoCoords, /NO_COPY)
