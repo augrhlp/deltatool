@@ -367,7 +367,7 @@ PRO SG_Computing, $
           ;CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
           longshort=0
 ;          if elabCode eq 10 or elabCode eq 75 then longshort=1
-          CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,longshort,alpha,criteriaOrig,LV,nobsAv
+          CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
           ;MM summer 2012 End
           if elabcode eq 0 then begin
             statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
@@ -402,7 +402,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=rmses(obsTemp,runTemp)/rmseu(obsTemp,runTemp)
             statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
           endif
-          if elabcode eq 6 or elabCode eq 21 then begin
+          if elabcode eq 6 then begin
             statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp)
             statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
@@ -460,7 +460,7 @@ PRO SG_Computing, $
 ;            statXYResult[i1,i2,i3,i4,9]=stddevOM(runTemp)
             statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))  ;??
           endif
-          if elabcode eq 15 or elabCode eq 78 then begin ; R buggle
+          if elabcode eq 15 or elabCode eq 78 or elabCode eq 16 then begin ; R buggle
             statXYResult[i1,i2,i3,i4,0]=criteriaOU/stddevOM(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=correlate(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=abs(correlate(obsTemp, runTemp))
@@ -486,7 +486,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=correlate(obsTemp,runTemp)
             statXYGroup[i1,i2,i3,i4]=crmse(obsTemp,runTemp)
           endif
-          if elabcode eq 20 then begin  ;Soccer AQ
+          if elabcode eq 20 or elabCode eq 22 or elabCode eq 34 then begin  ;Soccer AQ
             ahlp=abs(stddevOM(runTemp)-stddevOM(obsTemp))/(2.*criteriaOU)
             sign=-1.
             if ahlp le 1 then sign=1.
@@ -504,7 +504,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=mfe(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=mfe(obsTemp, runTemp)
           endif
-          if elabcode eq 25 or elabCode eq 79 then begin  ;NMSD Bugle
+          if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 then begin  ;NMSD Bugle
             if stddevOM(obsTemp) ne 0 then statXYResult[i1,i2,i3,i4,0]=criteriaOU/stddevOM(obsTemp)
             if stddevOM(obsTemp) eq 0 then statXYResult[i1,i2,i3,i4,0]=!values.f_nan
             statXYResult[i1,i2,i3,i4,1]=nmb(stddevOM(obsTemp), stddevOM(runTemp))
@@ -565,7 +565,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=fac2(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=fac2(obsTemp, runTemp)
           endif
-          if elabcode eq 52 or elabCode eq 81 then begin ;OU Target
+          if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then begin ;OU Target
             signNum=2*(1.-correlate(obsTemp,runTemp))
             signDen=(stddevOM(obstemp)-stddevOM(runTemp))^2/(stddevOM(obstemp)*stddevOM(obsTemp))
             sign=0.
@@ -592,7 +592,7 @@ PRO SG_Computing, $
             ;MM summer 2012 Start
             ; Replace hard coded 'OU' with specific parameter from elaboration.dat
             ;CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
-            CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
+            CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
             ;MM summer 2012 End
             sign=stddevOM(obsTemp)-stddevOM(runTemp)  ;only for target
             if finite(sign) eq 1 then sign=sign/abs(sign)   ;only for target
@@ -696,25 +696,11 @@ PRO SG_Computing, $
                 runGroupStatResult=reform(statXY1(ccFin))
                 ;KeesC 11SEP2012
                 run2GroupStatResult=reform(statXY2(ccFin))
-;                run3GroupStatResult=reform(statXY3(ccFin))
-;                run4GroupStatResult=reform(statXY4(ccFin))
-;                run5GroupStatResult=reform(statXY5(ccFin))
-;                run6GroupStatResult=reform(statXY6(ccFin))
-;                run7GroupStatResult=reform(statXY7(ccFin))
-;                run8GroupStatResult=reform(statXY8(ccFin))
-;                run9GroupStatResult=reform(statXY9(ccFin))
                 if elabCode ne 14 then begin
                   obsStatResult=mean(obsGroupStatResult)
                   runStatResult=mean(runGroupStatResult)
                   ;KeesC 11SEP2012
                   run2StatResult=mean(run2GroupStatResult)
-;                  run3StatResult=mean(run3GroupStatResult)
-;                  run4StatResult=mean(run4GroupStatResult)
-;                  run5StatResult=mean(run5GroupStatResult)
-;                  run6StatResult=mean(run6GroupStatResult)
-;                  run7StatResult=mean(run7GroupStatResult)
-;                  run8StatResult=mean(run8GroupStatResult)
-;                  run9StatResult=mean(run9GroupStatResult)
                 endif
                 if elabCode eq 14 then begin
                   if ncurrNames ge 2 then begin
@@ -730,15 +716,8 @@ PRO SG_Computing, $
                   obsStatResult=regcnst
                   RunStatResult=spatCorr
                   Run2StatResult=regres
-;                  run3StatResult=mean(run3GroupStatResult)
-;                  run4StatResult=mean(run4GroupStatResult)
-;                  run5StatResult=mean(run5GroupStatResult)
-;                  run6StatResult=mean(run6GroupStatResult)
-;                  run7StatResult=mean(run7GroupStatResult)
-;                  run8StatResult=mean(run8GroupStatResult)
-;                  run9StatResult=mean(run9GroupStatResult)
                 endif
-                if elabCode eq 20 or elabcode eq 52 or elabCode eq 81 then begin
+                if total(where(elabCode eq [20,21,22,52,81,34])) ge 0 then begin
                   ccNeg=where(statXYGroupHlp lt 0.,countNeg)
                   ccPos=where(statXYGroupHlp ge 0.,countPos)
                   if countNeg gt countPos then obsStatResult=-obsStatResult
@@ -765,13 +744,13 @@ PRO SG_Computing, $
                 run2GroupStatResult=reform(statXY2(ccFin))
                 GroupStatResult=reform(statXYGroupHlp(ccFin))
                 resSort=sort(GroupStatResult)
-                      if total(where(elabCode eq [2,7,11,15,78,33,76])) ge 0 then resSort=reverse(resSort)
+                      if total(where(elabCode eq [2,7,11,15,78,16,33,76])) ge 0 then resSort=reverse(resSort)
                 medIdx=resSort[fix(0.9*n_elements(resSort))]
                 obsStatResult=obsGroupStatResult(medIdx)
                 runStatResult=runGroupStatResult(medIdx)
                 ;KeesC 10SEP2012
                 run2StatResult=run2GroupStatResult(medIdx)
-                if elabCode eq 20 or elabCode eq 52 or elabCode eq 81 then begin
+                if total(where(elabCode eq [20,21,22,52,81,34])) ge 0 then begin
                   ccNeg=where(statXYGroupHlp(0:medIdx) lt 0.,countNeg)
                   ccPos=where(statXYGroupHlp(0:medIdx) ge 0.,countPos)
                   if countNeg gt countPos then obsStatResult=-abs(obsStatResult)
@@ -825,7 +804,7 @@ PRO PrepareLegends, request, result, ifree, npar, nmod, nsce, nobsS, nobs, obsNa
     regNames = regNamesAll[UNIQ(regNamesAll, SORT(regNamesAll))]
     nreg=n_elements(regNames)
     legendNames(0:nobsS-1,3)=obsNames[0:nobsS-1]
-    if total(where(elabCode eq [10,11,18,75,76,77,78])) ge 0 then legendNames(0:nobsS-1,3)=$
+    if total(where(elabCode eq [10,11,18,75,76,77])) ge 0 then legendNames(0:nobsS-1,3)=$
       regnamesAll+'&'+obsNames[0:nobsS-1]
   endif
 
@@ -1234,6 +1213,8 @@ pro FM_StatTable2, request, result
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
   parCodes=request->getParameterCodes()
+  modelInfo=request->getModelInfo()
+  frequency=modelInfo.dataAssimilation
   scenarioCodes=request->getScenarioCodes()
   nsce=request->getScenarioNumber()
   isSingleSelection=request->isSingleObsPresent()
@@ -1375,7 +1356,7 @@ if isSingleSelection then begin
 
   fileName=  modelCodes(0)+'_'+parcodes(0)+'.dat'  ;Printing only in case of single stations choice
   request->openDataDumpFile, fileName;/ADDSYSTIME; --> filename=StatisticName+systime+.txt
-  request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt targ targY targX MO MM SO SM NMB R RDE NMSD ExcO ExcM TargOU'
+  request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt targ targY targX MO MM SO SM NMB R RDE NMSD ExcO ExcM TargOU OU'
 
   statXYResultS=fltarr(forSLastIndex+1,nvar)
 
@@ -1390,13 +1371,10 @@ if isSingleSelection then begin
     ;MM summer 2012 Start
     ; Replace hard coded 'OU' with specific parameter from elaboration.dat
     ;request->getElaborationOCStat()
-    if elabCode eq 31 or elabCode eq 83 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
-    if elabCode eq 32 or elabCode eq 84 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
-    ;    if elabCode eq 31 then CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
-    ;    if elabCode eq 32 then CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
-    ;MM summer 2012 End
+    CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
+        ;MM summer 2012 End
 
-    if elabcode eq 32 or elabCode eq 84 then obsTemp(*)=mean(obsTemp)
+    if strupcase(frequency) eq 'YEAR' then obsTemp(*)=mean(obsTemp)
 
     statXYResultS(i,0)=mean(obsTemp)
     statXYResultS(i,6)=mean(runTemp)
@@ -1414,7 +1392,7 @@ if isSingleSelection then begin
     statXYResultS(i,3)=(1.-correlate(obsTemp, runTemp))/(2*(CriteriaOU/stddevOM(obsTemp))^2)
     statXYResultS(i,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(2.*CriteriaOU)
     statXYResultS(i,7)=rde(obsTemp,runTemp,limitValue)
-    if elabcode eq 32 or elabCode eq 84 then statXYResultS(i,7)=rdeYearly(obsTemp,runTemp,limitValue)
+    if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=rdeYearly(obsTemp,runTemp,limitValue)
 
     txt=string(obsnames(i),obsCodes(i), regNamesAll(i),categoryInfo(1,i),$
       obsLongitudes(i), obsLatitudes(i), obsAltitudes(i),$
@@ -1426,7 +1404,8 @@ if isSingleSelection then begin
       nmb(stddevOM(runTemp),stddevOM(obsTemp)),$
       statXYResultS(i,1),statXYResultS(i,5), $
       rmse(obsTemp, runTemp)/(2.*CriteriaOU(0)),$
-      format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,20(1x,f8.3))')
+      CriteriaOU(0),$
+      format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
     request->writeDataDumpFileRecord, txt
 
   endfor
@@ -1439,7 +1418,7 @@ if isSingleSelection then begin
     ; Replace hard coded 'OU' with specific parameter from elaboration.dat
     ; request->getElaborationOCStat()
     ;CheckCriteria, request, result, 'OU', criteriaOU, adummy, 1,alpha,criteriaOrig,LV,nobsAv
-    CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, adummy, 1,alpha,criteriaOrig,LV,nobsAv
+    ;CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, adummy,alpha,criteriaOrig,LV,nobsAv
     ;MM summer 2012 End
     statXYResultS(*,5)=(1.-correlate(statXYResultS(cc,0), statXYResultS(cc,6)))/(2*(CriteriaOU/stddevOM(statXYResultS(cc,0)))^2)
     statXYResultS(*,6)=(stddevOM(statXYResultS(cc,0))-stddevOM(statXYResultS(cc,6)))/(2.*CriteriaOU)
@@ -1486,7 +1465,7 @@ if isGroupSelection then begin
       ; Replace hard coded 'OU' with specific parameter from elaboration.dat
       ; request->getElaborationOCStat()
       ; CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
-      CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
+      CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
       ;MM summer 2012 End
 
       statXYResultInt(j,0)=mean(obsTemp)

@@ -4,10 +4,10 @@
 1;Time Series;FM_PlotTimeSeries;1;Descr of:TimeSeries
 4;Target (OU);FM_PlotTarget;2;Descr of:Target plot
 10;Summary Report (OU);FM_PlotTable2;1;Descr of:StatAllStat
-5;Criteria R-SD  (OU);FM_PlotBugle;2;Descr of:Composite
+5;MPC (OU);FM_PlotBugle;2;Descr of:Composite
 #7;Category Diagram (OU);FM_PlotCategory;1;Descr of:2D Maps
 3;Taylor;FM_PlotTaylor;2;Descr of:Taylor plot
-#6;Soccer Diagram;FM_PlotSoccer;2;Descr of:Soccer
+6;Soccer Diagram;FM_PlotSoccer;2;Descr of:Soccer
 8;Q_Q plot;FM_PlotQQ;2;Descr of:Composite
 #9;PrintAllStat;FM_PlotAllStat;1;Descr of:StatAllStat
 12;Dynamic Evaluation;FM_PlotDynamicEvaluation;2;Descr of: Seasonal, Week and day variations
