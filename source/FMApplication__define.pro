@@ -1827,7 +1827,7 @@ PRO FMApplication::initEntityDisplay, entityDisplay, mainConfig, categoryList, m
   entityDisplay->setObsCatObservedCodes, obsCat->getObservedCodes()
   entityDisplay->setObsCatCategoryCodes, obsCat->getCategoryCodes()
   
-  entityDisplay->setUseObservedModelFlag, 0b
+  entityDisplay->setUseObservedModelFlag, 1b
   
   entityDisplay->setParameterTypeNames, parameterTypeList->getDisplayNames()
   entityDisplay->setParameterTypeCodes, parameterTypeList->getCodes()

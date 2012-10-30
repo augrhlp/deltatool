@@ -1331,7 +1331,8 @@ PRO FMMainGUI::updateModelSection
   for i=0, n_elements(runNames)-1 do runs=runs+runNames[i]+'*'
   widget_control, widgets[2], set_value=runs
   
-  if entityDisp->getUseObservedModelFlag() then widget_control, widgets[3], /set_button else widget_control, widgets[3], set_button=0
+  ;if entityDisp->getUseObservedModelFlag() then widget_control, widgets[3], /set_button else widget_control, widgets[3], set_button=0
+  widget_control, widgets[3], set_button=entityDisp->getUseObservedModelFlag()
   
 END
 

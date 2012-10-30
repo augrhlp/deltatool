@@ -296,7 +296,7 @@ FUNCTION CompositeBatchManager::checkIntegrity
       useGoalsAndCriteria=tempReq->getElaborationOCUse()
       dummy=tempReq->getGoalsCriteriaValues(/CONTENTS, NOVALUES=NOVALUES)
       if useGoalsAndCriteria then begin
-        if Check_Criteria(request, result) eq 0 then begin
+        if Check_Criteria(tempReq, result) eq 0 then begin
           aa=self.refView->dialogMessage(['Request element #'+strcompress(i+1, /REMOVE)+' K_CriteriaNotAvailable.', 'Check elaboration, parameter and/or configuration files.'], title=['Check your selections'])
           obj_destroy, tempReq
           return, 0b
