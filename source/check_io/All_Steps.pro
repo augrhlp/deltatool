@@ -218,7 +218,7 @@ pro All_Steps
           return
         endif
         atxt=discardComments(1)
-        datassimilation=atxt
+        frequency=atxt
         ;here add Data Assimilation control, now just skip it...
         atxt=discardComments(1)
         scale=atxt
@@ -235,7 +235,7 @@ pro All_Steps
           ierror=1
           return
         endif else begin
-          txt='STEP 03 OK: MODEL / '+fileYear+' '+datassimilation+' '+scale+' section exists in STARTUPfile'
+          txt='STEP 03 OK: MODEL / '+fileYear+' '+frequency+' '+scale+' section exists in STARTUPfile'
           printf,11,txt
           txtall=[txt,txtall]
           widget_control,labcom_txt,set_value=txtall
