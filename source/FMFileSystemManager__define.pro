@@ -991,12 +991,12 @@ FUNCTION FMFileSystemManager::readStartUpFile, filename
         warningMessage[1]='replace [SCALE] section with'
         warningMessage[2]='[MODEL]'
         warningMessage[3]=';Year'
-        warningMessage[4]=';DataAssimilation'
+        warningMessage[4]=';frequency'
         warningMessage[5]=';Scale'
         warningMessage[6]='2009'
-        warningMessage[7]='DataAssimilation1'
+        warningMessage[7]='hour'
         warningMessage[8]='urban'
-        warningMsg=dialog_message('Old configuration of startup.ini found')
+        ;warningMsg=dialog_message('Old configuration of startup.ini found')
         modelInfo=self->readOldScaleAsModelSection(unit)
         self->replaceModelLines, lines, modelInfo
         OLDVERSION=1
@@ -1056,10 +1056,10 @@ PRO FMFileSystemManager::replaceModelLines, lines, modelInfo
 
   lines[n_elements(lines)-1]='[MODEL]'
   lines=[lines, ';Year']
-  lines=[lines, ';DataAssimilation']
+  lines=[lines, ';frequency']
   lines=[lines, ';Scale']
   lines=[lines, strcompress(modelInfo.year, /REMOVE)]
-  lines=[lines, modelInfo.dataAssimilation]
+  lines=[lines, modelInfo.frequency]
   lines=[lines, modelInfo.scale]
   
 END
@@ -1263,7 +1263,7 @@ FUNCTION FMFileSystemManager::readOldScaleAsModelSection, unit, lines=lines
   i=0
   lines=''
   modelInfo=getFMModelInfoStruct()
-  modelInfo.dataAssimilation='DataAssimilation1'
+  modelInfo.frequency='hour'
   while not(eof(unit)) do begin
     readf, unit, bufferString
     lines=[lines, bufferString]
@@ -1296,7 +1296,7 @@ FUNCTION FMFileSystemManager::readModelSection, unit, lines=lines
   ;default values
   modelInfo=getFMModelInfoStruct()
   modelInfo.scale=undefined
-  modelInfo.dataAssimilation=undefined
+  modelInfo.frequency=undefined
   modelInfo.year=2009
   i=0
   pos=1
@@ -1315,7 +1315,7 @@ FUNCTION FMFileSystemManager::readModelSection, unit, lines=lines
     ;      print, bufferString
     endif else begin
       if pos eq 1 then modelInfo.year=fix(bufferString)
-      if pos eq 2 then modelInfo.dataAssimilation=bufferString
+      if pos eq 2 then modelInfo.frequency=bufferString
       if pos eq 3 then begin
         modelInfo.scale=bufferString
         break

@@ -2,7 +2,7 @@ FUNCTION getFMModelInfoStruct
 
   struct = { modelInfo, $
     scale: '', $
-    dataAssimilation: '', $
+    frequency: '', $
     year: 0 $
     }
   return, struct

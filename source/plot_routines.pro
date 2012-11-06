@@ -2507,7 +2507,7 @@ PRO FM_PlotTable2, plotter, request, result
   !y.range=0
   plotter->wsetMainDataDraw
   modelInfo=request->getModelInfo()
-  frequency=modelInfo.dataAssimilation
+  frequency=modelInfo.frequency
   DEVICE,DECOMPOSE=0
   LOADCT,39
   mytek_color;, 0, 32
@@ -2968,7 +2968,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
     recognizeRangeX=(maxxAxis-minxAxis)*0.01
     recognizeRangeY=(ymax+ymax)*0.01
     
-    plot, indgen(fix(maxxaxis+1)), color=0,/nodata, xtitle='OU * O / SigO',ytitle='Normalised Standard deviation Indicator', title='Buggle PLOT', charsize=1, background=255,$
+    plot, indgen(fix(maxxaxis+1)), color=0,/nodata, xtitle='RMSU / SigO',ytitle='NMSD', title='MPC PLOT', charsize=1, background=255,$
       yrange=[-ymax,ymax],xrange=[minxAxis,maxxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
     if criteria gt 0 then begin
       xx=fltarr(101) & yy1=fltarr(101) & yy2=fltarr(101) & yy1_05=fltarr(101) & yy2_05=fltarr(101)
@@ -3020,7 +3020,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
     recognizeRangeX=(maxxAxis-minxAxis)*0.01
     recognizeRangeY=(ymax)*0.01
     
-    plot, indgen(fix(maxxaxis+1)), color=0,/nodata, xtitle='OU * O / sigO',ytitle='Correlation', title='Buggle PLOT', charsize=1, background=255,$
+    plot, indgen(fix(maxxaxis+1)), color=0,/nodata, xtitle='RMSU / sigO',ytitle='Correlation', title='MPC PLOT', charsize=1, background=255,$
       yrange=[ymin,ymax],xrange=[minxAxis,maxxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
     if criteria gt 0 then begin
       xx=fltarr(101) & yy=fltarr(101) & yy05=fltarr(101)
@@ -3599,7 +3599,8 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   modelInfo=request->getModelInfo()
   year=modelInfo.year
   scale=modelInfo.scale
-  frequency=modelInfo.dataAssimilation
+  scale='ALL'
+  frequency=modelInfo.frequency
   scaleName=strupcase(scale)
   ;MM summer 2012 End
   hourStat=request->getGroupByTimeInfo() ;HourType
