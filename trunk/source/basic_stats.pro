@@ -233,11 +233,18 @@ pro obs_run_nan, request,result,obsValues, runValues
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
   ddn=request->getHourType()
+  hour=request->getHourInfo() ;HourType
+  start_hour_hlp=hour[0].value
+  end_hour_hlp=hour[1].value
 
 ;KeesC move next to lines to .dat conf file
   minDataAvail=0.9 
   minDayAvail=18 ; minimal 18 8-hour-mean values should be available per day
-  if ddn eq 1 or ddn eq 2 or abs(elabcode) eq 71 then minDayAvail=9 
+  dayHourLength=fix(end_hour_hlp)-fix(start_hour_hlp)+1
+  NightHourLength=24-dayHourLength
+  if ddn eq 1 or abs(elabcode) eq 71 then minDayAvail=fix(dayHourLength*0.75) 
+  if ddn eq 2 or abs(elabcode) eq -71 then minDayAvail=fix(NightHourLength*0.75) 
+  
 
   for i=0,364 do begin
     kcobs=where(obsValues(i*24:i*24+23) gt -990,nkcobs)
@@ -332,13 +339,13 @@ pro obs_run_nan, request,result,obsValues, runValues
     ahlp=intarr(8760) & ahlp(*)=0
     if elabcode eq 71 then begin  ;day
       for i=0,364 do begin
-        ahlp(24*i+7:24*i+18)=1
+        ahlp(24*i+fix(start_hour_hlp)-1:24*i+fix(end_hour_hlp)-1)=1
       endfor
     endif
     if elabcode eq -71 then begin  ;night
       for i=0,364 do begin
-        ahlp(24*i:24*i+6)=1
-        ahlp(24*i+19:24*i+23)=1
+        ahlp(24*i:24*i+fix(start_hour_hlp)-2)=1
+        ahlp(24*i+fix(end_hour_hlp):24*i+23)=1
       endfor
     endif
     if elabcode eq 72 then begin  ;summer
@@ -1008,6 +1015,10 @@ pro time_operations, request, result, obsTemp, runTemp
 
   if abs(elabcode) eq 71 or abs(elabcode) eq 72 or abs(elabcode) eq 73 then begin
 
+    hour=request->getHourInfo() ;HourType
+    start_hour_hlp=hour[0].value
+    end_hour_hlp=hour[1].value
+    
     ysw=request->getSeasonType()  ;year, summer, winter
     ddn=request->getHourType()    ;allday, day, night, WD, WE
     ;    print,'ysw,ddn',ysw,ddn
@@ -1015,13 +1026,13 @@ pro time_operations, request, result, obsTemp, runTemp
     ahlp=intarr(8760) & ahlp(*)=0
     if elabcode eq 71 then begin  ;day
       for i=0,364 do begin
-        ahlp(24*i+7:24*i+18)=1
+        ahlp(24*i+fix(start_hour_hlp)-1:24*i+fix(end_hour_hlp)-1)=1
       endfor
     endif
     if elabcode eq -71 then begin  ;night
       for i=0,364 do begin
-        ahlp(24*i:24*i+6)=1
-        ahlp(24*i+19:24*i+23)=1
+        ahlp(24*i:24*i+fix(start_hour_hlp)-2)=1
+        ahlp(24*i+fix(end_hour_hlp):24*i+23)=1
       endfor
     endif
     if elabcode eq 72 then begin  ;summer
@@ -1061,29 +1072,29 @@ pro time_operations, request, result, obsTemp, runTemp
       if ddn eq 0 then begin ;allday
         bhlp(*)=1
       endif
-      if ddn eq 1 then begin ;day
-        for i=0,364 do begin
-          bhlp(24*i+7:24*i+18)=1
-        endfor
-      endif
-      if ddn eq 2 then begin ;night
-        for i=0,364 do begin
-          bhlp(24*i:24*i+6)=1
-          bhlp(24*i+19:24*i+23)=1
-        endfor
-      endif
-      if ddn eq 3 then begin  ;WD
-        for i=0,364 do begin
-          DayYear=(julday(1,i+1,year)+1) mod 7
-          if DayYear ne 0 and DayYear ne 6 then bhlp(i*24:i*24+23)=1
-        endfor
-      endif
-      if ddn eq 4 then begin
-        for i=0,364 do begin
-          DayYear=(julday(1,i+1,year)+1) mod 7
-          if DayYear eq 0 or DayYear eq 6 then bhlp(i*24:i*24+23)=1
-        endfor
-      endif
+;      if ddn eq 1 then begin ;day
+;        for i=0,364 do begin
+;          bhlp(24*i+7:24*i+18)=1
+;        endfor
+;      endif
+;      if ddn eq 2 then begin ;night
+;        for i=0,364 do begin
+;          bhlp(24*i:24*i+6)=1
+;          bhlp(24*i+19:24*i+23)=1
+;        endfor
+;      endif
+;      if ddn eq 3 then begin  ;WD
+;        for i=0,364 do begin
+;          DayYear=(julday(1,i+1,year)+1) mod 7
+;          if DayYear ne 0 and DayYear ne 6 then bhlp(i*24:i*24+23)=1
+;        endfor
+;      endif
+;      if ddn eq 4 then begin
+;        for i=0,364 do begin
+;          DayYear=(julday(1,i+1,year)+1) mod 7
+;          if DayYear eq 0 or DayYear eq 6 then bhlp(i*24:i*24+23)=1
+;        endfor
+;      endif
 
     endif
     ahlp=ahlp*bhlp
