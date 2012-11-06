@@ -6,7 +6,9 @@ function Check_Criteria, request, result
   parCodes=request->getParameterCodes()
   modelInfo=request->getModelInfo()
   year=modelInfo.year
+  frequency=modelInfo.frequency
   scale=modelInfo.scale
+  scale='ALL'
   scaleName=strupcase(scale)
   hourStat=request->getGroupByTimeInfo() ;HourType
   flag_average=hourStat[0].value
@@ -34,7 +36,7 @@ function Check_Criteria, request, result
 
   dailyStatOp=flag_average+flagDailyStat
 
-  if elabCode eq 32 or elabcode eq 21 or elabCode eq 84 then begin  ;annual averages
+  if frequency eq 'YEAR' then begin  ;annual averages
     if parcodes[0] eq 'PM10' then dailyStatOp='PMEAN'
     if parcodes[0] eq 'NO2'  then dailyStatOp='PP'
     if parcodes[0] eq 'O3'   then dailyStatOp='N/A'

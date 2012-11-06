@@ -394,7 +394,7 @@ PRO FMBatchShowRequestGUI::configure
   infoText=strarr(3)
   info=req->getModelInfo()
   infoText[0]='Scale: '+info.scale
-  infoText[1]='DataAssimilation: '+info.DATAASSIMILATION
+  infoText[1]='frequency: '+info.frequency
   infoText[2]='Year: '+strcompress(info.year, /REMOVE)
   self->setLineInfo, infoLabel, infoText
   

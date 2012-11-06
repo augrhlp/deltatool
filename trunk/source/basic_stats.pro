@@ -220,7 +220,7 @@ pro obs_run_nan, request,result,obsValues, runValues
   ;use in this way:
   year=modelInfo.year
   scale=modelInfo.scale
-  dataAssimilation=modelInfo.dataAssimilation
+  frequency=modelInfo.frequency
   ;MM summer 2012 End
   ;JRC Version Start
   ;scaleInfo=request->getScaleInfo()
@@ -815,7 +815,7 @@ pro time_operations, request, result, obsTemp, runTemp
   ;use in this way:
   year=modelInfo.year
   scale=modelInfo.scale
-  dataAssimilation=modelInfo.dataAssimilation
+  frequency=modelInfo.frequency
   ;MM summer 2012 End
   ;JRC VErsion Start
   ;scaleInfo=request->getScaleInfo()
