@@ -188,9 +188,29 @@ END
 
 PRO fairmode_helpMenuSelection, ev
 
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  print, 'fairmode_helpMenuSelection'
+  mgr=view->getMgr()
+  print, 'Doc reader:', mgr->getDocReaderLocation()
+  print, 'Pdf reader:',mgr->getPdfReaderLocation()
+  print, 'Browser launcher:',mgr->getBrowserLocation()
+;  dir=self->getHomeDir(/WITH)
+;  dir=dir+"documents"
+;  spawn,[mgr->getDocReaderLocation()+saveDir+'DELTA_UserGuide_V3_1.docx'],/noshell,/nowait
+ 
 END
 
 PRO fairmode_downloadMenuSelection, ev
+
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  print, 'fairmode_downloadMenuSelection'
+  mgr=view->getMgr()
+  print, 'Doc reader:', mgr->getDocReaderLocation()
+  print, 'Pdf reader:',mgr->getPdfReaderLocation()
+  print, 'Browser launcher:',mgr->getBrowserLocation()
+ ;here your code, spawn I suppose
 
 END
 
