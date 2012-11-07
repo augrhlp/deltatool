@@ -195,9 +195,9 @@ PRO fairmode_helpMenuSelection, ev
   print, 'Doc reader:', mgr->getDocReaderLocation()
   print, 'Pdf reader:',mgr->getPdfReaderLocation()
   print, 'Browser launcher:',mgr->getBrowserLocation()
-;  dir=self->getHomeDir(/WITH)
-;  dir=dir+"documents"
-;  spawn,[mgr->getDocReaderLocation()+saveDir+'DELTA_UserGuide_V3_1.docx'],/noshell,/nowait
+  fs=mgr->getFileSystemMgr()
+  helpfolder=fs->getHelpDir(withseparator=withseparator)+'\'
+  spawn,[mgr->getDocReaderLocation(),helpfolder+'DELTA_UserGuide_V3_1.docx'],/noshell,/nowait
  
 END
 
@@ -210,7 +210,7 @@ PRO fairmode_downloadMenuSelection, ev
   print, 'Doc reader:', mgr->getDocReaderLocation()
   print, 'Pdf reader:',mgr->getPdfReaderLocation()
   print, 'Browser launcher:',mgr->getBrowserLocation()
- ;here your code, spawn I suppose
+  spawn,[mgr->getBrowserLocation(),'aqm.jrc.it/DELTA/'],/noshell,/nowait
 
 END
 
