@@ -17,6 +17,7 @@
 12;WS;ALL;IOA;ALL;0.6*0.72*;Descr of: GC 78
 13;WS;ALL;BIAS;ALL;0.5*0.4*;Descr of: GC 80
 14;WS;ALL;RMSE;ALL;2*1.6*;Descr of: GC 81
+15;WS;ALL;OU;PP;18*0.8*1*1*5*;Descr
 
 
 
