@@ -289,6 +289,9 @@ PRO EntityDisplayInfo::executeObservationQuery, groupName=groupName, NORESULT=NO
   ;self->buildObservationTypeList, typeGroupName=typeGroupName, zeroTList=zeroTList
   self->buildObservationCategoryList, categoryGroupName=categoryGroupName, zeroTList=zeroTList
   parGroupName=self->getParametersSelectedNames()
+  parGroupString=''
+  for i=0, n_elements(parGroupName)-1 then parGroupString=parGroupString+parGroupName[i]+'*'
+  parGroupName=parGroupString
   if not(self.useObservedModelFlag) then begin
     self->buildObservationParameterList, parGroupName=parGroupName, zeroPList=zeroPList
     if keyword_set(zeroPList) or keyword_set(zeroTList) then begin
