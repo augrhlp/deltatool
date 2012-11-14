@@ -155,9 +155,9 @@ END
 
 PRO fairmode_splitDrawMouse, ev
 
-;  print, "clicking...", ev.press
+  ;  print, "clicking...", ev.press
   if (ev.press eq 1) then begin
-;    print, "left split click"
+    ;    print, "left split click"
     xCoord = ev.x
     yCoord = ev.y
     if size(ev, /TYPE) eq 8 then ev=ev.top
@@ -198,7 +198,7 @@ PRO fairmode_helpMenuSelection, ev
   fs=mgr->getFileSystemMgr()
   helpfolder=fs->getHelpDir(withseparator=withseparator)+'\'
   spawn,[mgr->getDocReaderLocation(),helpfolder+'DELTA_UserGuide_V3_1.docx'],/noshell,/nowait
- 
+  
 END
 
 PRO fairmode_downloadMenuSelection, ev
@@ -211,7 +211,7 @@ PRO fairmode_downloadMenuSelection, ev
   print, 'Pdf reader:',mgr->getPdfReaderLocation()
   print, 'Browser launcher:',mgr->getBrowserLocation()
   spawn,[mgr->getBrowserLocation(),'aqm.jrc.it/DELTA/'],/noshell,/nowait
-
+  
 END
 
 PRO fairmode_flagAllObservationsButton, ev
@@ -271,8 +271,8 @@ PRO fairmode_aboutOKBTT, ev
   ;;help, ev, /str
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
-;print, 'fairmode_aboutOKBTT'
-;view->exitRequest
+  print, 'fairmode_aboutOKBTT'
+  view->exitRequest
   
 END
 
@@ -944,9 +944,9 @@ END
 
 PRO fairmode_mapDrawMouse, ev
 
-;  print, "clicking...", ev.press
+  ;  print, "clicking...", ev.press
   if (ev.press eq 1) then begin
-;    print, "left"
+    ;    print, "left"
     xCoord = ev.x
     yCoord = ev.y
     if size(ev, /TYPE) eq 8 then ev=ev.top

@@ -1,6 +1,30 @@
 ;********************
 @structure_definition
 ;********************
+PRO FMFileSystemManager::modelFrequencyRename, dir, fileName, frequencyType
+
+ prevExtension=self->getExtension(fileName)
+ newFileName=self->getBaseFileName(fileName)
+ newFileName=newFileName+'_'+frequencyType
+ newFileName=self->setExtension(newFileName, prevExtension) 
+ newFullFileName=dir+newFileName
+ fullFileName=dir+fileName
+ self->fileCopy, newFullFileName, fullFileName, /OVERWRITE 
+
+END
+
+PRO  FMFileSystemManager::fileCopy, sourceFile, targetFile, OVERWRITE=OVERWRITE
+
+ file_copy, sourceFile, targetFile, OVERWRITE=OVERWRITE
+
+END
+
+PRO  FMFileSystemManager::fileRename, sourceFile, targetFile, OVERWRITE=OVERWRITE
+
+ file_move, sourceFile, targetFile, OVERWRITE=OVERWRITE
+
+END
+
 FUNCTION FMFileSystemManager::getBaseFileName, fileName, PRESERVE_PATH=PRESERVE_PATH, PRESERVE_EXTENSION=PRESERVE_EXTENSION
 
   bName=fileName
@@ -31,6 +55,12 @@ FUNCTION FMFileSystemManager::setExtension, filename, newExtension
   
 END
 
+FUNCTION FMFileSystemManager::getExtension, filename
+
+  extPos=strpos(filename, '.', /REVERSE_SEARCH)
+  return, strmid(filename, extPos, strlen(filename)-extPos)
+  
+END
 
 FUNCTION FMFileSystemManager::buildValuesStream, pars
 

@@ -2,9 +2,29 @@
 @structure_definition
 @/check_io/checkcriteria
 ;********************
-FUNCTION FMApplication::getElabFilterType
+FUNCTION FMApplication::IsAdvancedFilter
 
-  return, self.elabFilterType
+ filterType=self.mainConfig->getElaborationFilterType()
+ return, filterType ne 0 
+
+END
+
+FUNCTION FMApplication::IsStandardFilter
+
+ filterType=self.mainConfig->getElaborationFilterType()
+ return, filterType eq 0 
+
+END
+
+FUNCTION FMApplication::getElaborationFilterType
+
+ return, self.mainConfig->getElaborationFilterType()
+
+END
+
+FUNCTION FMApplication::getAvailableFilterType
+
+  return, self.availableFilterType
   
 END
 
@@ -1695,7 +1715,7 @@ END
 ;****************************************************************************************
 PRO FMApplication::loadInitFileData, parameterNames=parameterNames, parameterValues=parameterValues
 
-  self.fileSystemMgr->LoadInitFileData, parameterNames=parameterNames, parameterValues=parameterValues
+  self.fileSystemMgr->loadInitFileData, parameterNames=parameterNames, parameterValues=parameterValues
   
 END
 
@@ -1713,7 +1733,7 @@ PRO FMApplication::startUp
 
   self->startJournaling
   confDir=self.fileSystemMgr->getConfigurationDir(/WITH)
-  self->LoadInitFileData, parameterName=parameterName, parameterValue=parameterValue
+  self->loadInitFileData, parameterName=parameterName, parameterValue=parameterValue
   
   lookUpIdx=(where(parameterName eq 'STARTUP_LOOKUP'))[0]
   if lookUpIdx[0] eq -1 then doLookUp=1 else doLookUp=fix(parameterValue[lookUpIdx])
@@ -1730,7 +1750,8 @@ PRO FMApplication::startUp
     if strmid(thisPar, 0, 4) eq 'TXT_' then varname=parameterValue[i] else fileName=parameterValue[i]
     case strupCase(thisPar) of
       'STARTUP_LOOKUP' : ;do nothing
-      'BENCHMARK_FILE' : self.benchMarkMenuList->fillDataFromFile, confDir+fileName
+      ;'ELABORATION_FILE' : self->configElaboration, confDir, fileName, (self->getModelInfo()).frequency  
+      'BENCHMARK_FILE' : self->configBenchmark, confDir, fileName, (self->getModelInfo()).frequency
       'MODE_FILE' : self.modeList->fillDataFromFile, confDir+fileName
       'CATEGORY_FILE' : self.categoryList->fillDataFromFile, confDir+fileName
       'MODEL_FILE' : self.modelList->fillDataFromFile, confDir+fileName
@@ -1740,7 +1761,7 @@ PRO FMApplication::startUp
       'GROUPBYTIME_FILE' : self.groupByTimeList->fillDataFromFile, confDir+fileName
       'MONITORINGGROUPSTAT_FILE' : self.monitoringGroupStatList->fillDataFromFile, confDir+fileName
       'GROUPBYSTAT_FILE' : self.groupByStatList->fillDataFromFile, confDir+fileName
-      'DIAGRAM_FILE' : self.diagramList->fillDataFromFile, confDir+fileName
+      'DIAGRAM_FILE' : self->configDiagram, confDir, fileName, (self->getModelInfo()).frequency 
       'SEASON_FILE' : self.seasonList->fillDataFromFile, confDir+fileName
       'DAYPERIOD_FILE' : self.dayPeriodList->fillDataFromFile, confDir+fileName
       'PARAMETER_FILE' : parameterFileName=confDir+fileName ; Save parameter File Name for later use
@@ -1765,6 +1786,33 @@ self.parameterList->fillDataFromFile, parameterFileName
 self.observedList->fillDataFromFile, observedFileName
 self->fillMainConfigFromFile, confDir, parameterName=extraParameterNames[1:*], parameterValue=extraParameterValues[1:*]
 self->initViewConfiguration
+
+END
+
+PRO FMApplication::modelFrequencyRename, confDir, fileName, frequencyType
+
+ self.fileSystemMgr->modelFrequencyRename, confDir, fileName, frequencyType
+
+END
+
+PRO FMApplication::configBenchmark, confDir, fileName, frequencyType
+
+ self->modelFrequencyRename, confDir, fileName, frequencyType
+ self.benchMarkMenuList->fillDataFromFile, confDir+fileName
+
+END
+
+PRO FMApplication::configElaboration, confDir, fileName, frequencyType
+
+ self->modelFrequencyRename, confDir, fileName, frequencyType
+ self.benchMarkMenuList->fillDataFromFile, confDir+fileName
+
+END
+
+PRO FMApplication::configDiagram, confDir, fileName, frequencyType
+
+ self->modelFrequencyRename, confDir, fileName, frequencyType
+ self.diagramList->fillDataFromFile, confDir+fileName
 
 END
 
@@ -1827,7 +1875,7 @@ PRO FMApplication::initEntityDisplay, entityDisplay, mainConfig, categoryList, m
   entityDisplay->setObsCatObservedCodes, obsCat->getObservedCodes()
   entityDisplay->setObsCatCategoryCodes, obsCat->getCategoryCodes()
   
-  entityDisplay->setUseObservedModelFlag, 1b
+  if self->IsAdvancedFilter() then entityDisplay->setUseObservedModelFlag, 1 else entityDisplay->setUseObservedModelFlag, 0 
   
   entityDisplay->setParameterTypeNames, parameterTypeList->getDisplayNames()
   entityDisplay->setParameterTypeCodes, parameterTypeList->getCodes()
@@ -1925,11 +1973,11 @@ END
 
 PRO FMApplication::fillMainConfigFromFile, confDir, parameterName=parameterName, parameterValue=parameterValue
 
-  self.mainConfig->fillFlexyData, confDir, parameterName=parameterName, parameterValue=parameterValue
+  self.mainConfig->fillFlexyData, confDir, self.fileSystemMgr, (self->getModelInfo()).frequency, parameterName=parameterName, parameterValue=parameterValue
   
   elabFilterTypeIdx=(where(parameterName eq 'ELAB_FILTER_TYPE'))[0]
   ; Available type: 0: Standard, 1: Advanced, 2: Benchmark
-  if elabFilterTypeIdx[0] eq -1 then elabFilterType=0 else elabFilterType=(where(parameterValue[elabFilterTypeIdx] eq self.elabFilterType))[0]
+  if elabFilterTypeIdx[0] eq -1 then elabFilterType=0 else elabFilterType=(where(parameterValue[elabFilterTypeIdx] eq self.availableFilterType))[0]
   
   self.mainConfig->setElaborationFilterType, elabFilterType
   
@@ -1990,7 +2038,7 @@ FUNCTION FMApplication :: init
   ;self.request=obj_new('Request')
   self.dataMinerMgr=obj_new('DataMiner')
   self.benchMarkMenuList=obj_new('MenuInfo')
-  self.elabFilterType=["STANDARD", "ADVANCED", "BENCHMARK"]
+  self.availableFilterType=["STANDARD", "ADVANCED", "BENCHMARK"]
   return, 1
   
 END
@@ -2076,7 +2124,7 @@ PRO FMApplication__Define
     ;scaleInfo: '', $
     modelInfo: getFMModelInfoStruct(), $
     ;MM summer 2012 End
-    elabFilterType: strarr(3), $
+    availableFilterType: strarr(3), $
     versionDate : '', $
     versionCode : '', $
     psCharSizeFactor: 0., $

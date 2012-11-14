@@ -230,8 +230,8 @@ PRO FMBatchEntitySelectionGUI::buildModelSection, base
     XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
   self.observedModelFlagButton = widget_button(obsModelBase, $
-    XOFFSET=0 ,YOFFSET=0, VALUE='Use OBS <-> MOD', event_pro=self.eventPrefix+'useObsModButton', $
-    SCR_YSIZE=self->getLabelYSize(), sensitive=1)
+    XOFFSET=0 ,YOFFSET=0, VALUE='MOD without OBS', event_pro=self.eventPrefix+'useObsModButton', $
+    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedFilter())
     
 END
 

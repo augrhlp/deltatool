@@ -396,6 +396,18 @@ PRO CompositeBatchManager::displayEntity
   
 END
 
+FUNCTION CompositeBatchManager::isAdvancedFilter
+
+ return, self.mainMgr->isAdvancedFilter()
+
+END
+
+FUNCTION CompositeBatchManager::isStandardFilter
+
+ return, self.mainMgr->isStandardFilter()
+
+END
+
 PRO CompositeBatchManager::displayRequest
 
   ;MM summer 2012 Start

@@ -909,8 +909,9 @@ PRO FMMainGUI::buildModelSection, base
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /ROW)
     
   observedModelFlagButton= widget_button(observedModelFlagBase, $
-    XOFFSET=0 ,YOFFSET=0, VALUE='Use Observed/Model', UNAME='USEOBSMODBTT', $
-    SCR_XSIZE=self->xSummarySize()-20 ,SCR_YSIZE=self->getSubTitleYDim(), sensitive=0)
+    XOFFSET=0 ,YOFFSET=0, VALUE='MOD without OBS', UNAME='USEOBSMODBTT', event_pro=self.eventprefix+'obsModMainBtt', $$
+    SCR_XSIZE=self->xSummarySize()-20 ,SCR_YSIZE=self->getSubTitleYDim(), sensitive=self.mgr->isAdvancedFilter())
+  widget_control, observedModelFlagButton, set_button=self.mgr->isAdvancedFilter()
     
 END
 

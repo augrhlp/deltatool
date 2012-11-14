@@ -15,7 +15,7 @@ PRO FMMainConfig::setElaborationFilterType, elabFilterType
 
 END
 
-PRO FMMainConfig::fillFlexyData, confDir, parameterName=parameterName, parameterValue=parameterValue
+PRO FMMainConfig::fillFlexyData, confDir, fs, frequencyType, parameterName=parameterName, parameterValue=parameterValue
 
  ;self.fileName = fileName
  ;readInitFile, fileName, parameterName=parameterName, parameterValue=parameterValue
@@ -28,11 +28,18 @@ PRO FMMainConfig::fillFlexyData, confDir, parameterName=parameterName, parameter
 		;'PARAMETERFILE' : self.parameterList->FillDataFromFile, fileName
 		'OBSERVEDPARAMETER_FILE' : self.observedParameterList->FillDataFromFile, fileName
 		;'OBSERVEDFILE' : self.observedList->FillDataFromFile, fileName
-		'ELABORATION_FILE' : self.elaborationList->FillDataFromFile, fileName
+		'ELABORATION_FILE' : self->configElaborationFile, fs, confDir, parameterValue[i], frequencyType 
 		'GOALSCRITERIAOC_FILE' : self.goalsCriteriaOCList->FillDataFromFile, fileName
 		else : print, 'Extra parameter on init file: <', parameterName[i], '=', parameterValue[i], '>'
  	endcase
  endfor
+
+END
+
+PRO FMMainConfig::configElaborationFile, fs, dir, fileName, frequencyType 
+
+ fs->modelFrequencyRename, dir, fileName, frequencyType
+ self.elaborationList->FillDataFromFile, dir+fileName
 
 END
 
