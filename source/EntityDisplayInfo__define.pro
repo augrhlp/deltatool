@@ -290,8 +290,8 @@ PRO EntityDisplayInfo::executeObservationQuery, groupName=groupName, NORESULT=NO
   self->buildObservationCategoryList, categoryGroupName=categoryGroupName, zeroTList=zeroTList
   parGroupName=self->getParametersSelectedNames()
   parGroupString=''
-  for i=0, n_elements(parGroupName)-1 then parGroupString=parGroupString+parGroupName[i]+'*'
-  parGroupName=parGroupString
+  for i=0, n_elements(parGroupName)-1 do parGroupString=parGroupString+parGroupName[i]+'*'
+  parGroupName=strmid(parGroupString,0, strlen(parGroupString)-1)
   if not(self.useObservedModelFlag) then begin
     self->buildObservationParameterList, parGroupName=parGroupName, zeroPList=zeroPList
     if keyword_set(zeroPList) or keyword_set(zeroTList) then begin
@@ -3360,7 +3360,7 @@ FUNCTION EntityDisplayInfo::init
   if not self -> Object :: init() then return , 0
   self.utility=obj_new("FMUtility")
   self.dtu=obj_new("DateTimeUtility")
-  return , 1
+  return, 1
   
 END
 
