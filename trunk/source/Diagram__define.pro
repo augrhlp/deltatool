@@ -142,7 +142,7 @@ PRO Diagram::fillDataFromFile, fileName
       thisDiagram.maxMultipleChoice=fix(info[3]);, /NO_COPY)
       ;thisDiagram.axisCodes=ptr_new(aCodes, /NO_COPY)
 			thisDiagram.description=info[4]
-			help, thisDiagram, /str
+;			help, thisDiagram, /str
 			Diagrams=[Diagrams, thisDiagram]
 		endif else begin
 			print, 'Bad conf file at line', i, bufferString
