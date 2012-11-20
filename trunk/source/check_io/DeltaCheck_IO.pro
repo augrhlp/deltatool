@@ -248,10 +248,10 @@ pro DeltaCheck_IO, DeltaMgr
   version='VERSION 3.0'
   fileMgr=deltaMgr->getFileSystemMgr()
   dir=fileMgr->getHomeDir()
-  dir_res=fileMgr->getResourceDir()
-  dir_obs=fileMgr->getObservedDataDir(/with)
-  dir_mod=fileMgr->getRunDataDir(/with)
-  dir_log=fileMgr->getLogDir()
+  dir_res=dir+'resource\'  ;fileMgr->getResourceDir()
+  dir_obs=dir+'data\monitoring\'  ;fileMgr->getObservedDataDir()
+  dir_mod=dir+'data\modeling\'  ;fileMgr->getRunDataDir()
+  dir_log=dir+'log\'  ;fileMgr->getLogDir()
   
   modelInfo=deltaMgr->getModelList()
   modelNames=modelInfo->getDisplayNames()
