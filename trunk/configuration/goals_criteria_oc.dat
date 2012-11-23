@@ -2,15 +2,15 @@
 ; NO! link column timeAvg with name/code in season.dat/dayperiod.dat
 ; link column timeAvg with name/code in elaboration.dat
 [GOALS_CRITERIA_OC:  Code; parCode; scaleName; statNickName; timeAvg; Values; Description]";;;;;;
-0;O3;ALL;OU;8HMAX;18*0.70*1*1*120*;Descr of: GC 48
+0;O3;ALL;OU;8HMAX;13*0.70*1*1*120*;Descr of: GC 48
 1;O3;ALL;RDE;ALL;50*40*;Descr of: GC 54
 2;O3;ALL;RPE;ALL;50*40*;Descr of: GC 55
 
-3;PM10;ALL;OU;PMEAN;24*0.17*5.6*72.1*50*;Descr of: GC 56
+3;PM10;ALL;OU;PMEAN;20*0.01*5.6*69*50*;Descr of: GC 56
 4;PM10;ALL;RDE;PMEAN;50*42*;Descr of: GC 62
 5;PM10;ALL;RPE;PMEAN;50*42*;Descr of: GC 63
 
-9;NO2;ALL;OU;PP;24*0.02*5.6*72.1*200*;Descr of: GC 64
+9;NO2;ALL;OU;PP;24*0.02*40*40*200*;Descr of: GC 64
 10;NO2;ALL;RDE;ALL;50*42*;Descr of: GC 70
 11;NO2;ALL;RPE;ALL;50*42*;Descr of: GC 71
 

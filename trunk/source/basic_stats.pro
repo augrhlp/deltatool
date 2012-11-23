@@ -238,7 +238,7 @@ pro obs_run_nan, request,result,obsValues, runValues
   end_hour_hlp=hour[1].value
 
 ;KeesC move next to lines to .dat conf file
-  minDataAvail=0.9 
+  minDataAvail=0.75 
   minDayAvail=18 ; minimal 18 8-hour-mean values should be available per day
   dayHourLength=fix(end_hour_hlp)-fix(start_hour_hlp)+1
   NightHourLength=24-dayHourLength
@@ -835,7 +835,7 @@ pro time_operations, request, result, obsTemp, runTemp
   endIndex=request->getEndIndex()
   elabcode=request->getElaborationCode()
 ; KeesC following 3 lines should be in .dat configurartion file
-  minDataAvail=0.9
+ ;minDataAvail=0.75
   min08Avail=6 ; minimal 8-hours values available
   minDayAvail=18 ; minimal 18 8-hour-mean values should be available per day
 
