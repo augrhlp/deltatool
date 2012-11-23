@@ -1214,7 +1214,7 @@ pro FM_StatTable2, request, result
   modelCodes=request->getModelCodes()
   parCodes=request->getParameterCodes()
   modelInfo=request->getModelInfo()
-  frequency=modelInfo.datafrequency
+  frequency=modelInfo.frequency
   scenarioCodes=request->getScenarioCodes()
   nsce=request->getScenarioNumber()
   isSingleSelection=request->isSingleObsPresent()

@@ -970,6 +970,19 @@ PRO FM_PlotScatter, plotter, request, result
   plots,[minAxis,maxAxis],[minAxis,maxAxis],color=0,/data
   xyouts,minAxis+recognizeRange*4,maxAxis-recognizeRange*4,'Valid/selected stations/groups: '+strtrim(validStationNb,2)+'/'+strtrim(totalStationNb,2),/data,color=0
   
+;  if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
+;  
+;    coords1=[0.15, 0.80]
+;    coords2=[0.15, 0.90]
+;    coords3=[0.50, 0.90]
+;    coords4=[0.50, 0.80]
+;    
+;    polyfill,[coords1[0],coords2[0],coords3[0],coords4[0]],[coords1[1],coords2[1],coords3[1],coords4[1]],color=15,/normal
+;    coords=[-recognizeRange+recognizeRange*0.10,recognizeRange-recognizeRange*0.15]
+;    psFact=plotter->getPSCharSizeFactor()
+;    xyouts,coords[0],coords[1],'Stations within Crit (T=1):',color=3,/data,charthick=3,charsize=1.3*psFact
+;  endif
+  
   recognizeRange=(maxAxis-minAxis)*0.01
   
   size_alldataXY=size(allDataXY)
