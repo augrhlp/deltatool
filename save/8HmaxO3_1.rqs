@@ -1,8 +1,8 @@
 #Request - Save File - Never change order of contents
 Version=3.2
-RequestFileName=8HmaxO3_1.rqs
-EntityFileName=8HmaxO3_1.ent
-ElaborationFileName=8HmaxO3_1.elb
+RequestFileName=8hmaxO3_1.rqs
+EntityFileName=8hmaxO3_1.ent
+ElaborationFileName=8hmaxO3_1.elb
 PageBreak=FALSE
 PrintOrient=PORTRAIT
 RequestLocation=0.0500000*0.000000*0.950000*0.480000

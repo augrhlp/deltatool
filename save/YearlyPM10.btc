@@ -2,6 +2,6 @@
 Version=2.1
 NumberOfRequest=2
 RequestNumber=1
-RequestFileName=YearlyPM10_1.rqs
+RequestFileName=yearlyPM10_1.rqs
 RequestNumber=2
-RequestFileName=YearlyPM10_2.rqs
+RequestFileName=yearlyPM10_2.rqs
