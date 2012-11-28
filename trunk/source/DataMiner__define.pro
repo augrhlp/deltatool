@@ -353,7 +353,7 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
   
   extPos=strpos(filename, '.', /REVERSE_SEARCH)
   ext=strmid(filename,extPos+1,3)   ; = cdf  or   csv
-  
+   
   if ext eq 'cdf' then begin
     !quiet=1
     Id = ncdf_open(fileName)
@@ -361,7 +361,7 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
     checkName=ncdf_varid(Id,cdfBlockName)
     !quiet=0
     ;Old: variable = StationName_Parameter
-    if checkName ne -1 then begin
+    if checkName ne -1 then begin  
       ncdf_varget, Id, cdfBlockName, data
       ncdf_close, Id
       return, data
@@ -373,10 +373,21 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
       pollout=strcompress(pollout,/remove_all)
       cc=where(pollout eq parameterCodes[k],ncc)
       cdfBlockName=statCode
-      ncdf_varget, Id, cdfBlockName, data,count=[1,8760],offset=[cc(0),0]
-      
- ;     data=reform(dataAll(cc[0],*))
-      data=reform(data)
+; KeesC 21NOV2012      
+      !quiet=1
+      inqStHr=ncdf_attinq(Id,'StartHour',/global)
+      !quiet=0
+      if inqStHr.length eq 0 then begin
+        ncdf_varget, Id, cdfBlockName, data,count=[1,8760],offset=[cc(0),0]
+        data=reform(data)
+      endif else begin
+        ncdf_attget,id,'StartHour',StartHour,/global
+        data=fltarr(8760) & data(*)=-999
+        ncdf_varget,Id,cdfBlockName,dataShort,count=[1,8760],offset=[cc(0),0]
+        dataShort=reform(dataShort)
+        dimShort=n_elements(dataShort)
+        data(StartHour:StartHour+dimShort-1)=dataShort
+      endelse
       ncdf_close, Id
       return,data
     endelse
