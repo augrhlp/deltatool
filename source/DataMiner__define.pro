@@ -27,6 +27,17 @@ END
 
 FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
 
+;if 4*(year/4) ne year then begin   ;normal year
+;    day_nb= [31,28,31,30,31,30,31,31,30,31,30,31]
+;    day_sum=[0,31,59,90,120,151,181,212,243,273,304,334,365]
+;  endif
+;  if 4*(year/4) eq year then begin   ;leapyear - no 31 dec
+;    day_nb= [31,29,31,30,31,30,31,31,30,31,30,30]
+;    day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
+;  endif
+; do as if leapyear; correct at end  
+  day_nb= [31,29,31,30,31,30,31,31,30,31,30,30]
+  day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
   ERROR=0
   catch, error_status
   ;print, systime()
@@ -57,14 +68,37 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
         if strcompress(strlowcase(info[0]),/remove_all) eq 'yearlyavg' then begin
           info=['YearlyAvg','mm','dd','hh',info[2:n_elements(info)-1]]
           infoyr=info[0]
-          iyear=1
+          iyear=1  ; yearlyavg
         endif
         HEADER=info
-        storeData=strarr(n_elements(info), 8784)  ;8760
+        storeData=strarr(n_elements(info),8784) & storeData(*,*)='-999'  ;8760
+;        for im=0,11 do begin
+;        for id=0,day_nb(im)-1 do begin
+;        for ih=0,23 do begin
+;          sim=strtrim(im,2)
+;          if im le 9 then sim='0'+sim
+;          sid=strtrim(id,2)
+;          if id le 9 then sid='0'+sid
+;          sih=strtrim(ih,2)
+;          if ih le 9 then sih='0'+sih
+;          storeData(1,*)=sim
+;          storeData(2,*)=sid
+;          storeData(3,*)=sih
+;          storeData(4:n_elements(info)-1,*)='-999'
+;        endfor
+;        endfor
+;        endfor
         k=0
       endif else begin
         if iyear eq 1 then info=[infoyr,'mm','dd','hh',info]
-        storeData[*, k]=strcompress(info, /REMOVE_all)
+        ; year=info(0); mnth=info(1); day=info(2); hrs=info(3)
+        ; calculate hour in year 
+        storeYear=info(0)
+        k1=day_sum(fix(info(1))-1)*24
+        k2=(fix(info(2))-1)*24
+        k3=fix(info(3))
+        k0=k1+k2+k3
+        storeData[*, k0]=strcompress(info, /REMOVE_all)
         k++
         if iyear eq 1 then goto,kIsOne
       endelse
@@ -72,6 +106,11 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
   endwhile
   ; KeesC 31MAY2012  for Yearly OBS values
   kIsOne:
+  storeData(0,*)=storeYear
+  if 4*(fix(StoreYear)/4) ne fix(StoreYear) then begin   ;normal year: shift 24 hours back
+    storeHlp=storeData(*,60*24:366*24-1)  ;01/03/year 0hr - 31/dec/year 23hr
+    storeData(*,59*24:365*24-1)=storeHlp
+  endif
   if k eq 1 then begin
     for kk=1,8783 do storeData(*,kk)=storeData(*,0)
   endif
