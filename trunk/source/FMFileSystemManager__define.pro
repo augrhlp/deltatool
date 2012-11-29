@@ -1,28 +1,109 @@
 ;********************
 @structure_definition
 ;********************
+FUNCTION FMFileSystemManager::checkStartupFileContents, txt=txt, alltxt=alltxt
+
+  alltxt=''
+  openr, unit, self->getStartUpFileName(), /GET_LUN
+  while ~eof(unit) do begin
+    atxt=discardComments(unit)
+    if atxt eq '[MODEL]' then begin
+      ;if atxt eq '[SCALE]' then begin
+      check_appl=0
+      check_MODEL=1
+      atxt=discardComments(unit)
+      fileYear=atxt
+      utility=obj_new('FMUtility')
+      if not(utility->IsNumber(fileYear)) then begin
+        txt='STEP 03: STOP! Model first line is NE a year : See MODEL section in STARTUPfile'
+        alltxt=[txt,alltxt]
+        alltxt=['STOP',alltxt]
+        return, 0
+      endif
+      atxt=discardComments(unit)
+      frequency=atxt
+      ;here add Data Assimilation control, now just skip it...
+      atxt=discardComments(unit)
+      scale=atxt
+      if (strlowcase(scale) eq 'local' or strlowcase(scale) eq 'urban' or strlowcase(scale) eq 'regional' or $
+        strlowcase(scale) eq 'traffic') then check_appl=1
+      if check_appl eq 0 then begin
+        txt='STEP 03: STOP! Model third line is NE local/urban/regional/traffic: See MODEL section in STARTUPfile'
+        alltxt=[txt,alltxt]
+        alltxt=['STOP',alltxt]
+        return, 0
+      endif else begin
+        txt='STEP 03 OK: MODEL / '+fileYear+' '+frequency+' '+scale+' section exists in STARTUPfile'
+        alltxt=[txt,alltxt]
+        continue
+      endelse
+      if fix(fileYear) lt 1900 or fix(fileYear) gt 2100 then begin
+        txt='STEP 03: WARNING! YEAR LT 1900 or YEAR GT 2100. MODEL section in STARTUPfile'
+        alltxt=[txt,alltxt]
+        alltxt=['WARNING',alltxt]
+      endif else begin
+        txt='STEP 03 OK: 1900 < YEAR < 2100'
+        alltxt=[txt,alltxt]
+        continue
+      endelse
+    endif
+    ;atxt=discardComments(1)
+    if atxt eq '[PARAMETERS]' then begin
+      check_PARAMETERS=1
+      readf,unit,atxt
+      if strmid(atxt,0,1) ne ';' then begin
+      txt='STEP 03: STOP! Line after [PARAMETERS] in STARTUPfile does not start with ;'
+      alltxt=[txt,alltxt]
+      alltxt=['STOP',alltxt]
+      return, 0
+    endif else begin
+      txt='STEP 03 OK: PARAMETERS section exists in STARTUPfile'
+      alltxt=[txt,alltxt]
+    endelse
+  endif
+  ;atxt=discardComments(unit)
+  if atxt eq '[MONITORING]' then begin
+    check_MONITORING=1
+    atxt=discardComments(unit)
+    if strmid(atxt,0,4) ne 'Stat' then begin
+      txt='STEP 03: STOP! Line after [MONITORING] in STARTUPfile does not start with Stat'
+      alltxt=[txt,alltxt]
+      alltxt=['STOP',alltxt]
+      return, 0
+    endif else begin
+      txt='STEP 03 OK: MONITORING section exists in STARTUPfile'
+      alltxt=[txt,alltxt]
+      continue
+    endelse
+  endif
+endwhile
+close, unit & free_lun, unit
+return, 1
+
+END
+
 PRO FMFileSystemManager::modelFrequencyRename, dir, fileName, frequencyType
 
- prevExtension=self->getExtension(fileName)
- newFileName=self->getBaseFileName(fileName)
- newFileName=newFileName+'_'+frequencyType
- newFileName=self->setExtension(newFileName, prevExtension) 
- newFullFileName=dir+newFileName
- fullFileName=dir+fileName
- self->fileCopy, newFullFileName, fullFileName, /OVERWRITE 
-
+  prevExtension=self->getExtension(fileName)
+  newFileName=self->getBaseFileName(fileName)
+  newFileName=newFileName+'_'+frequencyType
+  newFileName=self->setExtension(newFileName, prevExtension)
+  newFullFileName=dir+newFileName
+  fullFileName=dir+fileName
+  self->fileCopy, newFullFileName, fullFileName, /OVERWRITE
+  
 END
 
 PRO  FMFileSystemManager::fileCopy, sourceFile, targetFile, OVERWRITE=OVERWRITE
 
- file_copy, sourceFile, targetFile, OVERWRITE=OVERWRITE
-
+  file_copy, sourceFile, targetFile, OVERWRITE=OVERWRITE
+  
 END
 
 PRO  FMFileSystemManager::fileRename, sourceFile, targetFile, OVERWRITE=OVERWRITE
 
- file_move, sourceFile, targetFile, OVERWRITE=OVERWRITE
-
+  file_move, sourceFile, targetFile, OVERWRITE=OVERWRITE
+  
 END
 
 FUNCTION FMFileSystemManager::getBaseFileName, fileName, PRESERVE_PATH=PRESERVE_PATH, PRESERVE_EXTENSION=PRESERVE_EXTENSION
@@ -1073,7 +1154,7 @@ END
 
 PRO FMFileSystemManager::writeStartUpFile, fileName, lines
 
-  ;file_copy, 
+  ;file_copy,
   openw, unit, fileName, /GET_LUN
   for i=1, n_elements(lines)-1 do begin
     printf, unit, lines[i]

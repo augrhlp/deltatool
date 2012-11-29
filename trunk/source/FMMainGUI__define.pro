@@ -609,9 +609,9 @@ PRO FMMainGUI::build
   saveAsImageButton=widget_button(fileMenu, value='Save image', UNAME='SAVEIMG', event_pro=self.eventprefix+'saveImage')
   saveAsImageBlackBackGroundButton=widget_button(fileMenu, value='Save as image (Black Back)', UNAME='SAVEIMGBLK', event_pro=self.eventprefix+'saveImageBlack', sensitive=0)
   saveAsImageWhiteBackGroundButton=widget_button(fileMenu, value='Save as image (White Back)', UNAME='SAVEIMGWHT', event_pro=self.eventprefix+'saveImageWhite', sensitive=0)
-  createBatchButton=widget_button(fileMenu, value='BatchComposition', UNAME='CREATEBATCH', event_pro=self.eventprefix+'batchComposition')
-  saveAsBatchButton=widget_button(fileMenu, value='BatchSave', UNAME='SAVEBATCH', event_pro=self.eventprefix+'saveBatch')
-  restoreBatch=widget_button(fileMenu, value='BatchRestore', UNAME='RESTOREBATCH', event_pro=self.eventprefix+'restoreBatch')
+  createBatchButton=widget_button(fileMenu, value='BatchComposition', UNAME='CREATEBATCH', event_pro=self.eventprefix+'batchComposition', sensitive=self.mgr->getBenchmarkManagingEnabled())
+  saveAsBatchButton=widget_button(fileMenu, value='BatchSave', UNAME='SAVEBATCH', event_pro=self.eventprefix+'saveBatch', sensitive=self.mgr->getBenchmarkManagingEnabled())
+  restoreBatch=widget_button(fileMenu, value='BatchRestore', UNAME='RESTOREBATCH', event_pro=self.eventprefix+'restoreBatch', sensitive=self.mgr->getBenchmarkManagingEnabled())
   exitButton=widget_button(fileMenu, value='Exit', UNAME='EXIT', event_pro=self.eventprefix+'destroyWindow')
   
   modeBtt=widget_button(modeMenu, UVALUE=0, value='Select mode', UNAME='MODESELECT_BTT', event_pro=self.eventPrefix+'modeMenuSelection', sensitive=0)

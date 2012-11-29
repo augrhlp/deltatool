@@ -7,6 +7,18 @@ FUNCTION FMMainConfig::getElaborationFilterType
 
 END
 
+FUNCTION FMMainConfig::getBenchmarkManagingEnabled
+
+  return, self.benchmarkManagingEnabled
+
+END
+
+PRO FMMainConfig::setBenchmarkManagingEnabled, benchmarkManagingEnabled
+
+  if n_elements(benchmarkManagingEnabled) ne 0 then self.benchmarkManagingEnabled=benchmarkManagingEnabled
+
+END
+
 PRO FMMainConfig::setElaborationFilterType, elabFilterType
 
   if n_elements(elabFilterType) ne 0 then self.elabFilterType=elabFilterType
@@ -173,6 +185,7 @@ PRO FMMainConfig__Define
 
 Struct = { FMMainConfig , $
     elabFilterType: 0, $
+    benchmarkManagingEnabled: 0, $
     elaborationList: obj_new(''), $
 		runList: obj_new(''), $
 		runParameterList: obj_new(''), $

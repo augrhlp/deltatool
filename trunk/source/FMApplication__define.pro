@@ -2,24 +2,30 @@
 @structure_definition
 @/check_io/checkcriteria
 ;********************
+FUNCTION FMApplication::getBenchmarkManagingEnabled
+
+  return, self.mainConfig->getBenchmarkManagingEnabled()
+  
+END
+
 FUNCTION FMApplication::IsAdvancedFilter
 
- filterType=self.mainConfig->getElaborationFilterType()
- return, filterType ne 0 
-
+  filterType=self.mainConfig->getElaborationFilterType()
+  return, filterType ne 0
+  
 END
 
 FUNCTION FMApplication::IsStandardFilter
 
- filterType=self.mainConfig->getElaborationFilterType()
- return, filterType eq 0 
-
+  filterType=self.mainConfig->getElaborationFilterType()
+  return, filterType eq 0
+  
 END
 
 FUNCTION FMApplication::getElaborationFilterType
 
- return, self.mainConfig->getElaborationFilterType()
-
+  return, self.mainConfig->getElaborationFilterType()
+  
 END
 
 FUNCTION FMApplication::getAvailableFilterType
@@ -1729,91 +1735,147 @@ PRO FMApplication::startJournaling
   
 END
 
+FUNCTION FMApplication::checkApplicationIntegrity, errorTitle, errorMessage
+
+  if not(file_test(self.fileSystemMgr->getHomeDir(),/directory)) then begin
+    errorMessage='HomeDir: ' + self.fileSystemMgr->getHomeDir()+ ' doesn''t exist. Check your installation!'
+    errorTitle='Home Dir Error'
+    return, 0
+  endif
+
+  if not(file_test(self.fileSystemMgr->getDataDir(),/directory)) then begin
+    errorMessage='DataDir: ' + self.fileSystemMgr->getDataDir()+ ' doesn''t exist. Check your installation!'
+    errorTitle='Data Dir Error'
+    return, 0
+  endif
+
+  if not(file_test(self.fileSystemMgr->getObservedDataDir(),/directory)) then begin
+    errorMessage='Monitoring Dir '+self.fileSystemMgr->getObservedDataDir()+ ' doesn''t exist. Check your installation!'
+    errorTitle='Monitoring Dir Error'
+    return, 0
+  endif
+
+  if not(file_test(self.fileSystemMgr->getRunDataDir(),/directory)) then begin
+    errorMessage='Modeling Dir :'+self.fileSystemMgr->getRunDataDir()+ ' doesn''t exist. Check your installation!'
+    errorTitle='Modeling Dir Error'
+    return, 0
+  endif
+
+  if not(file_test(self.fileSystemMgr->getResourceDir(),/directory)) then begin
+    errorMessage='Resource Dir ' + self.fileSystemMgr->getResourceDir()+ ' doesn''t exist. Check your installation!'
+    errorTitle='Resource Dir Error'
+    return, 0
+  endif
+
+  if not(file_test(self.fileSystemMgr->getStartUpFileName())) then begin
+    errorMessage='StartupFile: ' + self.fileSystemMgr->getStartUpFileName()+ ' doesn''t exist. Check your installation!'
+    errorTitle='StartupFile existence Error'
+    return, 0
+  endif
+
+  if not(self.fileSystemMgr->checkStartupFileContents(txt=txt, alltxt=alltxt)) then begin
+    
+    errorMessage='StartupFile: ' + self.fileSystemMgr->getStartUpFileName()+ ' isn''t consistent. Check your installation!'
+    ;errorMessage=[errorMessage, txt]
+    errorMessage=[errorMessage, alltxt]
+    errorTitle='StartupFile consistency Error'
+    return, 0
+  endif
+
+  return, 1
+  
+END
+
 PRO FMApplication::startUp
 
-  self->startJournaling
-  confDir=self.fileSystemMgr->getConfigurationDir(/WITH)
-  self->loadInitFileData, parameterName=parameterName, parameterValue=parameterValue
-  
-  lookUpIdx=(where(parameterName eq 'STARTUP_LOOKUP'))[0]
-  if lookUpIdx[0] eq -1 then doLookUp=1 else doLookUp=fix(parameterValue[lookUpIdx])
-  if doLookUp then self.fileSystemMgr->lookUpSystemData, modelInfo=modelInfo
-  
-  ; Modified summer 2012 MM (V 3_0) Start
-  ;self->setScaleInfo, scaleInfo
-  if n_elements(modelInfo) ne 0 then self->setModelInfo, modelInfo
-  ; Modified summer 2012 MM (V 3_0) End
-  ; Load Standard Resources first (fixed)
-  extraParameterNames=[''] & extraParameterValues=['']
-  for i=0, n_elements(parameterName)-1 do begin
-    thisPar=strupCase(parameterName[i])
-    if strmid(thisPar, 0, 4) eq 'TXT_' then varname=parameterValue[i] else fileName=parameterValue[i]
-    case strupCase(thisPar) of
-      'STARTUP_LOOKUP' : ;do nothing
-      ;'ELABORATION_FILE' : self->configElaboration, confDir, fileName, (self->getModelInfo()).frequency  
-      'BENCHMARK_FILE' : self->configBenchmark, confDir, fileName, (self->getModelInfo()).frequency
-      'MODE_FILE' : self.modeList->fillDataFromFile, confDir+fileName
-      'CATEGORY_FILE' : self.categoryList->fillDataFromFile, confDir+fileName
-      'MODEL_FILE' : self.modelList->fillDataFromFile, confDir+fileName
-      'SCENARIO_FILE' : self.scenarioList->fillDataFromFile, confDir+fileName
-      'IDLROUTINE_FILE' : self.iDLRoutineList->fillDataFromFile, confDir+fileName
-      'PARAMETERTYPE_FILE' : self.parameterTypeList->fillDataFromFile, confDir+fileName
-      'GROUPBYTIME_FILE' : self.groupByTimeList->fillDataFromFile, confDir+fileName
-      'MONITORINGGROUPSTAT_FILE' : self.monitoringGroupStatList->fillDataFromFile, confDir+fileName
-      'GROUPBYSTAT_FILE' : self.groupByStatList->fillDataFromFile, confDir+fileName
-      'DIAGRAM_FILE' : self->configDiagram, confDir, fileName, (self->getModelInfo()).frequency 
-      'SEASON_FILE' : self.seasonList->fillDataFromFile, confDir+fileName
-      'DAYPERIOD_FILE' : self.dayPeriodList->fillDataFromFile, confDir+fileName
-      'PARAMETER_FILE' : parameterFileName=confDir+fileName ; Save parameter File Name for later use
-      'OBSERVED_FILE' : observedFileName=confDir+fileName ; Save observed File Name for later use
-      'TXT_VERSION_DATE' : self.versionDate=varName ; save
-      'TXT_PS_CHARSIZE_FACTOR' : self.psCharSizeFactor=float(varName) ; save
-      'TXT_VERSION_CODE' : self.versionCode=varName ; save
-      'BROWSER_LOCATION' : self->setBrowserLocation, fileName ; save location of browser application
-      'NOTEPAD_LOCATION' : self->setNotePadLocation, fileName ; save location of notepad application
-      'DOCUMENTSREADER_LOCATION' : self->setDocReaderLocation, fileName ; Save location of doc reader
-      'WORKSHEET_LOCATION' : self->setWorkSheetLocation, fileName ; save location of worksheet reader
-      'PDFREADER_LOCATION' : self->setPdfReaderLocation, fileName ; Save location of pdf reader
-      'GOOGLEEARTH_LOCATION' : self->setGoogleEarthLocation, filename ; Save location of Google Earth
-    else :begin
-    extraParameterNames=[extraParameterNames, thisPar]
-    extraParameterValues=[extraParameterValues, parameterValue[i]]
-  end
-endcase
+  if self->checkApplicationIntegrity(errorTitle, errorMessage) then begin
+    self->startJournaling
+    confDir=self.fileSystemMgr->getConfigurationDir(/WITH)
+    self->loadInitFileData, parameterName=parameterName, parameterValue=parameterValue
+    
+    lookUpIdx=(where(parameterName eq 'STARTUP_LOOKUP'))[0]
+    if lookUpIdx[0] eq -1 then doLookUp=1 else doLookUp=fix(parameterValue[lookUpIdx])
+    if doLookUp then self.fileSystemMgr->lookUpSystemData, modelInfo=modelInfo
+    
+    ; Modified summer 2012 MM (V 3_0) Start
+    ;self->setScaleInfo, scaleInfo
+    if n_elements(modelInfo) ne 0 then self->setModelInfo, modelInfo
+    ; Modified summer 2012 MM (V 3_0) End
+    ; Load Standard Resources first (fixed)
+    extraParameterNames=[''] & extraParameterValues=['']
+    for i=0, n_elements(parameterName)-1 do begin
+      thisPar=strupCase(parameterName[i])
+      if strmid(thisPar, 0, 4) eq 'TXT_' then varname=parameterValue[i] else fileName=parameterValue[i]
+      case strupCase(thisPar) of
+        'STARTUP_LOOKUP' : ;do nothing
+        ;'ELABORATION_FILE' : self->configElaboration, confDir, fileName, (self->getModelInfo()).frequency
+        'BENCHMARK_FILE' : self->configBenchmark, confDir, fileName, (self->getModelInfo()).frequency
+        'MODE_FILE' : self.modeList->fillDataFromFile, confDir+fileName
+        'CATEGORY_FILE' : self.categoryList->fillDataFromFile, confDir+fileName
+        'MODEL_FILE' : self.modelList->fillDataFromFile, confDir+fileName
+        'SCENARIO_FILE' : self.scenarioList->fillDataFromFile, confDir+fileName
+        'IDLROUTINE_FILE' : self.iDLRoutineList->fillDataFromFile, confDir+fileName
+        'PARAMETERTYPE_FILE' : self.parameterTypeList->fillDataFromFile, confDir+fileName
+        'GROUPBYTIME_FILE' : self.groupByTimeList->fillDataFromFile, confDir+fileName
+        'MONITORINGGROUPSTAT_FILE' : self.monitoringGroupStatList->fillDataFromFile, confDir+fileName
+        'GROUPBYSTAT_FILE' : self.groupByStatList->fillDataFromFile, confDir+fileName
+        'DIAGRAM_FILE' : self->configDiagram, confDir, fileName, (self->getModelInfo()).frequency
+        'SEASON_FILE' : self.seasonList->fillDataFromFile, confDir+fileName
+        'DAYPERIOD_FILE' : self.dayPeriodList->fillDataFromFile, confDir+fileName
+        'PARAMETER_FILE' : parameterFileName=confDir+fileName ; Save parameter File Name for later use
+        'OBSERVED_FILE' : observedFileName=confDir+fileName ; Save observed File Name for later use
+        'TXT_VERSION_DATE' : self.versionDate=varName ; save
+        'TXT_PS_CHARSIZE_FACTOR' : self.psCharSizeFactor=float(varName) ; save
+        'TXT_VERSION_CODE' : self.versionCode=varName ; save
+        'BROWSER_LOCATION' : self->setBrowserLocation, fileName ; save location of browser application
+        'NOTEPAD_LOCATION' : self->setNotePadLocation, fileName ; save location of notepad application
+        'DOCUMENTSREADER_LOCATION' : self->setDocReaderLocation, fileName ; Save location of doc reader
+        'WORKSHEET_LOCATION' : self->setWorkSheetLocation, fileName ; save location of worksheet reader
+        'PDFREADER_LOCATION' : self->setPdfReaderLocation, fileName ; Save location of pdf reader
+        'GOOGLEEARTH_LOCATION' : self->setGoogleEarthLocation, filename ; Save location of Google Earth
+      else :begin
+      extraParameterNames=[extraParameterNames, thisPar]
+      extraParameterValues=[extraParameterValues, parameterValue[i]]
+    end
+  endcase
 endfor
 ; Now Load Config Resources (may depend from first block)
 self.parameterList->fillDataFromFile, parameterFileName
 self.observedList->fillDataFromFile, observedFileName
 self->fillMainConfigFromFile, confDir, parameterName=extraParameterNames[1:*], parameterValue=extraParameterValues[1:*]
 self->initViewConfiguration
+endif else begin
+  a=dialog_message(errorMessage, TITLE=errorTitle, /ERROR, /CENTER)
+  message, 'Application could not be started'
+endelse
 
 END
 
 PRO FMApplication::modelFrequencyRename, confDir, fileName, frequencyType
 
- self.fileSystemMgr->modelFrequencyRename, confDir, fileName, frequencyType
-
+  self.fileSystemMgr->modelFrequencyRename, confDir, fileName, frequencyType
+  
 END
 
 PRO FMApplication::configBenchmark, confDir, fileName, frequencyType
 
- self->modelFrequencyRename, confDir, fileName, frequencyType
- self.benchMarkMenuList->fillDataFromFile, confDir+fileName
-
+  self->modelFrequencyRename, confDir, fileName, frequencyType
+  self.benchMarkMenuList->fillDataFromFile, confDir+fileName
+  
 END
 
 PRO FMApplication::configElaboration, confDir, fileName, frequencyType
 
- self->modelFrequencyRename, confDir, fileName, frequencyType
- self.benchMarkMenuList->fillDataFromFile, confDir+fileName
-
+  self->modelFrequencyRename, confDir, fileName, frequencyType
+  self.benchMarkMenuList->fillDataFromFile, confDir+fileName
+  
 END
 
 PRO FMApplication::configDiagram, confDir, fileName, frequencyType
 
- self->modelFrequencyRename, confDir, fileName, frequencyType
- self.diagramList->fillDataFromFile, confDir+fileName
-
+  self->modelFrequencyRename, confDir, fileName, frequencyType
+  self.diagramList->fillDataFromFile, confDir+fileName
+  
 END
 
 PRO FMApplication::initModeDisplay, modeList
@@ -1875,8 +1937,8 @@ PRO FMApplication::initEntityDisplay, entityDisplay, mainConfig, categoryList, m
   entityDisplay->setObsCatObservedCodes, obsCat->getObservedCodes()
   entityDisplay->setObsCatCategoryCodes, obsCat->getCategoryCodes()
   
-  ;if self->IsAdvancedFilter() then entityDisplay->setUseObservedModelFlag, 1 else entityDisplay->setUseObservedModelFlag, 0 
-  entityDisplay->setUseObservedModelFlag, 0 
+  ;if self->IsAdvancedFilter() then entityDisplay->setUseObservedModelFlag, 1 else entityDisplay->setUseObservedModelFlag, 0
+  entityDisplay->setUseObservedModelFlag, 0
   
   entityDisplay->setParameterTypeNames, parameterTypeList->getDisplayNames()
   entityDisplay->setParameterTypeCodes, parameterTypeList->getCodes()
@@ -1980,7 +2042,14 @@ PRO FMApplication::fillMainConfigFromFile, confDir, parameterName=parameterName,
   ; Available type: 0: Standard, 1: Advanced, 2: Benchmark
   if elabFilterTypeIdx[0] eq -1 then elabFilterType=0 else elabFilterType=(where(parameterValue[elabFilterTypeIdx] eq self.availableFilterType))[0]
   
+  benchmarkManagingEnableIdx=(where(parameterName eq 'BENCHMARK_ENABLE_MGR'))[0]
+  ; TRUE or 1 --> Enabling Benchmark related menu voices
+  ; not present or other values --> Benchmark related menu voices are disabled
+  benchmarkManagingEnable=0
+  if benchmarkManagingEnableIdx[0] ne -1 then benchmarkManagingEnable=parameterValue[benchmarkManagingEnableIdx] eq '1' or strupcase(parameterValue[benchmarkManagingEnableIdx]) eq 'TRUE'
+  
   self.mainConfig->setElaborationFilterType, elabFilterType
+  self.mainConfig->setBenchmarkManagingEnabled, benchmarkManagingEnable
   
 END
 ;****************************************************************************************
