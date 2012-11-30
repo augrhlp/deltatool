@@ -5,78 +5,224 @@ FUNCTION FMFileSystemManager::checkStartupFileContents, txt=txt, alltxt=alltxt
 
   alltxt=''
   openr, unit, self->getStartUpFileName(), /GET_LUN
-  while ~eof(unit) do begin
-    atxt=discardComments(unit)
-    if atxt eq '[MODEL]' then begin
-      ;if atxt eq '[SCALE]' then begin
-      check_appl=0
-      check_MODEL=1
+  
+; copied from Check_io   
+    check_MODEL=0
+    check_PARAMETERS=0
+    check_MONITORING=0
+    while ~eof(unit) do begin
       atxt=discardComments(unit)
-      fileYear=atxt
-      utility=obj_new('FMUtility')
-      if not(utility->IsNumber(fileYear)) then begin
-        txt='STEP 03: STOP! Model first line is NE a year : See MODEL section in STARTUPfile'
-        alltxt=[txt,alltxt]
-        alltxt=['STOP',alltxt]
-        return, 0
-      endif
-      atxt=discardComments(unit)
-      frequency=atxt
-      ;here add Data Assimilation control, now just skip it...
-      atxt=discardComments(unit)
-      scale=atxt
-      if (strlowcase(scale) eq 'local' or strlowcase(scale) eq 'urban' or strlowcase(scale) eq 'regional' or $
-        strlowcase(scale) eq 'traffic') then check_appl=1
-      if check_appl eq 0 then begin
-        txt='STEP 03: STOP! Model third line is NE local/urban/regional/traffic: See MODEL section in STARTUPfile'
-        alltxt=[txt,alltxt]
-        alltxt=['STOP',alltxt]
-        return, 0
-      endif else begin
+      if atxt eq '[MODEL]' then begin
+        check_MODEL=1
+        atxt=discardComments(unit)
+        fileYear=atxt
+        utility=obj_new('FMUtility')
+        if not(utility->IsNumber(fileYear)) then begin
+          txt='STEP 03: STOP! MODEL first line is NE a year : See MODEL section in STARTUPfile'
+          alltxt=[txt,alltxt]
+;          widget_control,labcom_txt,set_value=alltxt
+          alltxt=['STOP',alltxt]
+;          widget_control,labcom_txt,set_value=alltxt
+;          close,11
+;          close,12
+;          ierror=1
+          return,0
+        endif
+        atxt=discardComments(unit)
+        frequency=strlowcase(atxt)
+        if frequency ne 'hour' and frequency ne 'year' then begin
+          txt='STEP 03: STOP! MODEL second line is NE a hour and NE to year : See MODEL section in STARTUPfile'
+          alltxt=[txt,alltxt]
+;          widget_control,labcom_txt,set_value=alltxt
+          alltxt=['STOP',alltxt]
+;          widget_control,labcom_txt,set_value=alltxt
+;          close,11
+;          close,12
+;          ierror=1
+          return,0
+        endif
+        atxt=discardComments(unit)
+        scale=strlowcase(atxt)
+        if (scale ne 'local' and scale ne 'urban' and scale ne 'regional') then begin
+          txt='STEP 03: STOP! MODEL third line is NE local/urban/regional: See MODEL section in STARTUPfile'
+          alltxt=[txt,alltxt]
+;          widget_control,labcom_txt,set_value=alltxt
+          alltxt=['STOP',alltxt]
+;          widget_control,labcom_txt,set_value=alltxt
+;          close,11
+;          close,12
+;          ierror=1
+          return,0
+        endif 
         txt='STEP 03 OK: MODEL / '+fileYear+' '+frequency+' '+scale+' section exists in STARTUPfile'
+;        printf,11,txt
         alltxt=[txt,alltxt]
+;        widget_control,labcom_txt,set_value=alltxt
         continue
-      endelse
-      if fix(fileYear) lt 1900 or fix(fileYear) gt 2100 then begin
-        txt='STEP 03: WARNING! YEAR LT 1900 or YEAR GT 2100. MODEL section in STARTUPfile'
+        if fix(fileYear) lt 1900 or fix(fileYear) gt 2100 then begin
+          txt='STEP 03: WARNING! YEAR LT 1900 or YEAR GT 2100. MODEL section in STARTUPfile'
+          alltxt=[txt,alltxt]
+;          widget_control,labcom_txt,set_value=alltxt
+          alltxt=['WARNING',alltxt]
+;          widget_control,labcom_txt,set_value=alltxt
+        endif else begin
+;          printf,11,'STEP 03 OK: 1900 < YEAR < 2100'
+          txt='STEP 03 OK: 1900 < YEAR < 2100'
+          alltxt=[txt,alltxt]
+;          widget_control,labcom_txt,set_value=alltxt
+          continue
+        endelse
+      endif
+      if atxt eq '[PARAMETERS]' then begin
+        check_PARAMETERS=1
+        readf,unit,atxt
+        if strmid(atxt,0,1) ne ';' then begin
+        txt='STEP 03: STOP! Line after [PARAMETERS] in STARTUPfile does not start with ;'
         alltxt=[txt,alltxt]
-        alltxt=['WARNING',alltxt]
+;        widget_control,labcom_txt,set_value=alltxt
+        alltxt=['STOP',alltxt]
+;        widget_control,labcom_txt,set_value=alltxt
+;          close,11
+;          close,12
+;          ierror=1
+          return,0
       endif else begin
-        txt='STEP 03 OK: 1900 < YEAR < 2100'
+;        printf,11,'STEP 03 OK: PARAMETERS section exists in STARTUPfile'
+        txt='STEP 03 OK: PARAMETERS section exists in STARTUPfile'
         alltxt=[txt,alltxt]
+;        widget_control,labcom_txt,set_value=alltxt
+      endelse
+    endif
+    if atxt eq '[MONITORING]' then begin
+      check_MONITORING=1
+      atxt=discardComments(unit)
+      if strmid(atxt,0,4) ne 'Stat' then begin
+        txt='STEP 03: STOP! Line after [MONITORING] in STARTUPfile does not start with Stat'
+        alltxt=[txt,alltxt]
+;        widget_control,labcom_txt,set_value=alltxt
+        alltxt=['STOP',alltxt]
+;        widget_control,labcom_txt,set_value=alltxt
+;          close,11
+;          close,12
+;          ierror=1
+          return,0
+      endif else begin
+;        printf,11,'STEP 03 OK: MONITORING section exists in STARTUPfile'
+        txt='STEP 03 OK: MONITORING section exists in STARTUPfile'
+        alltxt=[txt,alltxt]
+;        widget_control,labcom_txt,set_value=alltxt
         continue
       endelse
     endif
-    ;atxt=discardComments(1)
-    if atxt eq '[PARAMETERS]' then begin
-      check_PARAMETERS=1
-      readf,unit,atxt
-      if strmid(atxt,0,1) ne ';' then begin
-      txt='STEP 03: STOP! Line after [PARAMETERS] in STARTUPfile does not start with ;'
-      alltxt=[txt,alltxt]
-      alltxt=['STOP',alltxt]
-      return, 0
-    endif else begin
-      txt='STEP 03 OK: PARAMETERS section exists in STARTUPfile'
-      alltxt=[txt,alltxt]
-    endelse
+  endwhile
+  if check_MODEL eq 0 then begin
+    txt='STEP 03: STOP! No [MODEL] section in STARTUPfile file or check spelling'
+    alltxt=[txt,alltxt]
+;    widget_control,labcom_txt,set_value=alltxt
+    alltxt=['STOP',alltxt]
+;    widget_control,labcom_txt,set_value=alltxt
+;          close,11
+;          close,12
+;          ierror=1
+          return,0
   endif
-  ;atxt=discardComments(unit)
-  if atxt eq '[MONITORING]' then begin
-    check_MONITORING=1
-    atxt=discardComments(unit)
-    if strmid(atxt,0,4) ne 'Stat' then begin
-      txt='STEP 03: STOP! Line after [MONITORING] in STARTUPfile does not start with Stat'
-      alltxt=[txt,alltxt]
-      alltxt=['STOP',alltxt]
-      return, 0
-    endif else begin
-      txt='STEP 03 OK: MONITORING section exists in STARTUPfile'
-      alltxt=[txt,alltxt]
-      continue
-    endelse
+  if check_PARAMETERS eq 0 then begin
+    txt='STEP 03: STOP! No [PARAMETERS] section in STARTUPfile file or check spelling'
+    alltxt=[txt,alltxt]
+;    widget_control,labcom_txt,set_value=alltxt
+    alltxt=['STOP',alltxt]
+;    widget_control,labcom_txt,set_value=alltxt
+;          close,11
+;          close,12
+;          ierror=1
+          return,0
   endif
-endwhile
+  if check_MONITORING eq 0 then begin
+    txt='STEP 03: STOP! No [MONITORING] section in STARTUPfile file or check spelling'
+    alltxt=[txt,alltxt]
+;    widget_control,labcom_txt,set_value=alltxt
+    alltxt=['STOP',alltxt]
+;    widget_control,labcom_txt,set_value=alltxt
+;          close,11
+;          close,12
+;          ierror=1
+          return,0
+  endif
+;  printf,11,' '
+;  widget_control,labok(3),set_value=' *OK* '
+  
+;  while ~eof(unit) do begin
+;    atxt=discardComments(unit)
+;    if atxt eq '[MODEL]' then begin
+;      ;if atxt eq '[SCALE]' then begin
+;      check_appl=0
+;      check_MODEL=1
+;      atxt=discardComments(unit)
+;      fileYear=atxt
+;      utility=obj_new('FMUtility')
+;      if not(utility->IsNumber(fileYear)) then begin
+;        txt='STEP 03: STOP! Model first line is NE a year : See MODEL section in STARTUPfile'
+;        alltxt=[txt,alltxt]
+;        alltxt=['STOP',alltxt]
+;        return, 0
+;      endif
+;      atxt=discardComments(unit)
+;      frequency=atxt
+;      ;here add Data Assimilation control, now just skip it...
+;      atxt=discardComments(unit)
+;      scale=atxt
+;      if (strlowcase(scale) eq 'local' or strlowcase(scale) eq 'urban' or strlowcase(scale) eq 'regional' or $
+;        strlowcase(scale) eq 'traffic') then check_appl=1
+;      if check_appl eq 0 then begin
+;        txt='STEP 03: STOP! Model third line is NE local/urban/regional/traffic: See MODEL section in STARTUPfile'
+;        alltxt=[txt,alltxt]
+;        alltxt=['STOP',alltxt]
+;        return, 0
+;      endif else begin
+;        txt='STEP 03 OK: MODEL / '+fileYear+' '+frequency+' '+scale+' section exists in STARTUPfile'
+;        alltxt=[txt,alltxt]
+;        continue
+;      endelse
+;      if fix(fileYear) lt 1900 or fix(fileYear) gt 2100 then begin
+;        txt='STEP 03: WARNING! YEAR LT 1900 or YEAR GT 2100. MODEL section in STARTUPfile'
+;        alltxt=[txt,alltxt]
+;        alltxt=['WARNING',alltxt]
+;      endif else begin
+;        txt='STEP 03 OK: 1900 < YEAR < 2100'
+;        alltxt=[txt,alltxt]
+;        continue
+;      endelse
+;    endif
+;    ;atxt=discardComments(1)
+;    if atxt eq '[PARAMETERS]' then begin
+;      check_PARAMETERS=1
+;      readf,unit,atxt
+;      if strmid(atxt,0,1) ne ';' then begin
+;      txt='STEP 03: STOP! Line after [PARAMETERS] in STARTUPfile does not start with ;'
+;      alltxt=[txt,alltxt]
+;      alltxt=['STOP',alltxt]
+;      return, 0
+;    endif else begin
+;      txt='STEP 03 OK: PARAMETERS section exists in STARTUPfile'
+;      alltxt=[txt,alltxt]
+;    endelse
+;  endif
+;  ;atxt=discardComments(unit)
+;  if atxt eq '[MONITORING]' then begin
+;    check_MONITORING=1
+;    atxt=discardComments(unit)
+;    if strmid(atxt,0,4) ne 'Stat' then begin
+;      txt='STEP 03: STOP! Line after [MONITORING] in STARTUPfile does not start with Stat'
+;      alltxt=[txt,alltxt]
+;      alltxt=['STOP',alltxt]
+;      return, 0
+;    endif else begin
+;      txt='STEP 03 OK: MONITORING section exists in STARTUPfile'
+;      alltxt=[txt,alltxt]
+;      continue
+;    endelse
+;  endif
+;endwhile
 close, unit & free_lun, unit
 return, 1
 
