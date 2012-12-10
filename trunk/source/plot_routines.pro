@@ -52,6 +52,7 @@ PRO FM_PlotBars, plotter, request, result
   ;MM summer 2012 End
   nmulti=npar*nsce*nmod
   ifree=reform(legNames(0,5))
+  iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
   
   choices=[npar,nmod,nsce,nstat]
   
@@ -244,10 +245,9 @@ PRO FM_PlotBars, plotter, request, result
     mybar_plot,plotHlp,nsubbars,barnames=strmid(longBarNames1,0,7),colors=colors,background=255,$
       ytitle=ytitle,outline=1,tickV0,request,result,title=elabname,$
       baroffset=bo,overplot=(isubbar gt 0),xtitle=xtitle
-    tickV[isubbar*nBars:isubbar*nBars+nBars-1]=tickV0
-; KeesC 19May2012    
+    tickV[isubbar*nBars:isubbar*nBars+nBars-1]=tickV0    
     if nchlp ge 1 then begin
-      xyouts,tickV0(chlp),float(replicate('1.',nchlp))*recognizeRangeY,replicate('NoObsValue',nchlp),$
+      xyouts,tickV0(chlp),float(replicate('1.',nchlp))*recognizeRangeY,replicate('',nchlp),$
         charsize=1.5,charthick=1.5,orientation=90
     endif
   endfor
@@ -323,14 +323,13 @@ PRO FM_PlotBars, plotter, request, result
     endif else begin
       for idot=0,nDots -1 do begin
         oplot,tickV,plotVarMod(0:nBars-1,idot),psym=8,color=idot+2,symsize=2
-        chlp=where(finite(plotVarMod(0:nBars-1,idot)) eq 0,nchlp)
-; KeesC 19May2012        
+        chlp=where(finite(plotVarMod(0:nBars-1,idot)) eq 0,nchlp)        
         if nchlp ge 1 then begin
           xyouts,tickV(chlp),float(replicate('1.',nchlp))*recognizeRangeY,$
-            replicate('NoModValue',nchlp),charsize=1.5,charthick=1.5,orientation=90
+            replicate('',nchlp),charsize=1.5,charthick=1.5,orientation=90
         endif
-      endfor
-      if obsbar eq 0 then begin
+      endfor 
+      if obsbar eq 0 or iUseObserveModel eq 1 then begin
         for ibar=0,nBars-1 do begin
           top=max(plotVarMod(ibar,*),/nan)
           bot=min([!y.range(0),0.],/nan)

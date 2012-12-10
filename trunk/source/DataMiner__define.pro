@@ -350,7 +350,7 @@ FUNCTION DataMiner::readMonitoringData, fileName, parameterCode, NOTPRESENT=NOTP
   allData=self->readCSVFile(fileName, HEADER=HEADER)
   parData=self->readParameter(parameterCode, allData, HEADER, NOTPRESENT=NOTPRESENT)
   if NOTPRESENT then begin
-    print, '<',parameterCode, '> ', 'isn''t in :<', fileName, '>'
+;    print, '<',parameterCode, '> ', 'isn''t in :<', fileName, '>'
   endif
   allData=0
   return, parData
@@ -365,7 +365,7 @@ FUNCTION DataMiner::readMonitoringDataForAllParameters, fileName, parameterCodes
   for i=0, parNumber-1 do begin
     parData=self->readParameter(parameterCode, allData, HEADER, NOTPRESENT=NOTPRESENT)
     if NOTPRESENT then begin
-      print, '<',parameterCode, '> ', 'isn''t in :<', fileName, '>'
+;      print, '<',parameterCode, '> ', 'isn''t in :<', fileName, '>'
     ;      errMsg=dialog_message('<'+parameterCode+ '> isn''t in :<'+ fileName+ '>', /ERROR)
     endif else begin
       pars[i]=ptr_new(parData, /NO_COPY)
@@ -398,7 +398,6 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
     Id = ncdf_open(fileName)
     cdfBlockName=statCode+'_'+parameterCodes[k]
     checkName=ncdf_varid(Id,cdfBlockName)
-    !quiet=0
     ;Old: variable = StationName_Parameter
     if checkName ne -1 then begin  
       ncdf_varget, Id, cdfBlockName, data
@@ -413,9 +412,7 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
       cc=where(pollout eq parameterCodes[k],ncc)
       cdfBlockName=statCode
 ; KeesC 21NOV2012      
-      !quiet=1
       inqStHr=ncdf_attinq(Id,'StartHour',/global)
-      !quiet=0
       if inqStHr.length eq 0 then begin
         ncdf_varget, Id, cdfBlockName, data,count=[1,8760],offset=[cc(0),0]
         data=reform(data)
@@ -430,6 +427,7 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
       ncdf_close, Id
       return,data
     endelse
+    !quiet=0
   endif
   if ext eq 'csv' then begin
     openr, unit, fileName, /GET_LUN

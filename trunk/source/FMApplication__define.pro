@@ -1524,10 +1524,8 @@ PRO FMApplication::doElaboration, request, multipleUserChoices
   request->setGoogleEarthLocation, self->getGoogleEarthLocation()
   call_procedure, request->getElaborationRoutine(), request, result
   
-  ; KeesC 19MAY2012
   targetInfo=result->getGenericPlotInfo()
   checkXY=targetInfo->getXYS()
-  ;  if checkXY[0] ne 'AllNaN' then begin
   self.plotter->openDevice, request->getPlotDeviceName(), request->getFileName(), $
     request->getPrintOrient(),request->getPageBreak(), request->getLocation()
   self.plotter->plotAll, request, result
