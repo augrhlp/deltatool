@@ -213,22 +213,10 @@ function sumsquare, obsValues
 end
 pro obs_run_nan, request,result,obsValues, runValues
 
-  ;MM summer 2012 Start
-  ;Now you have 
-  ;request->getModelInfo()
   modelInfo=request->getModelInfo()
-  ;use in this way:
   year=modelInfo.year
   scale=modelInfo.scale
   frequency=modelInfo.frequency
-  ;MM summer 2012 End
-  ;JRC Version Start
-  ;scaleInfo=request->getScaleInfo()
-  ;res_scale=strsplit(scaleInfo,';',/extract)
-  ;year=fix(strcompress(res_scale[1],/remove_all))
-; KeesC 2009
-  ;year=2009
-  ;JRC Version End
   elabcode=request->getElaborationCode()
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
@@ -236,6 +224,7 @@ pro obs_run_nan, request,result,obsValues, runValues
   hour=request->getHourInfo() ;HourType
   start_hour_hlp=hour[0].value
   end_hour_hlp=hour[1].value
+  iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
 
 ;KeesC move next to lines to .dat conf file
   minDataAvail=0.75 
@@ -245,7 +234,6 @@ pro obs_run_nan, request,result,obsValues, runValues
   if ddn eq 1 or abs(elabcode) eq 71 then minDayAvail=fix(dayHourLength*0.75) 
   if ddn eq 2 or abs(elabcode) eq -71 then minDayAvail=fix(NightHourLength*0.75) 
   
-
   for i=0,364 do begin
     kcobs=where(obsValues(i*24:i*24+23) gt -990,nkcobs)
     kcrun=where(runValues(i*24:i*24+23) gt -990,nkcrun)
@@ -423,39 +411,63 @@ pro obs_run_nan, request,result,obsValues, runValues
 
   ;;  countThreshold=float(size(obsValues,/n_elements))/facDaySeason
 
-  idxAll=where(ahlp eq 1 and obsValues ne -999 and runValues ne -999, count)
+  if iUseObserveModel eq 0 then idxAll=where(ahlp eq 1 and obsValues ne -999 and runValues ne -999, count)
+  if iUseObserveModel eq 1 then idxAll=where(ahlp eq 1 and runValues ne -999, count)
   if count/countThreshold ge minDataAvail then begin
     obsValues=obsvalues(idxAll)
     runValues=runvalues(idxAll)
+    if iUseObserveModel eq 1 then obsValues(*)=!values.f_nan 
     goto,jumpOut
   endif
   idxObs=where(obsValues ne -999, countObs)
   idxMod=where(runValues ne -999, countMod)
-  if countObs/countThreshold lt minDataAvail and countMod/countThreshold ge minDataAvail then begin
-    obsValues=obsvalues(idxMod)
-    runValues=runvalues(idxMod)
-    obsValues(*)=!values.f_nan
-    goto,jumpOut
+  if iUseObserveModel eq 0 then begin 
+    if countObs/countThreshold lt minDataAvail and countMod/countThreshold ge minDataAvail then begin
+      obsValues=obsvalues(idxMod)
+      runValues=runvalues(idxMod)
+      obsValues(*)=!values.f_nan
+      goto,jumpOut
+    endif
+    if countObs/countThreshold ge minDataAvail and countMod/countThreshold lt minDataAvail then begin
+      obsValues=obsvalues(idxObs)
+      runValues=runvalues(idxObs)
+      runValues(*)=!values.f_nan
+      goto,jumpOut
+    endif
+    if countObs/countThreshold ge minDataAvail and countMod/countThreshold ge minDataAvail and $
+      count/countThreshold lt minDataAvail then begin
+      obsValues=obsvalues(idxMod)
+      runValues=runvalues(idxMod)
+      obsValues(*)=!values.f_nan
+      goto,jumpOut
+    endif
+    if countObs/countThreshold lt minDataAvail and countMod/countThreshold lt minDataAvail then begin
+      obsValues(*)=!values.f_nan
+      runValues(*)=!values.f_nan
+      goto,jumpOut
+    endif
   endif
-  if countObs/countThreshold ge minDataAvail and countMod/countThreshold lt minDataAvail then begin
-    obsValues=obsvalues(idxObs)
-    runValues=runvalues(idxObs)
-    runValues(*)=!values.f_nan
-    goto,jumpOut
+  if iUseObserveModel eq 1 then begin 
+    if countMod/countThreshold ge minDataAvail then begin
+      obsValues=obsvalues(idxMod)
+      runValues=runvalues(idxMod)
+      obsValues(*)=!values.f_nan
+      goto,jumpOut
+    endif
+    if countObs/countThreshold ge minDataAvail and countMod/countThreshold ge minDataAvail and $
+      count/countThreshold lt minDataAvail then begin
+      obsValues=obsvalues(idxMod)
+      runValues=runvalues(idxMod)
+      obsValues(*)=!values.f_nan
+      goto,jumpOut
+    endif
+    if countMod/countThreshold lt minDataAvail then begin
+      obsValues(*)=!values.f_nan
+      runValues(*)=!values.f_nan
+      goto,jumpOut
+    endif  
   endif
-  if countObs/countThreshold ge minDataAvail and countMod/countThreshold ge minDataAvail and $
-    count/countThreshold lt minDataAvail then begin
-    obsValues=obsvalues(idxMod)
-    runValues=runvalues(idxMod)
-    obsValues(*)=!values.f_nan
-    goto,jumpOut
-  endif
-  if countObs/countThreshold lt minDataAvail and countMod/countThreshold lt minDataAvail then begin
-    obsValues(*)=!values.f_nan
-    runValues(*)=!values.f_nan
-    goto,jumpOut
-  endif
-
+  
   jumpOut:
 
 end
@@ -815,27 +827,13 @@ pro time_operations, request, result, obsTemp, runTemp
   ; selection of averaging time information
   ;************************************
 
-  ;MM summer 2012 Start
-  ;Now you have 
-  ;request->getModelInfo()
   modelInfo=request->getModelInfo()
-  ;use in this way:
   year=modelInfo.year
   scale=modelInfo.scale
   frequency=modelInfo.frequency
-  ;MM summer 2012 End
-  ;JRC VErsion Start
-  ;scaleInfo=request->getScaleInfo()
-  ;res_scale=strsplit(scaleInfo,';',/extract)
-  ;year=fix(strcompress(res_scale[1],/remove_all))
- ;KeesC 2009
-  ;year=2009
-  ;JRC Version End
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
   elabcode=request->getElaborationCode()
-; KeesC following 3 lines should be in .dat configurartion file
- ;minDataAvail=0.75
   min08Avail=6 ; minimal 8-hours values available
   minDayAvail=18 ; minimal 18 8-hour-mean values should be available per day
 

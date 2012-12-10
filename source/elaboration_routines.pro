@@ -330,6 +330,7 @@ PRO SG_Computing, $
   isGroupSelection=request->isGroupObsPresent()
   hourStat=request->getGroupByTimeInfo() ;HourType
   flag_average=hourStat[0].value
+  iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
 
   dimAll=(Index1)*(Index2)*(Index3)*(Index4)
 ; change 3 into 10 for 10x dump
@@ -339,14 +340,7 @@ PRO SG_Computing, $
   for i1=0, Index1-1 do begin   ;par
     for i2=0, Index2-1 do begin  ; mod
       for i3=0, Index3-1 do begin  ;scen
-        for i4=0, Index4-1 do begin    ;obs
-          choiceIdx1=(where(mChoice1run eq test1(i1) and mChoice4run eq test4(i4)))[0]
-          if choiceIdx1 eq -1 then begin
-            rsult=dialog_message(['INCONSISTENT DATA:',$
-              'Check availability of OBS-'+test1(i1)+' at Station '+test4(i4)],/error)
-            stop
-          endif
-          obsTemp=*RawData[MonitIndexes[choiceIdx1]].observedData
+        for i4=0, Index4-1 do begin    ;obs        
           choiceIdx1=(where(mChoice1run eq test1[i1] and mChoice2run eq test2[i2] and $
             mChoice3run eq test3[i3] and mChoice4run eq test4[i4]))[0]
           if choiceIdx1 eq -1 then begin
@@ -356,28 +350,38 @@ PRO SG_Computing, $
             stop
           endif
           runTemp=*RawData[RunIndexes[choiceIdx1]].runData
-
+          if iUseObserveModel eq 0 then begin
+            choiceIdx1=(where(mChoice1run eq test1(i1) and mChoice4run eq test4(i4)))[0]
+            if choiceIdx1 eq -1 then begin
+              rsult=dialog_message(['INCONSISTENT DATA:',$
+                'Check availability of OBS-'+test1(i1)+' at Station '+test4(i4)],/error)
+              stop
+            endif
+            obsTemp=*RawData[MonitIndexes[choiceIdx1]].observedData
+          endif else begin
+            obsTemp=runTemp 
+            obsTemp(*)=-999
+          endelse  
+          
           if elabCode ne 71 and elabCode ne 72 and elabCode ne 73 then begin
             time_operations, request, result, obsTemp, runTemp
             obs_run_nan,request,result,obsTemp, runTemp
           endif
 
-          ;MM summer 2012 Start
-          ; Replace hard coded 'OU' with specific parameter from elaboration.dat
-          ;CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
           longshort=0
 ;          if elabCode eq 10 or elabCode eq 75 then longshort=1
           CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
-          ;MM summer 2012 End
           if elabcode eq 0 then begin
             statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp)
-            statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
+            if iUseObserveModel eq 0 then statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
+            if iUseObserveModel eq 1 then statXYGroup[i1,i2,i3,i4]=mean(runTemp)
           endif
           if elabcode eq 1 then begin
             statXYResult[i1,i2,i3,i4,0]=stddevOM(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=stddevOM(runTemp)
-            statXYGroup[i1,i2,i3,i4]=abs(nmsd(obsTemp,runTemp))
+            if iUseObserveModel eq 0 then statXYGroup[i1,i2,i3,i4]=abs(nmsd(obsTemp,runTemp))
+            if iUseObserveModel eq 1 then statXYGroup[i1,i2,i3,i4]=stddevOM(runTemp)
           endif
           if elabcode eq 2 then begin
             resgres=regress(obsTemp,runtemp,const=regcnst,correlation=corrcoeff)
@@ -405,7 +409,8 @@ PRO SG_Computing, $
           if elabcode eq 6 then begin
             statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp)
-            statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
+            if iUseObserveModel eq 0 then statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
+            if iUseObserveModel eq 1 then statXYGroup[i1,i2,i3,i4]=mean(runTemp)
           endif
           if elabcode eq 7 then begin
             statXYResult[i1,i2,i3,i4,0]=ioa(obsTemp, runTemp)
@@ -589,11 +594,7 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=abs(statXYResult[i1,i2,i3,i4,0])
           endif
           if elabcode eq 55 or elabcode eq 81 then begin ; Not used anymore
-            ;MM summer 2012 Start
-            ; Replace hard coded 'OU' with specific parameter from elaboration.dat
-            ;CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
             CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
-            ;MM summer 2012 End
             sign=stddevOM(obsTemp)-stddevOM(runTemp)  ;only for target
             if finite(sign) eq 1 then sign=sign/abs(sign)   ;only for target
             if criteriaOU gt 0 then begin
@@ -650,9 +651,17 @@ PRO SG_Computing, $
       for i2=0,Index2-1 do begin
         for i3=0,Index3-1 do begin
           for i1=0,Index1-1 do begin
-            if finite(statXYResult(i1,i2,i3,i4,0)) eq 0 or finite(statXYResult(i1,i2,i3,i4,1)) eq 0 then begin
-              statXYResult(*,*,*,i4,*)=!values.f_nan
-              statXYGroup[*,*,*,i4]=!values.f_nan
+            if iUseObserveModel eq 0 then begin
+              if finite(statXYResult(i1,i2,i3,i4,0)) eq 0 or finite(statXYResult(i1,i2,i3,i4,1)) eq 0 then begin
+                statXYResult(*,*,*,i4,*)=!values.f_nan
+                statXYGroup[*,*,*,i4]=!values.f_nan
+              endif
+            endif
+            if iUseObserveModel eq 1 then begin
+              if finite(statXYResult(i1,i2,i3,i4,1)) eq 0 then begin
+                statXYResult(*,*,*,i4,*)=!values.f_nan
+                statXYGroup[*,*,*,i4]=!values.f_nan
+              endif
             endif
           endfor
         endfor
@@ -677,7 +686,6 @@ PRO SG_Computing, $
         for i2=0,Index2-1 do begin
           for i3=0,Index3-1 do begin
             statXYGroupHlp=reform(statXYGroup(i1,i2,i3,nobsS+currNumber))
-            ;KeesC 11SEP2012
             statXY0=reform(statXYResult(i1,i2,i3,nobsS+currNumber,0))
             statXY1=reform(statXYResult(i1,i2,i3,nobsS+currNumber,1))
             statXY2=reform(statXYResult(i1,i2,i3,nobsS+currNumber,2))
@@ -688,7 +696,8 @@ PRO SG_Computing, $
 ;            statXY7=reform(statXYResult(i1,i2,i3,nobsS+currNumber,7))
 ;            statXY8=reform(statXYResult(i1,i2,i3,nobsS+currNumber,8))
 ;            statXY9=reform(statXYResult(i1,i2,i3,nobsS+currNumber,9))
-            ccFin=where(finite(statXY0) eq 1 and finite(statXY0) eq 1,countfinite)
+            if iUseObserveModel eq 0 then ccFin=where(finite(statXY0) eq 1 and finite(statXY1) eq 1,countfinite)
+            if iUseObserveModel eq 1 then ccFin=where(finite(statXY1) eq 1,countfinite)
             ;Mean 100% group
             if groupStatToApplyCode eq 0 then begin
               if countFinite gt 0 then begin
@@ -744,7 +753,7 @@ PRO SG_Computing, $
                 run2GroupStatResult=reform(statXY2(ccFin))
                 GroupStatResult=reform(statXYGroupHlp(ccFin))
                 resSort=sort(GroupStatResult)
-                      if total(where(elabCode eq [2,7,11,15,78,16,33,76])) ge 0 then resSort=reverse(resSort)
+                if total(where(elabCode eq [2,7,11,15,78,16,33,76])) ge 0 then resSort=reverse(resSort)
                 medIdx=resSort[fix(0.9*n_elements(resSort))]
                 obsStatResult=obsGroupStatResult(medIdx)
                 runStatResult=runGroupStatResult(medIdx)
