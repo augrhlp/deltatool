@@ -71,7 +71,8 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
           iyear=1  ; yearlyavg
         endif
         HEADER=info
-        storeData=strarr(n_elements(info),8784) & storeData(*,*)='-999'  ;8760
+; KeesC 11DEC2012: Problem Ana, day = 1hr ... 24 hr !        
+        storeData=strarr(n_elements(info),8785) & storeData(*,*)='-999'  ;8760
 ;        for im=0,11 do begin
 ;        for id=0,day_nb(im)-1 do begin
 ;        for ih=0,23 do begin
