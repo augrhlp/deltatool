@@ -247,7 +247,7 @@ pro DeltaCheck_IO, DeltaMgr
   ;Delta tool integration
   version='VERSION 3.0'
   fileMgr=deltaMgr->getFileSystemMgr()
-  dir=fileMgr->getHomeDir(/WITH)
+  dir=fileMgr->getHomeDir()
   dir_res=dir+'resource\'  ;fileMgr->getResourceDir()
   dir_obs=dir+'data\monitoring\'  ;fileMgr->getObservedDataDir()
   dir_mod=dir+'data\modeling\'  ;fileMgr->getRunDataDir()
