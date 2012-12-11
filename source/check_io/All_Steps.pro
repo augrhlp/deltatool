@@ -647,7 +647,7 @@ if itobs eq 1 then begin
     nlines=file_lines(fn)
     close,1 & openr,1,fn
     readf,1,atxt  ; first line in obsfile
-    close,1
+    ;close,1
     res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year PM10 PM25
     res=strcompress(res,/remove_all)
     if strlowcase(res[0]) eq 'yearlyavg' and nlines ne 3 then begin
@@ -674,6 +674,7 @@ if itobs eq 1 then begin
         endif   
       endwhile
     endif
+    close,1
   endfor
   if iprob eq 1 then begin
     txt='STEP 10: STOP! TimeLines OBSfile EQ 1 or Date format not correct'
