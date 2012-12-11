@@ -872,12 +872,12 @@ pro time_operations, request, result, obsTemp, runTemp
       bhlp(kcrun)=!values.f_nan
       ibhlp(kcrun)=0
     endif
-    tiahlp=total(iahlp,2,/integer)
-    tibhlp=total(ibhlp,2,/integer)
+    tiahlp=total(iahlp,2) ;,/integer)
+    tibhlp=total(ibhlp,2) ;,/integer)
     kcvalobs=where(tiahlp lt min08Avail,nkcvalobs)  ; not sufficient hours for 8h avg
     kcvalrun=where(tibhlp lt min08Avail,nkcvalrun)
-    if nkcvalobs ge 1 then tiahlp(kcvalobs)=!values.f_nan
-    if nkcvalrun ge 1 then tibhlp(kcvalrun)=!values.f_nan
+    if nkcvalobs ge 1 then tiahlp(fix(kcvalobs))=!values.f_nan
+    if nkcvalrun ge 1 then tibhlp(fix(kcvalrun))=!values.f_nan
     obsTemp=total(ahlp,2,/nan)/tiahlp   ; total for not nan values divided by number of not nan value
     runTemp=total(bhlp,2,/nan)/tibhlp
     kcobs=where(finite(obsTemp) eq 0,nkcobs)
