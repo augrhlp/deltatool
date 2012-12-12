@@ -1538,6 +1538,7 @@ FUNCTION FMFileSystemManager::readOldScaleAsModelSection, unit, lines=lines
       sInfo=strsplit(bufferString, ';', /EXTRACT)
       modelInfo.scale=sInfo[0]
       modelInfo.year=fix(sInfo[1])
+      if modelInfo.year le 1800 then modelInfo.year=2009 
       break
     endelse
   endwhile

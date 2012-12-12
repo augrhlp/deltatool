@@ -1771,14 +1771,14 @@ FUNCTION FMApplication::checkApplicationIntegrity, errorTitle, errorMessage
     return, 0
   endif
 
-  if not(self.fileSystemMgr->checkStartupFileContents(txt=txt, alltxt=alltxt)) then begin
-    
-    errorMessage='StartupFile: ' + self.fileSystemMgr->getStartUpFileName()+ ' isn''t consistent. Check your installation!'
-    ;errorMessage=[errorMessage, txt]
-    errorMessage=[errorMessage, alltxt]
-    errorTitle='StartupFile consistency Error'
-    return, 0
-  endif
+;  if not(self.fileSystemMgr->checkStartupFileContents(txt=txt, alltxt=alltxt)) then begin
+;    
+;    errorMessage='StartupFile: ' + self.fileSystemMgr->getStartUpFileName()+ ' isn''t consistent. Check your installation!'
+;    ;errorMessage=[errorMessage, txt]
+;    errorMessage=[errorMessage, alltxt]
+;    errorTitle='StartupFile consistency Error'
+;    return, 0
+;  endif
 
   return, 1
   
