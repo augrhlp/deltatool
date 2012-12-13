@@ -210,7 +210,7 @@ PRO fairmode_downloadMenuSelection, ev
   print, 'Doc reader:', mgr->getDocReaderLocation()
   print, 'Pdf reader:',mgr->getPdfReaderLocation()
   print, 'Browser launcher:',mgr->getBrowserLocation()
-  spawn,[mgr->getBrowserLocation(),'aqm.jrc.it/DELTA/'],/noshell,/nowait
+  spawn,[mgr->getBrowserLocation(),'aqm.jrc.ec.europa.eu/DELTA/'],/noshell,/nowait
   
 END
 
