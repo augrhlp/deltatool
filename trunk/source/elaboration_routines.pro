@@ -754,6 +754,8 @@ PRO SG_Computing, $
                 GroupStatResult=reform(statXYGroupHlp(ccFin))
                 resSort=sort(GroupStatResult)
                 if total(where(elabCode eq [2,7,11,15,78,16,33,76])) ge 0 then resSort=reverse(resSort)
+; PHIL change (-1) which means that for groups having less than 10 stations, 1 station is left out. For groups
+; between 10 and 20 two stations are left out...
                 medIdx=resSort[fix(0.9*n_elements(resSort))]
                 obsStatResult=obsGroupStatResult(medIdx)
                 runStatResult=runGroupStatResult(medIdx)
