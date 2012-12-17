@@ -210,7 +210,7 @@ PRO FM_PlotBars, plotter, request, result
   
   recognizeRangeX=nbars*0.5
   recognizeRangeY=(max([0,max(allDataXY,/nan)])-min([0,min(allDataXY,/nan)]))*0.01
-  nhlp=nsubbars+ndots
+  nhlp=nsubbars*ndots
   ;  if nsubbars ge 2 then begin
   recognizeHighLight=bytarr(nBars*nhlp*2)
   recognizeRegionEdges=ptrarr(nBars*nhlp*2)
@@ -315,7 +315,7 @@ PRO FM_PlotBars, plotter, request, result
           endelse
           for ibar=0,nBars-1 do begin
             top=plotHLP(ibar)
-            bot=min([!y.range(0),0.],/nan)
+            bot=0.    ;min([!y.range(0),0.],/nan)
             oplot,[tickV[isubbar*nBars+ibar],tickV[isubbar*nBars+ibar]],[bot,top],linestyle=2,color=col2
           endfor
         endif
@@ -332,7 +332,7 @@ PRO FM_PlotBars, plotter, request, result
       if obsbar eq 0 or iUseObserveModel eq 1 then begin
         for ibar=0,nBars-1 do begin
           top=max(plotVarMod(ibar,*),/nan)
-          bot=min([!y.range(0),0.],/nan)
+          bot=0.  ;min([!y.range(0),0.],/nan)
           if ifree eq '1101' or ifree eq '1011' or ifree eq '1110' or ifree eq '0111' then begin
             col2=15-isubbar
           endif else begin
@@ -4037,15 +4037,15 @@ pro mybar_plot,values,nsubbars,baselines=baselines,colors=colors,barnames=barnam
   endif else begin
     criteria=0
   endelse
-  if criteria gt 0 then begin
-    ymin=max([criteria,yrange[0]])
+  if criteria[0] gt 0 then begin
+    ymin=max([criteria[0],yrange[0]])
     ymax=min([1,yrange[1]])
     if elabcode eq 2 or elabcode eq 7 then polyfill,[0,0,nbars-1,nbars-1,0],[ymin,ymax,ymax,ymin,ymin],color=8,/data
     ymin=0
-    ymax=min([criteria,yrange[1]])
+    ymax=min([criteria[0],yrange[1]])
     if elabcode eq 8 or elabcode eq 30 or elabcode eq 28 then polyfill,[0,0,nbars-1,nbars-1,0],[ymin,ymax,ymax,ymin,ymin],/data,color=8
-    ymin=max([-criteria,yrange[0]])
-    ymax=min([criteria,yrange[1]])
+    ymin=max([-criteria[0],yrange[0]])
+    ymax=min([criteria[0],yrange[1]])
     if elabcode eq 23 or elabcode eq 54 then polyfill,[0,0,nbars-1,nbars-1,0],[ymin,ymax,ymax,ymin,ymin],/data,color=8
   endif
   plots,[0,nbars-1],[0,0],/data,color=0
