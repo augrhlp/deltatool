@@ -147,7 +147,6 @@ pro All_Steps
   
   ; *******************************************************************************************************
   if itgen eq 1 then begin  ;startup
-  
     widget_control,labprog_txt,set_value='STEP 02'
     ; Test on existence of startup.ini
     printf,11,'***********************************************'
@@ -944,6 +943,7 @@ if itmod eq 1 then begin
   printf,11,'***  Existence of MODfile              *'
   printf,11,'****************************************'
   print,'STEP 13'
+  dir_mod=dir_mod+'\'
   res=file_test(dir_mod+model)
   if res eq 0 then begin
     txt='STEP 13 STOP! Modfile '+model+' does not exist in MODELING_DIR'
