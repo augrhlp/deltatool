@@ -511,6 +511,7 @@ if itobs eq 1 then begin
   printf,11,'*** Check Nb of stations in STARTUPfile and MONITORING_DIR    *'
   printf,11,'***************************************************************'
   print,'STEP 07'
+  dir_obs=dir_obs+'\'
   filenames=file_search(dir_obs+'*.csv',count=count_filenames)
   filenames=strmid(filenames,strlen(dir_obs),100)
   for i=0,count_filenames-1 do begin
@@ -1121,7 +1122,7 @@ if itmod eq 1 then begin
             inqStHr=ncdf_attinq(Id,'StartHour',/global)
             inqEnHr=ncdf_attinq(Id,'EndHour',/global)
             !quiet=0
-            if inqStHr.length eq 0 and inqEnHr.length eq 0 then begin
+            if inqStHr.dataType eq 'UNKNOWN' and inqEnHr.dataType eq 'UNKNOWN' then begin
               ncdf_varget, Id, idname, var
               dimVar=n_elements(var)
               if dimvar ne 8760 then begin
@@ -1162,7 +1163,7 @@ if itmod eq 1 then begin
           inqStHr=ncdf_attinq(Id,'StartHour',/global)
           inqEnHr=ncdf_attinq(Id,'EndHour',/global)
           !quiet=0
-          if inqStHr.length eq 0 and inqEnHr.length eq 0 then begin
+          if inqStHr.dataType eq 'UNKNOWN' and inqEnHr.dataType eq 'UNKNOWN' then begin
             dimVar=n_elements(var)
             if dimvar[1] ne 8760 then begin
               printf,11,'Incorrect nb of time elements in variable '+idname+' in MODfile'

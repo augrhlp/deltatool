@@ -414,7 +414,7 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
       cdfBlockName=statCode
 ; KeesC 21NOV2012      
       inqStHr=ncdf_attinq(Id,'StartHour',/global)
-      if inqStHr.length eq 0 then begin
+      if inqStHr.dataType eq 'UNKNOWN' then begin
         ncdf_varget, Id, cdfBlockName, data,count=[1,8760],offset=[cc(0),0]
         data=reform(data)
       endif else begin
