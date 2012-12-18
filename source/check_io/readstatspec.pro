@@ -14,7 +14,7 @@ atxt=discardComments(1)
 while ~eof(1) do begin
   atxt=discardComments(1)
   atxt=strcompress(atxt,/remove_all)
-  if strmid(atxt,0,1) eq ';' or strmid(atxt,0,1) eq '#' or strmid(atxt,0,1) eq '[' then continue
+  if strmid(atxt,0,1) eq ';' or strmid(atxt,0,1) eq '#' or strmid(atxt,0,1) eq '[' or strmid(atxt,0,1) eq '' then continue
   res=strsplit(atxt,';',/extract)
   if n_elements(res) ne 12 then begin
     staterror(i)=1
