@@ -4,7 +4,7 @@ PRO mainTest, argument
 
 END
 
-PRO fairmode
+PRO delta
 
  !P.COLOR=0
  fairModeApp=obj_new("FMApplication")
