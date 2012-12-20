@@ -511,6 +511,7 @@ if itobs eq 1 then begin
   printf,11,'*** Check Nb of stations in STARTUPfile and MONITORING_DIR    *'
   printf,11,'***************************************************************'
   print,'STEP 07'
+  dir_obs=dir_obs+'\'
   filenames=file_search(dir_obs+'*.csv',count=count_filenames)
   filenames=strmid(filenames,strlen(dir_obs),100)
   for i=0,count_filenames-1 do begin
@@ -647,7 +648,7 @@ if itobs eq 1 then begin
     nlines=file_lines(fn)
     close,1 & openr,1,fn
     readf,1,atxt  ; first line in obsfile
-    close,1
+    ;close,1
     res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year PM10 PM25
     res=strcompress(res,/remove_all)
     if strlowcase(res[0]) eq 'yearlyavg' and nlines ne 3 then begin
@@ -674,6 +675,7 @@ if itobs eq 1 then begin
         endif   
       endwhile
     endif
+    close,1
   endfor
   if iprob eq 1 then begin
     txt='STEP 10: STOP! TimeLines OBSfile EQ 1 or Date format not correct'
@@ -737,7 +739,7 @@ if itobs eq 1 then begin
       if strlowcase(res[0]) ne 'yearlyavg' then begin
         while not(eof(1)) do begin
           readf,1,atxt
-          res1=strsplit(atxt,';',/extract)
+          res1=strsplit(atxt,';',/extract, /PRESERVE_NULL)
           datum=res1(0:3)
           k1=day_sum(fix(datum(1))-1)*24
           k2=(fix(datum(2))-1)*24
@@ -864,7 +866,7 @@ if itobs eq 1 then begin
       if strlowcase(res[0]) ne 'yearlyavg' then begin
         while not(eof(1)) do begin
           readf,1,atxt
-          res1=strsplit(atxt,';',/extract)
+          res1=strsplit(atxt,';',/extract,  /PRESERVE_NULL)
           datum=res1(0:3)
           k1=day_sum(fix(datum(1))-1)*24
           k2=(fix(datum(2))-1)*24
@@ -942,6 +944,7 @@ if itmod eq 1 then begin
   printf,11,'***  Existence of MODfile              *'
   printf,11,'****************************************'
   print,'STEP 13'
+  dir_mod=dir_mod+'\'
   res=file_test(dir_mod+model)
   if res eq 0 then begin
     txt='STEP 13 STOP! Modfile '+model+' does not exist in MODELING_DIR'
@@ -1120,7 +1123,7 @@ if itmod eq 1 then begin
             inqStHr=ncdf_attinq(Id,'StartHour',/global)
             inqEnHr=ncdf_attinq(Id,'EndHour',/global)
             !quiet=0
-            if inqStHr.length eq 0 and inqEnHr.length eq 0 then begin
+            if inqStHr.datatype eq 'UNKNOWN' and inqEnHr.datatype eq 'UNKNOWN' then begin
               ncdf_varget, Id, idname, var
               dimVar=n_elements(var)
               if dimvar ne 8760 then begin
@@ -1161,7 +1164,7 @@ if itmod eq 1 then begin
           inqStHr=ncdf_attinq(Id,'StartHour',/global)
           inqEnHr=ncdf_attinq(Id,'EndHour',/global)
           !quiet=0
-          if inqStHr.length eq 0 and inqEnHr.length eq 0 then begin
+          if inqStHr.datatype eq 'UNKNOWN' and inqEnHr.datatype eq 'UNKNOWN' then begin
             dimVar=n_elements(var)
             if dimvar[1] ne 8760 then begin
               printf,11,'Incorrect nb of time elements in variable '+idname+' in MODfile'
