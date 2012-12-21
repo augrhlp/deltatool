@@ -1765,10 +1765,10 @@ PRO FM_PlotTaylor, plotter, request, result
     endfor
     oplot,sd_obs+i*xhlp,i*thetahlp,linestyle=0,color=0
     if jlab eq 360 then begin
-      xyouts,sd_obs+i*xhlp(360),.02*max_s,charsize=1.,strmid(strtrim(string(i),2),0,2), $
+      xyouts,sd_obs+i*xhlp(360),.02*max_s,charsize=1.,strmid(strtrim(string(i),2),0,3), $
         color=0
     endif else begin
-      xyouts,.02*max_s,.01*max_s+i*thetahlp(jlab),strmid(strtrim(string(i),2),0,2),charsize=1.,$
+      xyouts,.02*max_s,.01*max_s+i*thetahlp(jlab),strmid(strtrim(string(i),2),0,3),charsize=1.,$
         color=0
     endelse
   endfor
