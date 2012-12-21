@@ -1,8 +1,0 @@
-["ELAB_TYPE": Code,DisplayName,Description]
-0;BarPlot;PlotBars;Descr of:BarPlot
-1;TimeSeries;PlotTimeSeries;Descr of:TimeSeries
-2;Scatter plot;PlotScatter;Descr of:Scatter plot
-3;Taylor plot;PlotTaylor;Descr of:Taylor plot
-4;Composite;PlotBars;Descr of:Composite
-5;2D;Plot2D;Descr of:2D
-6;Undefined;PlotUndef;Descr of:Undef

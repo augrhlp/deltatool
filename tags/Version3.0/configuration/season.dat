@@ -1,4 +1,0 @@
-[SEASON: Code,DisplayName,StartValue,EndValue,Template,Description]
-0;All;0101;3112;ddmm;Desc:All
-1;Summer (JJA);0106;3108;ddmm;Desc:Summer
-2;Winter (DJF);0101*0112;2802*3112;ddmm;Desc:Winter
