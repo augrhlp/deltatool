@@ -1,9 +1,3 @@
-;  ;MM summer 2012 Start
-;  ;for Goals & Criteria now you can use (two new columns added in elaboration.dat)
-;  ;elaboration related info called OCTimeAvgName & OCStat
-;  OCTimeAvgName=request->getElaborationOCTimeAvgName()
-;  OCStat=request->getElaborationOCStat()
-;  ;MM summer 2012 End
 PRO FM_Generic, request, result
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
@@ -29,6 +23,7 @@ PRO FM_Generic, request, result
   endif else begin
     print,'ExtraValues not available'
   endelse
+  iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
 
   nobsS=0
   nreg=0
@@ -93,25 +88,29 @@ PRO FM_Generic, request, result
     RunIndexes=[sRunIndexes,max(sRunIndexes)+1+gRunIndexes]
     RawData=[singleRawData,groupRawData]
   endif
-  ;MM summer 2012 Start
   OCTimeAvgName=request->getElaborationOCTimeAvgName()
   OCStat=request->getElaborationOCStat()
   print, 'OCStat->', OCStat
   print, 'OCTimeAvgName->', OCTimeAvgName
-  ;MM summer 2012 Start
-  SG_Computing, $      ; this is the combination of the old single- and groupcomputing routines
-    request, result, $
-    npar, nmod, nsce, nobs, nobsS, nobsG, $
+  
+  SG_Computing, request, result, npar, nmod, nsce, nobs, nobsS, nobsG, $
     mChoice1run, mChoice2run, mChoice3run, mChoice4run,$
     parCodes, modelCodes, ScenarioCodes, obsNames, $
-    startIndex, endIndex,$
-    MonitIndexes, RunIndexes, RawData, $
-    elabcode, statType, extraValues,$
-    statXYResult
+    startIndex, endIndex, MonitIndexes, RunIndexes, RawData, $
+    elabcode, statType, extraValues, statXYResult
 
   nobs=nobsS+ngroup   ; redefined = number of single stations + number of groups
 
-; Make dump file
+; ****** DUMP FILE *****
+  iprintnr=2 ; 2 values (OBS MOD) are dumped
+  if iUseObserveModel eq 1 then iprintnr=1
+  if total(where(elabCode eq [3,4,5,7,8,23,24,28,30,33,54])) ge 0 then iprintnr=1 ; 1 MOD value
+  if elabCode eq 2 or elabCode eq 14 then iprintnr=3 ; Const CC Slope 
+; For groups only:  Const CC Slope Bias RMSE NMSD MeanO MeanM StdevO StdevM ==> set iprintnr=10
+;                   Decomment the lines with '10xdump'
+; 10xdump: Decomment next line
+; iprintnr=10
+
   atxt=systime()
   atxt=strsplit(atxt,' ',/extract)
   ctxt=strsplit(atxt(3),':',/extract)
@@ -127,6 +126,14 @@ PRO FM_Generic, request, result
   title=request->getDiagramName()+' # '+request->getElaborationName()
   txthlp='PlotInfo = '+title
   request->writeDataDumpFileRecord, txthlp
+  if iprintnr eq 10 then begin
+    txthlp='[PrintOutput:  Const CC Slope Bias RMSE NMSD MeanO MeanM StdevO StdevM]'
+    request->writeDataDumpFileRecord, txthlp
+  endif
+  if iprintnr eq 3 then begin
+    txthlp='[PrintOutput:  Const CC Slope]'
+    request->writeDataDumpFileRecord, txthlp
+  endif
   txthlp='npar = '+strcompress(fix(npar),/remove_all)
   request->writeDataDumpFileRecord, txthlp
   txthlp='nmod = '+strcompress(fix(nmod),/remove_all)
@@ -173,22 +180,19 @@ PRO FM_Generic, request, result
       request->writeDataDumpFileRecord, txthlp
     endfor
   endif
-  iprintnr=2 ; 2 values are dumped
-  if total(where(elabCode eq [3,4,5,7,8,23,24,28,30,33,54])) ge 0 then iprintnr=1 ; 1 value
-  if elabCode eq 2 or elabCode eq 14 then iprintnr=3
-; set iprintnr=10 for 10x dump
+  
   for ipar=0,npar-1 do begin
   for imod=0,nmod-1 do begin
   for isce=0,nsce-1 do begin
     if nobsS ge 1 then begin
       for istat=0,nobsS-1 do begin
-        if finite(statXYResult(ipar,imod,isce,istat,0)) eq 1 and finite(statXYResult(ipar,imod,isce,istat,1)) eq 1 then begin
+        if finite(statXYResult(ipar,imod,isce,istat,0)) eq 1 or finite(statXYResult(ipar,imod,isce,istat,1)) eq 1 then begin
           atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' S '+obsCodes(istat)
           if iprintnr eq 2 then $
             txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,istat,0),/remove_all)+' '+$
             strcompress(statXYResult(ipar,imod,isce,istat,1),/remove_all)
           if iprintnr eq 1 then $
-            txthlp=atxt+' -999 '+strcompress(statXYResult(ipar,imod,isce,istat,1),/remove_all)
+            txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,istat,1),/remove_all)
           if iprintnr eq 3 then $
             txthlp=atxt+' '+$
             strcompress(statXYResult(ipar,imod,isce,istat,0),/remove_all)+' '+$
@@ -200,30 +204,30 @@ PRO FM_Generic, request, result
     endif
     if ngroup ge 1 then begin
       for igr=0,ngroup-1 do begin
-        if finite(statXYResult(ipar,imod,isce,nobsS+igr,0)) eq 1 and finite(statXYResult(ipar,imod,isce,nobsS+igr,1)) eq 1 then begin      
+        if finite(statXYResult(ipar,imod,isce,nobsS+igr,0)) eq 1 or finite(statXYResult(ipar,imod,isce,nobsS+igr,1)) eq 1 then begin      
           atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' G '+groupTitles(igr)
           if iprintnr eq 2 then $
             txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
             strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)
           if iprintnr eq 1 then $
-            txthlp=atxt+' -999 '+strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)
+            txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)
           if iprintnr eq 3 then $
             txthlp=atxt+' '+$
             strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
             strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)+' '+$
             strcompress(statXYResult(ipar,imod,isce,nobsS+igr,2),/remove_all)
-;          if iprintnr eq 10 then $
-;            txthlp=atxt+' '+$
-;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
-;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)+' '+$
-;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,2),/remove_all)+' '+$
-;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,3),/remove_all)+' '+$
-;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,4),/remove_all)+' '+$
-;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,5),/remove_all)+' '+$
-;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,6),/remove_all)+' '+$
-;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,7),/remove_all)+' '+$
-;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,8),/remove_all)+' '+$
-;            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,9),/remove_all)
+          if iprintnr eq 10 then $
+            txthlp=atxt+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,1),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,2),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,3),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,4),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,5),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,6),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,7),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,8),/remove_all)+' '+$
+            strcompress(statXYResult(ipar,imod,isce,nobsS+igr,9),/remove_all)
           request->writeDataDumpFileRecord, txthlp
         endif  
       endfor
@@ -235,7 +239,6 @@ PRO FM_Generic, request, result
 
   statXYResult=statXYResult(*,*,*,*,0:1)
   if elabCode eq 2 or elabCode eq 14 then statXYResult(*,*,*,*,0)=statXYResult(*,*,*,*,1)
-
 
 ; KeesC suppress stations with NaN: station should have values for all pars, all mods, and all sceno
   statValidO=intarr(nobs) & statValidO(*)=-1
@@ -309,7 +312,6 @@ PRO FM_Generic, request, result
     statXY=0
   endif
 
-  ;KeesC 19MAY2012
   nocalcul:
 
   result->setGenericPlotInfo, statXYResult, statSymbols, statColors, legendNames, legendColors,legendSymbols
@@ -317,14 +319,10 @@ PRO FM_Generic, request, result
 END
 ;************************************************************************
 PRO SG_Computing, $
-    request, result, $
-    Index1, Index2, Index3, Index4, nobsS, nobsG, $
+    request, result, Index1, Index2, Index3, Index4, nobsS, nobsG, $
     mChoice1run, mChoice2run, mChoice3run, mChoice4run,$
-    test1, test2, test3, test4, $
-    startIndex, endIndex,$
-    MonitIndexes, RunIndexes, RawData, $
-    elabcode, statType, extraValues,$
-    statXYResult
+    test1, test2, test3, test4, startIndex, endIndex,$
+    MonitIndexes, RunIndexes, RawData, elabcode, statType, extraValues,statXYResult
 
   isSingleSelection=request->isSingleObsPresent()
   isGroupSelection=request->isGroupObsPresent()
@@ -333,8 +331,9 @@ PRO SG_Computing, $
   iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
 
   dimAll=(Index1)*(Index2)*(Index3)*(Index4)
-; change 3 into 10 for 10x dump
-  statXYResult=fltarr(Index1,Index2,Index3,Index4,3)   ;0=obs, 1=run;
+  statXYResult=fltarr(Index1,Index2,Index3,Index4,3)
+; 10xdump: Decomment next line
+;  statXYResult=fltarr(Index1,Index2,Index3,Index4,10)  
   statXYGroup=fltarr(index1,index2,index3,index4) & statXYGroup(*,*,*,*)=!values.f_nan
 
   for i1=0, Index1-1 do begin   ;par
@@ -458,6 +457,7 @@ PRO SG_Computing, $
           if elabcode eq 14 then begin  ;Spatial Corr
             statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp)
+; 10xdump: Decomment next line          
 ;            statXYResult[i1,i2,i3,i4,3]=mean(runTemp)-mean(obsTemp)
 ;            statXYResult[i1,i2,i3,i4,4]=rmse(obsTemp,runTemp)
 ;            statXYResult[i1,i2,i3,i4,5]=100.*(stddevOM(runTemp)-stddevOM(obsTemp))/stddevOM(obsTemp)
@@ -465,18 +465,13 @@ PRO SG_Computing, $
 ;            statXYResult[i1,i2,i3,i4,7]=mean(runTemp)
 ;            statXYResult[i1,i2,i3,i4,8]=stddevOM(obsTemp)
 ;            statXYResult[i1,i2,i3,i4,9]=stddevOM(runTemp)
-            statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))  ;??
+            statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp)) 
           endif
           if elabcode eq 15 or elabCode eq 78 or elabCode eq 16 then begin ; R buggle
             statXYResult[i1,i2,i3,i4,0]=criteriaOU/stddevOM(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=correlate(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=abs(correlate(obsTemp, runTemp))
           endif
-;          if elabcode eq 16 then begin ; Bias buggle
-;            statXYResult[i1,i2,i3,i4,0]=2*criteriaOU
-;            statXYResult[i1,i2,i3,i4,1]=mean(runTemp)-mean(obsTemp)
-;            statXYGroup[i1,i2,i3,i4]=abs(mean(runTemp)-mean(obsTemp))
-;          endif
           if elabcode eq 17 then begin ;Soccer
             statXYResult[i1,i2,i3,i4,0]=bias(obsTemp, runTemp)
             statXYResult[i1,i2,i3,i4,1]=rmse(obsTemp, runTemp)
@@ -638,11 +633,6 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp)
           endif
         endfor  ;i4
-;        if elabCode eq 14 then begin
-;          spatCorr=!values.f_nan
-;          statXYResult[i1,i2,i3,0,0]=spatCorr   ; other i4 values not used
-;          statXYResult[i1,i2,i3,0,1]=spatCorr
-;        endif
       endfor  ;i3  nsce
     endfor  ;i2  nmod
   endfor  ;i1  npar
@@ -691,6 +681,7 @@ PRO SG_Computing, $
             statXY0=reform(statXYResult(i1,i2,i3,nobsS+currNumber,0))
             statXY1=reform(statXYResult(i1,i2,i3,nobsS+currNumber,1))
             statXY2=reform(statXYResult(i1,i2,i3,nobsS+currNumber,2))
+; 10xdump: Decomment next lines          
 ;            statXY3=reform(statXYResult(i1,i2,i3,nobsS+currNumber,3))
 ;            statXY4=reform(statXYResult(i1,i2,i3,nobsS+currNumber,4))
 ;            statXY5=reform(statXYResult(i1,i2,i3,nobsS+currNumber,5))
@@ -705,17 +696,30 @@ PRO SG_Computing, $
               if countFinite gt 0 then begin
                 obsGroupStatResult=reform(statXY0(ccFin))
                 runGroupStatResult=reform(statXY1(ccFin))
-                ;KeesC 11SEP2012
                 run2GroupStatResult=reform(statXY2(ccFin))
+; 10xdump: Decomment next lines                 
+;                run3GroupStatResult=reform(statXY3(ccFin))
+;                run4GroupStatResult=reform(statXY4(ccFin))
+;                run5GroupStatResult=reform(statXY5(ccFin))
+;                run6GroupStatResult=reform(statXY6(ccFin))
+;                run7GroupStatResult=reform(statXY7(ccFin))
+;                run8GroupStatResult=reform(statXY8(ccFin))
+;                run9GroupStatResult=reform(statXY9(ccFin))
                 if elabCode ne 14 then begin
                   obsStatResult=mean(obsGroupStatResult)
                   runStatResult=mean(runGroupStatResult)
-                  ;KeesC 11SEP2012
                   run2StatResult=mean(run2GroupStatResult)
+; 10xdump: Decomment next lines                   
+;                  run3StatResult=mean(run3GroupStatResult)
+;                  run4StatResult=mean(run4GroupStatResult)
+;                  run5StatResult=mean(run5GroupStatResult)
+;                  run6StatResult=mean(run6GroupStatResult)
+;                  run7StatResult=mean(run7GroupStatResult)
+;                  run8StatResult=mean(run8GroupStatResult)
+;                  run9StatResult=mean(run9GroupStatResult)
                 endif
                 if elabCode eq 14 then begin
                   if ncurrNames ge 2 then begin
-                    ;KeesC 10SEP2012
                     spatCorr=correlate(obsGroupStatResult,runGroupStatResult)
                     regres=regress(obsGroupStatResult,runGroupStatResult,const=regcnst,correlation=spatCorr)
                     regres=regres[0]
@@ -727,6 +731,14 @@ PRO SG_Computing, $
                   obsStatResult=regcnst
                   RunStatResult=spatCorr
                   Run2StatResult=regres
+; 10xdump: Decomment next lines                   
+;                  Run3StatResult=mean(run3GroupStatResult)
+;                  Run4StatResult=mean(run4GroupStatResult)
+;                  Run5StatResult=mean(run5GroupStatResult)
+;                  Run6StatResult=mean(run6GroupStatResult)
+;                  Run7StatResult=mean(run7GroupStatResult)
+;                  Run8StatResult=mean(run8GroupStatResult)
+;                  Run9StatResult=mean(run9GroupStatResult)
                 endif
                 if total(where(elabCode eq [20,21,22,52,81,34])) ge 0 then begin
                   ccNeg=where(statXYGroupHlp lt 0.,countNeg)
@@ -737,6 +749,7 @@ PRO SG_Computing, $
                 obsStatResult=!values.f_nan
                 runStatResult=!values.f_nan
                 Run2StatResult=!values.f_nan
+; 10xdump: Decomment next lines                 
 ;                Run3StatResult=!values.f_nan
 ;                Run4StatResult=!values.f_nan
 ;                Run5StatResult=!values.f_nan
@@ -775,10 +788,10 @@ PRO SG_Computing, $
                 run2StatResult=!values.f_nan
               endelse
             endif
-            ;KeesC 11SEP2012
             statXYResultHlp[i1,i2,i3,nobsS+iG,0]=obsStatResult
             statXYResultHlp[i1,i2,i3,nobsS+iG,1]=runStatResult
             statXYResultHlp[i1,i2,i3,nobsS+iG,2]=run2StatResult
+; 10xdump: Decomment next lines             
 ;            statXYResultHlp[i1,i2,i3,nobsS+iG,3]=run3StatResult
 ;            statXYResultHlp[i1,i2,i3,nobsS+iG,4]=run4StatResult
 ;            statXYResultHlp[i1,i2,i3,nobsS+iG,5]=run5StatResult

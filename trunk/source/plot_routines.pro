@@ -44,12 +44,8 @@ PRO FM_PlotBars, plotter, request, result
   elabcode=request->getElaborationCode()
   elabname=request->getElaborationName()
   mus=request->getParameterMeasureUnits()
-  ;MM summer 2012 Start
-  ;for Goals & Criteria now you can use
-  ;elaboration related info called OCTimeAvgName & OCStat 
   OCTimeAvgName=request->getElaborationOCTimeAvgName()
   OCStat=request->getElaborationOCStat()
-  ;MM summer 2012 End
   nmulti=npar*nsce*nmod
   ifree=reform(legNames(0,5))
   iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
@@ -210,14 +206,13 @@ PRO FM_PlotBars, plotter, request, result
   
   recognizeRangeX=nbars*0.5
   recognizeRangeY=(max([0,max(allDataXY,/nan)])-min([0,min(allDataXY,/nan)]))*0.01
-  nhlp=nsubbars*ndots
-  ;  if nsubbars ge 2 then begin
-  recognizeHighLight=bytarr(nBars*nhlp*2)
-  recognizeRegionEdges=ptrarr(nBars*nhlp*2)
-  recognizeNames=strarr(nBars*nhlp*2)
-  recognizeValues=strarr(nBars*nhlp*2)
+  nhlp=nsubbars*(ndots+1)
+  recognizeHighLight=bytarr(nBars*nhlp)
+  recognizeRegionEdges=ptrarr(nBars*nhlp)
+  recognizeNames=strarr(nBars*nhlp)
+  recognizeValues=strarr(nBars*nhlp)
   
-  for i =0,nBars*nhlp*2-1 do begin
+  for i =0,nBars*nhlp-1 do begin
     recognizePoint=fltarr(4,2)
     recognizePoint[0,*]=[-recognizeRangeX, -recognizeRangeX]
     recognizePoint[1,*]=[-recognizeRangeX, recognizeRangeX]
@@ -3785,7 +3780,6 @@ pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries
   jumpend:
 ;**********************
 end
-
 pro legendGenericBuild,request,result,plotter
   plotter->wsetInfoDataDraw
   psFact=plotter->getPSCharSizeFactor()
