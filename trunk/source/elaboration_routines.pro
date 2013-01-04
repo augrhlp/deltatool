@@ -366,6 +366,8 @@ PRO SG_Computing, $
           if elabCode ne 71 and elabCode ne 72 and elabCode ne 73 then begin
             time_operations, request, result, obsTemp, runTemp
             obs_run_nan,request,result,obsTemp, runTemp
+;            if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then $
+;               ObsModCriteriaPercentile,request,result,obsTemp, runTemp
           endif
 
           longshort=0

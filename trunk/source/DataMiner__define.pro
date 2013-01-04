@@ -65,10 +65,12 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
       info=strsplit(bufferString, ';', /EXTRACT, count=count, /PRESERVE_NULL)
       if firstRow eq 1 then begin
         firstRow=0
+        
         if strcompress(strlowcase(info[0]),/remove_all) eq 'yearlyavg' then begin
           info=['YearlyAvg','mm','dd','hh',info[2:n_elements(info)-1]]
           infoyr=info[0]
           iyear=1  ; yearlyavg
+          storeYear=info(1)
         endif
         HEADER=info
 ; KeesC 11DEC2012: Problem Ana, day = 1hr ... 24 hr !        
@@ -92,16 +94,17 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
         k=0
       endif else begin
         if iyear eq 1 then info=[infoyr,'mm','dd','hh',info]
+        storeData[*, 0]=strcompress(info, /REMOVE_all)
+        if iyear eq 0 then storeYear=info(0)
+        if iyear eq 1 then goto,kIsOne
         ; year=info(0); mnth=info(1); day=info(2); hrs=info(3)
-        ; calculate hour in year 
-        storeYear=info(0)
+        ; calculate hour in year     
         k1=day_sum(fix(info(1))-1)*24
         k2=(fix(info(2))-1)*24
         k3=fix(info(3))
         k0=k1+k2+k3
         storeData[*, k0]=strcompress(info, /REMOVE_all)
         k++
-        if iyear eq 1 then goto,kIsOne
       endelse
     endelse
   endwhile
@@ -112,7 +115,7 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
     storeHlp=storeData(*,60*24:366*24-1)  ;01/03/year 0hr - 31/dec/year 23hr
     storeData(*,59*24:365*24-1)=storeHlp
   endif
-  if k eq 1 then begin
+  if k eq 0 then begin
     for kk=1,8783 do storeData(*,kk)=storeData(*,0)
   endif
   storeData=reform(storeData(*,0:8759))

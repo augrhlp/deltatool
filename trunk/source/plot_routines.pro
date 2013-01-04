@@ -3701,6 +3701,90 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   jumpend:
 ;**********************
 end
+pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries
+  startIndex=request->getStartIndex()
+  endIndex=request->getEndIndex()
+  parCodes=request->getParameterCodes()
+  modelInfo=request->getModelInfo()
+  year=modelInfo.year
+  scale=modelInfo.scale
+  scale='ALL'
+  frequency=modelInfo.frequency
+  scaleName=strupcase(scale)
+  ;MM summer 2012 End
+  hourStat=request->getGroupByTimeInfo() ;HourType
+  flag_average=hourStat[0].value
+  statType=request->getGroupByStatInfo() ;HourType
+  isGroupSelection=request->isGroupObsPresent()
+  isSingleSelection=request->isSingleObsPresent()
+  elabcode=request->getElaborationCode()
+  OCTimeAvgName=request->getElaborationOCTimeAvgName()
+  OCStat=request->getElaborationOCStat()
+  GroupModeOKmode=0
+  if isSingleSelection then GroupModeOKmode=1
+  if isGroupSelection then GroupModeOKmode=request->getGroupStatToApplyCode()
+  
+  ; initial values
+  LV=0
+  alpha=0
+  criteriaOrig=0
+  criteria=0
+  Neff=1
+  Nnp=1
+  
+  ;if more than one pollutant or group mode statistic ne 90 percentile, no criteria found
+  if n_elements(parCodes) gt 1 or GroupModeOKmode ne 1 then begin
+    goto,jumpEnd
+  endif
+  
+  ; put user choices into Criteria langage (goalsandcriteria.dat file)
+  if flag_average eq 'preserve' then flag_average='P'
+  if flag_average eq '08' then flag_average='8H'
+  
+  if statType eq 0 then flagDailyStat='P'
+  if statType eq 1 then flagDailyStat='MEAN'
+  if statType eq 2 then flagDailyStat='MAX'
+  if statType eq 3 then flagDailyStat='MIN'
+  
+  dailyStatOp=flag_average+flagDailyStat
+  
+  if strupcase(frequency) eq 'YEAR' then begin  ;annual averages
+    if parcodes[0] eq 'PM10' then dailyStatOp='PMEAN'
+    if parcodes[0] eq 'NO2'  then dailyStatOp='PP'
+    if parcodes[0] eq 'O3'   then dailyStatOp='N/A'
+  endif
+  
+  FlagAll=0
+  
+  ; request criteria: check existence
+  Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname='OU', timeAvgName=dailyStatOp, NOVALUES=NOVALUES)
+  if Criteria(0) eq -1 then begin
+     Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname='OU', timeAvgName='ALL', NOVALUES=NOVALUES)
+     if criteria(0) gt 0 then FlagAll=1
+  endif
+  if Criteria(0) ne -1 then begin
+    UrLV=criteria(0)
+    alpha=criteria(1)
+    Neff=criteria(2)
+    Nnp=criteria(3)
+    LV=criteria(4)
+    if strupcase(frequency) eq 'HOUR' then criteria(2:3)=1
+  endif
+  CriteriaOrig=criteria
+  if keyword_set(NOVALUES) then UrLV=0
+  
+  if criteria(0) ne -1 then begin 
+     criteria=UrLV/100.*sqrt( (1.-alpha)*obsTimeSeries^2+alpha*LV^2)
+     diffhlp=abs(modTimeSeries-obsTimeSeries)/criteria
+     res=sort(diffhlp)
+     percentile=0.90
+     nFin=fix(n_elements(res)*percentile)-1
+     obsTimeSeries=reform(obsTimeSeries(res(0:nfin)))
+     modTimeSeries=reform(modTimeSeries(res(0:nfin)))
+  endif
+  jumpend:
+;**********************
+end
 
 pro legendGenericBuild,request,result,plotter
   plotter->wsetInfoDataDraw
