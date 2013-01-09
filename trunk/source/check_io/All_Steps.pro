@@ -1081,13 +1081,15 @@ if itmod eq 1 then begin
     close,1
   endif
   if iprob eq 1 then begin
-    txt='STEP 14: WARNING! Inconsistent speclist in STARTUPfile and MODfile'
+    txt='STEP 14: STOP! Inconsistent speclist in STARTUPfile and MODfile'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
-    txtall=['WARNING',txtall]
+    txtall=['STOP',txtall]
     widget_control,labcom_txt,set_value=txtall
-;    close,11
-;    close,12
+    close,11
+    close,12
+    ierror=1
+    return
   endif
   if iprob eq 0 then begin
     printf,11,'STEP 14 OK: Species consistent in STARTUPfile and MODfile'
@@ -1126,6 +1128,7 @@ if itmod eq 1 then begin
             if inqStHr.datatype eq 'UNKNOWN' and inqEnHr.datatype eq 'UNKNOWN' then begin
               ncdf_varget, Id, idname, var
               dimVar=n_elements(var)
+              ;if idname eq 'MONDAINO_TEMP' then stop  ;print,i,is,dimVar
               if dimvar ne 8760 then begin
                 printf,11,'Incorrect nb of time elements in variable '+idname+' in MODfile'
                 iprob=1
@@ -1189,7 +1192,7 @@ if itmod eq 1 then begin
     ncdf_close,id
   endif
   if iprob eq 1 then begin
-    txt='STEP 15: STOP! TimeLength MODfile/species NE 8760'
+    txt='STEP 15: STOP! TimeLength MODfile/species NE 8760 or Variable does not exist in MODFILE'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
     txtall=['STOP',txtall]
