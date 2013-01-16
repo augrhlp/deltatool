@@ -3696,7 +3696,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   jumpend:
 ;**********************
 end
-pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries
+pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries,percentile
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
   parCodes=request->getParameterCodes()
@@ -3772,10 +3772,12 @@ pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries
      criteria=UrLV/100.*sqrt( (1.-alpha)*obsTimeSeries^2+alpha*LV^2)
      diffhlp=abs(modTimeSeries-obsTimeSeries)/criteria
      res=sort(diffhlp)
-     percentile=0.90
      nFin=fix(n_elements(res)*percentile)-1
      obsTimeSeries=reform(obsTimeSeries(res(0:nfin)))
      modTimeSeries=reform(modTimeSeries(res(0:nfin)))
+;     for ii=0,nfin-1 do begin
+;       printf,12,obsTimeSeries(ii),diffhlp(ii)
+;     endfor
   endif
   jumpend:
 ;**********************

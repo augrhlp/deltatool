@@ -580,10 +580,10 @@ END
 
 PRO FMApplication::doRecognize, x, y
 
-;  if (self.executeOk[0] eq 1 and self.executeOk[1] eq 1) then begin
+ ; if (self.executeOk[0] eq 1 and self.executeOk[1] eq 1) then begin
     destCoord=convert_coord(x, y, /DEVICE, /TO_NORMAL)
     self->recognize, destCoord
-;  endif
+  ;endif
   
 END
 
