@@ -51,6 +51,7 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
   bufferString=''
   firstRow=1
   iyear=0
+  noOBS=0
   while not(eof(unit)) do begin
     readf, unit, bufferString
     checkFirst=strmid(bufferString, 0,1)
@@ -62,17 +63,16 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
     ;      print, 'Discard row', i
     ;      print, bufferString
     endif else begin
-      info=strsplit(bufferString, ';', /EXTRACT, count=count, /PRESERVE_NULL)
+      info=strsplit(bufferString, ';', /EXTRACT, count=count) ;, /PRESERVE_NULL)
       if firstRow eq 1 then begin
-        firstRow=0
-        
+        firstRow=0     
         if strcompress(strlowcase(info[0]),/remove_all) eq 'yearlyavg' then begin
           info=['YearlyAvg','mm','dd','hh',info[2:n_elements(info)-1]]
           infoyr=info[0]
           iyear=1  ; yearlyavg
           storeYear=info(1)
         endif
-        HEADER=info
+        HEADER=info      
 ; KeesC 11DEC2012: Problem Ana, day = 1hr ... 24 hr !        
         storeData=strarr(n_elements(info),8785) & storeData(*,*)='-999'  ;8760
 ;        for im=0,11 do begin
@@ -91,6 +91,8 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
 ;        endfor
 ;        endfor
 ;        endfor
+        infoNoOBS=strupcase(strcompress(info,/remove_all))
+        NoHlp=where(infoNoOBS eq 'NOOBS',noObs)
         k=0
       endif else begin
         if iyear eq 1 then info=[infoyr,'mm','dd','hh',info]
@@ -110,6 +112,7 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
   endwhile
   ; KeesC 31MAY2012  for Yearly OBS values
   kIsOne:
+  if NoOBS eq 1 then goto, NoObserv
   storeData(0,*)=storeYear
   if 4*(fix(StoreYear)/4) ne fix(StoreYear) then begin   ;normal year: shift 24 hours back
     storeHlp=storeData(*,60*24:366*24-1)  ;01/03/year 0hr - 31/dec/year 23hr
@@ -118,6 +121,7 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
   if k eq 0 then begin
     for kk=1,8783 do storeData(*,kk)=storeData(*,0)
   endif
+  NoObserv:
   storeData=reform(storeData(*,0:8759))
   close, unit & free_lun, unit
   return, storeData

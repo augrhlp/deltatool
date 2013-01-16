@@ -335,9 +335,8 @@ PRO SG_Computing, $
 ; 10xdump: Decomment next line
 ;  statXYResult=fltarr(Index1,Index2,Index3,Index4,10)  
   statXYGroup=fltarr(index1,index2,index3,index4) & statXYGroup(*,*,*,*)=!values.f_nan
-  
-;  close,12 & openw,12,'C:\DELTA_TOOL\dump\percent.dat'
 
+;  close,12 & openw,12,'C:\DELTA_TOOL\dump\percent.dat'
   for i1=0, Index1-1 do begin   ;par
     for i2=0, Index2-1 do begin  ; mod
       for i3=0, Index3-1 do begin  ;scen
