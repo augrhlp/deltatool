@@ -13,13 +13,14 @@ endwhile
 atxt=discardComments(1)
 while ~eof(1) do begin
   atxt=discardComments(1)
-  atxt=strcompress(atxt,/remove_all)
   if strmid(atxt,0,1) eq ';' or strmid(atxt,0,1) eq '#' or strmid(atxt,0,1) eq '[' or strmid(atxt,0,1) eq '' then continue
   res=strsplit(atxt,';',/extract)
+  res=strcompress(res,/remove_all)
   if n_elements(res) ne 12 then begin
     staterror(i)=1
   endif
   statnames(i)=res(1)
+  print,statnames(i)
   spec_stations(i)=res(n_elements(res)-1)
   i++
 endwhile
