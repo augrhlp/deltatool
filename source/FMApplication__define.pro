@@ -1516,7 +1516,7 @@ PRO FMApplication::doElaboration, request, multipleUserChoices
 
   widget_control, /HOURGLASS
   startTime=systime(/SECONDS)
-  self.dataMinerMgr->readAllData, request, result, screensize=self.mainView->getScreenSize()
+  self.dataMinerMgr->readAllData, request, result, screensize=self.mainView->getScreenSize(), ONLYMODEL=request->getUseObservedModel()
   endTime=systime(/SECONDS)
   ;print, '-->', endTime-startTime
   widget_control, HOURGLASS=0
