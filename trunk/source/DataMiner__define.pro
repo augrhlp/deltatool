@@ -97,7 +97,7 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER, ONLYMODEL=ONLYMODEL
           k=0
         endif else begin
           if iyear eq 1 then info=[infoyr,'mm','dd','hh',info]
-          storeData[*, 0]=strcompress(info, /REMOVE_all)
+          if iyear eq 1 then storeData[*, 0]=strcompress(info, /REMOVE_all)
           if iyear eq 0 then storeYear=info(0)
           if iyear eq 1 then goto,kIsOne
           ; year=info(0); mnth=info(1); day=info(2); hrs=info(3)
