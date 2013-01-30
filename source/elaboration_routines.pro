@@ -336,7 +336,6 @@ PRO SG_Computing, $
 ;  statXYResult=fltarr(Index1,Index2,Index3,Index4,10)  
   statXYGroup=fltarr(index1,index2,index3,index4) & statXYGroup(*,*,*,*)=!values.f_nan
 
-;  close,12 & openw,12,'C:\DELTA_TOOL\dump\percent.dat'
   for i1=0, Index1-1 do begin   ;par
     for i2=0, Index2-1 do begin  ; mod
       for i3=0, Index3-1 do begin  ;scen
@@ -366,10 +365,8 @@ PRO SG_Computing, $
           if elabCode ne 71 and elabCode ne 72 and elabCode ne 73 then begin
             time_operations, request, result, obsTemp, runTemp
             obs_run_nan,request,result,obsTemp, runTemp
-;            if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then begin
-;               percentile=1.0
-;               ObsModCriteriaPercentile,request,result,obsTemp, runTemp,percentile
-;            endif
+;            if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then $
+;               ObsModCriteriaPercentile,request,result,obsTemp, runTemp
           endif
 
           longshort=0
@@ -639,7 +636,7 @@ PRO SG_Computing, $
       endfor  ;i3  nsce
     endfor  ;i2  nmod
   endfor  ;i1  npar
-;close,12
+
   if isGroupSelection then begin
     statXYResultHlp=statXYResult
     for i4=nobsS,Index4-1 do begin

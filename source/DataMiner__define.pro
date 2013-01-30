@@ -25,17 +25,17 @@ FUNCTION DataMiner::getMissingValue
   
 END
 
-FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER, ONLYMODEL=ONLYMODEL
+FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER
 
-  ;if 4*(year/4) ne year then begin   ;normal year
-  ;    day_nb= [31,28,31,30,31,30,31,31,30,31,30,31]
-  ;    day_sum=[0,31,59,90,120,151,181,212,243,273,304,334,365]
-  ;  endif
-  ;  if 4*(year/4) eq year then begin   ;leapyear - no 31 dec
-  ;    day_nb= [31,29,31,30,31,30,31,31,30,31,30,30]
-  ;    day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
-  ;  endif
-  ; do as if leapyear; correct at end
+;if 4*(year/4) ne year then begin   ;normal year
+;    day_nb= [31,28,31,30,31,30,31,31,30,31,30,31]
+;    day_sum=[0,31,59,90,120,151,181,212,243,273,304,334,365]
+;  endif
+;  if 4*(year/4) eq year then begin   ;leapyear - no 31 dec
+;    day_nb= [31,29,31,30,31,30,31,31,30,31,30,30]
+;    day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
+;  endif
+; do as if leapyear; correct at end  
   day_nb= [31,29,31,30,31,30,31,31,30,31,30,30]
   day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
   ERROR=0
@@ -47,70 +47,79 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER, ONLYMODEL=ONLYMODEL
     errMsg=dialog_message('problem with file: <'+fileName+'> check existence or read permission.', /ERROR)
   endif
   
-  if keyword_set(ONLYMODEL) then begin
-    storeData=bytarr(8760)
-  endif else begin
-    openr, unit, fileName, /GET_LUN
-    bufferString=''
-    firstRow=1
-    iyear=0
-    while not(eof(unit)) do begin
-      readf, unit, bufferString
-      checkFirst=strmid(bufferString, 0,1)
-      check1=(strpos(checkFirst, '[')+1) > 0
-      check2=(strpos(checkFirst, ';')+1) > 0
-      check3=(strpos(checkFirst, '#')+1) > 0
-      null=strlen(strcompress(bufferString, /REMOVE_all)) eq 0
-      if (check1+check2+check3) gt 0 or null then begin
-      ;      print, 'Discard row', i
-      ;      print, bufferString
+  openr, unit, fileName, /GET_LUN
+  bufferString=''
+  firstRow=1
+  iyear=0
+  while not(eof(unit)) do begin
+    readf, unit, bufferString
+    checkFirst=strmid(bufferString, 0,1)
+    check1=(strpos(checkFirst, '[')+1) > 0
+    check2=(strpos(checkFirst, ';')+1) > 0
+    check3=(strpos(checkFirst, '#')+1) > 0
+    null=strlen(strcompress(bufferString, /REMOVE_all)) eq 0
+    if (check1+check2+check3) gt 0 or null then begin
+    ;      print, 'Discard row', i
+    ;      print, bufferString
+    endif else begin
+      info=strsplit(bufferString, ';', /EXTRACT, count=count, /PRESERVE_NULL)
+      if firstRow eq 1 then begin
+        firstRow=0
+        
+        if strcompress(strlowcase(info[0]),/remove_all) eq 'yearlyavg' then begin
+          info=['YearlyAvg','mm','dd','hh',info[2:n_elements(info)-1]]
+          infoyr=info[0]
+          iyear=1  ; yearlyavg
+          storeYear=info(1)
+        endif
+        HEADER=info
+; KeesC 11DEC2012: Problem Ana, day = 1hr ... 24 hr !        
+        storeData=strarr(n_elements(info),8785) & storeData(*,*)='-999'  ;8760
+;        for im=0,11 do begin
+;        for id=0,day_nb(im)-1 do begin
+;        for ih=0,23 do begin
+;          sim=strtrim(im,2)
+;          if im le 9 then sim='0'+sim
+;          sid=strtrim(id,2)
+;          if id le 9 then sid='0'+sid
+;          sih=strtrim(ih,2)
+;          if ih le 9 then sih='0'+sih
+;          storeData(1,*)=sim
+;          storeData(2,*)=sid
+;          storeData(3,*)=sih
+;          storeData(4:n_elements(info)-1,*)='-999'
+;        endfor
+;        endfor
+;        endfor
+        k=0
       endif else begin
-        info=strsplit(bufferString, ';', /EXTRACT, count=count, /PRESERVE_NULL)
-        if firstRow eq 1 then begin
-          firstRow=0
-          
-          if strcompress(strlowcase(info[0]),/remove_all) eq 'yearlyavg' then begin
-            info=['YearlyAvg','mm','dd','hh',info[2:n_elements(info)-1]]
-            infoyr=info[0]
-            iyear=1  ; yearlyavg
-            storeYear=info(1)
-          endif
-          HEADER=info
-          ; KeesC 11DEC2012: Problem Ana, day = 1hr ... 24 hr !
-          storeData=strarr(n_elements(info),8785) & storeData(*,*)='-999'  ;8760
-          k=0
-        endif else begin
-          if iyear eq 1 then begin
-             info=[infoyr,'mm','dd','hh',info]
-             storeData[*, 0]=strcompress(info, /REMOVE_all)
-             goto,kIsOne
-          endif
-          if iyear eq 0 then storeYear=info(0)
-          
-          ; year=info(0); mnth=info(1); day=info(2); hrs=info(3)
-          ; calculate hour in year
-          k1=day_sum(fix(info(1))-1)*24
-          k2=(fix(info(2))-1)*24
-          k3=fix(info(3))
-          k0=k1+k2+k3
-          storeData[*, k0]=strcompress(info, /REMOVE_all)
-          k++
-        endelse
+        if iyear eq 1 then info=[infoyr,'mm','dd','hh',info]
+        storeData[*, 0]=strcompress(info, /REMOVE_all)
+        if iyear eq 0 then storeYear=info(0)
+        if iyear eq 1 then goto,kIsOne
+        ; year=info(0); mnth=info(1); day=info(2); hrs=info(3)
+        ; calculate hour in year     
+        k1=day_sum(fix(info(1))-1)*24
+        k2=(fix(info(2))-1)*24
+        k3=fix(info(3))
+        k0=k1+k2+k3
+        storeData[*, k0]=strcompress(info, /REMOVE_all)
+        k++
       endelse
-    endwhile
-    ; KeesC 31MAY2012  for Yearly OBS values
-    kIsOne:
-    storeData(0,*)=storeYear
-    if 4*(fix(StoreYear)/4) ne fix(StoreYear) then begin   ;normal year: shift 24 hours back
-      storeHlp=storeData(*,60*24:366*24-1)  ;01/03/year 0hr - 31/dec/year 23hr
-      storeData(*,59*24:365*24-1)=storeHlp
-    endif
-    if k eq 0 then begin
-      for kk=1,8783 do storeData(*,kk)=storeData(*,0)
-    endif
-    storeData=reform(storeData(*,0:8759))
-    close, unit & free_lun, unit
-  endelse
+    endelse
+  endwhile
+  ; KeesC 31MAY2012  for Yearly OBS values
+  kIsOne:
+  storeData(0,*)=storeYear
+  if 4*(fix(StoreYear)/4) ne fix(StoreYear) then begin   ;normal year: shift 24 hours back
+    storeHlp=storeData(*,60*24:366*24-1)  ;01/03/year 0hr - 31/dec/year 23hr
+    storeData(*,59*24:365*24-1)=storeHlp
+  endif
+  if k eq 0 then begin
+    for kk=1,8783 do storeData(*,kk)=storeData(*,0)
+  endif
+  storeData=reform(storeData(*,0:8759))
+  close, unit & free_lun, unit
   return, storeData
   
 END
@@ -160,7 +169,7 @@ FUNCTION DataMiner::buildRunDataBlockName, statCode, parameterCode
   
 END
 
-PRO DataMiner::readAllData, request, result, ONLYMODEL=ONLYMODEL, screensize=screensize
+PRO DataMiner::readAllData, request, result, screensize=screensize
 
   result=obj_new('Result', '', self.fileSystemMgr->getTempDataFile())
   isSingleSelection=request->IsSingleObsPresent()
@@ -219,7 +228,7 @@ PRO DataMiner::readAllData, request, result, ONLYMODEL=ONLYMODEL, screensize=scr
           singleResultData[sl].parameterCode=parameters[k]
           ;      print, parameters[k]
           ;      print, '--> Observed'
-          mParData=self->readMonitoringData(singlemonitFileName, parameters[k], NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL)
+          mParData=self->readMonitoringData(singlemonitFileName, parameters[k], NOTPRESENT=NOTPRESENT)
           if NOTPRESENT eq 1 then begin
             ;print, 'NOT PRESENT'
             ptr_free, singleResultData[sl].observedData ; null pointer
@@ -275,7 +284,7 @@ PRO DataMiner::readAllData, request, result, ONLYMODEL=ONLYMODEL, screensize=scr
           groupResultData[gl].parameterCode=parameters[k]
           ;      print, parameters[k]
           ;      print, '--> Observed'
-          mParData=self->readMonitoringData(monitFileName, parameters[k], NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL)
+          mParData=self->readMonitoringData(monitFileName, parameters[k], NOTPRESENT=NOTPRESENT)
           if NOTPRESENT eq 1 then begin
             ;print, 'NOT PRESENT'
             ptr_free, groupResultData[gl].observedData ; null pointer
@@ -340,14 +349,12 @@ FUNCTION DataMiner::readParameter, parameterCode, data, header, NOTPRESENT=NOTPR
   
 END
 
-FUNCTION DataMiner::readMonitoringData, fileName, parameterCode, ONLYMODEL=ONLYMODEL, NOTPRESENT=NOTPRESENT
+FUNCTION DataMiner::readMonitoringData, fileName, parameterCode, NOTPRESENT=NOTPRESENT
 
-  
-  allData=self->readCSVFile(fileName, HEADER=HEADER, ONLYMODEL=ONLYMODEL)
-  NOTPRESENT=0
-  if ~(keyword_set(ONLYMODEL)) then parData=self->readParameter(parameterCode, allData, HEADER, NOTPRESENT=NOTPRESENT) else parData=allData
+  allData=self->readCSVFile(fileName, HEADER=HEADER)
+  parData=self->readParameter(parameterCode, allData, HEADER, NOTPRESENT=NOTPRESENT)
   if NOTPRESENT then begin
-  ;    print, '<',parameterCode, '> ', 'isn''t in :<', fileName, '>'
+;    print, '<',parameterCode, '> ', 'isn''t in :<', fileName, '>'
   endif
   allData=0
   return, parData
@@ -360,9 +367,9 @@ FUNCTION DataMiner::readMonitoringDataForAllParameters, fileName, parameterCodes
   parNumber=n_elements(parameterCodes)
   pars=ptrarr(parNumber)
   for i=0, parNumber-1 do begin
-    if ~(keyword_set(ONLYMODEL)) then parData=self->readParameter(parameterCode, allData, HEADER, NOTPRESENT=NOTPRESENT)
+    parData=self->readParameter(parameterCode, allData, HEADER, NOTPRESENT=NOTPRESENT)
     if NOTPRESENT then begin
-    ;      print, '<',parameterCode, '> ', 'isn''t in :<', fileName, '>'
+;      print, '<',parameterCode, '> ', 'isn''t in :<', fileName, '>'
     ;      errMsg=dialog_message('<'+parameterCode+ '> isn''t in :<'+ fileName+ '>', /ERROR)
     endif else begin
       pars[i]=ptr_new(parData, /NO_COPY)
@@ -389,14 +396,14 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
   
   extPos=strpos(filename, '.', /REVERSE_SEARCH)
   ext=strmid(filename,extPos+1,3)   ; = cdf  or   csv
-  
+   
   if ext eq 'cdf' then begin
     !quiet=1
     Id = ncdf_open(fileName)
     cdfBlockName=statCode+'_'+parameterCodes[k]
     checkName=ncdf_varid(Id,cdfBlockName)
     ;Old: variable = StationName_Parameter
-    if checkName ne -1 then begin
+    if checkName ne -1 then begin  
       ncdf_varget, Id, cdfBlockName, data
       ncdf_close, Id
       return, data
@@ -408,7 +415,7 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
       pollout=strcompress(pollout,/remove_all)
       cc=where(pollout eq parameterCodes[k],ncc)
       cdfBlockName=statCode
-      ; KeesC 21NOV2012
+; KeesC 21NOV2012      
       inqStHr=ncdf_attinq(Id,'StartHour',/global)
       if inqStHr.dataType eq 'UNKNOWN' then begin
         ncdf_varget, Id, cdfBlockName, data,count=[1,8760],offset=[cc(0),0]
@@ -447,8 +454,8 @@ FUNCTION DataMiner::readRunData, fileName, statCode, parameterCodes,k, NOTPRESEN
           if strlowcase(info[0]) eq 'yearlyavg' then begin
             pollout=strcompress(info[2:n_elements(info)-1],/remove_all)
             infoyr=info[0]
-            iyear=1
-          endif else begin
+            iyear=1           
+          endif else begin  
             pollout=strcompress(info[4:n_elements(info)-1],/remove_all)
           endelse
           npol=n_elements(pollout)

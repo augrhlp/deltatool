@@ -188,8 +188,6 @@ PRO FM_PlotBars, plotter, request, result
   xtitle=choices2(ntxt1)
   
   if ntxt1 ge 0 then longBarNames1=reform(legNames(*,ntxt1))
-;300113 longnames into shortnames in barplot legend
-  if ntxt1 eq 3 then longBarNames1=reform(legNames(*,4))
   if ntxt2 ge 0 then longBarNames2=reform(legNames(*,ntxt2))
   if ntxt3 ge 0 then longBarNames3=reform(legNames(*,ntxt3))
   ;if ifree eq '0001' and nstat gt 12 then longBarNames1=strcompress(indgen(nstat)+1,/remove_all)
@@ -922,7 +920,7 @@ PRO FM_PlotScatter, plotter, request, result
   
   musstr=''
   for i=0,n_elements(mus)-1 do musstr=musstr+'/'+mus(i)
-  if elabCode eq 6 or elabCode eq 13 then begin
+  if elabCode eq 6 then begin
     xtitle='OBS '+musstr
     ytitle='MOD '+musstr
   endif
@@ -3691,14 +3689,14 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   
   if statistics eq 'OU' and criteria(0) ne -1 then begin 
      if strupcase(frequency) eq 'HOUR' then criteria=UrLV/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)+alpha*LV^2)
-     if strupcase(frequency) eq 'YEAR' then criteria=UrLV/100.*sqrt( (1.-alpha)*(mean(obsTimeSeries)^2)/Neff +alpha*LV^2/Nnp)
+     if strupcase(frequency) eq 'YEAR' then criteria=UrLV/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)/Neff +alpha*LV^2/Nnp)
      if (Neff eq -999 or Nnp eq -999) and strupcase(frequency) eq 'YEAR' then criteria=-1
      ;if parcodes[0] eq 'O3' and strupcase(frequency) eq 'HOUR' then criteria=criteria/1.43
   endif
   jumpend:
 ;**********************
 end
-pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries,percentile
+pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
   parCodes=request->getParameterCodes()
@@ -3774,12 +3772,10 @@ pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries,perce
      criteria=UrLV/100.*sqrt( (1.-alpha)*obsTimeSeries^2+alpha*LV^2)
      diffhlp=abs(modTimeSeries-obsTimeSeries)/criteria
      res=sort(diffhlp)
+     percentile=0.90
      nFin=fix(n_elements(res)*percentile)-1
      obsTimeSeries=reform(obsTimeSeries(res(0:nfin)))
      modTimeSeries=reform(modTimeSeries(res(0:nfin)))
-;     for ii=0,nfin-1 do begin
-;       printf,12,obsTimeSeries(ii),diffhlp(ii)
-;     endfor
   endif
   jumpend:
 ;**********************

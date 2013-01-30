@@ -686,7 +686,7 @@ PRO FMFileSystemManager::buildCategory, unit, fileName, categoryObsList, WRITE=W
   if keyword_set(WRITE) then OPENW, unit, fileName ;"CATEGORY"
   ;Code,Display_Name,Description
   
-  ;categoryObsList=['Zone','Type','Topo']
+  categoryObsList=['Zone','Type','Topo']
   catNumber=n_elements(CategoryObsList)
   
   header='["CATEGORY": Code,DisplayName,Description]'
@@ -1434,7 +1434,7 @@ FUNCTION FMFileSystemManager::readMonitoringSection, unit, parameterInfo=paramet
       info=strsplit(bufferString, ';', /EXTRACT)
       if n_elements(info) eq 12 then begin
         if firstRow eq 1 then begin
-          titles=[info[7],info[8],info[9],info[10]]
+          titles=[info[6],info[7],info[8],info[9]]
           firstRow=0
         endif else begin
           if info[6] ne 'GMT+1' then print, info[1]

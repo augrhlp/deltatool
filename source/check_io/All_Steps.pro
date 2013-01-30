@@ -232,7 +232,7 @@ pro All_Steps
           close,12
           ierror=1
           return
-        endif
+        endif 
         txt='STEP 03 OK: MODEL / '+fileYear+' '+frequency+' '+scale+' section exists in STARTUPfile'
         printf,11,txt
         txtall=[txt,txtall]
@@ -370,27 +370,27 @@ pro All_Steps
   txt='STEP 04 (Info): '+hlp
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
-  ;  for i=0,n_elements(spec)-1 do begin
-  ;    compat=0
-  ;    if types(i) eq 'POL' then begin
-  ;      cc1=where(spec(i) eq DeltaPol,ncc1)
-  ;      cc2=where(units(i) eq DeltaPolUnits,ncc2)
-  ;      if ncc1 eq 1 and ncc2 eq 1 then compat=1
-  ;    endif
-  ;    if types(i) eq 'MET' then begin
-  ;      cc1=where(spec(i) eq DeltaMet,ncc1)
-  ;      if ncc1 ge 1 then begin
-  ;        if cc1[0] eq 0 and total(units(i) eq DeltaMetUnits(0:2)) eq 1 then compat=1
-  ;        if cc1[0] eq 1 and units(i) eq DeltaMetUnits(3) then compat=1
-  ;        if cc1[0] eq 2 and units(i) eq DeltaMetUnits(4) or units(i) eq DeltaMetUnits(5) then compat=1
-  ;      endif
-  ;    endif
-  ;    if compat eq 0 then begin
-  ;      txt='STEP 04 (Warning): '+spec(i)+'  '+types(i)+'  '+units(i)+' NOT DELTA compatible
-  ;      txtall=[txt,txtall]
-  ;      widget_control,labcom_txt,set_value=txtall
-  ;    endif
-  ;  endfor
+;  for i=0,n_elements(spec)-1 do begin
+;    compat=0
+;    if types(i) eq 'POL' then begin
+;      cc1=where(spec(i) eq DeltaPol,ncc1)
+;      cc2=where(units(i) eq DeltaPolUnits,ncc2)
+;      if ncc1 eq 1 and ncc2 eq 1 then compat=1
+;    endif
+;    if types(i) eq 'MET' then begin
+;      cc1=where(spec(i) eq DeltaMet,ncc1)
+;      if ncc1 ge 1 then begin
+;        if cc1[0] eq 0 and total(units(i) eq DeltaMetUnits(0:2)) eq 1 then compat=1
+;        if cc1[0] eq 1 and units(i) eq DeltaMetUnits(3) then compat=1
+;        if cc1[0] eq 2 and units(i) eq DeltaMetUnits(4) or units(i) eq DeltaMetUnits(5) then compat=1
+;      endif
+;    endif
+;    if compat eq 0 then begin
+;      txt='STEP 04 (Warning): '+spec(i)+'  '+types(i)+'  '+units(i)+' NOT DELTA compatible
+;      txtall=[txt,txtall]
+;      widget_control,labcom_txt,set_value=txtall
+;    endif
+;  endfor
   iprob=0
   for i=0,n_elements(spec)-1 do begin
     ertxt=''
@@ -589,19 +589,12 @@ if itobs eq 1 then begin
   for i=0,n_elements(statnames)-1 do begin
     widget_control,labprog_txt,set_value='STEP 09: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
     fn=file_search(dir_obs+statnames[i]+'.csv',count=count)
-    ; KeesC 11JAN2013
-    if count eq 1 then begin
+    if count gt 0 then begin
       close,1 & openr,1,fn
       speclist=strsplit(spec_stations(i),'*',/extract) ; speclist is list of specs at station i from startup.ini
       readf,1,atxt  ; first line in obsfile
       res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - YearlyAvg 2009 Param1 Param2
       res=strcompress(res,/remove_all)
-      ; KeesC 11JAN2013
-      nres=n_elements(res)
-      if strupcase(res(nres-1)) eq 'NOOBS' then begin
-        close,1
-        goto,nextstat09
-      endif
       if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
         res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
         nb_specstat=n_elements(res2)-2
@@ -619,8 +612,6 @@ if itobs eq 1 then begin
       endfor
       close,1
     endif
-    ; KeesC 11JAN2013
-    nextstat09:
   endfor
   if iprob eq 1 then begin
     txt='STEP 09: STOP! Inconsistency of species in STARTUPfile (station lines) and OBSfile'
@@ -657,11 +648,9 @@ if itobs eq 1 then begin
     nlines=file_lines(fn)
     close,1 & openr,1,fn
     readf,1,atxt  ; first line in obsfile
+    ;close,1
     res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year PM10 PM25
     res=strcompress(res,/remove_all)
-    ; KeesC 11JAN2013
-    nres=n_elements(res)
-    if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat10
     if strlowcase(res[0]) eq 'yearlyavg' and nlines ne 3 then begin
       printf,11,'TimeLines OBSfile (yearly) '+fns+' NE 1 -----',nlines-2
       iprob=1
@@ -677,17 +666,15 @@ if itobs eq 1 then begin
         if n_elements(res1) le 3 then begin
           printf,11,'Date format not correct '+fns
           iprob=1
-        endif
+        endif 
         datum=res1(0:3)
         if (fix(datum(0)) lt 1900 or fix(datum(0)) gt 2100) or (fix(datum(1)) le 0 or fix(datum(1)) ge 13) or $
           (fix(datum(2)) le 0 or fix(datum(2)) ge 32) or (fix(datum(3)) le -1 or fix(datum(3)) ge 25) then begin
           printf,11,'Date format not correct '+fns
           iprob=1
-        endif
+        endif   
       endwhile
     endif
-    ; KeesC 11JAN2013
-    nextstat10:
     close,1
   endfor
   if iprob eq 1 then begin
@@ -736,15 +723,11 @@ if itobs eq 1 then begin
   for i=0,n_elements(statnames)-1 do begin
     widget_control,labprog_txt,set_value='STEP 11: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
     fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
-    ; KeesC 11JAN2013
-    if count eq 1 then begin
+    if count gt 0 then begin
       close,1 & openr,1,fn
       readf,1,atxt
       res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
       res=strcompress(res,/remove_all)
-      ; KeesC 11JAN2013
-      nres=n_elements(res)
-      if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat11
       if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
         res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
         nb_specstat=n_elements(res2)-2
@@ -808,9 +791,6 @@ if itobs eq 1 then begin
         endif
       endfor
     endif
-    ; KeesC 11JAN2013
-    nextstat11:
-    close,1
   endfor
   apoll=finite(poll)
   kc=where(apoll eq 0,nkc)
@@ -870,14 +850,11 @@ if itobs eq 1 then begin
   for i=0,n_elements(statnames)-1 do begin
     widget_control,labprog_txt,set_value='STEP 12: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
     fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
-    if count eq 1 then begin
+    if count gt 0 then begin
       close,1 & openr,1,fn
       readf,1,atxt
       res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
       res=strcompress(res,/remove_all)
-      ; KeesC 11JAN2013
-      nres=n_elements(res)
-      if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat12
       if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
         res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
         nb_specstat=n_elements(res2)-2
@@ -931,9 +908,6 @@ if itobs eq 1 then begin
       endif
       close,1
     endif
-    ; KeesC 11JAN2013
-    nextstat12:
-    close,1
   endfor
   apoll=finite(poll)
   kc=where(apoll eq 0,nkc)
@@ -1107,15 +1081,13 @@ if itmod eq 1 then begin
     close,1
   endif
   if iprob eq 1 then begin
-    txt='STEP 14: STOP! Inconsistent speclist in STARTUPfile and MODfile'
+    txt='STEP 14: WARNING! Inconsistent speclist in STARTUPfile and MODfile'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
-    txtall=['STOP',txtall]
+    txtall=['WARNING',txtall]
     widget_control,labcom_txt,set_value=txtall
-    close,11
-    close,12
-    ierror=1
-    return
+;    close,11
+;    close,12
   endif
   if iprob eq 0 then begin
     printf,11,'STEP 14 OK: Species consistent in STARTUPfile and MODfile'
@@ -1154,11 +1126,10 @@ if itmod eq 1 then begin
             if inqStHr.datatype eq 'UNKNOWN' and inqEnHr.datatype eq 'UNKNOWN' then begin
               ncdf_varget, Id, idname, var
               dimVar=n_elements(var)
-              ;if idname eq 'MONDAINO_TEMP' then stop  ;print,i,is,dimVar
               if dimvar ne 8760 then begin
                 printf,11,'Incorrect nb of time elements in variable '+idname+' in MODfile'
                 iprob=1
-              endif
+              endif  
             endif else begin
               ncdf_attget,id,'StartHour',StartHour,/global
               ncdf_attget,id,'EndHour',EndHour,/global
@@ -1176,7 +1147,7 @@ if itmod eq 1 then begin
         endfor
       endfor
     endif
-    if icase eq 1 then begin
+    if icase eq 1 then begin    
       for i=0,n_elements(statnames)-1 do begin
         idname=statnames(i)
         Result = NCDF_VARID(id, idName)
@@ -1198,7 +1169,7 @@ if itmod eq 1 then begin
             if dimvar[1] ne 8760 then begin
               printf,11,'Incorrect nb of time elements in variable '+idname+' in MODfile'
               iprob=1
-            endif
+            endif  
           endif else begin
             ncdf_attget,id,'StartHour',StartHour,/global
             ncdf_attget,id,'EndHour',EndHour,/global
@@ -1210,7 +1181,7 @@ if itmod eq 1 then begin
             endif
           endelse
         endif else begin
-          printf,11,'Variable '+idName+' does NOT exist in MODfile'
+          printf,11,'Variable '+idName+' for '+spec(is)+' does NOT exist in MODfile'
           iprob=1
         endelse
       endfor
@@ -1218,7 +1189,7 @@ if itmod eq 1 then begin
     ncdf_close,id
   endif
   if iprob eq 1 then begin
-    txt='STEP 15: STOP! TimeLength of MOD/species files [< 8760|8784 (hourly), =1 (yearly)]'  
+    txt='STEP 15: STOP! TimeLength MODfile/species NE 8760'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
     txtall=['STOP',txtall]
@@ -1260,7 +1231,7 @@ if itmod eq 1 then begin
       for is=0,n_elements(spec)-1 do begin
         if icase eq 0 then begin
           idname=statnames(i)+'_'+spec(is)
-          result=ncdf_varid(id, idName)
+          result=ncdf_varid(id, idName) 
           if result eq -1 then goto,nosp
           ncdf_varget,id,idname,var
         endif
@@ -1269,7 +1240,7 @@ if itmod eq 1 then begin
           cc=where(spec[is] eq params,ncc)
           if ncc ne 1 then goto,nosp
           !quiet=1
-          ncdf_varget,id,idname,varall,count=[1,8760],offset=[cc[0],0]
+          ncdf_varget,id,idname,varall,count=[1,8760],offset=[cc[0],0]  
           !quiet=0
           var=reform(varall)
         endif
@@ -1441,7 +1412,7 @@ if itobsmod eq 1 then begin
           endif
           if icase eq 1 then begin
             cc=where(spec[is] eq params,ncc)
-            ncdf_varget,id,idname,varall,count=[1,8760],offset=[cc[0],0]
+            ncdf_varget,id,idname,varall,count=[1,8760],offset=[cc[0],0]           
             var=reform(varall)
           endif
           ivar=finite(var)
@@ -1505,9 +1476,6 @@ if itobsmod eq 1 then begin
         readf,1,atxt
         res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
         res=strcompress(res,/remove_all)
-        ; KeesC 11JAN2013
-        nres=n_elements(res)
-        if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat17
         if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
           res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
           nb_specstat=n_elements(res2)-2
@@ -1570,9 +1538,6 @@ if itobsmod eq 1 then begin
           endif
         endfor
       endif
-      ; KeesC 11JAN2013
-      nextstat17:
-      close,1
     endfor
     
   endif  ; itobs ne 1

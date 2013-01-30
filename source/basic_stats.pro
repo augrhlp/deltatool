@@ -265,7 +265,6 @@ pro obs_run_nan, request,result,obsValues, runValues
     res_end=strsplit(end_seasons_dates_hlp,'*',/extract)
     day_end=fix(strmid(res_end,0,2))
     month_end=fix(strmid(res_end,2,2))
-    if 4*(year/4) eq year and day_end eq 31 and month_end eq 12 then day_end=30
     index_end_season=intarr(n_elements(day_end))
 
     ysw=request->getSeasonType()  ;year, summer, winter
@@ -949,7 +948,6 @@ pro time_operations, request, result, obsTemp, runTemp
     day_end=fix(strmid(res_end,0,2))
     month_end=fix(strmid(res_end,2,2))
     index_end_season=intarr(n_elements(day_end))
-    ;if 4*(year/4) eq year and day_end eq 31 and month_end eq 12 then day_end=30
     ysw=request->getSeasonType()  ;year, summer, winter
     ; From season: Winter is 0101-2802 & 0112-3112
     ; For leapyear should be 0101-2902 & 0112-3112

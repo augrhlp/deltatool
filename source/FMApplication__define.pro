@@ -580,10 +580,10 @@ END
 
 PRO FMApplication::doRecognize, x, y
 
- ; if (self.executeOk[0] eq 1 and self.executeOk[1] eq 1) then begin
+  if (self.executeOk[0] eq 1 and self.executeOk[1] eq 1) then begin
     destCoord=convert_coord(x, y, /DEVICE, /TO_NORMAL)
     self->recognize, destCoord
-  ;endif
+  endif
   
 END
 
@@ -1516,7 +1516,7 @@ PRO FMApplication::doElaboration, request, multipleUserChoices
 
   widget_control, /HOURGLASS
   startTime=systime(/SECONDS)
-  self.dataMinerMgr->readAllData, request, result, screensize=self.mainView->getScreenSize(), ONLYMODEL=request->getUseObservedModel()
+  self.dataMinerMgr->readAllData, request, result, screensize=self.mainView->getScreenSize()
   endTime=systime(/SECONDS)
   ;print, '-->', endTime-startTime
   widget_control, HOURGLASS=0
@@ -1822,9 +1822,9 @@ PRO FMApplication::startUp
         'DAYPERIOD_FILE' : self.dayPeriodList->fillDataFromFile, confDir+fileName
         'PARAMETER_FILE' : parameterFileName=confDir+fileName ; Save parameter File Name for later use
         'OBSERVED_FILE' : observedFileName=confDir+fileName ; Save observed File Name for later use
-        'TXT_VERSION_DATE' : self.versionDate='31-01-2013'  ;varName ; save
+        'TXT_VERSION_DATE' : self.versionDate='07-01-2013'  ;varName ; save
         'TXT_PS_CHARSIZE_FACTOR' : self.psCharSizeFactor=float(varName) ; save
-        'TXT_VERSION_CODE' : self.versionCode='3.2'  ;varName ; save
+        'TXT_VERSION_CODE' : self.versionCode='3.1'  ;varName ; save
         'BROWSER_LOCATION' : self->setBrowserLocation, fileName ; save location of browser application
         'NOTEPAD_LOCATION' : self->setNotePadLocation, fileName ; save location of notepad application
         'DOCUMENTSREADER_LOCATION' : self->setDocReaderLocation, fileName ; Save location of doc reader
