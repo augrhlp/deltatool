@@ -78,28 +78,15 @@ FUNCTION DataMiner::readCSVFile, filename, HEADER=HEADER, ONLYMODEL=ONLYMODEL
           HEADER=info
           ; KeesC 11DEC2012: Problem Ana, day = 1hr ... 24 hr !
           storeData=strarr(n_elements(info),8785) & storeData(*,*)='-999'  ;8760
-          ;        for im=0,11 do begin
-          ;        for id=0,day_nb(im)-1 do begin
-          ;        for ih=0,23 do begin
-          ;          sim=strtrim(im,2)
-          ;          if im le 9 then sim='0'+sim
-          ;          sid=strtrim(id,2)
-          ;          if id le 9 then sid='0'+sid
-          ;          sih=strtrim(ih,2)
-          ;          if ih le 9 then sih='0'+sih
-          ;          storeData(1,*)=sim
-          ;          storeData(2,*)=sid
-          ;          storeData(3,*)=sih
-          ;          storeData(4:n_elements(info)-1,*)='-999'
-          ;        endfor
-          ;        endfor
-          ;        endfor
           k=0
         endif else begin
-          if iyear eq 1 then info=[infoyr,'mm','dd','hh',info]
-          if iyear eq 1 then storeData[*, 0]=strcompress(info, /REMOVE_all)
+          if iyear eq 1 then begin
+             info=[infoyr,'mm','dd','hh',info]
+             storeData[*, 0]=strcompress(info, /REMOVE_all)
+             goto,kIsOne
+          endif
           if iyear eq 0 then storeYear=info(0)
-          if iyear eq 1 then goto,kIsOne
+          
           ; year=info(0); mnth=info(1); day=info(2); hrs=info(3)
           ; calculate hour in year
           k1=day_sum(fix(info(1))-1)*24
@@ -288,7 +275,7 @@ PRO DataMiner::readAllData, request, result, ONLYMODEL=ONLYMODEL, screensize=scr
           groupResultData[gl].parameterCode=parameters[k]
           ;      print, parameters[k]
           ;      print, '--> Observed'
-          mParData=self->readMonitoringData(monitFileName, parameters[k], NOTPRESENT=NOTPRESENT)
+          mParData=self->readMonitoringData(monitFileName, parameters[k], NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL)
           if NOTPRESENT eq 1 then begin
             ;print, 'NOT PRESENT'
             ptr_free, groupResultData[gl].observedData ; null pointer
@@ -358,7 +345,7 @@ FUNCTION DataMiner::readMonitoringData, fileName, parameterCode, ONLYMODEL=ONLYM
   
   allData=self->readCSVFile(fileName, HEADER=HEADER, ONLYMODEL=ONLYMODEL)
   NOTPRESENT=0
-  if ~ONLYMODEL then parData=self->readParameter(parameterCode, allData, HEADER, NOTPRESENT=NOTPRESENT) else parData=allData
+  if ~(keyword_set(ONLYMODEL)) then parData=self->readParameter(parameterCode, allData, HEADER, NOTPRESENT=NOTPRESENT) else parData=allData
   if NOTPRESENT then begin
   ;    print, '<',parameterCode, '> ', 'isn''t in :<', fileName, '>'
   endif
@@ -373,7 +360,7 @@ FUNCTION DataMiner::readMonitoringDataForAllParameters, fileName, parameterCodes
   parNumber=n_elements(parameterCodes)
   pars=ptrarr(parNumber)
   for i=0, parNumber-1 do begin
-    parData=self->readParameter(parameterCode, allData, HEADER, NOTPRESENT=NOTPRESENT)
+    if ~(keyword_set(ONLYMODEL)) then parData=self->readParameter(parameterCode, allData, HEADER, NOTPRESENT=NOTPRESENT)
     if NOTPRESENT then begin
     ;      print, '<',parameterCode, '> ', 'isn''t in :<', fileName, '>'
     ;      errMsg=dialog_message('<'+parameterCode+ '> isn''t in :<'+ fileName+ '>', /ERROR)
