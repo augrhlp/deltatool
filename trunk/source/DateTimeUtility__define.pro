@@ -359,9 +359,9 @@ FUNCTION DateTimeUtility::init, template
   self.validCode=['ss', 'mi', 'hh24', 'hh', 'dd',  'dow', 'mm', 'month', 'yy', 'yyyy']
   self.conversionFactorToHour=[1./3600, 1./60, 1., 1., 24.,  7.*24, 31, 31, 365., 365.]
   self.offsetToHour=[0, 0, 0, 0, 24,  0, 0, 0, 0, 0]
-  self.monthsDays=[31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-  ;KeesC leapyear 
-;  self.monthsDays=[31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 30]
+;KeesC leapyear
+;  self.monthsDays=[31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  self.monthsDays=[31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
   return, 1
   
 END

@@ -1480,9 +1480,6 @@ FUNCTION FMApplication::buildRequest, multipleUserChoices, location, entityDispl
   request->setEndDate, elaborationDisplay->getEndDateInfo(/REAL)
   startIndex=dtu->getAbsoluteHours(request->getStartDate(), /STRUCT)
   endIndex=dtu->getAbsoluteHours(request->getEndDate(), /STRUCT)
-  ;  print, '****startIndex, endIndex***'
-  ;  print, startIndex, endIndex
-  ;  print, '***************************'
   request->setStartIndex, startIndex
   request->setEndIndex, endIndex
   request->setStartPlotIndex, startIndex
@@ -1795,11 +1792,7 @@ PRO FMApplication::startUp
     if lookUpIdx[0] eq -1 then doLookUp=1 else doLookUp=fix(parameterValue[lookUpIdx])
     if doLookUp then self.fileSystemMgr->lookUpSystemData, modelInfo=modelInfo
     
-    ; Modified summer 2012 MM (V 3_0) Start
-    ;self->setScaleInfo, scaleInfo
     if n_elements(modelInfo) ne 0 then self->setModelInfo, modelInfo
-    ; Modified summer 2012 MM (V 3_0) End
-    ; Load Standard Resources first (fixed)
     extraParameterNames=[''] & extraParameterValues=['']
     for i=0, n_elements(parameterName)-1 do begin
       thisPar=strupCase(parameterName[i])

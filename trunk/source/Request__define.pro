@@ -1542,10 +1542,8 @@ PRO Request__Define
     elaborationName: '',$
     elaborationRoutine: '', $
     elaborationOCUse: 0, $
-    ;MM summer 2012 Start
     elaborationOCStat: '', $
     elaborationOCTimeAvgName: '', $
-    ;MM summer 2012 End
     parameterCodes: ptr_new(), $
     parameterNames: ptr_new(), $
     parameterMeasureUnits: ptr_new(), $
@@ -1567,10 +1565,7 @@ PRO Request__Define
     fileSysMgr: obj_new(), $
     gcMgr: obj_new(), $
     obsCatMgr: obj_new(), $
-    ;MM summer 2012 Start
-    ;scaleInfo: '', $
     modelInfo: getFMModelInfoStruct(), $
-    ;MM summer 2012 End
     utility: obj_new(), $
     dtu: obj_new(), $
     datadumpfileunit: 0L, $

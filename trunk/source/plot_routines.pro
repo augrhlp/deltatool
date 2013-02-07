@@ -759,7 +759,17 @@ PRO FM_PlotTimeSeries, plotter, request, result, allDataXY, allDataColor, allDat
   tpInfo=result->getGenericPlotInfo()
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-  
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+       Feb29start=59*24
+       Feb29end=Feb29start+23
+       if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+       if startIndex ge Feb29start then begin
+         endIndex=endIndex-24
+         startIndex=startIndex-24
+       endif  
+    endif   
   allDataXY=tpInfo->getXYS()
   allDataSymbol=tpInfo->getSymbols()
   allDataColor=tpInfo->getColors()
@@ -772,10 +782,11 @@ PRO FM_PlotTimeSeries, plotter, request, result, allDataXY, allDataColor, allDat
   
   yrange=[min(alldataXY,/nan),max(alldataXY,/nan)]
   
-  plot,alldataXY(0,*),color=0,background=255,xrange=[0,n_elements(alldataXY(0,*))],$
+  xr=startIndex+indgen(endIndex-startIndex+1)
+  plot,xr,alldataXY(0,*),color=0,background=255,xrange=startIndex+[0,n_elements(alldataXY(0,*))],$
     xstyle=1,yrange=yrange, position=plotter->getPosition(),xtitle='Hours',$
     ytitle='Units '+mus
-  for i=0,n_elements(allDataXY(*,0))-2 do oplot,alldataXY(i+1,*),color=alldataColor(i+1)+2
+  for i=0,n_elements(allDataXY(*,0))-2 do oplot,xr,alldataXY(i+1,*),color=alldataColor(i+1)+2
   
 END
 
@@ -1256,7 +1267,17 @@ PRO FM_PlotGoogleEarth, plotter, request, result
   
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-  
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+       Feb29start=59*24
+       Feb29end=Feb29start+23
+       if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+       if startIndex ge Feb29start then begin
+         endIndex=endIndex-24
+         startIndex=startIndex-24
+       endif  
+    endif  
   ;  DEVICE,DECOMPOSE=0
   LOADCT,39
   tek_color;, 0, 32
@@ -3324,6 +3345,17 @@ PRO LEGENDINFO,request,result,plotter
   
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+      Feb29start=59*24
+      Feb29end=Feb29start+23
+      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+      if startIndex ge Feb29start then begin
+        endIndex=endIndex-24
+        startIndex=startIndex-24
+      endif  
+    endif    
   coords=[0.77,0.9]
   if resPoscript then coords(1)=coords(1)-0.15
   coords=plotter->legendNormalize(coords)
@@ -3607,6 +3639,15 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   parCodes=request->getParameterCodes()
   modelInfo=request->getModelInfo()
   year=modelInfo.year
+   if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+       Feb29start=59*24
+       Feb29end=Feb29start+23
+       if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+       if startIndex ge Feb29start then begin
+         endIndex=endIndex-24
+         startIndex=startIndex-24
+       endif  
+    endif  
   scale=modelInfo.scale
   scale='ALL'
   frequency=modelInfo.frequency
@@ -3701,9 +3742,18 @@ end
 pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries,percentile
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+      Feb29start=59*24
+      Feb29end=Feb29start+23
+      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+      if startIndex ge Feb29start then begin
+        endIndex=endIndex-24
+        startIndex=startIndex-24
+      endif  
+    endif  
   parCodes=request->getParameterCodes()
-  modelInfo=request->getModelInfo()
-  year=modelInfo.year
   scale=modelInfo.scale
   scale='ALL'
   frequency=modelInfo.frequency
