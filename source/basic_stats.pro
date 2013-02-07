@@ -220,6 +220,17 @@ pro obs_run_nan, request,result,obsValues, runValues
   elabcode=request->getElaborationCode()
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+      Feb29start=59*24
+      Feb29end=Feb29start+23
+      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+      if startIndex ge Feb29start then begin
+        endIndex=endIndex-24
+        startIndex=startIndex-24
+      endif  
+    endif  
   ddn=request->getHourType()
   hour=request->getHourInfo() ;HourType
   start_hour_hlp=hour[0].value
@@ -245,12 +256,14 @@ pro obs_run_nan, request,result,obsValues, runValues
   runValues=runValues[startIndex:endIndex]
 
   if 4*(year/4) ne year then begin   ;normal year
+    iyear=0
     day_nb= [31,28,31,30,31,30,31,31,30,31,30,31]
     day_sum=[0,31,59,90,120,151,181,212,243,273,304,334,365]
   endif
-  if 4*(year/4) eq year then begin   ;leapyear - no 31 dec
+  if 4*(year/4) eq year then begin   ;leapyear 
+    iyear=1
     day_nb= [31,29,31,30,31,30,31,31,30,31,30,30]
-    day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
+    day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,366]
   endif
 
   if elabcode ge 0 and elabcode ne 71 and elabcode ne 72 and elabcode ne 73 then begin
@@ -265,7 +278,7 @@ pro obs_run_nan, request,result,obsValues, runValues
     res_end=strsplit(end_seasons_dates_hlp,'*',/extract)
     day_end=fix(strmid(res_end,0,2))
     month_end=fix(strmid(res_end,2,2))
-    if 4*(year/4) eq year and day_end eq 31 and month_end eq 12 then day_end=30
+;    if 4*(year/4) eq year and day_end eq 31 and month_end eq 12 then day_end=30
     index_end_season=intarr(n_elements(day_end))
 
     ysw=request->getSeasonType()  ;year, summer, winter
@@ -279,7 +292,7 @@ pro obs_run_nan, request,result,obsValues, runValues
       endif
     endif
 
-    ahlp=intarr(8760) & ahlp(*)=0
+    ahlp=intarr(8784) & ahlp(*)=0
     for i=0,n_elements(day_start)-1 do begin
       index_start_season(i)=day_sum(month_start(i)-1)*24+(day_start(i)-1)*24
       index_end_season(i)=day_sum(month_end(i)-1)*24+(day_end(i))*24-1
@@ -290,15 +303,16 @@ pro obs_run_nan, request,result,obsValues, runValues
     end_hour_hlp=hour[1].value
     res_start=strsplit(start_hour_hlp,'*',/extract)
     res_end=strsplit(end_hour_hlp,'*',/extract)
-    bhlp=intarr(8760) & bhlp(*)=0
+    bhlp=intarr(8784) & bhlp(*)=0
     if res_start[0] eq 'WD' then begin  ;2009
-      for i=0,364 do begin
+      
+      for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear ne 0 and DayYear ne 6 then bhlp(i*24:i*24+23)=1
       endfor
     endif
     if res_start[0] eq 'WE' then begin
-      for i=0,364 do begin
+      for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear eq 0 or DayYear eq 6 then bhlp(i*24:i*24+23)=1
       endfor
@@ -313,11 +327,14 @@ pro obs_run_nan, request,result,obsValues, runValues
       endfor
     endif
     ;   intersection of ahlp and bhlp
+    if iyear eq 0 then begin
+      ahlp=reform(ahlp(0:8759))
+      bhlp=reform(bhlp(0:8759))
+    endif
     ahlp=ahlp(startIndex:endIndex)
     bhlp=bhlp(startIndex:endIndex)
     ahlp=ahlp*bhlp
     cc=where(ahlp eq 1,countDaySeason)
-  ;    facDaySeason=8760./countDaySeason
   endif
 
   if abs(elabcode) eq 71 or abs(elabcode) eq 72 or abs(elabcode) eq 73 then begin
@@ -325,14 +342,14 @@ pro obs_run_nan, request,result,obsValues, runValues
     ysw=request->getSeasonType()  ;year, summer, winter
     ddn=request->getHourType()    ;allday, day, night, WD, WE
 
-    ahlp=intarr(8760) & ahlp(*)=0
+    ahlp=intarr(8784) & ahlp(*)=0
     if elabcode eq 71 then begin  ;day
-      for i=0,364 do begin
+      for i=0,364+iyear do begin
         ahlp(24*i+fix(start_hour_hlp)-1:24*i+fix(end_hour_hlp)-1)=1
       endfor
     endif
     if elabcode eq -71 then begin  ;night
-      for i=0,364 do begin
+      for i=0,364+iyear do begin
         ahlp(24*i:24*i+fix(start_hour_hlp)-2)=1
         ahlp(24*i+fix(end_hour_hlp):24*i+23)=1
       endfor
@@ -342,22 +359,22 @@ pro obs_run_nan, request,result,obsValues, runValues
     endif
     if elabcode eq -72 then begin  ;winter
       ahlp(day_sum(0):day_sum(2)*24-1)=1
-      ahlp(day_sum(11)*24:8759)=1
+      ahlp(day_sum(11)*24:8783)=1
     endif
     if elabcode eq 73 then begin  ;weekdays
-      for i=0,364 do begin
+      for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear ne 0 and DayYear ne 6 then ahlp(i*24:i*24+23)=1
       endfor
     endif
     if elabcode eq -73 then begin  ;weekend
-      for i=0,364 do begin
+      for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear eq 0 or DayYear eq 6 then ahlp(i*24:i*24+23)=1
       endfor
     endif
 
-    bhlp=intarr(8760) & bhlp(*)=0
+    bhlp=intarr(8784) & bhlp(*)=0
     if abs(elabcode) eq 71 or abs(elabcode) eq 73 then begin
       if ysw eq 0 then begin  ;year
         bhlp(*)=1
@@ -367,7 +384,7 @@ pro obs_run_nan, request,result,obsValues, runValues
       endif
       if ysw eq 2 then begin ; winter
         bhlp(day_sum(0):day_sum(2)*24-1)=1
-        bhlp(day_sum(11)*24:8759)=1
+        bhlp(day_sum(11)*24:8783)=1
       endif
     endif
     if abs(elabcode) eq 72 then begin
@@ -375,35 +392,38 @@ pro obs_run_nan, request,result,obsValues, runValues
         bhlp(*)=1
       endif
       if ddn eq 1 then begin ;day
-        for i=0,364 do begin
+        for i=0,364+iyear do begin
           bhlp(24*i+7:24*i+18)=1
         endfor
       endif
       if ddn eq 2 then begin ;night
-        for i=0,364 do begin
+        for i=0,364+iyear do begin
           bhlp(24*i:24*i+6)=1
           bhlp(24*i+19:24*i+23)=1
         endfor
       endif
       if ddn eq 3 then begin  ;WD
-        for i=0,364 do begin
+        for i=0,364+iyear do begin
           DayYear=(julday(1,i+1,year)+1) mod 7
           if DayYear ne 0 and DayYear ne 6 then bhlp(i*24:i*24+23)=1
         endfor
       endif
       if ddn eq 4 then begin
-        for i=0,364 do begin
+        for i=0,364+iyear do begin
           DayYear=(julday(1,i+1,year)+1) mod 7
           if DayYear eq 0 or DayYear eq 6 then bhlp(i*24:i*24+23)=1
         endfor
       endif
+    endif
+    if iyear eq 0 then begin
+      ahlp=reform(ahlp(0:8759))
+      bhlp=reform(bhlp(0:8759))
     endif
     ahlp=ahlp(startIndex:endIndex)
     bhlp=bhlp(startIndex:endIndex)
     ;   intersection of ahlp and bhlp
     ahlp=ahlp*bhlp
     cc=where(ahlp eq 1,countDaySeason)
-  ;;    facDaySeason=8760./countDaySeason
   endif
   countThreshold=float(countDaySeason)
 
@@ -661,8 +681,14 @@ PRO runningAverage, request, result
   runningMeanInfo=request.runningMeanInfo
   if runningMeanInfo.template eq 'hh' then hours=fix(runningMeanInfo.value)
 
+  iyear=0
+  yrhrs=8760
+  if 4*(year/4) eq year then begin   ;leapyear
+    iyear=1  
+    yrhrs=8784
+  endif
   datas=n_elements(dataResult)
-  bigMatrix=fltarr(datas, 2, 8760, /NO)
+  bigMatrix=fltarr(datas, 2, yrhrs, /NO)
   monitIdxs=intarr(datas)
   runIdxs=intarr(datas)
   j=0 & k=0
@@ -684,7 +710,7 @@ PRO runningAverage, request, result
   bigMatrix[0:j-1, 0, *]=bigMatrix[monitIdxs, 0, *] ;
   bigMatrix[0:k-1, 1, *]=bigMatrix[runIdxs, 1, *] ;
   bigMatrix=bigMatrix[0:parMax-1, *, *]
-  hlpT=fltarr(parMax, 2, 8760, 2)
+  hlpT=fltarr(parMax, 2, yrhrs, 2)
   hlp1=finite(bigMatrix)
   hlp2=bigMatrix
   ;[1 obs+n models, statNumbers, hours]
@@ -697,7 +723,7 @@ PRO runningAverage, request, result
   endfor
   chlp=where(hlp1 eq 0,cnth)
   if cnth ge 1 then hlp1(chlp)=!values.f_nan
-  for n=0,8759 do begin
+  for n=0,yrhrs-1 do begin
     bigMatrix[*,*,n]=hlp2[*,*,n]/hlp1[*,*,n]
   endfor
   obsvar=0
@@ -723,106 +749,22 @@ PRO preProcessing, request, result
   sInfo=request->getSplitSeasonInfo()
   hInfo=request->getSplitHourInfo()
 
-  ;?? to nan all the data outside season/hour selection range
-  ;only 'hh' and 'ddmm' allowed at this time
-
   hPeriods=n_elements(hInfo)
   sPeriods=n_elements(sInfo)
   startH=dtu->getAbsoluteHours(hInfo[0:hPeriods/2-1].value, template=hInfo[0].template)
   endH=dtu->getAbsoluteHours(hInfo[hPeriods/2:hPeriods-1].value, template=hInfo[hPeriods/2].template)
-  ;hoursDay=
   startS=dtu->getAbsoluteHours(sInfo[0:sPeriods/2-1].value, template=sInfo[0].template)
   endS=dtu->getAbsoluteHours(sInfo[sPeriods/2:sPeriods-1].value, template=sInfo[sPeriods/2].template)
-  ;  print, 'before adjustement'
-  ;  print, startH, endH
-  ;  print, startS, endS
-  ; start at 00 adjustement
   if not(dtu->containHour(sInfo[0].template)) then startS[*]=startS[*]-23
   if not(dtu->containHour(sInfo[sPeriods/2].template)) then endS[*]=endS[*]
-  ; end at 23 adjustement
   if not(dtu->containHour(hInfo[0].template)) then startH[*]=startH[*]-23
   if not(dtu->containHour(hInfo[hPeriods/2].template)) then endH[*]=endH[*]
   obj_destroy, dtu
-  ;  print, 'after adjustement'
-  ;  print, 'Selected hours->', startH, endH
-  ;  print, 'Selected season->', startS, endS
-  ;  print, '*****************'
   allYearHours=bytarr(8760)
-
-  ;works only for ddmm (season) and hh (hour)...
-  ;result->applyNan, startS, endS
   result->applySeasonPeriodSelection, startS, endS
   result->applyHourPeriodSelection, startH, endH
-;endif
-;if sInfo[0].template eq 'ddmm' then begin
-;endif
-;ToDo: check this old version
-;  niste=nistel(index)
-;  varallD12sav=varallD12 ;???
-;  obsallD12sav=obsallD12 ;???
-;
-;  if iddn ne 0 or iysw ne 0 then begin ; period selection
-;    for ih=0,8760 do begin ; use indgen?
-;      varallD12(*,0:niste-1,ih)=yswddn(ih)*varallD12(*,0:niste-1,ih)
-;      obsallD12(0:niste-1,ih)=yswddn(ih)*obsallD12(0:niste-1,ih)
-;    endfor
-;  endif
-;
-;  if imob eq 0 then begin
-;    hlp=where(finite(obsallD12) eq 0,nc)
-;    if nc ge 1 then begin
-;      for nm=0,nmodels-1 do begin
-;        hlp0=reform(varallD12(nm,*,*))
-;        hlp0(hlp)=!values.f_nan
-;        varallD12(nm,*,*)=hlp0
-;      endfor
-;    endif
-;  endif
-;
-;  varallD12(5,*,0)=varallD12(5,*,2) ; ???
-;  varallD12(5,*,1)=varallD12(5,*,2) ; ???
-;
-;  ;varall(nmodels,nstateff,0:8760), obsall(nstateff,0:8760)
-;
-;  bars=fltarr(nmodels+1,/nozero) & bars(*)=!values.f_nan
-;  if niste ge 1 then begin
-;    varallh=reform(varallD12(*,0:niste-1,*))
-;    obsallh=reform(obsallD12(0:niste-1,*))
-;  endif
-;  nstateff=niste
-;  ;if niste eq 0 then goto,noplot
-;  if nstateff le 1 then begin
-;    hlp=obsallh
-;    obsallh=fltarr(2,8761)
-;    obsallh(0,*)=hlp
-;    obsallh(1,*)=hlp
-;    hlp=varallh
-;    varallh=fltarr(nmodels,2,8761)
-;    varallh(*,0,*)=hlp
-;    varallh(*,1,*)=hlp
-;    if index eq 0 then obsallD1=obsallh
-;    if index eq 1 then obsallD2=obsallh
-;    if index eq 0 then varallD1=varallh
-;    if index eq 1 then varallD2=varallh
-;  endif
-;
-;  perctot(index)='' ; use formatted strings? f(4,1)%
-;  perc1=100.*total(float(finite(obsallh(0:niste-1,hour0:hour1))))
-;  perc2=perc1/(total(float(finite(yswddn(hour0:hour1))))*niste)
-;  perc3=fix(perc2*10.)/10.
-;  res=strcompress(strsplit(perc3,'.',/extract),/remove_all)
-;  perctot(index)=res(0)+'.'+strmid(res(1),0,1)
-;  unitm=unit0
-;  ;====> Take the Time running avg value
-;  runningAverage, request, outputData
-;  ;if ihavg ge 2 then runningAverage, request, outputData
-;  ;barsh
-;  barsh=fltarr(nmodels+1,niste,8761,/nozero) & barsh(*,*,*)=!values.f_nan
-;  barsh(1:nmodels,*,*)=reform(varallh(*,0:niste-1,*))
-;  barsh(0,*,*)=reform(obsallh(0:niste-1,*))
-;indic is the elaboration code
-
 END
+
 pro time_operations, request, result, obsTemp, runTemp
 
   ; selection of averaging time information
@@ -834,17 +776,32 @@ pro time_operations, request, result, obsTemp, runTemp
   frequency=modelInfo.frequency
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+      Feb29start=59*24
+      Feb29end=Feb29start+23
+      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+      if startIndex ge Feb29start then begin
+        endIndex=endIndex-24
+        startIndex=startIndex-24
+      endif  
+    endif  
   elabcode=request->getElaborationCode()
   min08Avail=6 ; minimal 8-hours values available
   minDayAvail=18 ; minimal 18 8-hour-mean values should be available per day
 
   if 4*(year/4) ne year then begin   ;normal year
+    iyear=0
+    yrhrs=8760
     day_nb= [31,28,31,30,31,30,31,31,30,31,30,31]
     day_sum=[0,31,59,90,120,151,181,212,243,273,304,334,365]
   endif
   if 4*(year/4) eq year then begin   ;leapyear - no 31 dec
-    day_nb= [31,29,31,30,31,30,31,31,30,31,30,30]
-    day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
+    iyear=1
+    yrhrs=8784
+    day_nb= [31,29,31,30,31,30,31,31,30,31,30,31]
+    day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,366]
   endif
   hourStat=request->getGroupByTimeInfo() ;HourType
   flag_average=hourStat[0].value
@@ -853,16 +810,16 @@ pro time_operations, request, result, obsTemp, runTemp
   endif
   if flag_average eq '08' then begin
     flag_average=fix(flag_average)
-    ahlp=fltarr(8760,flag_average)
-    bhlp=fltarr(8760,flag_average)
+    ahlp=fltarr(yrhrs,flag_average)
+    bhlp=fltarr(yrhrs,flag_average)
     for i=0,flag_average-1 do begin
       ahlp(*,i)=shift(obsTemp,i)
       bhlp(*,i)=shift(runTemp,i)
       if i ge 1 then ahlp(0:i-1,i)=-999
       if i ge 1 then bhlp(0:i-1,i)=-999
     endfor
-    iahlp=intarr(8760,flag_average) & iahlp(*,*)=1
-    ibhlp=intarr(8760,flag_average) & ibhlp(*,*)=1
+    iahlp=intarr(yrhrs,flag_average) & iahlp(*,*)=1
+    ibhlp=intarr(yrhrs,flag_average) & ibhlp(*,*)=1
     kcobs=where(ahlp lt -990,nkcobs)
     kcrun=where(bhlp lt -990,nkcrun)
     if nkcobs ge 1 then begin
@@ -894,7 +851,7 @@ pro time_operations, request, result, obsTemp, runTemp
   if statType eq 0 then begin  ; preserve
   endif
   if statType ge 1 then begin  ; at least 18 values per day, otherwise -999
-    for i=0,364 do begin
+    for i=0,364+iyear do begin
       kcobs=where(obsTemp(i*24:i*24+23) gt -990,nkcobs)
       kcrun=where(runTemp(i*24:i*24+23) gt -990,nkcrun)
       if nkcobs lt minDayAvail then obsTemp(i*24:i*24+23)=-999
@@ -908,20 +865,20 @@ pro time_operations, request, result, obsTemp, runTemp
   if statType eq 0 then begin  ; preserve
   endif
   if statType eq 1 then begin  ; MEAN
-    for i=0,364 do begin
+    for i=0,364+iyear do begin
       obsTemp(i*24:i*24+23)=mean(obsTemp(i*24:i*24+23),/nan)
     endfor
-    for i=0,364 do begin
+    for i=0,364+iyear do begin
       runTemp(i*24:i*24+23)=mean(runTemp(i*24:i*24+23),/nan)
     endfor
   endif
   if statType eq 2 then begin  ; MAX
-    for i=0,364 do obsTemp(i*24:i*24+23)=max(obsTemp(i*24:i*24+23),/nan)
-    for i=0,364 do runTemp(i*24:i*24+23)=max(runTemp(i*24:i*24+23),/nan)
+    for i=0,364+iyear do obsTemp(i*24:i*24+23)=max(obsTemp(i*24:i*24+23),/nan)
+    for i=0,364+iyear do runTemp(i*24:i*24+23)=max(runTemp(i*24:i*24+23),/nan)
   endif
   if statType eq 3 then begin  ; MIN
-    for i=0,364 do obsTemp(i*24:i*24+23)=min(obsTemp(i*24:i*24+23),/nan)
-    for i=0,364 do runTemp(i*24:i*24+23)=min(runTemp(i*24:i*24+23),/nan)
+    for i=0,364+iyear do obsTemp(i*24:i*24+23)=min(obsTemp(i*24:i*24+23),/nan)
+    for i=0,364+iyear do runTemp(i*24:i*24+23)=min(runTemp(i*24:i*24+23),/nan)
   endif
   cc=where(finite(obstemp) eq 0,count)
   if count gt 0 then obstemp(cc)=-999
@@ -949,11 +906,9 @@ pro time_operations, request, result, obsTemp, runTemp
     day_end=fix(strmid(res_end,0,2))
     month_end=fix(strmid(res_end,2,2))
     index_end_season=intarr(n_elements(day_end))
-    ;if 4*(year/4) eq year and day_end eq 31 and month_end eq 12 then day_end=30
     ysw=request->getSeasonType()  ;year, summer, winter
     ; From season: Winter is 0101-2802 & 0112-3112
     ; For leapyear should be 0101-2902 & 0112-3112
-    ; If a winter period ends at 2802 make it 2902
     if 4*(year/4) eq year and ysw eq 2 then begin  ;winter
       whlp=where(month_end eq 2,wnc)  ;find Feb month
       if wnc eq 1 then begin
@@ -964,10 +919,10 @@ pro time_operations, request, result, obsTemp, runTemp
     for i=0,n_elements(day_start)-1 do begin
       index_start_season(i)=day_sum(month_start(i)-1)*24+(day_start(i)-1)*24
       index_end_season(i)=day_sum(month_end(i)-1)*24+(day_end(i))*24-1
-      index_end_season(i)=min([index_end_season(i),8759])
+      index_end_season(i)=min([index_end_season(i),yrhrs-1])
     endfor
 
-    ahlp=intarr(8760) & ahlp(*)=0
+    ahlp=intarr(yrhrs) & ahlp(*)=0
     for i=0,n_elements(day_start)-1 do ahlp(index_start_season(i):index_end_season(i))=1
 
     ;take season into account
@@ -983,16 +938,16 @@ pro time_operations, request, result, obsTemp, runTemp
     end_hour_hlp=hour[1].value
     res_start=strsplit(start_hour_hlp,'*',/extract)
     res_end=strsplit(end_hour_hlp,'*',/extract)
-    ahlp=intarr(8760) & ahlp(*)=0
+    ahlp=intarr(yrhrs) & ahlp(*)=0
 
     if res_start[0] eq 'WD' then begin  ;2009
-      for i=0,364 do begin
+      for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear ne 0 and DayYear ne 6 then ahlp(i*24:i*24+23)=1
       endfor
     endif
     if res_start[0] eq 'WE' then begin
-      for i=0,364 do begin
+      for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear eq 0 or DayYear eq 6 then ahlp(i*24:i*24+23)=1
       endfor
@@ -1001,7 +956,7 @@ pro time_operations, request, result, obsTemp, runTemp
       res_start=fix(strsplit(start_hour_hlp,'*',/extract))
       res_end=fix(strsplit(end_hour_hlp,'*',/extract))
       for j=0,n_elements(res_start)-1 do begin
-        for i=0,364 do begin
+        for i=0,364+iyear do begin
           ahlp(24*i+res_start(j):24*i+res_end(j))=1
         endfor
       endfor
@@ -1021,16 +976,15 @@ pro time_operations, request, result, obsTemp, runTemp
     
     ysw=request->getSeasonType()  ;year, summer, winter
     ddn=request->getHourType()    ;allday, day, night, WD, WE
-    ;    print,'ysw,ddn',ysw,ddn
-
-    ahlp=intarr(8760) & ahlp(*)=0
+ 
+    ahlp=intarr(yrhrs) & ahlp(*)=0
     if elabcode eq 71 then begin  ;day
-      for i=0,364 do begin
+      for i=0,364+iyear do begin
         ahlp(24*i+fix(start_hour_hlp)-1:24*i+fix(end_hour_hlp)-1)=1
       endfor
     endif
     if elabcode eq -71 then begin  ;night
-      for i=0,364 do begin
+      for i=0,364+iyear do begin
         ahlp(24*i:24*i+fix(start_hour_hlp)-2)=1
         ahlp(24*i+fix(end_hour_hlp):24*i+23)=1
       endfor
@@ -1040,22 +994,22 @@ pro time_operations, request, result, obsTemp, runTemp
     endif
     if elabcode eq -72 then begin  ;winter
       ahlp(day_sum(0):day_sum(2)*24-1)=1
-      ahlp(day_sum(11)*24:8759)=1
+      ahlp(day_sum(11)*24:yrhrs-1)=1
     endif
     if elabcode eq 73 then begin  ;weekdays
-      for i=0,364 do begin
+      for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear ne 0 and DayYear ne 6 then ahlp(i*24:i*24+23)=1
       endfor
     endif
     if elabcode eq -73 then begin  ;weekend
-      for i=0,364 do begin
+      for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear eq 0 or DayYear eq 6 then ahlp(i*24:i*24+23)=1
       endfor
     endif
 
-    bhlp=intarr(8760) & bhlp(*)=0
+    bhlp=intarr(yrhrs) & bhlp(*)=0
     if abs(elabcode) eq 71 or abs(elabcode) eq 73 then begin
       if ysw eq 0 then begin  ;year
         bhlp(*)=1
@@ -1065,7 +1019,7 @@ pro time_operations, request, result, obsTemp, runTemp
       endif
       if ysw eq 2 then begin ; winter
         bhlp(day_sum(0):day_sum(2)*24-1)=1
-        bhlp(day_sum(11)*24:8759)=1
+        bhlp(day_sum(11)*24:yrhrs-1)=1
       endif
     endif
     if abs(elabcode) eq 72 then begin
@@ -1073,24 +1027,24 @@ pro time_operations, request, result, obsTemp, runTemp
         bhlp(*)=1
       endif
 ;      if ddn eq 1 then begin ;day
-;        for i=0,364 do begin
+;        for i=0,364+iyear do begin
 ;          bhlp(24*i+7:24*i+18)=1
 ;        endfor
 ;      endif
 ;      if ddn eq 2 then begin ;night
-;        for i=0,364 do begin
+;        for i=0,364+iyear do begin
 ;          bhlp(24*i:24*i+6)=1
 ;          bhlp(24*i+19:24*i+23)=1
 ;        endfor
 ;      endif
 ;      if ddn eq 3 then begin  ;WD
-;        for i=0,364 do begin
+;        for i=0,364+iyear do begin
 ;          DayYear=(julday(1,i+1,year)+1) mod 7
 ;          if DayYear ne 0 and DayYear ne 6 then bhlp(i*24:i*24+23)=1
 ;        endfor
 ;      endif
 ;      if ddn eq 4 then begin
-;        for i=0,364 do begin
+;        for i=0,364+iyear do begin
 ;          DayYear=(julday(1,i+1,year)+1) mod 7
 ;          if DayYear eq 0 or DayYear eq 6 then bhlp(i*24:i*24+23)=1
 ;        endfor

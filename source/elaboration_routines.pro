@@ -1,6 +1,17 @@
 PRO FM_Generic, request, result
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+      Feb29start=59*24
+      Feb29end=Feb29start+23
+      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+      if startIndex ge Feb29start then begin
+        endIndex=endIndex-24
+        startIndex=startIndex-24
+      endif  
+    endif  
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   nsce=request->getScenarioNumber()
@@ -980,7 +991,17 @@ pro FM_MeanTS, request, result
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-  ; standard functions available for "request" object
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+       Feb29start=59*24
+       Feb29end=Feb29start+23
+       if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+       if startIndex ge Feb29start then begin
+         endIndex=endIndex-24
+         startIndex=startIndex-24
+       endif  
+    endif   
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
@@ -1237,7 +1258,17 @@ pro FM_StatTable2, request, result
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-  ; standard functions available for "request" object
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+      Feb29start=59*24
+      Feb29end=Feb29start+23
+      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+      if startIndex ge Feb29start then begin
+        endIndex=endIndex-24
+        startIndex=startIndex-24
+      endif  
+    endif  
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
@@ -1623,7 +1654,17 @@ PRO FM_GoogleEarth, request, result
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-  ; standard functions available for "request" object
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+      Feb29start=59*24
+      Feb29end=Feb29start+23
+      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+      if startIndex ge Feb29start then begin
+        endIndex=endIndex-24
+        startIndex=startIndex-24
+      endif  
+    endif  
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
@@ -1886,7 +1927,17 @@ PRO FM_ConditionScatter, request, result
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-  ; standard functions available for "request" object
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+      Feb29start=59*24
+      Feb29end=Feb29start+23
+      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+      if startIndex ge Feb29start then begin
+        endIndex=endIndex-24
+        startIndex=startIndex-24
+      endif  
+    endif  
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
@@ -2162,7 +2213,17 @@ PRO FM_MultiParModScatter, request, result
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-  ; standard functions available for "request" object
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+      Feb29start=59*24
+      Feb29end=Feb29start+23
+      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+      if startIndex ge Feb29start then begin
+        endIndex=endIndex-24
+        startIndex=startIndex-24
+      endif  
+    endif  
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
@@ -2327,7 +2388,17 @@ pro FM_QQ_SC_ALLTIME, request, result
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-  ; standard functions available for "request" object
+    modelInfo=request->getModelInfo()
+    year=modelInfo.year
+    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+      Feb29start=59*24
+      Feb29end=Feb29start+23
+      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+      if startIndex ge Feb29start then begin
+        endIndex=endIndex-24
+        startIndex=startIndex-24
+      endif  
+    endif  
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
