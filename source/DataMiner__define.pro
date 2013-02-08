@@ -42,7 +42,7 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
   endif
   
   if keyword_set(ONLYMODEL) then begin 
-    storeData=bytarr(8784)
+    storeData=bytarr(2,8784)
   endif else begin
     openr, unit, fileName, /GET_LUN
     bufferString=''
