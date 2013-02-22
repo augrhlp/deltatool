@@ -662,7 +662,7 @@ if itobs eq 1 then begin
     ; KeesC 11JAN2013
     nres=n_elements(res)
     if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat10
-    if strlowcase(res[0]) eq 'yearlyavg' and nlines ne 3 then begin
+    if strlowcase(res[0]) eq 'yearlyavg' and nlines ne 2 then begin
       printf,11,'TimeLines OBSfile (yearly) '+fns+' NE 1 -----',nlines-2
       iprob=1
     endif
@@ -779,7 +779,6 @@ if itobs eq 1 then begin
         endwhile
       endif
       if strlowcase(res[0]) eq 'yearlyavg' then begin
-        readf,1,atxt
         readf,1,atxt
         res2=strsplit(atxt,';',/extract)
         ph=reform(float(res2(0:nb_specstat-1)))
@@ -912,7 +911,6 @@ if itobs eq 1 then begin
         endwhile
       endif
       if strlowcase(res[0]) eq 'yearlyavg' then begin
-        readf,1,atxt
         readf,1,atxt
         res2=strsplit(atxt,';',/extract)
         ph=reform(float(res2(0:nb_specstat-1)))

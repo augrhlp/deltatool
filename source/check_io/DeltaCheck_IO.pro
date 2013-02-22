@@ -18,6 +18,7 @@ PRO updateRunFileName, ev, deltaMgr, model=model, scenario=scenario
   scenarioText=widget_info(scenarioCB, /COMBOBOX_GETTEXT)
   scenarioIndex=widget_info(scenarioCB, /COMBOBOX_NUMBER)
   
+;KeesC 21FEB2013: Q to Mirko, Next line: Take extension[.] depending on existence of filename !!   
   filename=scenarioText+'_'+modelText+suffix+extension[0]
   utility=obj_new('FMUtility')
   if n_elements(scenario) then begin
