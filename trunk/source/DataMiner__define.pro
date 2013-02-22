@@ -59,39 +59,35 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
       ;      print, 'Discard row', i
       ;      print, bufferString
       endif else begin
-        info=strsplit(bufferString, ';', /EXTRACT, count=count, /PRESERVE_NULL)
+        info=strsplit(bufferString, ';', /EXTRACT, count=count)  ;, /PRESERVE_NULL)
         if firstRow eq 1 then begin
           firstRow=0     
           if strcompress(strlowcase(info[0]),/remove_all) eq 'yearlyavg' then begin
-            info=['YearlyAvg','mm','dd','hh',info[2:n_elements(info)-1]]
+            info=['YearlyAvg','mm','dd','hh',info[2:count-1]]
             infoyr=info[0]
             yearAVG=1  ; yearlyavg
           endif
           HEADER=info
           storeData=strarr(n_elements(info),8785) & storeData(*,*)='-999'  ;8760
           nInf=n_elements(info)
-          k=0
         endif else begin
           if yearAVG eq 1 then begin
              info=[infoyr,'mm','dd','hh',info]
              storeData[*, 0]=strcompress(info, /REMOVE_all)
-             goto,kIsOne
+             goto,yAvg
           endif         
-          ; year=info(0); mnth=info(1); day=info(2); hrs=info(3)
-          ; calculate hour in year
           k1=day_sum(fix(info(1))-1)*24
           k2=(fix(info(2))-1)*24
           k3=fix(info(3))
           k0=k1+k2+k3
           storeData[*, k0]=strcompress(info, /REMOVE_all)
-          k++
         endelse
       endelse
     endwhile
-    kIsOne:
+    yAvg:
     storeData(0,*)=year
 ;KeesC 2FEB2013  
-    if k eq 0 then begin
+    if yearAVG eq 1 then begin
       for kk=1,8783 do storeData(*,kk)=storeData(*,0)
     endif
     if 4*(fix(year)/4) ne fix(year) then begin   ;normal year: shift 24 hours back
@@ -419,7 +415,6 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
     openr, unit, fileName, /GET_LUN
     bufferString=''
     RowNr=0
-    kk=0
     yearAVG=0
     while not(eof(unit)) do begin
       readf, unit, bufferString
@@ -446,29 +441,32 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
           if strupcase(strcompress(info[0],/remove_all)) eq strupcase(statCode) then begin
             kpol=where(pollout eq parameterCodes[k],nc)
             nr=1+kpol[0]
-; year=info(0); mnth=info(1); day=info(2); hrs=info(3)
-; calculate hour in year
+; KeesC 20FEB2013            
+            if yearAVG eq 1 then begin
+              storeData[0]=float(info(nr))
+              goto,yAvg
+            endif
             k1=day_sum(fix(info(1))-1)*24
             k2=(fix(info(2))-1)*24
             k3=fix(info(3))
             k0=k1+k2+k3
             storeData[k0]=float(info(nr))
-            kk=kk+1
-            if yearAVG eq 1 then goto,kkIsOne
           endif
         endelse
       endelse
     endwhile
-    kkIsOne:
-    if kk eq 1 then begin
-      for kkk=1,8783 do storeData(kkk)=storeData(0)
+    yAvg:
+    if yearAVG eq 1 then begin
+      for kk=1,8783 do storeData(kk)=storeData(0)
     endif
     close, unit & free_lun, unit   
     if 4*(fix(year)/4) ne fix(year) then begin   ;normal year: shift 24 hours back
       storeHlp=storeData(60*24:366*24-1)  ;01/03/year 0hr - 31/dec/year 23hr
       storeData(59*24:365*24-1)=storeHlp
       data=reform(storeData(0:8759))
-    endif
+    endif else begin
+      data=storeData
+    endelse  
     return,data
   endif
   
