@@ -240,10 +240,11 @@ pro obs_run_nan, request,result,obsValues, runValues
 ;KeesC move next to lines to .dat conf file
   minDataAvail=0.75 
   minDayAvail=18 ; minimal 18 8-hour-mean values should be available per day
-  dayHourLength=fix(end_hour_hlp)-fix(start_hour_hlp)+1
+;KeesC 4APR2013  
+  dayHourLength=12  ;fix(end_hour_hlp)-fix(start_hour_hlp)+1
   NightHourLength=24-dayHourLength
-  if ddn eq 1 or abs(elabcode) eq 71 then minDayAvail=fix(dayHourLength*0.75) 
-  if ddn eq 2 or abs(elabcode) eq -71 then minDayAvail=fix(NightHourLength*0.75) 
+  if ddn eq 1 or abs(elabcode) eq 71 then minDayAvail=fix(dayHourLength*minDataAvail) 
+  if ddn eq 2 or abs(elabcode) eq -71 then minDayAvail=fix(NightHourLength*minDataAvail) 
   
   for i=0,364 do begin
     kcobs=where(obsValues(i*24:i*24+23) gt -990,nkcobs)
@@ -304,20 +305,24 @@ pro obs_run_nan, request,result,obsValues, runValues
     res_start=strsplit(start_hour_hlp,'*',/extract)
     res_end=strsplit(end_hour_hlp,'*',/extract)
     bhlp=intarr(8784) & bhlp(*)=0
-    if res_start[0] eq 'WD' then begin  ;2009
-      
+    
+;KeesC 4/APR2013    
+;   if res_start[0] eq 'WD' then begin  
+    if ddn eq 3 then begin  
       for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear ne 0 and DayYear ne 6 then bhlp(i*24:i*24+23)=1
       endfor
-    endif
-    if res_start[0] eq 'WE' then begin
+    endif 
+;    if res_start[0] eq 'WE' then begin
+    if ddn eq 4 then begin
       for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear eq 0 or DayYear eq 6 then bhlp(i*24:i*24+23)=1
       endfor
     endif
-    if res_start[0] ne 'WD' and res_start[0] ne 'WE' then begin
+;    if res_start[0] ne 'WD' and res_start[0] ne 'WE' then begin
+    if ddn ne 3 and ddn ne 4 then begin
       res_start=fix(strsplit(start_hour_hlp,'*',/extract))
       res_end=fix(strsplit(end_hour_hlp,'*',/extract))
       for j=0,n_elements(res_start)-1 do begin
@@ -939,20 +944,25 @@ pro time_operations, request, result, obsTemp, runTemp
     res_start=strsplit(start_hour_hlp,'*',/extract)
     res_end=strsplit(end_hour_hlp,'*',/extract)
     ahlp=intarr(yrhrs) & ahlp(*)=0
+    ddn=request->getHourType()    ;allday, day, night, WD, WE
 
-    if res_start[0] eq 'WD' then begin  ;2009
+;KeesC 4APR2013
+;    if res_start[0] eq 'WD' then begin  
+    if ddn eq 3 then begin
       for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear ne 0 and DayYear ne 6 then ahlp(i*24:i*24+23)=1
       endfor
     endif
-    if res_start[0] eq 'WE' then begin
+;    if res_start[0] eq 'WE' then begin
+    if ddn eq 4 then begin
       for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear eq 0 or DayYear eq 6 then ahlp(i*24:i*24+23)=1
       endfor
     endif
-    if res_start[0] ne 'WD' and res_start[0] ne 'WE' then begin
+;    if res_start[0] ne 'WD' and res_start[0] ne 'WE' then begin
+    if ddn ne 3 and ddn ne 4 then begin
       res_start=fix(strsplit(start_hour_hlp,'*',/extract))
       res_end=fix(strsplit(end_hour_hlp,'*',/extract))
       for j=0,n_elements(res_start)-1 do begin

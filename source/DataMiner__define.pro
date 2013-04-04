@@ -65,6 +65,7 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
           if strcompress(strlowcase(info[0]),/remove_all) eq 'yearlyavg' then begin
             info=['YearlyAvg','mm','dd','hh',info[2:count-1]]
             infoyr=info[0]
+            year=fix(info[1])
             yearAVG=1  ; yearlyavg
           endif
           HEADER=info
@@ -75,7 +76,8 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
              info=[infoyr,'mm','dd','hh',info]
              storeData[*, 0]=strcompress(info, /REMOVE_all)
              goto,yAvg
-          endif         
+          endif  
+          year=fix(info[1])       
           k1=day_sum(fix(info(1))-1)*24
           k2=(fix(info(2))-1)*24
           k3=fix(info(3))
@@ -85,8 +87,7 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
       endelse
     endwhile
     yAvg:
-    storeData(0,*)=year
-;KeesC 2FEB2013  
+    storeData(0,*)=year 
     if yearAVG eq 1 then begin
       for kk=1,8783 do storeData(*,kk)=storeData(*,0)
     endif
@@ -349,13 +350,9 @@ FUNCTION DataMiner::readMonitoringDataForAllParameters, fileName, parameterCodes
   
 END
 
-;KeesC 2FEB2013
 FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, NOTPRESENT=NOTPRESENT
-  ;KeesC 31MAY2012
-  ;fsm=obj_new('FMFileSystemManager')
   ERROR=0
   catch, error_status
-  
   if error_status NE 0 THEN BEGIN
     ERROR=1
     catch, /CANCEL
@@ -364,10 +361,9 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
   endif
   NOTPRESENT=0
 
-;KeesC 2FEB2013 
   day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
   modelInfo=request->getModelInfo()
-  year=modelInfo.year
+  year=modelInfo.year   ; from startup.ini
   extPos=strpos(filename, '.', /REVERSE_SEARCH)
   ext=strmid(filename,extPos+1,3)   ; = cdf  or   csv
    
@@ -389,7 +385,6 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
       pollout=strcompress(pollout,/remove_all)
       cc=where(pollout eq parameterCodes[k],ncc)
       cdfBlockName=statCode
-      ; KeesC 21NOV2012
       inqStHr=ncdf_attinq(Id,'StartHour',/global)
       data=fltarr(8784) & data(*)=-999
       if inqStHr.dataType eq 'UNKNOWN' then begin     
@@ -404,6 +399,11 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
         dimShort=n_elements(dataShort)
         data(StartHour:StartHour+dimShort-1)=dataShort
       endelse
+      inqYear=ncdf_attinq(Id,'Year',/global)
+      if inqYear.dataType ne 'UNKNOWN' then begin
+        ncdf_attget,Id,'Year',year,/global
+        year=fix(year)
+      endif
       ncdf_close, Id         
       if 4*(fix(year)/4) ne fix(year) then data=reform(data(0:8759))
       return,data
@@ -431,6 +431,7 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
           if strlowcase(info[0]) eq 'yearlyavg' then begin
             pollout=strcompress(info[2:n_elements(info)-1],/remove_all)
             infoyr=info[0]
+            year=fix(info[1])
             yearAVG=1
           endif else begin
             pollout=strcompress(info[4:n_elements(info)-1],/remove_all)
@@ -440,12 +441,12 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
         endif else begin
           if strupcase(strcompress(info[0],/remove_all)) eq strupcase(statCode) then begin
             kpol=where(pollout eq parameterCodes[k],nc)
-            nr=1+kpol[0]
-; KeesC 20FEB2013            
+            nr=1+kpol[0]           
             if yearAVG eq 1 then begin
               storeData[0]=float(info(nr))
               goto,yAvg
             endif
+            year=fix(info[0])
             k1=day_sum(fix(info(1))-1)*24
             k2=(fix(info(2))-1)*24
             k3=fix(info(3))

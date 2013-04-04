@@ -144,6 +144,8 @@ pro All_Steps
   
   leapyear=0
   if 4*(fix(year)/4) eq fix(year) then leapyear=1
+  YearCheckWindow=year
+  YearStartup=fix(year)
   
   ; *******************************************************************************************************
   if itgen eq 1 then begin  ;startup
@@ -195,6 +197,7 @@ pro All_Steps
         check_MODEL=1
         atxt=discardComments(1)
         fileYear=atxt
+        YearStartup=fix(atxt)
         utility=obj_new('FMUtility')
         if not(utility->IsNumber(fileYear)) then begin
           txt='STEP 03: STOP! MODEL first line is NE a year : See MODEL section in STARTUPfile'
@@ -206,6 +209,12 @@ pro All_Steps
           close,12
           ierror=1
           return
+        endif
+        if YearCheckWindow ne YearStartup then begin
+          txt='STEP 03: WARNING! YearCheckWindow ('+strcompress(YearCheckWindow,/remove_all)+') NE YearStartup ('+$
+            strcompress(YearStartup,/remove_all)+')'
+          txtall=[txt,txtall]
+          widget_control,labcom_txt,set_value=txtall
         endif
         atxt=discardComments(1)
         frequency=strlowcase(atxt)
@@ -370,27 +379,6 @@ pro All_Steps
   txt='STEP 04 (Info): '+hlp
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
-  ;  for i=0,n_elements(spec)-1 do begin
-  ;    compat=0
-  ;    if types(i) eq 'POL' then begin
-  ;      cc1=where(spec(i) eq DeltaPol,ncc1)
-  ;      cc2=where(units(i) eq DeltaPolUnits,ncc2)
-  ;      if ncc1 eq 1 and ncc2 eq 1 then compat=1
-  ;    endif
-  ;    if types(i) eq 'MET' then begin
-  ;      cc1=where(spec(i) eq DeltaMet,ncc1)
-  ;      if ncc1 ge 1 then begin
-  ;        if cc1[0] eq 0 and total(units(i) eq DeltaMetUnits(0:2)) eq 1 then compat=1
-  ;        if cc1[0] eq 1 and units(i) eq DeltaMetUnits(3) then compat=1
-  ;        if cc1[0] eq 2 and units(i) eq DeltaMetUnits(4) or units(i) eq DeltaMetUnits(5) then compat=1
-  ;      endif
-  ;    endif
-  ;    if compat eq 0 then begin
-  ;      txt='STEP 04 (Warning): '+spec(i)+'  '+types(i)+'  '+units(i)+' NOT DELTA compatible
-  ;      txtall=[txt,txtall]
-  ;      widget_control,labcom_txt,set_value=txtall
-  ;    endif
-  ;  endfor
   iprob=0
   for i=0,n_elements(spec)-1 do begin
     ertxt=''
@@ -518,15 +506,17 @@ if itobs eq 1 then begin
     res=strsplit(filenames(i),'.',/extract)
     filenames(i)=res(0)
   endfor
-  printf,11,'Nb of stations listed in STARTUPfile = ',n_elements(statnames)
+  printf,11,'Nb of stations listed in STARTUPfile = ',nstat
+  printf,11,'Nb of OBS-stations listed in STARTUPfile = ',numb_OBS
+  printf,11,'Nb of NoOBS-stations listed in STARTUPfile = ',numb_NoOBS
   printf,11,'Nb of files in MONITORING_DIR  = ', count_filenames
-  if n_elements(statnames) le count_filenames then begin
-    printf,11,'STEP 07 OK: Nb of stations in STARTUPfile **LE** Nb of station files in MONITORING_DIR'
-    txt='STEP 07 OK: Nb of stations in STARTUPfile **LE** Nb of station files in MONITORING_DIR'
+  if numb_OBS le count_filenames then begin
+    printf,11,'STEP 07 OK: Nb of OBS-stations in STARTUPfile **LE** Nb of station files in MONITORING_DIR'
+    txt='STEP 07 OK: Nb of OBS-stations in STARTUPfile **LE** Nb of station files in MONITORING_DIR'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endif else begin
-    txt='STEP 07: STOP! Nb of stations in STARTUPfile **GT** Nb of station files in MONITORING_DIR'
+    txt='STEP 07: STOP! Nb of OBS-stations in STARTUPfile **GT** Nb of station files in MONITORING_DIR'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
     txtall=['STOP',txtall]
@@ -551,15 +541,17 @@ if itobs eq 1 then begin
   count_file=0
   inconsistent_files=' '
   for i=0,n_elements(statnames)-1 do begin
-    cc=where(statnames(i) eq filenames, count)
-    if count eq 0 then inconsistent_files=[inconsistent_files,statnames(i)]
-    count_file=count_file+count
+    if strupcase(spec_stations(i)) ne 'NOOBS' then begin
+      cc=where(statnames(i) eq filenames, count)
+      if count eq 0 then inconsistent_files=[inconsistent_files,statnames(i)]
+      count_file=count_file+count
+    endif
   endfor
-  if count_file ne n_elements(statnames) then begin
+  if count_file ne numb_OBS then begin
     txt='STEP 08: STOP! Inconsistent naming in STARTUPfile and OBSfiles'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
-    printf,11,'NO consistency in statnames and OBSfiles - Check the following stations:'
+    printf,11,'NO consistency in OBS-statnames and OBSfiles - Check the following stations:'
     printf,11,inconsistent_files
     txtall=['STOP',txtall]
     widget_control,labcom_txt,set_value=txtall
@@ -568,7 +560,7 @@ if itobs eq 1 then begin
     ierror=1
     return
   endif else begin
-    printf,11,'STEP 08 OK: Consistency in statnames and OBSfiles'
+    printf,11,'STEP 08 OK: Consistency in OBS-statnames and OBSfiles'
     txt='STEP 08 OK: Consistency in statnames and OBSfiles'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
@@ -586,40 +578,39 @@ if itobs eq 1 then begin
   printf,11,'**************************************************************'
   print,'STEP 09'
   iprob=0
-  for i=0,n_elements(statnames)-1 do begin
+  for i=0,n_elements(statnames)-1 do begin  
     widget_control,labprog_txt,set_value='STEP 09: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
-    fn=file_search(dir_obs+statnames[i]+'.csv',count=count)
-    ; KeesC 11JAN2013
-    if count eq 1 then begin
-      close,1 & openr,1,fn
-      speclist=strsplit(spec_stations(i),'*',/extract) ; speclist is list of specs at station i from startup.ini
-      readf,1,atxt  ; first line in obsfile
-      res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - YearlyAvg 2009 Param1 Param2
-      res=strcompress(res,/remove_all)
-      ; KeesC 11JAN2013
-      nres=n_elements(res)
-      if strupcase(res(nres-1)) eq 'NOOBS' then begin
+    if strupcase(spec_stations(i)) ne 'NOOBS' then begin
+      fn=file_search(dir_obs+statnames[i]+'.csv',count=count)
+      if count eq 1 then begin
+        close,1 & openr,1,fn
+        speclist=strsplit(spec_stations(i),'*',/extract) ; speclist is list of specs at station i from startup.ini
+        readf,1,atxt  ; first line in obsfile
+        res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - YearlyAvg 2009 Param1 Param2
+        res=strcompress(res,/remove_all)
+        nres=n_elements(res)
+        ;        if strupcase(res(nres-1)) eq 'NOOBS' then begin
+        ;          close,1
+        ;          goto,nextstat09
+        ;        endif
+        if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
+          res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
+          nb_specstat=n_elements(res2)-2
+          spec_station=res2(2:nb_specstat+1) ; PM10 PM25
+        endif else begin                                   ; hourly obs values
+          nb_specstat=n_elements(res)-4
+          spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
+        endelse
+        for is=0,n_elements(speclist)-1 do begin
+          cc=where(speclist(is) eq spec_station,count)
+          if count eq 0 then begin
+            iprob=1
+            printf,11,'Inconsistent species: '+speclist(is)+' in STARTUPfile & NOT in ',statnames(i)
+          endif
+        endfor
         close,1
-        goto,nextstat09
       endif
-      if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
-        res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
-        nb_specstat=n_elements(res2)-2
-        spec_station=res2(2:nb_specstat+1) ; PM10 PM25
-      endif else begin                                   ; hourly obs values
-        nb_specstat=n_elements(res)-4
-        spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
-      endelse
-      for is=0,n_elements(speclist)-1 do begin
-        cc=where(speclist(is) eq spec_station,count)
-        if count eq 0 then begin
-          iprob=1
-          printf,11,'Inconsistent species: '+speclist(is)+' in STARTUPfile & NOT in ',statnames(i)
-        endif
-      endfor
-      close,1
     endif
-    ; KeesC 11JAN2013
     nextstat09:
   endfor
   if iprob eq 1 then begin
@@ -651,45 +642,53 @@ if itobs eq 1 then begin
   print,'STEP 10'
   iprob=0
   for i=0,n_elements(statnames)-1 do begin
-    fn=dir_obs+statnames[i]+'.csv'
-    fns=strmid(fn,strlen(dir_obs),100)
-    widget_control,labprog_txt,set_value='STEP 10: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
-    nlines=file_lines(fn)
-    close,1 & openr,1,fn
-    readf,1,atxt  ; first line in obsfile
-    res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year PM10 PM25
-    res=strcompress(res,/remove_all)
-    ; KeesC 11JAN2013
-    nres=n_elements(res)
-    if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat10
-    if strlowcase(res[0]) eq 'yearlyavg' and nlines ne 2 then begin
-      printf,11,'TimeLines OBSfile (yearly) '+fns+' NE 1 -----',nlines-2
-      iprob=1
-    endif
-    if strlowcase(res[0]) ne 'yearlyavg' then begin
-      if nlines eq 1 then begin
-        printf,11,'TimeLines OBSfile '+fns+' EQ 1 -----'
+    if strupcase(spec_stations(i)) ne 'NOOBS' then begin
+      fn=dir_obs+statnames[i]+'.csv'
+      fns=strmid(fn,strlen(dir_obs),100)
+      widget_control,labprog_txt,set_value='STEP 10: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+      nlines=file_lines(fn)
+      close,1 & openr,1,fn
+      readf,1,atxt  ; first line in obsfile
+      res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year PM10 PM25
+      res=strcompress(res,/remove_all)
+      nres=n_elements(res)
+      ;      if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat10
+      if strlowcase(res[0]) eq 'yearlyavg' then YearObs=fix(res(1))
+      if strlowcase(res[0]) eq 'yearlyavg' and nlines ne 2 then begin
+        printf,11,'TimeLines OBSfile (yearly) '+fns+' NE 1 -----',nlines-2
         iprob=1
       endif
-      while not(eof(1)) do begin
-        readf,1,atxt
-        res1=strsplit(atxt,';',/extract)
-        if n_elements(res1) le 3 then begin
-          printf,11,'Date format not correct '+fns
+      if strlowcase(res[0]) ne 'yearlyavg' then begin
+        if nlines eq 1 then begin
+          printf,11,'TimeLines OBSfile '+fns+' EQ 1 -----'
           iprob=1
         endif
-        datum=res1(0:3)
-        if (fix(datum(0)) lt 1900 or fix(datum(0)) gt 2100) or (fix(datum(1)) le 0 or fix(datum(1)) ge 13) or $
-          (fix(datum(2)) le 0 or fix(datum(2)) ge 32) or (fix(datum(3)) le -1 or fix(datum(3)) ge 25) then begin
-          printf,11,'Date format not correct '+fns
-          iprob=1
-        endif
-      endwhile
+        while not(eof(1)) do begin
+          readf,1,atxt
+          res1=strsplit(atxt,';',/extract)
+          if n_elements(res1) le 3 then begin
+            printf,11,'Date format not correct '+fns
+            iprob=1
+          endif
+          datum=res1(0:3)
+          YearOBS=fix(datum(0))
+          if (fix(datum(0)) lt 1900 or fix(datum(0)) gt 2100) or (fix(datum(1)) le 0 or fix(datum(1)) ge 13) or $
+            (fix(datum(2)) le 0 or fix(datum(2)) ge 32) or (fix(datum(3)) le -1 or fix(datum(3)) ge 25) then begin
+            printf,11,'Date format not correct '+fns
+            iprob=1
+          endif
+        endwhile
+      endif
+      nextstat10:
+      close,1
     endif
-    ; KeesC 11JAN2013
-    nextstat10:
-    close,1
   endfor
+  if YearOBS ne YearStartup then begin
+    txt='STEP 10: WARNING! YearOBS ('+strcompress(YearOBS,/remove_all)+') NE YearStartup ('+$
+      strcompress(YearStartup,/remove_all)+')'
+    txtall=[txt,txtall]
+    widget_control,labcom_txt,set_value=txtall
+  endif
   if iprob eq 1 then begin
     txt='STEP 10: STOP! TimeLines OBSfile EQ 1 or Date format not correct'
     txtall=[txt,txtall]
@@ -735,81 +734,80 @@ if itobs eq 1 then begin
   day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
   for i=0,n_elements(statnames)-1 do begin
     widget_control,labprog_txt,set_value='STEP 11: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
-    fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
-    ; KeesC 11JAN2013
-    if count eq 1 then begin
-      close,1 & openr,1,fn
-      readf,1,atxt
-      res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
-      res=strcompress(res,/remove_all)
-      ; KeesC 11JAN2013
-      nres=n_elements(res)
-      if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat11
-      if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
-        res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
-        nb_specstat=n_elements(res2)-2
-        spec_station=res2(2:nb_specstat+1) ; PM10 PM25
-      endif else begin                                   ; hourly obs values
-        nb_specstat=n_elements(res)-4
-        spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
-      endelse
-      if strlowcase(res[0]) ne 'yearlyavg' then begin
-        while not(eof(1)) do begin
+    if strupcase(spec_stations(i)) ne 'NOOBS' then begin
+      fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
+      if count eq 1 then begin
+        close,1 & openr,1,fn
+        readf,1,atxt
+        res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
+        res=strcompress(res,/remove_all)
+        nres=n_elements(res)
+        ;        if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat11
+        if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
+          res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
+          nb_specstat=n_elements(res2)-2
+          spec_station=res2(2:nb_specstat+1) ; PM10 PM25
+        endif else begin                                   ; hourly obs values
+          nb_specstat=n_elements(res)-4
+          spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
+        endelse
+        if strlowcase(res[0]) ne 'yearlyavg' then begin
+          while not(eof(1)) do begin
+            readf,1,atxt
+            res1=strsplit(atxt,';',/extract, /PRESERVE_NULL)
+            datum=res1(0:3)
+            k1=day_sum(fix(datum(1))-1)*24
+            k2=(fix(datum(2))-1)*24
+            k3=fix(datum(3))
+            iline=k1+k2+k3
+            if 4*(fix(datum(0))/4) ne fix(datum(0)) and iline ge 60*24 then iline=iline-24
+            ph=reform(float(res1(4:4+nb_specstat-1)))
+            for ip=0,nb_specstat-1 do begin
+              shlp=where(spec_station(ip) eq spec,nc)
+              if nc ge 1 then begin
+                if ph(ip) gt 1000. or (ph(ip) lt -100 and ph(ip) ne -999) then begin
+                  ipoll(i,shlp[0])='X'
+                  extvalues=1
+                  poll(i,shlp[0],iline)=-999
+                endif else begin
+                  poll(i,shlp[0],iline)=ph(ip)
+                endelse
+              endif
+            endfor
+          endwhile
+        endif
+        if strlowcase(res[0]) eq 'yearlyavg' then begin
           readf,1,atxt
-          res1=strsplit(atxt,';',/extract, /PRESERVE_NULL)
-          datum=res1(0:3)
-          k1=day_sum(fix(datum(1))-1)*24
-          k2=(fix(datum(2))-1)*24
-          k3=fix(datum(3))
-          iline=k1+k2+k3
-          if 4*(fix(datum(0))/4) ne fix(datum(0)) and iline ge 60*24 then iline=iline-24
-          ph=reform(float(res1(4:4+nb_specstat-1)))
+          res2=strsplit(atxt,';',/extract)
+          ph=reform(float(res2(0:nb_specstat-1)))
           for ip=0,nb_specstat-1 do begin
             shlp=where(spec_station(ip) eq spec,nc)
             if nc ge 1 then begin
               if ph(ip) gt 1000. or (ph(ip) lt -100 and ph(ip) ne -999) then begin
                 ipoll(i,shlp[0])='X'
                 extvalues=1
-                poll(i,shlp[0],iline)=-999
+                poll(i,shlp[0],*)=-999
               endif else begin
-                poll(i,shlp[0],iline)=ph(ip)
+                poll(i,shlp[0],*)=ph(ip)
               endelse
             endif
           endfor
-        endwhile
-      endif
-      if strlowcase(res[0]) eq 'yearlyavg' then begin
-        readf,1,atxt
-        res2=strsplit(atxt,';',/extract)
-        ph=reform(float(res2(0:nb_specstat-1)))
+        endif
+        hlp=where(poll lt -100,nc)
+        if nc ge 1 then poll(hlp)=!values.f_nan
         for ip=0,nb_specstat-1 do begin
           shlp=where(spec_station(ip) eq spec,nc)
           if nc ge 1 then begin
-            if ph(ip) gt 1000. or (ph(ip) lt -100 and ph(ip) ne -999) then begin
-              ipoll(i,shlp[0])='X'
-              extvalues=1
-              poll(i,shlp[0],*)=-999
-            endif else begin
-              poll(i,shlp[0],*)=ph(ip)
-            endelse
+            minv=min(poll(i,shlp[0],0:8759),/nan)
+            maxv=max(poll(i,shlp[0],0:8759),/nan)
+            meanv=mean(poll(i,shlp[0],0:8759),/nan)
+            sumfile(i,shlp[0],0:2)=[minv,maxv,meanv]
           endif
         endfor
       endif
-      hlp=where(poll lt -100,nc)
-      if nc ge 1 then poll(hlp)=!values.f_nan
-      for ip=0,nb_specstat-1 do begin
-        shlp=where(spec_station(ip) eq spec,nc)
-        if nc ge 1 then begin
-          minv=min(poll(i,shlp[0],0:8759),/nan)
-          maxv=max(poll(i,shlp[0],0:8759),/nan)
-          meanv=mean(poll(i,shlp[0],0:8759),/nan)
-          sumfile(i,shlp[0],0:2)=[minv,maxv,meanv]
-        endif
-      endfor
+      nextstat11:
+      close,1
     endif
-    ; KeesC 11JAN2013
-    nextstat11:
-    close,1
   endfor
   apoll=finite(poll)
   kc=where(apoll eq 0,nkc)
@@ -866,72 +864,72 @@ if itobs eq 1 then begin
   ipoll(*,*)='.'
   extvalues=0
   day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
-  for i=0,n_elements(statnames)-1 do begin
+  for i=0,n_elements(statnames)-1 do begin  
     widget_control,labprog_txt,set_value='STEP 12: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
-    fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
-    if count eq 1 then begin
-      close,1 & openr,1,fn
-      readf,1,atxt
-      res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
-      res=strcompress(res,/remove_all)
-      ; KeesC 11JAN2013
-      nres=n_elements(res)
-      if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat12
-      if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
-        res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
-        nb_specstat=n_elements(res2)-2
-        spec_station=res2(2:nb_specstat+1) ; PM10 PM25
-      endif else begin                                   ; hourly obs values
-        nb_specstat=n_elements(res)-4
-        spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
-      endelse
-      if strlowcase(res[0]) ne 'yearlyavg' then begin
-        while not(eof(1)) do begin
+    if strupcase(spec_stations(i)) ne 'NOOBS' then begin
+      fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
+      if count eq 1 then begin
+        close,1 & openr,1,fn
+        readf,1,atxt
+        res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
+        res=strcompress(res,/remove_all)
+        nres=n_elements(res)
+        ;        if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat12
+        if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
+          res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
+          nb_specstat=n_elements(res2)-2
+          spec_station=res2(2:nb_specstat+1) ; PM10 PM25
+        endif else begin                                   ; hourly obs values
+          nb_specstat=n_elements(res)-4
+          spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
+        endelse
+        if strlowcase(res[0]) ne 'yearlyavg' then begin
+          while not(eof(1)) do begin
+            readf,1,atxt
+            res1=strsplit(atxt,';',/extract,  /PRESERVE_NULL)
+            datum=res1(0:3)
+            k1=day_sum(fix(datum(1))-1)*24
+            k2=(fix(datum(2))-1)*24
+            k3=fix(datum(3))
+            iline=k1+k2+k3
+            if 4*(fix(datum(0))/4) ne fix(datum(0)) and iline ge 60*24 then iline=iline-24
+            ph=reform(float(res1(4:4+nb_specstat-1)))
+            for ip=0,nb_specstat-1 do begin
+              shlp=where(spec_station(ip) eq spec,nc)
+              if nc ge 1 then begin
+                if abs(ph(ip)) lt 0.00001 then begin
+                  ipoll(i,shlp[0])='X'
+                  extvalues=1
+                  poll(i,shlp[0],iline)=-999
+                endif else begin
+                  poll(i,shlp[0],iline)=0
+                endelse
+              endif
+            endfor
+          endwhile
+        endif
+        if strlowcase(res[0]) eq 'yearlyavg' then begin
           readf,1,atxt
-          res1=strsplit(atxt,';',/extract,  /PRESERVE_NULL)
-          datum=res1(0:3)
-          k1=day_sum(fix(datum(1))-1)*24
-          k2=(fix(datum(2))-1)*24
-          k3=fix(datum(3))
-          iline=k1+k2+k3
-          if 4*(fix(datum(0))/4) ne fix(datum(0)) and iline ge 60*24 then iline=iline-24
-          ph=reform(float(res1(4:4+nb_specstat-1)))
+          res2=strsplit(atxt,';',/extract)
+          ph=reform(float(res2(0:nb_specstat-1)))
           for ip=0,nb_specstat-1 do begin
             shlp=where(spec_station(ip) eq spec,nc)
             if nc ge 1 then begin
               if abs(ph(ip)) lt 0.00001 then begin
                 ipoll(i,shlp[0])='X'
                 extvalues=1
-                poll(i,shlp[0],iline)=-999
+                poll(i,shlp[0],*)=-999
               endif else begin
-                poll(i,shlp[0],iline)=0
+                poll(i,shlp[0],*)=0
               endelse
             endif
           endfor
-        endwhile
+        endif
+        close,1
       endif
-      if strlowcase(res[0]) eq 'yearlyavg' then begin
-        readf,1,atxt
-        res2=strsplit(atxt,';',/extract)
-        ph=reform(float(res2(0:nb_specstat-1)))
-        for ip=0,nb_specstat-1 do begin
-          shlp=where(spec_station(ip) eq spec,nc)
-          if nc ge 1 then begin
-            if abs(ph(ip)) lt 0.00001 then begin
-              ipoll(i,shlp[0])='X'
-              extvalues=1
-              poll(i,shlp[0],*)=-999
-            endif else begin
-              poll(i,shlp[0],*)=0
-            endelse
-          endif
-        endfor
-      endif
+      nextstat12:
       close,1
     endif
-    ; KeesC 11JAN2013
-    nextstat12:
-    close,1
   endfor
   apoll=finite(poll)
   kc=where(apoll eq 0,nkc)
@@ -1136,23 +1134,26 @@ if itmod eq 1 then begin
   lmod=strlen(dir_mod+model)
   iprob=0
   extension=strmid(dir_mod+model,lmod-3,3)
+  YearMOD=-1
   if extension eq 'cdf' then begin
     id=ncdf_open(dir_mod+model)
+    !quiet=1
+    inqStHr=ncdf_attinq(Id,'StartHour',/global)
+    inqEnHr=ncdf_attinq(Id,'EndHour',/global)
+    !quiet=0
+    inqYr=ncdf_attinq(Id,'Year',/global)
+    if inqYr.datatype ne 'UNKNOWN' then begin
+      ncdf_attget,id,'Year',YearMOD,/global
+    endif
     if icase eq 0 then begin
       for i=0,n_elements(statnames)-1 do begin
-        ;    speclist=strsplit(spec_stations(i),'*',/extract)
         for is=0,n_elements(spec)-1 do begin
           idname=statnames(i)+'_'+spec(is)
           Result = NCDF_VARID(id, idName)
-          if result ne -1 then begin
-            !quiet=1
-            inqStHr=ncdf_attinq(Id,'StartHour',/global)
-            inqEnHr=ncdf_attinq(Id,'EndHour',/global)
-            !quiet=0
+          if result ne -1 then begin           
             if inqStHr.datatype eq 'UNKNOWN' and inqEnHr.datatype eq 'UNKNOWN' then begin
               ncdf_varget, Id, idname, var
               dimVar=n_elements(var)
-              ;if idname eq 'MONDAINO_TEMP' then stop  ;print,i,is,dimVar
               if dimvar ne 8760 then begin
                 printf,11,'Incorrect nb of time elements in variable '+idname+' in MODfile'
                 iprob=1
@@ -1187,10 +1188,6 @@ if itmod eq 1 then begin
               ') in Data for station '+idName
             iprob=1
           endif
-          !quiet=1
-          inqStHr=ncdf_attinq(Id,'StartHour',/global)
-          inqEnHr=ncdf_attinq(Id,'EndHour',/global)
-          !quiet=0
           if inqStHr.datatype eq 'UNKNOWN' and inqEnHr.datatype eq 'UNKNOWN' then begin
             dimVar=n_elements(var)
             if dimvar[1] ne 8760 then begin
@@ -1215,8 +1212,14 @@ if itmod eq 1 then begin
     endif
     ncdf_close,id
   endif
+  if YearMOD ne YearStartup and YearMOD ne -1 then begin
+    txt='STEP 15: WARNING! YearMOD ('+strcompress(YearMOD,/remove_all)+') NE YearStartup ('+$
+      strcompress(YearStartup,/remove_all)+')'
+    txtall=[txt,txtall]
+    widget_control,labcom_txt,set_value=txtall
+  endif
   if iprob eq 1 then begin
-    txt='STEP 15: STOP! TimeLength of MOD/species files [< 8760|8784 (hourly), =1 (yearly)]'  
+    txt='STEP 15: STOP! TimeLength of MOD/species files [< 8760|8784 (hourly), =1 (yearly)]'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
     txtall=['STOP',txtall]
@@ -1239,7 +1242,7 @@ if itmod eq 1 then begin
   ; checking mod extreme values
   ;test 16
   
-  widget_control,labprog_txt,set_value='STEP 15'
+  widget_control,labprog_txt,set_value='STEP 16'
   printf,11,'**************************************************'
   printf,11,'***         STEP 16                              *'
   printf,11,'***  Check on MOD NaN/Inf/Extreme values         *'
@@ -1377,6 +1380,7 @@ if itobsmod eq 1 then begin
   printf,12,'****************************************************************'
   print,'STEP 17'
   iprob=0
+  YearMOD=-1
   avail=fltarr(n_elements(statnames),n_elements(spec))
   poll=fltarr(n_elements(statnames),n_elements(spec),8760)
   if itobs ne 1 then begin
@@ -1399,6 +1403,7 @@ if itobsmod eq 1 then begin
         if attname eq 'Parameters' then icase=1 ; new version
         if attname eq 'StartHour' then ncdf_attget,id,'StartHour',StartHour,/global
         if attname eq 'EndHour' then ncdf_attget,id,'EndHour',EndHour,/global
+        if attname eq 'Year' then ncdf_attget,id,'Year',YearMOD,/global
         !quiet=1
       endfor
     endif
@@ -1409,6 +1414,12 @@ if itobsmod eq 1 then begin
       params=strcompress(params,/remove_all)
       nparams=n_elements(params)
     endif
+  endif
+  if YearMOD ne YearStartup and YearMOD ne -1 then begin
+    txt='STEP 17: WARNING! YearMOD ('+strcompress(YearMOD,/remove_all)+') NE YearStartup ('+$
+      strcompress(YearStartup,/remove_all)+')'
+    txtall=[txt,txtall]
+    widget_control,labcom_txt,set_value=txtall
   endif
   if extension eq 'csv' then begin
     close,1 & openr,1,dir_mod+model
@@ -1497,80 +1508,83 @@ if itobsmod eq 1 then begin
     day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
     for i=0,n_elements(statnames)-1 do begin
       widget_control,labprog_txt,set_value='STEP 17b: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
-      fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
-      if count gt 0 then begin
-        close,1 & openr,1,fn
-        readf,1,atxt
-        res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
-        res=strcompress(res,/remove_all)
-        ; KeesC 11JAN2013
-        nres=n_elements(res)
-        if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat17
-        if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
-          res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
-          nb_specstat=n_elements(res2)-2
-          spec_station=res2(2:nb_specstat+1) ; PM10 PM25
-        endif else begin                                   ; hourly obs values
-          nb_specstat=n_elements(res)-4
-          spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
-        endelse
-        if strlowcase(res[0]) ne 'yearlyavg' then begin
-          while not(eof(1)) do begin
+      if strupcase(spec_stations(i)) ne 'NOOBS' then begin
+        fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
+        if count gt 0 then begin
+          close,1 & openr,1,fn
+          readf,1,atxt
+          res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
+          res=strcompress(res,/remove_all)
+          nres=n_elements(res)
+          ;          if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat17
+          if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
+            res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
+            nb_specstat=n_elements(res2)-2
+            spec_station=res2(2:nb_specstat+1) ; PM10 PM25
+          endif else begin                                   ; hourly obs values
+            nb_specstat=n_elements(res)-4
+            spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
+          endelse
+          if strlowcase(res[0]) ne 'yearlyavg' then begin
+            while not(eof(1)) do begin
+              readf,1,atxt
+              res1=strsplit(atxt,';',/extract)
+              yearOBS=fix(datum(0))
+              datum=res1(0:3)
+              k1=day_sum(fix(datum(1))-1)*24
+              k2=(fix(datum(2))-1)*24
+              k3=fix(datum(3))
+              iline=k1+k2+k3
+              if 4*(fix(datum(0))/4) ne fix(datum(0)) and iline ge 60*24 then iline=iline-24
+              ph=reform(float(res1(4:4+nb_specstat-1)))
+              for ip=0,nb_specstat-1 do begin
+                shlp=where(spec_station(ip) eq spec,nc)
+                if nc ge 1 then begin
+                  if ph(ip) gt 1000. or (ph(ip) lt -100 and ph(ip) ne -999) then begin
+                    extvalues=1
+                    poll(i,shlp[0],iline)=-999
+                  endif else begin
+                    poll(i,shlp[0],iline)=ph(ip)
+                  endelse
+                endif
+              endfor
+            endwhile
+          endif
+          if strlowcase(res[0]) eq 'yearlyavg' then begin
+            yearOBS=fix(res(1))
             readf,1,atxt
-            res1=strsplit(atxt,';',/extract)
-            datum=res1(0:3)
-            k1=day_sum(fix(datum(1))-1)*24
-            k2=(fix(datum(2))-1)*24
-            k3=fix(datum(3))
-            iline=k1+k2+k3
-            if 4*(fix(datum(0))/4) ne fix(datum(0)) and iline ge 60*24 then iline=iline-24
-            ph=reform(float(res1(4:4+nb_specstat-1)))
+            readf,1,atxt
+            res2=strsplit(atxt,';',/extract)
+            ph=reform(float(res2(0:nb_specstat-1)))
             for ip=0,nb_specstat-1 do begin
               shlp=where(spec_station(ip) eq spec,nc)
               if nc ge 1 then begin
                 if ph(ip) gt 1000. or (ph(ip) lt -100 and ph(ip) ne -999) then begin
+                  ipoll(i,shlp[0])='X'
                   extvalues=1
-                  poll(i,shlp[0],iline)=-999
+                  poll(i,shlp[0],0:8759)=-999
                 endif else begin
-                  poll(i,shlp[0],iline)=ph(ip)
+                  poll(i,shlp[0],0:8759)=ph(ip)
                 endelse
               endif
             endfor
-          endwhile
-        endif
-        if strlowcase(res[0]) eq 'yearlyavg' then begin
-          readf,1,atxt
-          readf,1,atxt
-          res2=strsplit(atxt,';',/extract)
-          ph=reform(float(res2(0:nb_specstat-1)))
+          endif
+          hlp=where(poll lt -100,nc)
+          if nc ge 1 then poll(hlp)=!values.f_nan
           for ip=0,nb_specstat-1 do begin
             shlp=where(spec_station(ip) eq spec,nc)
             if nc ge 1 then begin
-              if ph(ip) gt 1000. or (ph(ip) lt -100 and ph(ip) ne -999) then begin
-                ipoll(i,shlp[0])='X'
-                extvalues=1
-                poll(i,shlp[0],0:8759)=-999
-              endif else begin
-                poll(i,shlp[0],0:8759)=ph(ip)
-              endelse
+              minv=min(poll(i,shlp[0],0:8759),/nan)
+              maxv=max(poll(i,shlp[0],0:8759),/nan)
+              meanv=mean(poll(i,shlp[0],0:8759),/nan)
+              sumfile(i,shlp[0],0:2)=[minv,maxv,meanv]
             endif
           endfor
         endif
-        hlp=where(poll lt -100,nc)
-        if nc ge 1 then poll(hlp)=!values.f_nan
-        for ip=0,nb_specstat-1 do begin
-          shlp=where(spec_station(ip) eq spec,nc)
-          if nc ge 1 then begin
-            minv=min(poll(i,shlp[0],0:8759),/nan)
-            maxv=max(poll(i,shlp[0],0:8759),/nan)
-            meanv=mean(poll(i,shlp[0],0:8759),/nan)
-            sumfile(i,shlp[0],0:2)=[minv,maxv,meanv]
-          endif
-        endfor
+        ; KeesC 11JAN2013
+        nextstat17:
+        close,1
       endif
-      ; KeesC 11JAN2013
-      nextstat17:
-      close,1
     endfor
     
   endif  ; itobs ne 1
@@ -1609,7 +1623,6 @@ if itobsmod eq 1 then begin
   printf,12,'Station  **  OBS:Min/Max/Mean  **  MOD:Min/Max/Mean'
   printf,12,' '
   for i=0,n_elements(statnames)-1 do begin
-    fn=dir_obs+statnames(i)+'.csv'
     str=strcompress(fix(i+1),/remove_all)+'  '+strcompress(statnames(i),/remove_all)
     printf,12,str ;fix(i+1),statnames(i),form='(i4,2x,a15)'
     for ip=0,n_elements(spec)-1 do begin
