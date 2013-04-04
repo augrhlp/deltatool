@@ -949,7 +949,7 @@ PRO FM_PlotScatter, plotter, request, result
     xtitle=parCodes(0)+'/'+mus[0]
     ytitle=parCodes(1)+'/'+mus[1]
   endif
-  plot, indgen(max([fix(maxaxis),fix(abs(minAxis))])),color=0, /nodata, xtitle=xtitle,ytitle=ytitle, title='Scatter PLOT', $
+  plot, indgen(max([fix(maxaxis)+1,fix(abs(minAxis))])),color=0, /nodata, xtitle=xtitle,ytitle=ytitle, title='Scatter PLOT', $
     charsize=1.5*psfact, background=255,xrange=[minAxis,maxAxis],$
     yrange=[minAxis,maxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
   if elabCode ne 50 and elabcode ne 57 and criteria[0] gt 0 then begin

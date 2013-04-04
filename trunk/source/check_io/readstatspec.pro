@@ -27,4 +27,8 @@ endwhile
 close,1 
 statnames=reform(statnames(0:i-1))
 spec_stations=reform(spec_stations(0:i-1))
+spec_stations=strcompress(spec_stations,/remove_all)
+cc=where(strupcase(spec_stations) eq 'NOOBS',numb_NoOBS)
+nstat=n_elements(statnames)
+numb_OBS=nstat-numb_NoOBS
 end
