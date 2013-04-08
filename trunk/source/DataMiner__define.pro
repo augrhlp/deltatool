@@ -77,7 +77,7 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
              storeData[*, 0]=strcompress(info, /REMOVE_all)
              goto,yAvg
           endif  
-          year=fix(info[1])       
+          year=fix(info[0])       
           k1=day_sum(fix(info(1))-1)*24
           k2=(fix(info(2))-1)*24
           k3=fix(info(3))
