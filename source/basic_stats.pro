@@ -246,12 +246,14 @@ pro obs_run_nan, request,result,obsValues, runValues
   if ddn eq 1 or abs(elabcode) eq 71 then minDayAvail=fix(dayHourLength*minDataAvail) 
   if ddn eq 2 or abs(elabcode) eq -71 then minDayAvail=fix(NightHourLength*minDataAvail) 
   
-  for i=0,364 do begin
-    kcobs=where(obsValues(i*24:i*24+23) gt -990,nkcobs)
-    kcrun=where(runValues(i*24:i*24+23) gt -990,nkcrun)
-    if nkcobs lt minDayAvail then obsValues(i*24:i*24+23)=-999
-    if nkcrun lt minDayAvail then runValues(i*24:i*24+23)=-999
-  endfor
+;PHIL 22/04/2013  not necessary and already in obsrunNAN
+;
+;  for i=0,364 do begin
+;    kcobs=where(obsValues(i*24:i*24+23) gt -990,nkcobs)
+;    kcrun=where(runValues(i*24:i*24+23) gt -990,nkcrun)
+;    if nkcobs lt minDayAvail then obsValues(i*24:i*24+23)=-999
+;    if nkcrun lt minDayAvail then runValues(i*24:i*24+23)=-999
+;  endfor
 
   obsValues=obsValues[startIndex:endIndex]
   runValues=runValues[startIndex:endIndex]

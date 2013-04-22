@@ -202,7 +202,7 @@ PRO FM_PlotBars, plotter, request, result
   if elabCode eq 2 or elabCode eq 14 then ytitle='Units [1] '
   if elabCode eq 9  then ytitle='Units [Number of days] '
   if elabCode eq 8  or elabCode eq 30 or elabCode eq 33 $
-    or elabCode eq 23 or elabCode eq 24 or elabCode eq 3 then ytitle='Units [%] '
+    or elabCode eq 23 or elabCode eq 24 then ytitle='Units [%] '
   if elabCode eq 26 then ytitle='Units [mg/m3*hrs] '
   if elabCode eq 27 then ytitle='Units [mg/m3*days] '
   
@@ -1986,7 +1986,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     coords4=[-plotRange+plotRange*0.05, plotrange-plotRange*0.05]
     
     polyfill,[coords1[0],coords2[0],coords3[0],coords4[0]],[coords1[1],coords2[1],coords3[1],coords4[1]],color=15,/data
-    coords=[-plotRange+plotRange*0.10,plotrange-plotRange*0.15]
+    coords=[-plotRange+plotRange*0.07,plotrange-plotRange*0.15]
     psFact=plotter->getPSCharSizeFactor()
     xyouts,coords[0],coords[1],'Stations within Crit (T=1):',color=3,/data,charthick=3,charsize=facSize*1.3*psFact
   endif
@@ -2003,20 +2003,8 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     plots,[-plotRange,-xfac],[plotRange,xfac],/data,color=0,thick=2
     plots,[plotRange,xfac],[-plotRange,-xfac],/data,color=0,thick=2
     plots,[plotRange,xfac],[plotRange,xfac],/data,color=0,thick=2
-    ;      plots,[1+xfac,plotRange],[-1,-1],/data,color=0,thick=2
-    ;      plots,[-plotRange,-1-xfac],[-1,-1],/data,color=0,thick=2
-    ;      plots,[1+xfac,plotRange],[1,1],/data,color=0,thick=2
-    ;      plots,[-plotRange,-1-xfac],[1,1],/data,color=0,thick=2
-    ;      plots,[1,1],[1+xfac,plotRange],/data,color=0,thick=2
-    ;      plots,[-1,-1],[1+xfac,plotRange],/data,color=0,thick=2
-    ;      plots,[1,1],[-1-xfac,-plotRange],/data,color=0,thick=2
-    ;      plots,[-1,-1],[-1-xfac,-plotRange],/data,color=0,thick=2
     xyouts, -plotRange*0.1, plotRange*0.85, 'BIAS > 0',charthick=2, color=0,/data,charsize=facSize*1.5
     xyouts, -plotRange*0.1, -plotRange*0.95, 'BIAS < 0',charthick=2, color=0,/data,charsize=facSize*1.5
-    ;      xyouts, -plotRange*0.95, plotRange*0.85, 'BIAS > 0 / R',charthick=2, color=0,/data,charsize=facSize*1.5
-    ;      xyouts, plotRange*0.60, plotRange*0.85, 'BIAS > 0 / SD',charthick=2, color=0,/data,charsize=facSize*1.5
-    ;      xyouts, -plotRange*0.95, -plotRange*0.95, 'BIAS < 0 / R',charthick=2, color=0,/data,charsize=facSize*1.5
-    ;      xyouts, plotRange*0.60, -plotRange*0.95, 'BIAS < 0 / SD',charthick=2, color=0,/data,charsize=facSize*1.5
     xyouts, -plotRange*0.95, -plotRange*0.05, 'R',charthick=2, color=0,/data,charsize=facSize*1.5
     xyouts, plotRange*0.85, -plotRange*0.05, 'SD',charthick=2, color=0,/data,charsize=facSize*1.5
   
@@ -2076,6 +2064,9 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       radius = sqrt(allDataXY[cc, 0]^2+allDataXY[cc, 1]^2)
       ccCrit=where(radius le 1,countCritPerc)
       percentageCrit=fix(100.*float(countCritPerc)/float(countValidStations))
+      if percentageCrit ge 90 then colorPerc=150
+      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=215
+      if percentageCrit lt 75 then colorPerc=250
       xyouts,-plotRange*0.33,plotrange-plotRange*0.17,strtrim(percentageCrit,2)+'%',/data,charsize=2*facSize,charthick=2,color=0
     endif
   endif
