@@ -3,7 +3,7 @@
 ;********************
 ;  ;MM summer 2012 Start
 ;  ;for Goals & Criteria now you can use (two new columns added in elaboration.dat)
-;  ;elaboration related info called OCTimeAvgName & OCStat 
+;  ;elaboration related info called OCTimeAvgName & OCStat
 ;  OCTimeAvgName=request->getElaborationOCTimeAvgName()
 ;  OCStat=request->getElaborationOCStat()
 ;  ;MM summer 2012 End
@@ -229,8 +229,8 @@ pro obs_run_nan, request,result,obsValues, runValues
       if startIndex ge Feb29start then begin
         endIndex=endIndex-24
         startIndex=startIndex-24
-      endif  
-    endif  
+      endif
+    endif
   ddn=request->getHourType()
   hour=request->getHourInfo() ;HourType
   start_hour_hlp=hour[0].value
@@ -238,14 +238,14 @@ pro obs_run_nan, request,result,obsValues, runValues
   iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
 
 ;KeesC move next to lines to .dat conf file
-  minDataAvail=0.75 
+  minDataAvail=0.75
   minDayAvail=18 ; minimal 18 8-hour-mean values should be available per day
-;KeesC 4APR2013  
+;KeesC 4APR2013
   dayHourLength=12  ;fix(end_hour_hlp)-fix(start_hour_hlp)+1
   NightHourLength=24-dayHourLength
-  if ddn eq 1 or abs(elabcode) eq 71 then minDayAvail=fix(dayHourLength*minDataAvail) 
-  if ddn eq 2 or abs(elabcode) eq -71 then minDayAvail=fix(NightHourLength*minDataAvail) 
-  
+  if ddn eq 1 or abs(elabcode) eq 71 then minDayAvail=fix(dayHourLength*minDataAvail)
+  if ddn eq 2 or abs(elabcode) eq -71 then minDayAvail=fix(NightHourLength*minDataAvail)
+
 ;PHIL 22/04/2013  not necessary and already in obsrunNAN
 ;
 ;  for i=0,364 do begin
@@ -263,7 +263,7 @@ pro obs_run_nan, request,result,obsValues, runValues
     day_nb= [31,28,31,30,31,30,31,31,30,31,30,31]
     day_sum=[0,31,59,90,120,151,181,212,243,273,304,334,365]
   endif
-  if 4*(year/4) eq year then begin   ;leapyear 
+  if 4*(year/4) eq year then begin   ;leapyear
     iyear=1
     day_nb= [31,29,31,30,31,30,31,31,30,31,30,30]
     day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,366]
@@ -307,15 +307,15 @@ pro obs_run_nan, request,result,obsValues, runValues
     res_start=strsplit(start_hour_hlp,'*',/extract)
     res_end=strsplit(end_hour_hlp,'*',/extract)
     bhlp=intarr(8784) & bhlp(*)=0
-    
-;KeesC 4/APR2013    
-;   if res_start[0] eq 'WD' then begin  
-    if ddn eq 3 then begin  
+
+;KeesC 4/APR2013
+;   if res_start[0] eq 'WD' then begin
+    if ddn eq 3 then begin
       for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
         if DayYear ne 0 and DayYear ne 6 then bhlp(i*24:i*24+23)=1
       endfor
-    endif 
+    endif
 ;    if res_start[0] eq 'WE' then begin
     if ddn eq 4 then begin
       for i=0,364+iyear do begin
@@ -434,8 +434,8 @@ pro obs_run_nan, request,result,obsValues, runValues
   endif
   countThreshold=float(countDaySeason)
 
-  ccc=where(obsValues eq 0, countCCC)
-  if countCCC gt 0 then obsValues(ccc)=-999.
+;  ccc=where(obsValues eq 0, countCCC)
+;  if countCCC gt 0 then obsValues(ccc)=-999.
 
   ;;  countThreshold=float(size(obsValues,/n_elements))/facDaySeason
 
@@ -444,12 +444,12 @@ pro obs_run_nan, request,result,obsValues, runValues
   if count/countThreshold ge minDataAvail then begin
     obsValues=obsvalues(idxAll)
     runValues=runvalues(idxAll)
-    if iUseObserveModel eq 1 then obsValues(*)=!values.f_nan 
+    if iUseObserveModel eq 1 then obsValues(*)=!values.f_nan
     goto,jumpOut
   endif
   idxObs=where(obsValues ne -999, countObs)
   idxMod=where(runValues ne -999, countMod)
-  if iUseObserveModel eq 0 then begin 
+  if iUseObserveModel eq 0 then begin
     if countObs/countThreshold lt minDataAvail and countMod/countThreshold ge minDataAvail then begin
       obsValues=obsvalues(idxMod)
       runValues=runvalues(idxMod)
@@ -475,7 +475,7 @@ pro obs_run_nan, request,result,obsValues, runValues
       goto,jumpOut
     endif
   endif
-  if iUseObserveModel eq 1 then begin 
+  if iUseObserveModel eq 1 then begin
     if countMod/countThreshold ge minDataAvail then begin
       obsValues=obsvalues(idxMod)
       runValues=runvalues(idxMod)
@@ -493,9 +493,9 @@ pro obs_run_nan, request,result,obsValues, runValues
       obsValues(*)=!values.f_nan
       runValues(*)=!values.f_nan
       goto,jumpOut
-    endif  
+    endif
   endif
-  
+
   jumpOut:
 
 end
@@ -585,14 +585,14 @@ pro mypsym,number,size_symb
       A = FINDGEN(17) * (!PI*2/16.)
       USERSYM, size_symb*1.7*COS(A), 1.7*SIN(A),thick=2,/fill
     end
-  
-; KeesC 20JUN2012    
+
+; KeesC 20JUN2012
     14: begin ; square line
       X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*.75
       Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*.75
       USERSYM, X, Y, color=0
     end
-      
+
 endcase
 
 end
@@ -691,7 +691,7 @@ PRO runningAverage, request, result
   iyear=0
   yrhrs=8760
   if 4*(year/4) eq year then begin   ;leapyear
-    iyear=1  
+    iyear=1
     yrhrs=8784
   endif
   datas=n_elements(dataResult)
@@ -792,8 +792,8 @@ pro time_operations, request, result, obsTemp, runTemp
       if startIndex ge Feb29start then begin
         endIndex=endIndex-24
         startIndex=startIndex-24
-      endif  
-    endif  
+      endif
+    endif
   elabcode=request->getElaborationCode()
   min08Avail=6 ; minimal 8-hours values available
   minDayAvail=18 ; minimal 18 8-hour-mean values should be available per day
@@ -949,7 +949,7 @@ pro time_operations, request, result, obsTemp, runTemp
     ddn=request->getHourType()    ;allday, day, night, WD, WE
 
 ;KeesC 4APR2013
-;    if res_start[0] eq 'WD' then begin  
+;    if res_start[0] eq 'WD' then begin
     if ddn eq 3 then begin
       for i=0,364+iyear do begin
         DayYear=(julday(1,i+1,year)+1) mod 7
@@ -985,10 +985,10 @@ pro time_operations, request, result, obsTemp, runTemp
     hour=request->getHourInfo() ;HourType
     start_hour_hlp=hour[0].value
     end_hour_hlp=hour[1].value
-    
+
     ysw=request->getSeasonType()  ;year, summer, winter
     ddn=request->getHourType()    ;allday, day, night, WD, WE
- 
+
     ahlp=intarr(yrhrs) & ahlp(*)=0
     if elabcode eq 71 then begin  ;day
       for i=0,364+iyear do begin

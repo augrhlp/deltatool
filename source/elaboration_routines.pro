@@ -10,8 +10,8 @@ PRO FM_Generic, request, result
       if startIndex ge Feb29start then begin
         endIndex=endIndex-24
         startIndex=startIndex-24
-      endif  
-    endif  
+      endif
+    endif
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   nsce=request->getScenarioNumber()
@@ -103,7 +103,7 @@ PRO FM_Generic, request, result
   OCStat=request->getElaborationOCStat()
   print, 'OCStat->', OCStat
   print, 'OCTimeAvgName->', OCTimeAvgName
-  
+
   SG_Computing, request, result, npar, nmod, nsce, nobs, nobsS, nobsG, $
     mChoice1run, mChoice2run, mChoice3run, mChoice4run,$
     parCodes, modelCodes, ScenarioCodes, obsNames, $
@@ -116,7 +116,7 @@ PRO FM_Generic, request, result
   iprintnr=2 ; 2 values (OBS MOD) are dumped
   if iUseObserveModel eq 1 then iprintnr=1
   if total(where(elabCode eq [3,4,5,7,8,23,24,28,30,33,54])) ge 0 then iprintnr=1 ; 1 MOD value
-  if elabCode eq 2 or elabCode eq 14 then iprintnr=3 ; Const CC Slope 
+  if elabCode eq 2 or elabCode eq 14 then iprintnr=3 ; Const CC Slope
 ; For groups only:  Const CC Slope Bias RMSE NMSD MeanO MeanM StdevO StdevM ==> set iprintnr=10
 ;                   Decomment the lines with '10xdump'
 ; 10xdump: Decomment next line
@@ -191,7 +191,7 @@ PRO FM_Generic, request, result
       request->writeDataDumpFileRecord, txthlp
     endfor
   endif
-  
+
   for ipar=0,npar-1 do begin
   for imod=0,nmod-1 do begin
   for isce=0,nsce-1 do begin
@@ -215,7 +215,7 @@ PRO FM_Generic, request, result
     endif
     if ngroup ge 1 then begin
       for igr=0,ngroup-1 do begin
-        if finite(statXYResult(ipar,imod,isce,nobsS+igr,0)) eq 1 or finite(statXYResult(ipar,imod,isce,nobsS+igr,1)) eq 1 then begin      
+        if finite(statXYResult(ipar,imod,isce,nobsS+igr,0)) eq 1 or finite(statXYResult(ipar,imod,isce,nobsS+igr,1)) eq 1 then begin
           atxt=parCodes(ipar)+' '+modelCodes(imod)+' '+scenarioCodes(isce)+' G '+groupTitles(igr)
           if iprintnr eq 2 then $
             txthlp=atxt+' '+strcompress(statXYResult(ipar,imod,isce,nobsS+igr,0),/remove_all)+' '+$
@@ -240,7 +240,7 @@ PRO FM_Generic, request, result
             strcompress(statXYResult(ipar,imod,isce,nobsS+igr,8),/remove_all)+' '+$
             strcompress(statXYResult(ipar,imod,isce,nobsS+igr,9),/remove_all)
           request->writeDataDumpFileRecord, txthlp
-        endif  
+        endif
       endfor
     endif
   endfor
@@ -344,14 +344,14 @@ PRO SG_Computing, $
   dimAll=(Index1)*(Index2)*(Index3)*(Index4)
   statXYResult=fltarr(Index1,Index2,Index3,Index4,3)
 ; 10xdump: Decomment next line
-;  statXYResult=fltarr(Index1,Index2,Index3,Index4,10)  
+;  statXYResult=fltarr(Index1,Index2,Index3,Index4,10)
   statXYGroup=fltarr(index1,index2,index3,index4) & statXYGroup(*,*,*,*)=!values.f_nan
 
 ;  close,12 & openw,12,'C:\DELTA_TOOL\dump\percent.dat'
   for i1=0, Index1-1 do begin   ;par
     for i2=0, Index2-1 do begin  ; mod
       for i3=0, Index3-1 do begin  ;scen
-        for i4=0, Index4-1 do begin    ;obs        
+        for i4=0, Index4-1 do begin    ;obs
           choiceIdx1=(where(mChoice1run eq test1[i1] and mChoice2run eq test2[i2] and $
             mChoice3run eq test3[i3] and mChoice4run eq test4[i4]))[0]
           if choiceIdx1 eq -1 then begin
@@ -370,10 +370,14 @@ PRO SG_Computing, $
             endif
             obsTemp=*RawData[MonitIndexes[choiceIdx1]].observedData
           endif else begin
-            obsTemp=runTemp 
+            obsTemp=runTemp
             obsTemp(*)=-999
-          endelse  
-          
+          endelse
+
+;          KeesC 26APR2013
+          ccc=where(obsTemp eq 0, countCCC)
+          if countCCC gt 0 then obsTemp(ccc)=-999.
+
           if elabCode ne 71 and elabCode ne 72 and elabCode ne 73 then begin
             time_operations, request, result, obsTemp, runTemp
             obs_run_nan,request,result,obsTemp, runTemp
@@ -471,7 +475,7 @@ PRO SG_Computing, $
           if elabcode eq 14 then begin  ;Spatial Corr
             statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp)
-; 10xdump: Decomment next line          
+; 10xdump: Decomment next line
 ;            statXYResult[i1,i2,i3,i4,3]=mean(runTemp)-mean(obsTemp)
 ;            statXYResult[i1,i2,i3,i4,4]=rmse(obsTemp,runTemp)
 ;            statXYResult[i1,i2,i3,i4,5]=100.*(stddevOM(runTemp)-stddevOM(obsTemp))/stddevOM(obsTemp)
@@ -479,7 +483,7 @@ PRO SG_Computing, $
 ;            statXYResult[i1,i2,i3,i4,7]=mean(runTemp)
 ;            statXYResult[i1,i2,i3,i4,8]=stddevOM(obsTemp)
 ;            statXYResult[i1,i2,i3,i4,9]=stddevOM(runTemp)
-            statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp)) 
+            statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
           endif
           if elabcode eq 15 or elabCode eq 78 or elabCode eq 16 then begin ; R buggle
             statXYResult[i1,i2,i3,i4,0]=criteriaOU/stddevOM(obsTemp)
@@ -695,7 +699,7 @@ PRO SG_Computing, $
             statXY0=reform(statXYResult(i1,i2,i3,nobsS+currNumber,0))
             statXY1=reform(statXYResult(i1,i2,i3,nobsS+currNumber,1))
             statXY2=reform(statXYResult(i1,i2,i3,nobsS+currNumber,2))
-; 10xdump: Decomment next lines          
+; 10xdump: Decomment next lines
 ;            statXY3=reform(statXYResult(i1,i2,i3,nobsS+currNumber,3))
 ;            statXY4=reform(statXYResult(i1,i2,i3,nobsS+currNumber,4))
 ;            statXY5=reform(statXYResult(i1,i2,i3,nobsS+currNumber,5))
@@ -711,7 +715,7 @@ PRO SG_Computing, $
                 obsGroupStatResult=reform(statXY0(ccFin))
                 runGroupStatResult=reform(statXY1(ccFin))
                 run2GroupStatResult=reform(statXY2(ccFin))
-; 10xdump: Decomment next lines                 
+; 10xdump: Decomment next lines
 ;                run3GroupStatResult=reform(statXY3(ccFin))
 ;                run4GroupStatResult=reform(statXY4(ccFin))
 ;                run5GroupStatResult=reform(statXY5(ccFin))
@@ -723,7 +727,7 @@ PRO SG_Computing, $
                   obsStatResult=mean(obsGroupStatResult)
                   runStatResult=mean(runGroupStatResult)
                   run2StatResult=mean(run2GroupStatResult)
-; 10xdump: Decomment next lines                   
+; 10xdump: Decomment next lines
 ;                  run3StatResult=mean(run3GroupStatResult)
 ;                  run4StatResult=mean(run4GroupStatResult)
 ;                  run5StatResult=mean(run5GroupStatResult)
@@ -745,7 +749,7 @@ PRO SG_Computing, $
                   obsStatResult=regcnst
                   RunStatResult=spatCorr
                   Run2StatResult=regres
-; 10xdump: Decomment next lines                   
+; 10xdump: Decomment next lines
 ;                  Run3StatResult=mean(run3GroupStatResult)
 ;                  Run4StatResult=mean(run4GroupStatResult)
 ;                  Run5StatResult=mean(run5GroupStatResult)
@@ -763,7 +767,7 @@ PRO SG_Computing, $
                 obsStatResult=!values.f_nan
                 runStatResult=!values.f_nan
                 Run2StatResult=!values.f_nan
-; 10xdump: Decomment next lines                 
+; 10xdump: Decomment next lines
 ;                Run3StatResult=!values.f_nan
 ;                Run4StatResult=!values.f_nan
 ;                Run5StatResult=!values.f_nan
@@ -811,7 +815,7 @@ PRO SG_Computing, $
             statXYResultHlp[i1,i2,i3,nobsS+iG,0]=obsStatResult
             statXYResultHlp[i1,i2,i3,nobsS+iG,1]=runStatResult
             statXYResultHlp[i1,i2,i3,nobsS+iG,2]=run2StatResult
-; 10xdump: Decomment next lines             
+; 10xdump: Decomment next lines
 ;            statXYResultHlp[i1,i2,i3,nobsS+iG,3]=run3StatResult
 ;            statXYResultHlp[i1,i2,i3,nobsS+iG,4]=run4StatResult
 ;            statXYResultHlp[i1,i2,i3,nobsS+iG,5]=run5StatResult
@@ -1006,8 +1010,8 @@ pro FM_MeanTS, request, result
        if startIndex ge Feb29start then begin
          endIndex=endIndex-24
          startIndex=startIndex-24
-       endif  
-    endif   
+       endif
+    endif
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
@@ -1273,8 +1277,8 @@ pro FM_StatTable2, request, result
       if startIndex ge Feb29start then begin
         endIndex=endIndex-24
         startIndex=startIndex-24
-      endif  
-    endif  
+      endif
+    endif
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
@@ -1669,8 +1673,8 @@ PRO FM_GoogleEarth, request, result
       if startIndex ge Feb29start then begin
         endIndex=endIndex-24
         startIndex=startIndex-24
-      endif  
-    endif  
+      endif
+    endif
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
@@ -1942,8 +1946,8 @@ PRO FM_ConditionScatter, request, result
       if startIndex ge Feb29start then begin
         endIndex=endIndex-24
         startIndex=startIndex-24
-      endif  
-    endif  
+      endif
+    endif
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
@@ -2228,8 +2232,8 @@ PRO FM_MultiParModScatter, request, result
       if startIndex ge Feb29start then begin
         endIndex=endIndex-24
         startIndex=startIndex-24
-      endif  
-    endif  
+      endif
+    endif
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
@@ -2403,8 +2407,8 @@ pro FM_QQ_SC_ALLTIME, request, result
       if startIndex ge Feb29start then begin
         endIndex=endIndex-24
         startIndex=startIndex-24
-      endif  
-    endif  
+      endif
+    endif
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
