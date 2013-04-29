@@ -77,6 +77,7 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
              storeData[*, 0]=strcompress(info, /REMOVE_all)
              goto,yAvg
           endif  
+; KeesC 8APR2013          
           year=fix(info[0])       
           k1=day_sum(fix(info(1))-1)*24
           k2=(fix(info(2))-1)*24
@@ -409,8 +410,7 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
       return,data
     endelse
     !quiet=0
-  endif
-;KeesC 2FEB2013  
+  endif 
   if ext eq 'csv' then begin
     openr, unit, fileName, /GET_LUN
     bufferString=''
@@ -469,8 +469,7 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
       data=storeData
     endelse  
     return,data
-  endif
-  
+  endif 
 END
 ;****************************************************************************************
 ; constructor/destructor

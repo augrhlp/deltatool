@@ -10,18 +10,18 @@
 PRO fairmode_doNothing, ev
 
   print, 'Nothing to do'
-  
+
 END
 
 PRO fairmode_benchmarkOKRequest, ev
 
   widget_control, ev.top, get_uvalue=view
   widget_control, ev.id, get_uvalue=index
-  
+
   ;print, 'fairmode_benchmarkOKRequest'
   view->okRequest
 ;view->setObsGroupStatIndex, index
-  
+
 END
 
 PRO fairmode_benchmarkTreeSelection, ev
@@ -34,16 +34,16 @@ PRO fairmode_benchmarkTreeSelection, ev
   ;print, 'fairmode_obsModMainBtt'
   ;view->userBenchMarkTreeUpdate, benchMarkTreeElemInfo
   view->userBenchMarkTreeUpdate, treeElemCode
-  
+
 END
 
 PRO fairmode_groupStatSelection, ev
 
   widget_control, ev.top, get_uvalue=view
   widget_control, ev.id, get_uvalue=index
-  
+
   view->setObsGroupStatIndex, index
-  
+
 END
 
 PRO fairmode_groupNameOKRequest, ev
@@ -53,10 +53,10 @@ PRO fairmode_groupNameOKRequest, ev
   widget_control, ev.id, get_uvalue=widgetText
   widget_control, widgetText, get_value=groupName
   widget_control, widgetText, get_uvalue=selectedCodes
-  
+
   ;print, 'fairmode_groupNameOKRequest'
   view->groupNameOKRequest, ev.top, groupName, selectedCodes
-  
+
 END
 
 PRO fairmode_editBatch, ev
@@ -68,7 +68,7 @@ PRO fairmode_editBatch, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_graphicTypeRadioButton'
   view->userEditBatch
-  
+
 END
 
 PRO fairmode_showRequestBatch, ev
@@ -80,7 +80,7 @@ PRO fairmode_showRequestBatch, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_graphicTypeRadioButton'
   view->userShowRequestBatch
-  
+
 END
 
 PRO fairmode_printOrientRadioButton, ev
@@ -91,7 +91,7 @@ PRO fairmode_printOrientRadioButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_pageModeRadioButton'
   view->userUpdatePrintOrientCode, type, widgetId
-  
+
 END
 
 PRO fairmode_benchMarkSaveModeRadioButton, ev
@@ -102,7 +102,7 @@ PRO fairmode_benchMarkSaveModeRadioButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_pageModeRadioButton'
   view->userUpdateBenchMarkSaveModeCode, type, widgetId
-  
+
 END
 
 PRO fairmode_pageModeRadioButton, ev
@@ -114,7 +114,7 @@ PRO fairmode_pageModeRadioButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_pageModeRadioButton'
   view->userUpdatePageModeCode, type, widgetId
-  
+
 END
 
 PRO fairmode_graphicTypeRadioButton, ev
@@ -126,7 +126,7 @@ PRO fairmode_graphicTypeRadioButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_graphicTypeRadioButton'
   view->userUpdateGraphicTypeCode, type, widgetId
-  
+
 END
 
 ;PRO fairmode_iterateOptionRadioButton, ev
@@ -150,7 +150,7 @@ PRO fairmode_splitStyleRadioButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_splitStyleRadioButton'
   view->userUpdateSplitStyleCode, type, widgetId
-  
+
 END
 
 PRO fairmode_splitDrawMouse, ev
@@ -165,7 +165,7 @@ PRO fairmode_splitDrawMouse, ev
     view->splitMouseClick, xCoord, yCoord
   endif
 ;print, 'fairmode_mapDrawMouse'
-  
+
 END
 
 PRO fairmode_benchmarkOperationButton, ev
@@ -176,14 +176,14 @@ PRO fairmode_benchmarkOperationButton, ev
   widget_control, ev, get_uvalue=view
   print, 'fairmode_benchmarkOperationButton'
 ;view->userAllStationsButton, select
-  
+
 END
 
 PRO fairmode_checkDataIntegrityMenuSelection, ev
 
   widget_control, ev.top, get_uvalue=view
   view->checkDataIntegrity
-  
+
 END
 
 PRO fairmode_helpMenuSelection, ev
@@ -198,7 +198,7 @@ PRO fairmode_helpMenuSelection, ev
   fs=mgr->getFileSystemMgr()
   helpfolder=fs->getHelpDir(withseparator=withseparator)+'\'
   spawn,[mgr->getPdfReaderLocation(),helpfolder+'DELTA_UserGuide_V3.pdf'],/noshell,/nowait
-  
+
 END
 
 PRO fairmode_downloadMenuSelection, ev
@@ -211,7 +211,7 @@ PRO fairmode_downloadMenuSelection, ev
   print, 'Pdf reader:',mgr->getPdfReaderLocation()
   print, 'Browser launcher:',mgr->getBrowserLocation()
   spawn,[mgr->getBrowserLocation(),'aqm.jrc.ec.europa.eu/DELTA/'],/noshell,/nowait
-  
+
 END
 
 PRO fairmode_flagAllObservationsButton, ev
@@ -222,7 +222,7 @@ PRO fairmode_flagAllObservationsButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_singleObsRadioButton'
   view->userAllObservationsButton, select
-  
+
 END
 
 PRO fairmode_flagAllModelsButton, ev
@@ -233,7 +233,7 @@ PRO fairmode_flagAllModelsButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_singleObsRadioButton'
   view->userAllModelsButton, select
-  
+
 END
 
 PRO fairmode_flagAllScenariosButton, ev
@@ -244,7 +244,7 @@ PRO fairmode_flagAllScenariosButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_singleObsRadioButton'
   view->userAllScenariosButton, select
-  
+
 END
 
 PRO fairmode_flagAllParametersButton, ev
@@ -255,7 +255,7 @@ PRO fairmode_flagAllParametersButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_singleObsRadioButton'
   view->userAllParametersButton, select
-  
+
 END
 
 PRO fairmode_recognizeSwitchBtt, ev
@@ -263,7 +263,7 @@ PRO fairmode_recognizeSwitchBtt, ev
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
   view->SwitchRecognize
-  
+
 END
 
 PRO fairmode_aboutOKBTT, ev
@@ -273,7 +273,7 @@ PRO fairmode_aboutOKBTT, ev
   widget_control, ev, get_uvalue=view
   print, 'fairmode_aboutOKBTT'
   view->exitRequest
-  
+
 END
 
 PRO fairmode_aboutSplash, ev
@@ -283,7 +283,7 @@ PRO fairmode_aboutSplash, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_aboutSplash'
   view->showAboutSplash
-  
+
 END
 
 PRO fairmode_disclaimer, ev
@@ -293,7 +293,7 @@ PRO fairmode_disclaimer, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_disclaimer'
   view->showDisclaimer
-  
+
 END
 
 PRO fairmode_destroyObsTable, ev
@@ -303,7 +303,7 @@ PRO fairmode_destroyObsTable, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_destroyObsTable'
   view->unlockObsTable
-  
+
 END
 
 PRO fairmode_userViewObsDetails, ev
@@ -313,7 +313,7 @@ PRO fairmode_userViewObsDetails, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_userViewObsDetails'
   view->showObsDetails
-  
+
 END
 
 PRO fairmode_userUpdateStartDate, ev
@@ -325,7 +325,7 @@ PRO fairmode_userUpdateStartDate, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_userUpdateStartDate'
   view->changeStartDate, type, index
-  
+
 END
 
 PRO fairmode_userUpdateEndDate, ev
@@ -337,7 +337,7 @@ PRO fairmode_userUpdateEndDate, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_userUpdateEndDate'
   view->changeEndDate, type, index
-  
+
 END
 
 PRO fairmode_benchmarkBtt, ev
@@ -347,7 +347,7 @@ PRO fairmode_benchmarkBtt, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_obsModMainBtt'
   view->startBenchMark, benchMarkFileName
-  
+
 END
 
 PRO fairmode_obsModMainBtt, ev
@@ -358,7 +358,7 @@ PRO fairmode_obsModMainBtt, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_obsModMainBtt'
   view->userObsModSelection, select
-  
+
 END
 
 PRO fairmode_execRequest, ev
@@ -368,7 +368,7 @@ PRO fairmode_execRequest, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_execRequest'
   view->execRequest
-  
+
 END
 
 PRO fairmode_startHourSelection, ev
@@ -380,7 +380,7 @@ PRO fairmode_startHourSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_startHourSelection'
   view->userStartHourSelection, index
-  
+
 END
 
 PRO fairmode_startDaySelection, ev
@@ -392,7 +392,7 @@ PRO fairmode_startDaySelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_startDaySelection'
   view->userStartDaySelection, index
-  
+
 END
 
 PRO fairmode_startMonthSelection, ev
@@ -404,7 +404,7 @@ PRO fairmode_startMonthSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_startMonthSelection'
   view->userStartMonthSelection, index
-  
+
 END
 
 PRO fairmode_startYearSelection, ev
@@ -415,7 +415,7 @@ PRO fairmode_startYearSelection, ev
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
 ;print, 'fairmode_startYearSelection'
-  
+
 END
 
 PRO fairmode_endHourSelection, ev
@@ -427,7 +427,7 @@ PRO fairmode_endHourSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_endHourSelection'
   view->userEndHourSelection, index
-  
+
 END
 
 PRO fairmode_endDaySelection, ev
@@ -439,7 +439,7 @@ PRO fairmode_endDaySelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_endDaySelection'
   view->userEndDaySelection, index
-  
+
 END
 
 PRO fairmode_endMonthSelection, ev
@@ -451,7 +451,7 @@ PRO fairmode_endMonthSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_endMonthSelection'
   view->userEndMonthSelection, index
-  
+
 END
 
 PRO fairmode_endYearSelection, ev
@@ -463,7 +463,7 @@ PRO fairmode_endYearSelection, ev
   widget_control, ev, get_uvalue=view
 ;print, 'fairmode_endYearSelection'
 ;view->userGroupByTimeSelection, index
-  
+
 END
 
 PRO fairmode_groupByTimeSelection, ev
@@ -475,7 +475,7 @@ PRO fairmode_groupByTimeSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_groupByTimeSelection'
   view->userGroupByTimeSelection, index
-  
+
 END
 
 PRO fairmode_groupByStatUserSelection, ev
@@ -487,7 +487,7 @@ PRO fairmode_groupByStatUserSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_GroupByStatUserSelection'
   view->userGroupByStatSelection, index
-  
+
 END
 
 PRO fairmode_periodSeasonSelection, ev
@@ -499,7 +499,7 @@ PRO fairmode_periodSeasonSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_PeriodSeasonSelection'
   view->userSeasonSelection, index
-  
+
 END
 
 PRO fairmode_periodDaySelection, ev
@@ -511,7 +511,7 @@ PRO fairmode_periodDaySelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_PeriodDaySelection'
   view->userDayPeriodSelection, index
-  
+
 END
 
 PRO fairmode_OKRequest, ev
@@ -521,7 +521,7 @@ PRO fairmode_OKRequest, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_OKRequest'
   view->OKRequest
-  
+
 END
 
 PRO fairmode_useObsModButton, ev
@@ -532,7 +532,7 @@ PRO fairmode_useObsModButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_singleObsRadioButton'
   view->userUseObsModButton, select
-  
+
 END
 
 PRO fairmode_singleObsRadioButton, ev
@@ -542,7 +542,7 @@ PRO fairmode_singleObsRadioButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_singleObsRadioButton'
   view->singleObsRadioButton
-  
+
 END
 
 PRO fairmode_groupObsRadioButton, ev
@@ -552,7 +552,7 @@ PRO fairmode_groupObsRadioButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_groupObsRadioButton'
   view->groupObsRadioButton
-  
+
 END
 
 PRO fairmode_addObsButton, ev
@@ -562,7 +562,7 @@ PRO fairmode_addObsButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_addObsButton'
   view->addObsButton
-  
+
 END
 
 PRO fairmode_removeObsButton, ev
@@ -572,7 +572,7 @@ PRO fairmode_removeObsButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_removeObsButton'
   view->removeObsButton
-  
+
 END
 
 PRO fairmode_obsStoredListSelection, ev
@@ -582,7 +582,7 @@ PRO fairmode_obsStoredListSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_obsStoredListSelection'
   view->obsStoredListSelection
-  
+
 END
 
 PRO fairmode_loadObsButton, ev
@@ -592,7 +592,7 @@ PRO fairmode_loadObsButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_loadObsButton'
   view->loadObsButton
-  
+
 END
 
 PRO fairmode_saveObsButton, ev
@@ -602,7 +602,7 @@ PRO fairmode_saveObsButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_saveObsButton'
   view->saveObsButton
-  
+
 END
 
 PRO fairmode_obsQueryListSelection, ev
@@ -612,7 +612,7 @@ PRO fairmode_obsQueryListSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_obsQueryListSelection'
   view->obsQueryListSelection
-  
+
 END
 
 PRO fairmode_categoryValuesExclusiveSelection, ev
@@ -625,7 +625,7 @@ PRO fairmode_categoryValuesExclusiveSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_categoryValuesExclusiveSelection'
   view->categoryValuesExclusiveSelection, wid, catIndex, index
-  
+
 END
 
 PRO fairmode_categoryValuesListSelection, ev
@@ -639,7 +639,7 @@ PRO fairmode_categoryValuesListSelection, ev
   ;print, 'fairmode_categoryValuesListSelection'
   ;  view->categoryValuesListSelection, wid, catIndex, index-1
   view->categoryValuesExclusiveSelection, wid, catIndex, index-1
-  
+
 END
 
 PRO fairmode_useCriteriaButton, ev
@@ -649,7 +649,7 @@ PRO fairmode_useCriteriaButton, ev
   widget_control, ev, get_uvalue=view
 ;print, 'fairmode_useCriteriaButton'
 ;view->useCriteriaButton
-  
+
 END
 
 PRO fairmode_useThresholdsButton, ev
@@ -659,7 +659,7 @@ PRO fairmode_useThresholdsButton, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_useThresholdsButton'
   view->useThresholdsButton
-  
+
 END
 
 PRO fairmode_parameterListSelection, ev
@@ -674,7 +674,7 @@ PRO fairmode_parameterListSelection, ev
   ;print, 'fairmode_parameterListSelection'
   ;view->userParameterSelections, indexes
   view->userParameterCodeSelections, selCodes
-  
+
 END
 
 PRO fairmode_parameterTypeListSelection, ev
@@ -685,7 +685,7 @@ PRO fairmode_parameterTypeListSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_parameterTypeListSelection'
   view->userParameterTypeSelections, indexes
-  
+
 END
 
 PRO fairmode_elabNameListSelection, ev
@@ -696,7 +696,7 @@ PRO fairmode_elabNameListSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_elabNameListSelection'
   view->userElabSelection, index
-  
+
 END
 
 PRO fairmode_elabDiagramListSelection, ev
@@ -710,7 +710,7 @@ PRO fairmode_elabDiagramListSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_elabDiagramListSelection'
   view->userDiagramSelection, index
-  
+
 END
 
 ;PRO fairmode_elabAxisListSelection, ev
@@ -732,7 +732,7 @@ PRO fairmode_scenarioListSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_scenarioListSelection'
   view->userScenarioSelections, indexes
-  
+
 END
 
 PRO fairmode_modelListSelection, ev
@@ -743,7 +743,7 @@ PRO fairmode_modelListSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_modelListSelection'
   view->userModelSelections, indexes
-  
+
 END
 
 PRO fairmode_runListSelection, ev
@@ -754,7 +754,7 @@ PRO fairmode_runListSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_runListSelection'
   view->userRunSelection, index
-  
+
 END
 
 PRO fairmode_saveImage, ev
@@ -764,7 +764,7 @@ PRO fairmode_saveImage, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_saveImage'
   view->saveImage
-  
+
 END
 
 PRO fairmode_saveImageBlack, ev
@@ -774,7 +774,7 @@ PRO fairmode_saveImageBlack, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_saveImageBlack'
   view->saveImageBlack
-  
+
 END
 
 PRO fairmode_saveImageWhite, ev
@@ -784,7 +784,7 @@ PRO fairmode_saveImageWhite, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_saveImageWhite'
   view->saveImageWhite
-  
+
 END
 
 PRO fairmode_saveBatch, ev
@@ -794,7 +794,7 @@ PRO fairmode_saveBatch, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_saveBatch'
   a=view->saveBatch()
-  
+
 END
 
 PRO fairmode_restoreBatch, ev
@@ -805,7 +805,7 @@ PRO fairmode_restoreBatch, ev
   ;print, 'fairmode_restoreBatch'
   view->restoreBatch
 ;view->startBatchMode
-  
+
 END
 
 
@@ -816,7 +816,7 @@ PRO fairmode_dateComboSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_dateComboSelection'
   view->dateComboSelection
-  
+
 END
 
 PRO fairmode_modeComboSelection, ev
@@ -827,7 +827,7 @@ PRO fairmode_modeComboSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_modeComboSelection'
   view->userSelection, index
-  
+
 END
 
 PRO fairmode_modeMenuSelection, ev
@@ -837,7 +837,7 @@ PRO fairmode_modeMenuSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_modeMenuSelection'
   view->displayModeSelectionGUI
-  
+
 END
 
 PRO fairmode_batchComposition, ev
@@ -847,7 +847,7 @@ PRO fairmode_batchComposition, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_benchmarkBuildMenuSelection'
   view->displayCompositeBatchGUI
-  
+
 END
 
 PRO fairmode_displayEntity, ev
@@ -857,7 +857,7 @@ PRO fairmode_displayEntity, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_entityMenuSelection'
   view->displayEntitySelectionGUI
-  
+
 END
 
 PRO fairmode_saveEntity, ev
@@ -866,7 +866,7 @@ PRO fairmode_saveEntity, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_entityMenuSave'
   view->saveEntity
-  
+
 END
 
 PRO fairmode_restoreEntity, ev
@@ -875,7 +875,7 @@ PRO fairmode_restoreEntity, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_entityMenuLoad'
   view->restoreEntity
-  
+
 END
 
 PRO fairmode_displayElaboration, ev
@@ -884,7 +884,7 @@ PRO fairmode_displayElaboration, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_elaborationMenuSelection'
   view->displayElaborationSelectionGUI
-  
+
 END
 
 PRO fairmode_saveElaboration, ev
@@ -893,7 +893,7 @@ PRO fairmode_saveElaboration, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_elaborationMenuSave'
   view->saveElaboration
-  
+
 END
 
 PRO fairmode_restoreElaboration, ev
@@ -902,7 +902,7 @@ PRO fairmode_restoreElaboration, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_elaborationMenuLoad'
   view->restoreElaboration
-  
+
 END
 
 PRO fairmode_dateMenuSelection, ev
@@ -911,7 +911,7 @@ PRO fairmode_dateMenuSelection, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_dateMenuSelection'
   view->displayDateSelectionGUI
-  
+
 END
 
 PRO fairmode_event, event
@@ -920,8 +920,8 @@ PRO fairmode_event, event
   ;print, 'fairmode_event'
   if tag_names(event, /STRUCTURE_NAME) EQ $
     'WIDGET_KILL_REQUEST' then view->exitRequest
-    
-    
+
+
 END
 
 PRO fairmode_destroyWindow, ev
@@ -930,7 +930,7 @@ PRO fairmode_destroyWindow, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_destroyWindow'
   view->exitRequest
-  
+
 END
 
 PRO fairmode_modaldestroyWindow, ev
@@ -939,7 +939,7 @@ PRO fairmode_modaldestroyWindow, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_modaldestroyWindow'
   obj_destroy, view
-  
+
 END
 
 PRO fairmode_mapDrawMouse, ev
@@ -954,5 +954,5 @@ PRO fairmode_mapDrawMouse, ev
     view->recognize, xCoord, yCoord
   endif
 ;print, 'fairmode_mapDrawMouse'
-  
+
 END
