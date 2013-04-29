@@ -592,7 +592,7 @@ PRO SG_Computing, $
             if criteriaOU gt 0 then begin
               statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*2.)
               statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/(CriteriaOU*2.)
-              statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)
+              statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)/(CriteriaOU*2.)
             endif else begin
               statXYResult[i1,i2,i3,i4,0]=!values.f_nan
               statXYResult[i1,i2,i3,i4,1]=!values.f_nan
@@ -604,7 +604,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=100.*(stddevOM(runTemp)-stddevOM(obsTemp))/stddevOM(obsTemp)
             statXYGroup[i1,i2,i3,i4]=abs(statXYResult[i1,i2,i3,i4,0])
           endif
-          if elabcode eq 55 or elabcode eq 81 then begin ; Not used anymore
+          if elabcode eq 55 then begin ; Not used anymore
             CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
             sign=stddevOM(obsTemp)-stddevOM(runTemp)  ;only for target
             if finite(sign) eq 1 then sign=sign/abs(sign)   ;only for target
@@ -788,6 +788,12 @@ PRO SG_Computing, $
                 medIdx=resSort[fix(0.9*n_elements(resSort))]
                 obsStatResult=obsGroupStatResult(medIdx)
                 runStatResult=runGroupStatResult(medIdx)
+                if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then begin
+                distMax=sqrt(obsGroupStatResult(medIdx)^2+runGroupStatResult(medIdx)^2)
+                distMean=sqrt(mean(obsGroupStatResult)^2+mean(runGroupStatResult)^2)
+                obsStatResult=mean(obsGroupStatResult)*distMax/distMean
+                runStatResult=mean(runGroupStatResult)*distMax/distMean
+                endif
                 ;KeesC 10SEP2012
                 run2StatResult=run2GroupStatResult(medIdx)
                 if total(where(elabCode eq [20,21,22,52,81,34])) ge 0 then begin
