@@ -67,6 +67,7 @@
 79;1;8H Max Std. deviation (O3);5;1;2;FREE;NONE;0100*0001*0101*;0;YES;1*1*1*1*1;Model performance criteria for Stdev.;OU;8HMAX
 
 81;1;Hourly (NO2);4;0;0;FREE;FREE;0100*0001*0101*;0;YES;1*1*1*1*1;Target diagram for NO2 hourly values. This diagram uses a normalisation based on Observation uncertainty (OU);OU;PP
+82;1;3H (NO2);4;2;0;FREE;FREE;0100*0001*0101*;0;YES;1*1*1*1*1;Target diagram for NO2 hourly values. This diagram uses a normalisation based on Observation uncertainty (OU);OU;3HP
 
 83;7;8H Max (O3);10;1;2;FREE;NONE;0001*;1;YES;1*1*1*1*0;summary report: The threshold value is the limit value.;OU;8HMAX
 84;7;Hourly - Year (NO2);10;0;0;FREE;FREE;0001*;1;YES;1*1*1*1*0;Summary report: The threshold value is the limit value.;OU;PP
