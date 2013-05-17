@@ -2008,13 +2008,13 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   
   if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
   
-    coords1=[-plotRange+plotRange*0.05, plotrange-plotRange*0.25]
-    coords2=[-plotRange*0.15, plotrange-plotRange*0.25]
+    coords1=[-plotRange+plotRange*0.05, plotrange-plotRange*0.2]
+    coords2=[-plotRange*0.15, plotrange-plotRange*0.2]
     coords3=[-plotRange*0.15, plotrange-plotRange*0.05]
     coords4=[-plotRange+plotRange*0.05, plotrange-plotRange*0.05]
     
     polyfill,[coords1[0],coords2[0],coords3[0],coords4[0]],[coords1[1],coords2[1],coords3[1],coords4[1]],color=15,/data
-    coords=[-plotRange+plotRange*0.10,plotrange-plotRange*0.15]
+    coords=[-plotRange+plotRange*0.07,plotrange-plotRange*0.15]
     psFact=plotter->getPSCharSizeFactor()
     xyouts,coords[0],coords[1],'Stations within Crit (T=1):',color=3,/data,charthick=3,charsize=facSize*1.3*psFact
   endif
@@ -2106,10 +2106,11 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       radius = sqrt(allDataXY[cc, 0]^2+allDataXY[cc, 1]^2)
       ccCrit=where(radius le 1,countCritPerc)
       percentageCrit=fix(100.*float(countCritPerc)/float(countValidStations))
-      if percentageCrit ge 90 then colorPerc=150
-      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=215
-      if percentageCrit lt 75 then colorPerc=250
-      xyouts,-plotRange*0.33,plotrange-plotRange*0.17,strtrim(percentageCrit,2)+'%',/data,charsize=2*facSize,charthick=2,color=0
+      if percentageCrit ge 90 then colorPerc=7
+      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=3
+      if percentageCrit lt 75 then colorPerc=2
+      xyouts,-plotRange*0.31,plotrange-plotRange*0.15,strtrim(percentageCrit,2)+'%',$
+        /data,charsize=2*facSize,charthick=3,color=colorPerc
     endif
   endif
   
