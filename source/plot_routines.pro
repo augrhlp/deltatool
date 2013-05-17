@@ -2107,7 +2107,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       ccCrit=where(radius le 1,countCritPerc)
       percentageCrit=fix(100.*float(countCritPerc)/float(countValidStations))
       if percentageCrit ge 90 then colorPerc=7
-      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=3
+      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=16
       if percentageCrit lt 75 then colorPerc=2
       xyouts,-plotRange*0.31,plotrange-plotRange*0.15,strtrim(percentageCrit,2)+'%',$
         /data,charsize=2*facSize,charthick=3,color=colorPerc
