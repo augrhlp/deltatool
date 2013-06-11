@@ -561,7 +561,7 @@ pro mypsym,number,size_symb
 
     9: begin ; circle full
       A = FINDGEN(17) * (!PI*2/16.)
-      USERSYM, size_symb*COS(A), size_symb*SIN(A), /FILL
+      USERSYM, size_symb*COS(A), size_symb*SIN(A) ,/fill
     end
 
     10: begin ; * sign
