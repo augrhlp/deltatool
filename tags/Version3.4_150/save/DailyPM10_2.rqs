@@ -1,0 +1,9 @@
+#Request - Save File - Never change order of contents
+Version=3.2
+RequestFileName=DailyPM10_2.rqs
+EntityFileName=DailyPM10_2.ent
+ElaborationFileName=DailyPM10_2.elb
+PageBreak=CLOSE
+PrintOrient=PORTRAIT
+RequestLocation=0.0500000*0.500000*0.950000*0.900000
+PlotDeviceName=PS

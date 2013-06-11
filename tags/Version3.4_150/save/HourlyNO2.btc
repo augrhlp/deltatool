@@ -1,0 +1,7 @@
+#BatchInfo - Save File - Never change order of contents
+Version=2.1
+NumberOfRequest=2
+RequestNumber=1
+RequestFileName=HourlyNO2_1.rqs
+RequestNumber=2
+RequestFileName=HourlyNO2_2.rqs
