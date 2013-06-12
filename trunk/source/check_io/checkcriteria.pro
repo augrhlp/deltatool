@@ -28,6 +28,8 @@ function Check_Criteria, request, result
 
   if flag_average eq 'preserve' then flag_average='P'
   if flag_average eq '08' then flag_average='8H'
+  if flag_average eq '03' then flag_average='3H'
+
 
   if statType eq 0 then flagDailyStat='P'
   if statType eq 1 then flagDailyStat='MEAN'
