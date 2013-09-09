@@ -516,9 +516,9 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=sign*rmse(obsTemp, runTemp)
           endif
           if elabcode eq 23 then begin
-            statXYResult[i1,i2,i3,i4,0]=mnb(obsTemp, runTemp)
-            statXYResult[i1,i2,i3,i4,1]=mnb(obsTemp, runTemp)
-            statXYGroup[i1,i2,i3,i4]=mnb(obsTemp, runTemp)
+            statXYResult[i1,i2,i3,i4,0]=nmb(obsTemp, runTemp)
+            statXYResult[i1,i2,i3,i4,1]=nmb(obsTemp, runTemp)
+            statXYGroup[i1,i2,i3,i4]=nmb(obsTemp, runTemp)
           endif
           if elabcode eq 24 then begin
             statXYResult[i1,i2,i3,i4,0]=mfe(obsTemp, runTemp)
