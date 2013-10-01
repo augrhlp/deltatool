@@ -1928,7 +1928,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   !y.range=0
   plotter->wsetMainDataDraw
   DEVICE,DECOMPOSE=0
-  LOADCT,3
+  LOADCT,39
   mytek_color;, 0, 32
   tpInfo=result->getGenericPlotInfo()
   allDataXY=tpInfo->getXYS()
@@ -2387,7 +2387,22 @@ PRO FM_PlotTable2, plotter, request, result
       
       xminfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMin(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
       xmaxfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMax(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
-      if criteria gt 0 then polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=160,/data
+; KeesC 9SEP2013 for all or only for ii=2,3,4
+      if criteria gt 0 then begin
+        dx=xmaxfill-xminfill
+        if ii ne 3 and ii ne 5 and ii ne 7 then begin
+          polyfill,[xminfill+0.15*dx,xminfill+0.15*dx,xmaxfill-0.15*dx,xmaxfill-0.15*dx],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=160,/data
+          polyfill,[xminfill,xminfill,xminfill+0.15*dx,xminfill+0.15*dx],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=207,/data
+          polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=207,/data
+        endif
+        if ii eq 3 or ii eq 5 then begin
+          polyfill,[xminfill,xminfill,xmaxfill-0.15*dx,xmaxfill-0.15*dx],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=160,/data
+          polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=207,/data
+        endif
+        if ii eq 7 then begin
+          polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=160,/data 
+        endif
+      endif
       plots,[xmin+0.25,xmax-0.10],[ymax-0.20-ii*0.095,ymax-0.20-ii*0.095],/data,thick=2,color=0
       plots,[xmin+0.25,xmax-0.10],[ymax-0.16-ii*0.095,ymax-0.16-ii*0.095],/data,thick=2,color=0
       plots,[xmax-0.10,xmax-0.05],[ymax-0.20-ii*0.095,ymax-0.20-ii*0.095],/data,thick=2,color=0,linestyle=2
@@ -2428,26 +2443,25 @@ PRO FM_PlotTable2, plotter, request, result
       endfor
       
       if ii eq 2 or ii eq 3 or ii eq 5 or ii eq 4 or ii eq 6 then begin
-        cc=where(abs(allDataXY(*,ii)) le criteria,countC)
+        cc1=where(abs(allDataXY(*,ii)) gt criteria,countC1)   ; % crit
+        ccp5=where(abs(allDataXY(*,ii)) le .5*criteria,countCp5)  ; % .5*crit
       endif
-      if ii eq 7 then cc=where(abs(allDataXY(*,ii)) le 50.,countC)
-      color_indic=250
-      
+;KeesC 9SEP2013  .... 50?      
+      if ii eq 7 then cc=where(abs(allDataXY(*,ii)) gt 50.,countC1)
+      if ii eq 7 then ccp5=where(abs(allDataXY(*,ii)) le 50.,countCp5) 
+      color_indic=207     
       if (ii eq 2 or ii eq 3 or ii eq 4 or ii eq 7) and criteria gt 0 then begin
-        if countC/float(allDataAxis(1)) lt 0.9 and countC/float(allDataAxis(1)) gt .75 then color_indic=210
-        if countC/float(allDataAxis(1)) ge 0.9 then color_indic=160
+        if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
+        if countC1/float(allDataAxis(1)) gt 0.1 then color_indic=250
         mypsym,9,1
         if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*0.095,psym=8,color=color_indic,symsize=3,/data
-      endif
-      
+      endif      
       if (ii eq 5 or ii eq 6) and criteria gt 0 and n_elements(allDataSymbol) gt 1 then begin
-        if countC/float(allDataAxis(1)) lt 0.9 and countC/float(allDataAxis(1)) gt .75 then color_indic=210
-        if countC/float(allDataAxis(1)) ge 0.9 then color_indic=160
+        if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
+        if countC1/float(allDataAxis(1)) gt .1 then color_indic=250
         mypsym,9,1
         if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*0.095,psym=8,color=color_indic,symsize=3,/data
-      endif 
-      
-      
+      endif   
     endfor
     
     xyouts,xmin-0.03,ymax-0.20,'O',/data,charsize=1.5*psFact,color=3,charthick=2
@@ -2550,7 +2564,23 @@ PRO FM_PlotTable2, plotter, request, result
       
       xminfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMin(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
       xmaxfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMax(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
-      if criteria gt 0 then polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
+; KeesC 9SEP2013
+      if criteria gt 0 then begin
+;      polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
+        dx=xmaxfill-xminfill
+        if ii eq 1 or ii eq 3 then begin
+          polyfill,[xminfill+0.15*dx,xminfill+0.15*dx,xmaxfill-0.15*dx,xmaxfill-0.15*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
+          polyfill,[xminfill,xminfill,xminfill+0.15*dx,xminfill+0.15*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=207,/data
+          polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=207,/data
+        endif
+        if ii eq 2 then begin
+          polyfill,[xminfill,xminfill,xmaxfill-0.15*dx,xmaxfill-0.15*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
+          polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=207,/data 
+        endif
+        if ii eq 4 then begin
+          polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
+        endif
+      endif
       plots,[xmin+0.25,xmax-0.10],[ymax-0.20-ii*deltaY,ymax-0.20-ii*deltaY],/data,thick=2,color=0
       plots,[xmin+0.25,xmax-0.10],[ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY],/data,thick=2,color=0
       if ii eq 0 or ii eq 2 or ii eq 4 then begin
@@ -2590,16 +2620,22 @@ PRO FM_PlotTable2, plotter, request, result
         xyouts,xmax-0.082,ymax-0.22-ii*deltaY,units(ii),/data,color=0,charsize=psFact
         kg++
       endfor
-      
-      countC=0
-      if ii eq 1 or ii eq 2 or ii eq 3 then cc=where(abs(allDataXY(*,ii)) le criteria,countC)
-      ;      if ii eq 2 then cc=where(abs(allDataXY(*,ii)) ge criteria,countC)
-      if ii eq 4 then cc=where(abs(allDataXY(*,ii)) le criteria,countC)
-      color_indic=250
-      if countC/float(allDataAxis(1)) lt 0.9 and countC/float(allDataAxis(1)) gt .75 then color_indic=210
-      if countC/float(allDataAxis(1)) ge 0.9 then color_indic=160
-      mypsym,9,1
-      if ii ge 1 and criteria gt 0 then begin
+; KeesC 9SEP2013      
+      countC1=0 & countCp5=0
+      if ii eq 1 or ii eq 2 or ii eq 3 then begin
+        cc1=where(abs(allDataXY(*,ii)) gt criteria,countC1)   ; % crit
+        ccp5=where(abs(allDataXY(*,ii)) le 0.5*criteria,countCp5)  ; % .5*crit
+      endif
+      if ii eq 4 then begin
+;        cc=where(abs(allDataXY(*,ii)) le criteria,countC)
+        cc1=where(abs(allDataXY(*,ii)) gt criteria,countC1)   ; % crit
+        ccp5=where(abs(allDataXY(*,ii)) le criteria,countCp5)  ; % .5*crit
+      endif
+      color_indic=207     
+      if ii ne 0 and criteria gt 0 then begin
+        if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
+        if countC1/float(allDataAxis(1)) gt 0.1 then color_indic=250
+        mypsym,9,1
         if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*deltaY,psym=8,color=color_indic,symsize=3,/data
       endif
     endfor
@@ -2712,7 +2748,10 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
         yy1_05(i)= min([ 100.*xx(i), ymax])
         yy2_05(i)= max([-100.*xx(i),-ymax])
       endfor
-      polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=160
+; KeesC 29SEP2013   
+;     polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=160   
+      polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=215
+      polyfill,[xx,reverse(xx)],[yy2_05,reverse(yy1_05)],/data,color=160      
       oplot,xx,yy2_05,linestyle=2,thick=2,color=0
       oplot,xx,yy1_05,linestyle=2,thick=2,color=0
       oplot,xx,yy2,thick=2,color=0
@@ -2766,8 +2805,13 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
         yy(i)=1.-2.*xx(i)^2
         yy05(i)=1.-0.5*xx(i)^2
         if yy(i) lt ymin then yy(i)=ymin
+; KeesC 29SEP2013        
+        if yy05(i) lt ymin then yy05(i)=ymin
       endfor
-      polyfill,[xx,xx(100),xx(0)],[yy,ymax,ymax],/data,color=160
+; KeesC 29SEP2013   
+;     polyfill,[xx,xx(100),xx(0)],[yy,ymax,ymax],/data,color=160   
+      polyfill,[xx,xx(100),xx(0)],[yy,ymax,ymax],/data,color=215
+      polyfill,[xx,xx(100),xx(0)],[yy05,ymax,ymax],/data,color=160
       oplot,xx,yy,color=0,thick=2
       oplot,xx,yy05,color=0,thick=2,linestyle=2
     endif
@@ -3256,10 +3300,10 @@ pro mytek_color, Start_index, Ncolors
   b = bytscl([ 0,100,0,100,0,100,78,  0,0,     100,60,  100,83,55,55,70, $
     33,45,60,75,83,83,83,90,45,55,67,90,100,100,100,100])
 ; KeesC 22APR2013: Bertrand sequence of colours
-  indrgb=[0,1,2,3,4,5,6,7,8,9]
-  r[0:9]=r(indrgb)
-  g[0:9]=g(indrgb)
-  b[0:9]=b(indrgb)
+;  indrgb=[0,1,8,3,6,2,7,4,5,9]    ; 6-9
+;  r[0:9]=r(indrgb)
+;  g[0:9]=g(indrgb)
+;  b[0:9]=b(indrgb)
     
   if ncolors lt 32 then begin   ;Trim?
     r = r[0:ncolors-1]
