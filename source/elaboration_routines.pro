@@ -946,8 +946,6 @@ PRO PrepareLegends, request, result, ifree, npar, nmod, nsce, nobsS, nobs, obsNa
   if npar eq 1 and nmod gt 1 and nsce eq 1 and nobs gt 1 then begin
     ifree='0101'
     if nobsS ge 1 then StatSymbols(*,*,*,0:nobsS-1)=9
-    ;if nobsS ge 1 then StatSymbols(*,*,*,0:nobsS-1)=6
-    ;if nobsS ge 1 then StatSymbols(*,0,*,0:nobsS-1)=9
     if nobs gt nobsS then StatSymbols(*,*,*,nobsS:nobs-1)=13
     for imod=0,nmod-1 do begin
       statColors(*,imod,*,*)=imod
@@ -1467,7 +1465,8 @@ if isSingleSelection then begin
     statXYResultS(i,2)=(mean(runTemp)-mean(obsTemp))/(2*CriteriaOU)
 ;    if elabCode eq 31 or elabCode eq 83 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
 ;    if elabCode eq 32 or elabCode eq 84 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
-    statXYResultS(i,3)=(1.-correlate(obsTemp, runTemp))/(2*(CriteriaOU/stddevOM(obsTemp))^2)
+; KeesC 9SEP2013
+    statXYResultS(i,3)=sqrt((1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(runTemp))/(2*CriteriaOU)
     statXYResultS(i,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(2.*CriteriaOU)
     statXYResultS(i,7)=rde(obsTemp,runTemp,limitValue)
     if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=rdeYearly(obsTemp,runTemp,limitValue)
