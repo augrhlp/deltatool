@@ -116,7 +116,6 @@ PRO FM_PlotBars, plotter, request, result
     plotVarMod=transpose(plotVarMod)
     nBars=nstat & nSubBars=npar & nDots=1
     ntxt1=3 & ntxt2=0 & ntxt3=0
-    ; KeesC
     if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54])) ge 0 then begin
       nBars=nstat & nSubBars=1 & nDots=npar
       ntxt1=3 & ntxt2=0 & ntxt3=0
@@ -138,7 +137,6 @@ PRO FM_PlotBars, plotter, request, result
     plotVarMod=transpose(plotVarMod)
     nBars=nstat & nSubBars=1 & nDots=nmod
     ntxt1=3 & ntxt2=0 & ntxt3=1
-    ;KeesC
     if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54])) ge 0 then begin
       nBars=nstat & nSubBars=1 & nDots=nmod
       ntxt1=3 & ntxt2=0 & ntxt3=1
@@ -895,7 +893,6 @@ PRO FM_PlotScatter, plotter, request, result
   psFact=plotter->getPSCharSizeFactor()
   dims=size(allDataXY,/dimensions)
   nobs=dims(0)/npar/nmod/nsce
-  ; KeesC 31AUG2012
   totalStationNb=nobs
   nmulti=npar*nsce*nmod*nobs
   if elabCode ne 50 then begin
@@ -2153,7 +2150,7 @@ PRO FM_PlotSoccer, plotter, request, result, allDataXY, allDataColor, allDataSym
   recognizeValues=strarr(npoints)
   recognizePoint=fltarr(4,2)
   
-  ; KeesC 30MAR2012: obsTemp undefined, changed into adummy
+  ; obsTemp undefined, changed into adummy
   adummy=fltarr(10) & adummy(*)=1.
   CheckCriteria, request, result, 'RMSE', criteriaRMSE, adummy,alpha,criteriaOrig,LV
   CheckCriteria, request, result, 'BIAS', criteriaBIAS, adummy,alpha,criteriaOrig,LV
@@ -2387,7 +2384,7 @@ PRO FM_PlotTable2, plotter, request, result
       
       xminfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMin(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
       xmaxfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMax(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
-; KeesC 9SEP2013 for all or only for ii=2,3,4
+
       if criteria gt 0 then begin
         dx=xmaxfill-xminfill
         if ii ne 3 and ii ne 5 and ii ne 7 then begin
@@ -2444,9 +2441,9 @@ PRO FM_PlotTable2, plotter, request, result
       
       if ii eq 2 or ii eq 3 or ii eq 5 or ii eq 4 or ii eq 6 then begin
         cc1=where(abs(allDataXY(*,ii)) gt criteria,countC1)   ; % crit
-        ccp5=where(abs(allDataXY(*,ii)) le .5*criteria,countCp5)  ; % .5*crit
-      endif
-;KeesC 9SEP2013  .... 50?      
+;KeesC 1OCT2013: sqrt        
+        ccp5=where(abs(allDataXY(*,ii)) le sqrt(.5)*criteria,countCp5)  ; % .5*crit
+      endif      
       if ii eq 7 then cc=where(abs(allDataXY(*,ii)) gt 50.,countC1)
       if ii eq 7 then ccp5=where(abs(allDataXY(*,ii)) le 50.,countCp5) 
       color_indic=207     
@@ -2564,7 +2561,7 @@ PRO FM_PlotTable2, plotter, request, result
       
       xminfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMin(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
       xmaxfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMax(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
-; KeesC 9SEP2013
+
       if criteria gt 0 then begin
 ;      polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
         dx=xmaxfill-xminfill
@@ -2624,7 +2621,8 @@ PRO FM_PlotTable2, plotter, request, result
       countC1=0 & countCp5=0
       if ii eq 1 or ii eq 2 or ii eq 3 then begin
         cc1=where(abs(allDataXY(*,ii)) gt criteria,countC1)   ; % crit
-        ccp5=where(abs(allDataXY(*,ii)) le 0.5*criteria,countCp5)  ; % .5*crit
+; KeesC 1OCT2013        
+        ccp5=where(abs(allDataXY(*,ii)) le sqrt(0.5)*criteria,countCp5)  ; % .5*crit
       endif
       if ii eq 4 then begin
 ;        cc=where(abs(allDataXY(*,ii)) le criteria,countC)
@@ -2740,18 +2738,22 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
     plot, indgen(fix(maxxaxis+1)), color=0,/nodata, xtitle='RMSU/SigO'+'   '+pars,ytitle='NMSD', title='MPC PLOT', charsize=1, background=255,$
       yrange=[-ymax,ymax],xrange=[minxAxis,maxxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
     if criteria gt 0 then begin
-      xx=fltarr(101) & yy1=fltarr(101) & yy2=fltarr(101) & yy1_05=fltarr(101) & yy2_05=fltarr(101)
+; KeesC 1OCT2013    
+      xx=fltarr(101) & yy1=fltarr(101) & yy2=fltarr(101) & yy1_05=fltarr(101) & yy2_05=fltarr(101) &
+      & yy1_05s=fltarr(101) & yy2_05s=fltarr(101)
       for i=0,100 do begin
         xx(i)=minxAxis+i*(maxxAxis-minxAxis)/100.
         yy1(i)= min([ 200.*xx(i), ymax])
         yy2(i)= max([-200.*xx(i),-ymax])
         yy1_05(i)= min([ 100.*xx(i), ymax])
         yy2_05(i)= max([-100.*xx(i),-ymax])
+        yy1_05s(i)= min([ sqrt(.5)*200.*xx(i), ymax])
+        yy2_05s(i)= max([-sqrt(.5)*200.*xx(i),-ymax])
       endfor
 ; KeesC 29SEP2013   
 ;     polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=160   
       polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=215
-      polyfill,[xx,reverse(xx)],[yy2_05,reverse(yy1_05)],/data,color=160      
+      polyfill,[xx,reverse(xx)],[yy2_05s,reverse(yy1_05s)],/data,color=160      
       oplot,xx,yy2_05,linestyle=2,thick=2,color=0
       oplot,xx,yy1_05,linestyle=2,thick=2,color=0
       oplot,xx,yy2,thick=2,color=0
@@ -2799,19 +2801,22 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
     plot, indgen(fix(maxxaxis+1)), color=0,/nodata, xtitle='RMSU/SigO'+'   '+pars,ytitle='Correlation', title='MPC PLOT', charsize=1, background=255,$
       yrange=[ymin,ymax],xrange=[minxAxis,maxxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
     if criteria gt 0 then begin
-      xx=fltarr(101) & yy=fltarr(101) & yy05=fltarr(101)
+      xx=fltarr(101) & yy=fltarr(101) & yy05=fltarr(101) & yy05s=fltarr(101)
       for i=0,100 do begin
         xx(i)=minxAxis+i*(maxxAxis-minxAxis)/100.
         yy(i)=1.-2.*xx(i)^2
         yy05(i)=1.-0.5*xx(i)^2
+; KeesC 1OCT2013         
+        yy05s(i)=1.-sqrt(0.5)*xx(i)^2
         if yy(i) lt ymin then yy(i)=ymin
 ; KeesC 29SEP2013        
         if yy05(i) lt ymin then yy05(i)=ymin
+        if yy05s(i) lt ymin then yy05s(i)=ymin
       endfor
 ; KeesC 29SEP2013   
 ;     polyfill,[xx,xx(100),xx(0)],[yy,ymax,ymax],/data,color=160   
       polyfill,[xx,xx(100),xx(0)],[yy,ymax,ymax],/data,color=215
-      polyfill,[xx,xx(100),xx(0)],[yy05,ymax,ymax],/data,color=160
+      polyfill,[xx,xx(100),xx(0)],[yy05s,ymax,ymax],/data,color=160
       oplot,xx,yy,color=0,thick=2
       oplot,xx,yy05,color=0,thick=2,linestyle=2
     endif
