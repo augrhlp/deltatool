@@ -98,7 +98,11 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
     endif
     close, unit & free_lun, unit
   endelse
-  if 4*(fix(year)/4) ne fix(year) then storeData=reform(storeData(*,0:8759))  ; normal
+  if 4*(fix(year)/4) ne fix(year) then begin
+      storeData=reform(storeData(*,0:8759))  ; normal
+  endif else begin
+      storeData=reform(storeData(*,0:8783))  ; leap year 
+  endelse
   return, storeData
   
 END
