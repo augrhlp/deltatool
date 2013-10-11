@@ -1660,7 +1660,7 @@ END
 
 PRO FM_PlotTaylor, plotter, request, result
   !y.range=0
-  xmarg0_sav=!x.margin(0)
+  xmarg0_sav=!x.margin[0]
   plotter->wsetMainDataDraw
   DEVICE,DECOMPOSE=0
   LOADCT,39
