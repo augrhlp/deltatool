@@ -925,23 +925,11 @@ PRO FM_PlotScatter, plotter, request, result
         Nnp=criteriaOrig(3)
         LV=criteriaOrig(4)
      endif 
-   ;endif
-;   if elabCode eq 21 then begin ; yearly values
-;     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV  ;hourly/daily
-;     if Criteria(0) ne -1 then begin
-;        UrLV=criteriaOrig(0)
-;        alpha=criteriaOrig(1)
-;        Neff=criteriaOrig(2)
-;        Nnp=criteriaOrig(3)
-;        LV=criteriaOrig(4)
-;     endif 
-;   endif
-   
+
    endif else begin
    criteria=0
    endelse
-  ;if elabCode eq 21 then CheckCriteria, request, result, 'OU', criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv  ;yearly
-  
+
   musstr=''
   for i=0,n_elements(mus)-1 do musstr=musstr+'/'+mus(i)
   if elabCode eq 6 or elabCode eq 13 then begin
@@ -970,6 +958,7 @@ PRO FM_PlotScatter, plotter, request, result
     yrange=[minAxis,maxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
   if elabCode ne 50 and elabcode ne 57 and criteria[0] gt 0 then begin
     critPolyfill  =fltarr(1000,2)
+    critPolyfillsqrt05  =fltarr(1000,2)
     critPolyfill05=fltarr(1000,2)
     crit_ii=fltarr(1000)
     for ii=0,999 do begin
@@ -977,14 +966,22 @@ PRO FM_PlotScatter, plotter, request, result
        crit_ii(ii)=UrLV/100.*sqrt( (1.-alpha)*float(iix)^2/float(Neff) +alpha*LV^2/float(Nnp))
        critPolyfill(ii,1)=min([iix+2.*crit_ii(ii),MaxAxis])
        critPolyfill(ii,0)=max([iix-2.*crit_ii(ii),MinAxis])
+;KeesC 21OCT2013       
+       critPolyfillsqrt05(ii,1)=min([iix+2.*sqrt(.5)*crit_ii(ii),MaxAxis])
+       critPolyfillsqrt05(ii,0)=max([iix-2.*sqrt(.5)*crit_ii(ii),MinAxis])
        critPolyfill05(ii,1)=min([iix+crit_ii(ii),MaxAxis])
        critPolyfill05(ii,0)=max([iix-crit_ii(ii),MinAxis])
     endfor
     xx=findgen(1000)*maxAxis/1000.
     xx(fix(maxAxis+1))=min([xx(maxAxis+1),maxAxis])
+;KeesC 21OCT2013    
     polyfill,[xx,xx(999),reverse(xx)],$
-      [critPolyfill(*,1),critPolyfill(999,0),reverse(critPolyfill(*,0))],$
-      /data,color=8
+      [critPolyfill(*,1),critPolyfill(999,0),reverse(critPolyfill(*,0))],$    
+      /data,color=205 
+;KeesC 21OCT2013      
+      polyfill,[xx,xx(999),reverse(xx)],$
+      [critPolyfillsqrt05(*,1),critPolyfillsqrt05(999,0),reverse(critPolyfillsqrt05(*,0))],$
+      /data,color=150
     oplot,xx,critPolyfill05(*,1),linestyle=2,color=0,thick=2
     oplot,xx,critPolyfill(*,1),color=0,thick=2
     oplot,xx,critPolyfill05(*,0),linestyle=2,color=0,thick=2
@@ -992,20 +989,7 @@ PRO FM_PlotScatter, plotter, request, result
   endif
   plots,[minAxis,maxAxis],[minAxis,maxAxis],color=0,/data
   xyouts,minAxis+recognizeRange*4,maxAxis-recognizeRange*4,'Valid/selected stations/groups: '+strtrim(validStationNb,2)+'/'+strtrim(totalStationNb,2),/data,color=0
-  
-;  if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
-;  
-;    coords1=[0.15, 0.80]
-;    coords2=[0.15, 0.90]
-;    coords3=[0.50, 0.90]
-;    coords4=[0.50, 0.80]
-;    
-;    polyfill,[coords1[0],coords2[0],coords3[0],coords4[0]],[coords1[1],coords2[1],coords3[1],coords4[1]],color=15,/normal
-;    coords=[-recognizeRange+recognizeRange*0.10,recognizeRange-recognizeRange*0.15]
-;    psFact=plotter->getPSCharSizeFactor()
-;    xyouts,coords[0],coords[1],'Stations within Crit (T=1):',color=3,/data,charthick=3,charsize=1.3*psFact
-;  endif
-  
+
   recognizeRange=(maxAxis-minAxis)*0.01
   
   size_alldataXY=size(allDataXY)
