@@ -871,6 +871,9 @@ PRO FM_PlotScatter, plotter, request, result
   targetInfo=result->getGenericPlotInfo()
   legNames=targetInfo->getLegendNames()
   allDataXY=targetInfo->getXYS()
+  modelInfo=request->getModelInfo()
+  frequency=modelInfo.frequency
+  
   if string(allDataXY[0]) eq 'AllNaN' then begin
     plot,indgen(10),/nodata ,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
@@ -975,9 +978,12 @@ PRO FM_PlotScatter, plotter, request, result
     xx=findgen(1000)*maxAxis/1000.
     xx(fix(maxAxis+1))=min([xx(maxAxis+1),maxAxis])
 ;KeesC 21OCT2013    
-    polyfill,[xx,xx(999),reverse(xx)],$
+    if strupcase(frequency) eq 'hour' then polyfill,[xx,xx(999),reverse(xx)],$
       [critPolyfill(*,1),critPolyfill(999,0),reverse(critPolyfill(*,0))],$    
       /data,color=205 
+      if strupcase(frequency) eq 'year' then polyfill,[xx,xx(999),reverse(xx)],$
+      [critPolyfill(*,1),critPolyfill(999,0),reverse(critPolyfill(*,0))],$    
+      /data,color=150
 ;KeesC 21OCT2013      
       polyfill,[xx,xx(999),reverse(xx)],$
       [critPolyfillsqrt05(*,1),critPolyfillsqrt05(999,0),reverse(critPolyfillsqrt05(*,0))],$
@@ -2549,7 +2555,7 @@ PRO FM_PlotTable2, plotter, request, result
       if criteria gt 0 then begin
 ;      polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
         dx=xmaxfill-xminfill
-        if ii eq 1 or ii eq 3 then begin
+        if ii eq 3 then begin
           polyfill,[xminfill+0.15*dx,xminfill+0.15*dx,xmaxfill-0.15*dx,xmaxfill-0.15*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
           polyfill,[xminfill,xminfill,xminfill+0.15*dx,xminfill+0.15*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=207,/data
           polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=207,/data
@@ -2558,7 +2564,7 @@ PRO FM_PlotTable2, plotter, request, result
           polyfill,[xminfill,xminfill,xmaxfill-0.15*dx,xmaxfill-0.15*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
           polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=207,/data 
         endif
-        if ii eq 4 then begin
+        if ii eq 4 or ii eq 1 then begin
           polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
         endif
       endif
@@ -2603,12 +2609,12 @@ PRO FM_PlotTable2, plotter, request, result
       endfor
 ; KeesC 9SEP2013      
       countC1=0 & countCp5=0
-      if ii eq 1 or ii eq 2 or ii eq 3 then begin
+      if ii eq 2 or ii eq 3 then begin
         cc1=where(abs(allDataXY(*,ii)) gt criteria,countC1)   ; % crit
 ; KeesC 1OCT2013        
         ccp5=where(abs(allDataXY(*,ii)) le sqrt(0.5)*criteria,countCp5)  ; % .5*crit
       endif
-      if ii eq 4 then begin
+      if ii eq 4 or ii eq 1 then begin
 ;        cc=where(abs(allDataXY(*,ii)) le criteria,countC)
         cc1=where(abs(allDataXY(*,ii)) gt criteria,countC1)   ; % crit
         ccp5=where(abs(allDataXY(*,ii)) le criteria,countCp5)  ; % .5*crit
