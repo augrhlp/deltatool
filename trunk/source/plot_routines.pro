@@ -872,7 +872,7 @@ PRO FM_PlotScatter, plotter, request, result
   legNames=targetInfo->getLegendNames()
   allDataXY=targetInfo->getXYS()
   modelInfo=request->getModelInfo()
-  frequency=modelInfo.frequency
+  frequency=modelInfo.frequency  ; hour year
   
   if string(allDataXY[0]) eq 'AllNaN' then begin
     plot,indgen(10),/nodata ,color=255,background=255
@@ -969,7 +969,7 @@ PRO FM_PlotScatter, plotter, request, result
       crit_ii(ii)=UrLV/100.*sqrt( (1.-alpha)*float(iix)^2/float(Neff) +alpha*LV^2/float(Nnp))
       critPolyfill(ii,1)=min([iix+2.*crit_ii(ii),MaxAxis])
       critPolyfill(ii,0)=max([iix-2.*crit_ii(ii),MinAxis])
-;KeesC 21OCT2013
+      ;KeesC 21OCT2013
       critPolyfillsqrt05(ii,1)=min([iix+2.*sqrt(.5)*crit_ii(ii),MaxAxis])
       critPolyfillsqrt05(ii,0)=max([iix-2.*sqrt(.5)*crit_ii(ii),MinAxis])
       critPolyfill05(ii,1)=min([iix+crit_ii(ii),MaxAxis])
@@ -994,8 +994,6 @@ PRO FM_PlotScatter, plotter, request, result
     oplot,xx,critPolyfill(*,0),color=0,thick=2
   endif
   plots,[minAxis,maxAxis],[minAxis,maxAxis],color=0,/data
-  ;KeesC 9NOV2013
-  ;  xyouts,minAxis+recognizeRange*4,maxAxis-recognizeRange*4,'Valid/selected stations/groups: '+strtrim(validStationNb,2)+'/'+strtrim(totalStationNb,2),/data,color=0
   
   recognizeRange=(maxAxis-minAxis)*0.01
   
@@ -1045,29 +1043,36 @@ PRO FM_PlotScatter, plotter, request, result
         endif
         recognizeValues[iObs]=strtrim(allDataXY[iObs, 0], 2)+'/'+strtrim(allDataXY[iObs, 1], 2)
       endfor
-
+      
       if criteria[0] gt 0 and isGroupSelection eq 0 then begin
         cc=where(finite(allDataXY[*, 0]) eq 1 and finite(allDataXY[*, 1]) eq 1,countValidStations)
         if countValidStations gt 0 then begin
-;KeesC 9NOV2013
-          polyfill,[0.15,0.57,0.57,0.15],[0.85,0.85,0.92,0.92],color=14,/normal
           psFact=plotter->getPSCharSizeFactor()
-          lon=[xx,xx(999),reverse(xx)]
-          lat=[critPolyfill(*,1),critPolyfill(999,0),reverse(critPolyfill(*,0))]
-          object = Obj_New('IDLanROI',lon,lat)
-          xpoints=allDataXY[cc,0]
-          ypoints=allDataXY[cc,1]
-          test=object->ContainsPoints(xpoints, ypoints)
-          Obj_Destroy, object
-          cctest=where(test eq 1,nctest)    
-          percentageCrit=fix(100.*float(nctest)/float(countValidStations))
-          if percentageCrit ge 90 then colorPerc=160  ;7   ;green
-;          if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=210  ;16   ;orange
-          if percentageCrit lt 90 then colorPerc=250  ;2   ;red
-          xyouts,0.16,0.87,'Stations within Crit (T=1): ',$
-            color=0,/normal,charthick=2,charsize=1.5*psFact
-          xyouts,0.48,0.87,strtrim(percentageCrit,2)+'%',$
-            color=colorPerc,/normal,charthick=2,charsize=1.5*psFact
+          ;KeesC 12NOV2013
+          ;          lon=[xx,xx(999),reverse(xx)]
+          ;          lat=[critPolyfill(*,1),critPolyfill(999,0),reverse(critPolyfill(*,0))]
+          ;          object = Obj_New('IDLanROI',lon,lat)
+          ;          xpoints=allDataXY[cc,0]
+          ;          ypoints=allDataXY[cc,1]
+          ;          test=object->ContainsPoints(xpoints, ypoints)
+          ;          Obj_Destroy, object
+          ;          cctest=where(test eq 1,nctest)
+          if strupcase(frequency) eq 'YEAR' then begin
+            polyfill,[0.15,0.54,0.54,0.15],[0.85,0.85,0.92,0.92],color=14,/normal
+            cctest=where(abs(allDataXY[cc,0] - allDataXY[cc,1])/(2.*criteria[0]) le 1.,nctest)
+            percentageCrit=fix(100.*float(nctest)/float(countValidStations))
+            if percentageCrit ge 90 then colorPerc=160  ;7   ;green
+            if percentageCrit lt 90 then colorPerc=250  ;2   ;red
+            xyouts,0.16,0.87,'Stations within Crit (T=1): ',$
+              color=0,/normal,charthick=2,charsize=1.5*psFact
+            xyouts,0.47,0.87,strtrim(percentageCrit,2)+'%',$
+              color=colorPerc,/normal,charthick=2,charsize=1.5*psFact
+          endif
+          if strupcase(frequency) eq 'HOUR' then begin
+            polyfill,[0.15,0.65,0.65,0.15],[0.85,0.85,0.92,0.92],color=14,/normal
+            xyouts,0.16,0.87,'valid/selected stations/groups:'+strtrim(validStationNb,2)+'/'+strtrim(totalStationNb,2),$
+              color=0,/normal,charthick=2,charsize=1.5*psFact
+          endif
         endif
       endif
       
@@ -1138,7 +1143,7 @@ PRO FM_PlotGeoMap, plotter, request, result
   elabcode=request->getElaborationCode()
   
   rangeValLegend=[0,1]
-  psym_pos=13
+;  psym_pos=13
   
   DEVICE,DECOMPOSE=0
   LOADCT,39
@@ -1177,26 +1182,37 @@ PRO FM_PlotGeoMap, plotter, request, result
   
   for iobs=0,nobs-1 do begin
     if finite(plotValues(iobs)) eq 1 then begin
-      ;      if plotValues(iobs) ge 0 then mypsym,psym_pos,1
-      ;      if plotValues(iobs) lt 0 then mypsym,psym_neg,1
-      mypsym,psym_pos,1
-      if abs(plotValues(iobs)) le 1. then color=160
-      if abs(plotValues(iobs)) gt 1. then color=250
-      plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=color, symsize=1*sizeSymbol
-      RS=''
+    ; filled circle
+      if abs(plotValues(iobs)) le 1. then begin
+        mypsym,9,2
+        plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=160, symsize=1*sizeSymbol
+      endif
       if abs(plotValues(iobs)) gt 1. then begin
-        ;        if abs(Bvalues(iobs)) ge abs(Cvalues(iobs)) and Bvalues(iobs) ge 0. then $,
-        ;          xyouts,obsLongitudes(iObs), obsLatitudes(iObs),'+',/data,color=0,alignment=0.5,charthick=1.5
-        ;        if abs(Bvalues(iobs)) ge abs(Cvalues(iobs)) and Bvalues(iobs) lt 0. then $
-        ;          xyouts,obsLongitudes(iObs), obsLatitudes(iObs),'-',/data,color=00,alignment=0.5,charthick=1.5
-        ;        if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(iobs) ge 0. then $
-        ;          xyouts,obsLongitudes(iObs), obsLatitudes(iObs),'S',/data,color=00,alignment=0.5,charthick=1.5
-        ;        if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(iobs) lt 0. then $
-        ;          xyouts,obsLongitudes(iObs), obsLatitudes(iObs),'R',/data,color=00,alignment=0.5,charthick=1.5
-        if abs(Bvalues(iobs)) ge abs(Cvalues(iobs)) and Bvalues(iobs) ge 0. then RS='B+:  '
-        if abs(Bvalues(iobs)) ge abs(Cvalues(iobs)) and Bvalues(iobs) lt 0. then RS='B-:  '
-        if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(iobs) ge 0. then RS='S>R:  '
-        if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(iobs) lt 0. then RS='R>S:  '
+    ;filled circle
+        if abs(Bvalues(iobs)) ge abs(Cvalues(iobs)) and Bvalues(iobs) ge 0. then begin
+          mypsym,9,2
+          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
+        endif  
+    ; circle
+        if abs(Bvalues(iobs)) ge abs(Cvalues(iobs)) and Bvalues(iobs) lt 0. then begin
+          mypsym,13,1.8
+          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol 
+          mypsym,13,1.6
+          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol 
+        endif            
+     ; triangle
+        mypsym,2,2
+        if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) ge 0. then begin
+          mypsym,2,2
+          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol 
+          mypsym,2,1.8
+          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol 
+        endif
+    ; square
+        if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) lt 0. then begin
+          mypsym,5,2.5
+          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol              
+        endif
       endif
       
       recognizePoint=fltarr(4,2)
@@ -1212,7 +1228,7 @@ PRO FM_PlotGeoMap, plotter, request, result
       recognizeHighLight[iObs]=0b
       recognizeRegionEdges[iObs]=recognizePointPtr
       recognizeNames[iObs]=legNames[iObs]
-      recognizeValues[iObs]=RS+strtrim(plotvalues[iObs], 2)
+      recognizeValues[iObs]=strtrim(plotvalues[iObs], 2)
     endif
   endfor
   
@@ -1233,7 +1249,6 @@ PRO FM_PlotGeoMap, plotter, request, result
     xyouts,x(0),y(2)+0.01,strmid(strtrim(i,2),0,4),/normal,alignment=0.5,color=0,charsize=1,$
       charthick=1.5
   endfor
-  xyouts,0.155,0.05,'+  -  R  S',/normal,color=0,charsize=1,charthick=1.5
   
   rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
   plotInfo->setRecognizeInfo, rInfo
@@ -1251,24 +1266,21 @@ PRO FM_PlotGeoMapLegend, plotter, request, result
   erase, whiteL
   DEVICE,DECOMPOSE=0
   LOADCT,39
-  ; use "tek" color table...
-  tek_color;, 0, 32
-  targetInfo=result->getGenericPlotInfo()
-  legNames=targetInfo->getLegendNames()
-  allDataXY=targetInfo->getXYS()
-  cc=where(finite(allDataXY[*, 0]) eq 1,countValidStations)
-  legoWidth=.012
-  legoHeight=.05
-  startX=.01
-  maxWidth=0
-  symbolSequenceNo=min([countValidStations,63])
-  for i=0, symbolSequenceNo-1 do begin
-    jheight = i MOD 9
-    startx = .10*fix(i/9)
-    startY=1.-((jheight+1)*legoHeight*2)
-    thisStartX=startX+maxWidth+legoWidth+.02
-    xyouts, thisStartX+legoWidth+.01, startY+.002, strmid(legNames[cc(i)],0,7), COLOR=0, /NORM, charsize=.8, charthick=.8,  WIDTH=textWidth
-  endfor
+  mypsym,9,2
+  plots, 0.05,0.9, psym=8, color=160, symsize=1,/normal
+  xyouts, 0.07,0.89, 'Criterium < 1',COLOR=0,/NORMal,charsize=1, charthick=1
+  mypsym,9,2
+  plots, 0.05,0.75, psym=8, color=250, symsize=1,/normal
+  xyouts, 0.07,0.73, 'Bias > 0',COLOR=0,/NORMal,charsize=1, charthick=1
+  mypsym,13,1.8
+  plots, 0.05,0.6, psym=8, color=250, symsize=1, /normal
+  xyouts, 0.07,0.58, 'Bias < 0',COLOR=0,/NORMal,charsize=1, charthick=1
+  mypsym,2,2
+  plots, 0.05,0.45, psym=8, color=250, symsize=1,/normal
+  xyouts, 0.07,0.43, 'R dominated',COLOR=0,/NORMal,charsize=1, charthick=1
+  mypsym,5,2
+  plots, 0.05,0.3, psym=8, color=250, symsize=1,/normal
+  xyouts, 0.07,0.28, 'Sigma dominated',COLOR=0,/NORMal,charsize=1, charthick=1
   legendInfo,request,result,plotter
 END
 
@@ -2279,7 +2291,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       ccCrit=where(radius le 1,countCritPerc)
       percentageCrit=fix(100.*float(countCritPerc)/float(countValidStations))
       if percentageCrit ge 90 then colorPerc=160  ;7   ;green
-;      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=210  ;16   ;orange
+      ;      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=210  ;16   ;orange
       if percentageCrit lt 90 then colorPerc=250  ;2   ;red
       xyouts,-plotRange*0.31,plotrange-plotRange*0.15,strtrim(percentageCrit,2)+'%',$
         /data,charsize=2*facSize,charthick=3,color=colorPerc
@@ -3480,11 +3492,11 @@ pro mytek_color, Start_index, Ncolors
   b = bytscl([ 0,100,0,100,0,100,78,  0,0,     100,60,  100,83,55,55,70, $
     33,45,60,75,83,83,83,90,45,55,67,90,100,100,100,100])
   ; KeesC 22APR2013: Bertrand sequence of colours
-;  indrgb=[0,1,8,3,6,2,7,4,5,9]    ; 6-9
-;  r[0:9]=r(indrgb)
-;  g[0:9]=g(indrgb)
-;  b[0:9]=b(indrgb)
-  
+  ;  indrgb=[0,1,8,3,6,2,7,4,5,9]    ; 6-9
+  ;  r[0:9]=r(indrgb)
+  ;  g[0:9]=g(indrgb)
+  ;  b[0:9]=b(indrgb)
+    
   if ncolors lt 32 then begin   ;Trim?
     r = r[0:ncolors-1]
     g = g[0:ncolors-1]

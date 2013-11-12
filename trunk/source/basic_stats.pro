@@ -536,8 +536,8 @@ pro mypsym,number,size_symb
     end
 
     5: begin ; square full
-      X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*.75
-      Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*.75
+      X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*0.75
+      Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*0.75
       USERSYM, X, Y,/fill
     end
 
@@ -581,13 +581,12 @@ pro mypsym,number,size_symb
       Y = [size_symb*0.2,size_symb*0.2,-size_symb*0.2,-size_symb*0.2,-size_symb*0.2]
       USERSYM, X, Y,thick=2
     end
-
+; KeesC 12NOV2013
     13:begin ; circle empty
       A = FINDGEN(17) * (!PI*2/16.)
-      USERSYM, size_symb*1.7*COS(A), 1.7*SIN(A),thick=2,/fill
+      USERSYM, size_symb*COS(A), size_symb*SIN(A),thick=2
     end
-  
-; KeesC 20JUN2012    
+      
     14: begin ; square line
       X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*.75
       Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*.75
