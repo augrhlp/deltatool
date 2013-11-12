@@ -1,0 +1,27 @@
+[ELABORATION: Code,IDLRoutineCode,DisplayName,DiagramCode,GroupByTimeCode,GroupByStatCode,SeasonCode,DailyCode,List of MultipleChoiceFlags(parameters, models, scenarios, observations),NumberRefValue,GCAVailable,StdAdvancedUserFlags (Advanced, Standard, Benchmark, Single, Group),Description,ExtraInfos(* separator)
+0;1;Mean (H/Y);0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;1*1*1*1*1;Barplots of mean values;NONE;NONE
+#1;1;Stddev (H);0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;1*1*1*1*1;Barplots of standard deviation values;NONE;NONE
+#2;1;R (H);0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;1*1*1*1*1;Barplots of correlation coeficient values;R;NONE
+3;1;MBias (H/Y);0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;1*1*1*1*1;Barplots of bias values;NONE;NONE
+#4;1;RMSE (H);0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;1*1*1*1*1;Barplots of RMSE values;NONE;NONE
+#5;1;RMSEs/RMSEu (H);0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;1*0*1*1*1;Barplots of RMSEs/RMSEu ratio values;NONE;NONE
+6;1;Mean Mod vs Mean Obs (H/Y);2;NONE;NONE;FREE;FREE;1000*0100*0010*0001*1001*0101*;0;NO;1*1*1*1*1;Scatter plot of stations mean values. Each single point represents average statistics for a given station.;NONE;NONE
+#7;1;IOA;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;1*1*1*1*1;Barplots of IOA values;IOA;NONE
+8;1;RDE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;1*1*1*1*1;Barplots of RDE values. One threshold value is required: the limit value;RDE;NONE
+10;1;PM10 Bias (OU);7;0;1;FREE;NONE;0001*;0;YES;1*0*1*1*0;Bias category plot. All stations Bias are normalized by the observation uncertainty and classified in terms of their category (first station selection filter);OU;PMEAN
+14;1;Spatial Corr;0;FREE;FREE;FREE;FREE;1000*0100*0001*1001*0101*;0;NO;1*1*1*0*1;Spatial correlation within a group - Number of stations gt 1.;OU;NONE
+23;1;NMB;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;1*1*1*1*1;Barplots of Mean Normalised bias values;MNB;NONE
+30;1;RPE;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;1*1*1*1*1;Barplots of RPE values. One threshold value is required: the number of exceedance days;RPE;NONE
+31;7;PM10  (H/Y);10;0;1;FREE;NONE;0001*;1;YES;1*1*1*1*0;summary report: The threshold value is the limit value.;OU;PMEAN
+35;1;BIAS;9;NONE;NONE;FREE;NONE;0100*0001*0101*;0;YES;1*1*0*1*0;GeoMap diagram for NO2 (OU) bias values. This diagram uses a normalisation based on Observation uncertainty (OU);OU;PP
+#36;1;PM10;9;0;1;FREE;NONE;0100*0001*0101*;0;YES;1*1*0*1*0;GeoMap diagram for PM10 (OU) bias values. This diagram uses a normalisation based on Observation uncertainty (OU);OU;NONE
+38;1;CUMULx;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;1;NO;1*0*1*1*1;Barplots of Cumulative values;NONE;NONE
+50;6;Mod1 vs Mod2 Single station;2;FREE;FREE;FREE;FREE;1000*0100*;0;NO;1*0*1*1*1;Scatter plot with one model against a second one. Available for one station at a time.;NONE;NONE
+56;5;Conditional Multi Stations;2;FREE;FREE;FREE;FREE;1000*1001*;3;NO;1*0*1*1*0;Conditional Scatter plot of stations mean values. Each single point represents average statistics for a given station. Three input values: 1) the variable index (0 or 1) on wich the condition applies and 2 and 3) the threshold values;NONE;NONE
+57;6;Param1 vs Param2 Single station;2;FREE;FREE;FREE;FREE;1000*;0;NO;1*0*1*1*0;Scatter plot with one parameter against a second one. Available for one station at a time.;NONE;NONE
+58;8;Mean (H/Y);13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;1;NO;1*1*0*1*0;Google Earth mean values. Val1=Target value. Example: NO2 40, PM10 40, PM25 25.;NONE;NONE
+60;8;Bias (H/Y);13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;1*1*0*1*0;Google Earth Bias ;NONE;NONE
+61;8;NMB (H/Y);13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;0;NO;1*1*0*1*0;Google Earth Mean Normalised Bias;NONE;NONE
+67;8;RDEx (H/Y);13;FREE;FREE;FREE;FREE;*0001*0100*1000*1100*1001*0101*1101;2;NO;1*1*0*1*0;Google Earth RDEx. Val1=Reference level. Val2=Target Value;NONE;NONE
+75;1;O3/NO2 Bias (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;1*0*1*1*1;Bias category plot. All stations Bias are normalized by the observation uncertainty and classified in terms of their category (first station selection filter);OU;ALL
+84;7;NO2  (Y/H);10;0;0;FREE;FREE;0001*;1;YES;1*1*1*1*0;Summary report: The threshold value is the limit value.;OU;PP
