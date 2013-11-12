@@ -1,0 +1,37 @@
+; link column statNickName with name/code in elaboration.dat
+; NO! link column timeAvg with name/code in season.dat/dayperiod.dat
+; link column timeAvg with name/code in elaboration.dat
+[GOALS_CRITERIA_OC:  Code; parCode; scaleName; statNickName; timeAvg; Values; Description]";;;;;;
+0;O3;ALL;OU;8HMAX;12.6*0.62*1*1*120*;Descr of: GC 48
+1;O3;ALL;RDE;ALL;50*40*;Descr of: GC 54
+2;O3;ALL;RPE;ALL;50*40*;Descr of: GC 55
+
+3;PM10;ALL;OU;PMEAN;27.8*0.027*40*1*50*;Descr of: GC 56
+4;PM10;ALL;RDE;PMEAN;50*42*;Descr of: GC 62
+5;PM10;ALL;RPE;PMEAN;50*42*;Descr of: GC 63
+
+8;NO2;ALL;OU;3HP;24*0.02*4.7*6.7*200*;Descr of: GC 64
+9;NO2;ALL;OU;PP;24*0.02*4.7*6.7*200*;Descr of: GC 64
+10;NO2;ALL;RDE;ALL;50*42*;Descr of: GC 70
+11;NO2;ALL;RPE;ALL;50*42*;Descr of: GC 71
+
+12;WS;ALL;IOA;ALL;0.6*0.72*;Descr of: GC 78
+13;WS;ALL;BIAS;ALL;0.5*0.4*;Descr of: GC 80
+14;WS;ALL;RMSE;ALL;2*1.6*;Descr of: GC 81
+15;WS;ALL;OU;PP;20*0.88*1*1*5*;Descr
+
+16;TEMP;ALL;OU;PP;5*1*1*1*25*;Descr
+
+17;NH4-25;ALL;OU;PMEAN;45.0*0.027*40*1*4*;Descr of: GC 56
+18;NO3-25;ALL;OU;PMEAN;30.0*0.027*40*1*8*;Descr of: GC 56
+19;SO4-25;ALL;OU;PMEAN;30.0*0.027*40*1*7*;Descr of: GC 56
+20;NH4-10;ALL;OU;PMEAN;45.0*0.027*40*1*4*;Descr of: GC 56
+21;NO3-10;ALL;OU;PMEAN;30.0*0.027*40*1*8*;Descr of: GC 56
+22;SO4-10;ALL;OU;PMEAN;30.0*0.027*40*1*7*;Descr of: GC 56
+23;EC-10;ALL;OU;PMEAN;75.0*0.027*40*1*5*;Descr of: GC 56
+24;TOM-10;ALL;OU;PMEAN;75.0*0.027*40*1*10*;Descr of: GC 56
+
+
+
+
+
