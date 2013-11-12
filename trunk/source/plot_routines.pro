@@ -1138,12 +1138,15 @@ PRO FM_PlotGeoMap, plotter, request, result
   sign=intarr(nobs) & sign(*)=1
   cc=where(Cvalues lt 0,nc)
   if nc ge 1 then sign(cc)=-1
-  plotValues=sqrt(Cvalues^2+Bvalues^2)
   elabName=request->getelaborationName()
   elabcode=request->getElaborationCode()
+  modelInfo=request->getModelInfo()
+  frequency=modelInfo.frequency  ; hour year
+  if strupcase(frequency) eq 'HOUR' then plotValues=sqrt(Cvalues^2+Bvalues^2)
+  if strupcase(frequency) eq 'YEAR' then plotValues=Bvalues
   
   rangeValLegend=[0,1]
-;  psym_pos=13
+  ;  psym_pos=13
   
   DEVICE,DECOMPOSE=0
   LOADCT,39
@@ -1182,36 +1185,42 @@ PRO FM_PlotGeoMap, plotter, request, result
   
   for iobs=0,nobs-1 do begin
     if finite(plotValues(iobs)) eq 1 then begin
-    ; filled circle
-      if abs(plotValues(iobs)) le 1. then begin
+      if abs(plotValues(iobs)) le 1. then begin ; filled circle
         mypsym,9,2
         plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=160, symsize=1*sizeSymbol
       endif
       if abs(plotValues(iobs)) gt 1. then begin
-    ;filled circle
-        if abs(Bvalues(iobs)) ge abs(Cvalues(iobs)) and Bvalues(iobs) ge 0. then begin
-          mypsym,9,2
-          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
-        endif  
-    ; circle
-        if abs(Bvalues(iobs)) ge abs(Cvalues(iobs)) and Bvalues(iobs) lt 0. then begin
-          mypsym,13,1.8
-          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol 
-          mypsym,13,1.6
-          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol 
-        endif            
-     ; triangle
-        mypsym,2,2
-        if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) ge 0. then begin
+        if strupcase (frequency) eq 'HOUR' then begin
+          if abs(Bvalues(iobs)) ge abs(Cvalues(iobs)) and Bvalues(iobs) ge 0. then begin   ;filled circle
+            mypsym,9,2
+            plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
+          endif
+          ; circle
+          if abs(Bvalues(iobs)) ge abs(Cvalues(iobs)) and Bvalues(iobs) lt 0. then begin
+            mypsym,13,1.8
+            plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
+            mypsym,13,1.6
+            plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
+          endif
+          ; triangle
           mypsym,2,2
-          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol 
-          mypsym,2,1.8
-          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol 
+          if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) ge 0. then begin
+            mypsym,2,2
+            plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
+            mypsym,2,1.8
+            plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
+          endif
+          ; square
+          if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) lt 0. then begin
+            mypsym,5,2.5
+            plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
+          endif
         endif
-    ; square
-        if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) lt 0. then begin
-          mypsym,5,2.5
-          plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol              
+        if strupcase(frequency) eq 'YEAR' then begin
+          if abs(Bvalues(iobs)) ge 1. then begin   ;filled circle
+            mypsym,9,2
+            plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
+          endif
         endif
       endif
       
@@ -1266,21 +1275,33 @@ PRO FM_PlotGeoMapLegend, plotter, request, result
   erase, whiteL
   DEVICE,DECOMPOSE=0
   LOADCT,39
-  mypsym,9,2
-  plots, 0.05,0.9, psym=8, color=160, symsize=1,/normal
-  xyouts, 0.07,0.89, 'Criterium < 1',COLOR=0,/NORMal,charsize=1, charthick=1
-  mypsym,9,2
-  plots, 0.05,0.75, psym=8, color=250, symsize=1,/normal
-  xyouts, 0.07,0.73, 'Bias > 0',COLOR=0,/NORMal,charsize=1, charthick=1
-  mypsym,13,1.8
-  plots, 0.05,0.6, psym=8, color=250, symsize=1, /normal
-  xyouts, 0.07,0.58, 'Bias < 0',COLOR=0,/NORMal,charsize=1, charthick=1
-  mypsym,2,2
-  plots, 0.05,0.45, psym=8, color=250, symsize=1,/normal
-  xyouts, 0.07,0.43, 'R dominated',COLOR=0,/NORMal,charsize=1, charthick=1
-  mypsym,5,2
-  plots, 0.05,0.3, psym=8, color=250, symsize=1,/normal
-  xyouts, 0.07,0.28, 'Sigma dominated',COLOR=0,/NORMal,charsize=1, charthick=1
+  modelInfo=request->getModelInfo()
+  frequency=modelInfo.frequency  ; hour year
+  if strupcase(frequency) eq 'HOUR' then begin
+    mypsym,9,2
+    plots, 0.05,0.9, psym=8, color=160, symsize=1,/normal
+    xyouts, 0.07,0.89, 'Criterium <= 1',COLOR=0,/NORMal,charsize=1, charthick=1
+    mypsym,9,2
+    plots, 0.05,0.75, psym=8, color=250, symsize=1,/normal
+    xyouts, 0.07,0.73, 'Bias => 0',COLOR=0,/NORMal,charsize=1, charthick=1
+    mypsym,13,1.8
+    plots, 0.05,0.6, psym=8, color=250, symsize=1, /normal
+    xyouts, 0.07,0.58, 'Bias < 0',COLOR=0,/NORMal,charsize=1, charthick=1
+    mypsym,5,2
+    plots, 0.05,0.45, psym=8, color=250, symsize=1,/normal
+    xyouts, 0.07,0.43, 'R dominated',COLOR=0,/NORMal,charsize=1, charthick=1
+    mypsym,2,2
+    plots, 0.05,0.3, psym=8, color=250, symsize=1,/normal
+    xyouts, 0.07,0.28, 'Sigma dominated',COLOR=0,/NORMal,charsize=1, charthick=1
+  endif
+  if strupcase(frequency) eq 'YEAR' then begin
+    mypsym,9,2
+    plots, 0.05,0.9, psym=8, color=160, symsize=1,/normal
+    xyouts, 0.07,0.89, 'Criterium <= 1',COLOR=0,/NORMal,charsize=1, charthick=1
+    mypsym,9,2
+    plots, 0.05,0.75, psym=8, color=250, symsize=1,/normal
+    xyouts, 0.07,0.73, 'Criterium > 1',COLOR=0,/NORMal,charsize=1, charthick=1
+  endif
   legendInfo,request,result,plotter
 END
 
@@ -2197,10 +2218,10 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     coords3=[-plotRange*0.15, plotrange-plotRange*0.05]
     coords4=[-plotRange+plotRange*0.05, plotrange-plotRange*0.05]
     
-    polyfill,[coords1[0],coords2[0],coords3[0],coords4[0]],[coords1[1],coords2[1],coords3[1],coords4[1]],color=15,/data
+    polyfill,[coords1[0],coords2[0],coords3[0],coords4[0]],[coords1[1],coords2[1],coords3[1],coords4[1]],color=14,/data
     coords=[-plotRange+plotRange*0.07,plotrange-plotRange*0.15]
     psFact=plotter->getPSCharSizeFactor()
-    xyouts,coords[0],coords[1],'Stations within Crit (T=1):',color=3,/data,charthick=3,charsize=1.5*psFact
+    xyouts,coords[0],coords[1],'Stations within Crit (T=1):',color=3,/data,charthick=2,charsize=1.5*psFact
   endif
   
   fixedLabels=strarr(4)
