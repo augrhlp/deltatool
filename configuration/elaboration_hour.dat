@@ -34,6 +34,9 @@
 32;1;Hourly Std. deviation (NO2);5;0;0;FREE;FREE;0100*0001*0101*;0;YES;1*1*1*1*1;Model performance criteria for Stdev.;OU;PP
 33;1;FAC2;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;0;NO;1*1*1*1*1;Barplots of FAC2 values;NONE;NONE
 34;1;Hourly  (NO2);6;0;0;FREE;FREE;0001*0100*0101*;0;NO;1*1*1*1*1;MPC synthetizing diagram;OU;PP
+35;1;Target 8H Max  (O3);9;1;2;FREE;NONE;0100*0001*0101*;0;YES;1*1*1*1*1;GeoMap diagram for Target O3 8h max values. This diagram uses a normalisation based on Observation uncertainty (OU);OU;8HMAX
+36;1;Target Hourly (NO2);9;0;0;FREE;FREE;0100*0001*0101*;0;YES;1*1*1*1*1;GeoMap diagram for Target NO2 hourly values. This diagram uses a normalisation based on Observation uncertainty (OU);OU;PP
+37;1;Target Daily (PM10);9;0;1;FREE;FREE;0100*0001*0101*;0;YES;1*1*1*1*1;GeoMap diagram for Target PM10 daily averaged values. This diagram uses a normalisation based on Observation uncertainty (OU);OU;PMEAN
 50;6;Mod1 vs Mod2 Single station;2;FREE;FREE;FREE;FREE;1000*0100*;0;NO;1*0*1*1*1;Scatter plot with one model against a second one. Available for one station at a time.;NONE;NONE
 52;1;Daily (PM10);4;0;1;FREE;FREE;0100*0001*0101*;0;YES;1*1*1*1*1;Target diagram for PM10 daily averaged values. This diagram uses a normalisation based on Observation uncertainty (OU);OU;PMEAN
 53;4;ModModObs;12;FREE;FREE;FREE;FREE;0100*0101*;0;YES;1*0*1*1*1;Statistics for comparing 2 model versions with observations;OU;PMEAN
