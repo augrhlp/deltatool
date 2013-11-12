@@ -249,7 +249,7 @@ PRO FM_Generic, request, result
   endfor
   request->closeDataDumpFile
   
-;KeesC 2NOV2013  
+;KeesC 3NOV2013  
 ;  if elabcode ne 35 and elabcode ne 36 and elabcode ne 37 then $
 ;    statXYResult=statXYResult(*,*,*,*,0:1)
   if elabCode eq 2 or elabCode eq 14 then statXYResult(*,*,*,*,0)=statXYResult(*,*,*,*,1)
@@ -293,8 +293,8 @@ PRO FM_Generic, request, result
     legHlp=strarr(nmulti)
     statC=intarr(nmulti)
     statS=intarr(nmulti)
-;KeesC 2NOV2013: 2 changed into 3    
-    statXY=fltarr(nmulti,3)
+;KeesC 9NOV2013: 3 changed into 4    
+    statXY=fltarr(nmulti,4)
     k=0
     for ipar=0,npar-1 do begin
       for imod=0,nmod-1 do begin
@@ -314,6 +314,8 @@ PRO FM_Generic, request, result
             statXY(k,1)=statXYResult(ipar,imod,isce,iobs,1)
 ;KeesC 2NOV2013            
             statXY(k,2)=statXYResult(ipar,imod,isce,iobs,2)
+;KeesC 9NOV2013             
+            statXY(k,3)=statXYResult(ipar,imod,isce,iobs,3)
             statC(k)=statColors(ipar,imod,isce,iobs)
             statS(k)=statSymbols(ipar,imod,isce,iobs)
             k=k+1
@@ -349,7 +351,8 @@ PRO SG_Computing, $
   iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
   
   dimAll=(Index1)*(Index2)*(Index3)*(Index4)
-  statXYResult=fltarr(Index1,Index2,Index3,Index4,3)
+;KeesC 9NOV2013: 3 changed into 4  
+  statXYResult=fltarr(Index1,Index2,Index3,Index4,4)
   ; 10xdump: Decomment next line
   ;  statXYResult=fltarr(Index1,Index2,Index3,Index4,10)
   statXYGroup=fltarr(index1,index2,index3,index4) & statXYGroup(*,*,*,*)=!values.f_nan
@@ -385,15 +388,13 @@ PRO SG_Computing, $
           endelse
           
           ccc=where(obsTemp eq 0, countCCC)
-          if countCCC gt 0 then obsTemp(ccc)=-999.
+; KeesC 8NOV2013: added elabCode=38
+          if countCCC gt 0 and elabCode ne 38 then obsTemp(ccc)=-999.
+          
           
           if elabCode ne 71 and elabCode ne 72 and elabCode ne 73 then begin
             time_operations, request, result, obsTemp, runTemp
             obs_run_nan,request,result,obsTemp, runTemp
-          ;            if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then begin
-          ;               percentile=1.0
-          ;               ObsModCriteriaPercentile,request,result,obsTemp, runTemp,percentile
-          ;            endif
           endif
           
           longshort=0
@@ -594,18 +595,46 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=fac2(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=fac2(obsTemp, runTemp)
           endif
-          ; KeesC 2NOV2013
+; KeesC 9NOV2013
           if elabcode eq 35 or elabcode eq 36 or elabCode eq 37 then begin ;OU Target GeoMap
+            signNum=2*stddevOM(obstemp)*stddevOM(runTemp)*(1.-correlate(obsTemp,runTemp))
+            signDen=(stddevOM(obstemp)-stddevOM(runTemp))^2
+            sign=0.
+            if finite(signNum) eq 1 and finite(signDen) eq 1 then begin
+              if signNum gt signDen then sign=-1 ;Error dominated by R
+              if signNum le signDen then sign=1 ;Error dominated by NMSD
+            endif
             if criteriaOU gt 0 then begin
-              statXYResult[i1,i2,i3,i4,0]=rmse(obsTemp,runTemp)/(CriteriaOU*2.)
-              statXYResult[i1,i2,i3,i4,1]=obsLongitudes(i4)
-              statXYResult[i1,i2,i3,i4,2]=obsLatitudes(i4)
+              statXYResult[i1,i2,i3,i4,0]=bias(obsTemp, runTemp)/(CriteriaOU*2.)
+              statXYResult[i1,i2,i3,i4,1]=sign*crmse(obsTemp,runTemp)/(CriteriaOU*2.)
+              statXYResult[i1,i2,i3,i4,2]=obsLongitudes(i4)
+              statXYResult[i1,i2,i3,i4,3]=obsLatitudes(i4)
               statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)/(CriteriaOU*2.)
             endif else begin
-              statXYResult[i1,i2,i3,i4,0]=!values.f_nan
+              statXYResult[i1,i2,i3,i4,*]=!values.f_nan
               statXYGroup[i1,i2,i3,i4]=!values.f_nan
             endelse
           endif
+;KeesC 8NOV2013          
+          if elabcode eq 38 then begin  ; CUMULx
+            ExtraValues=request->getExtraValues()
+            refValue=ExtraValues[0]
+            obsCU=0.
+            runCU=0.
+            cfin0=where(finite(obsTemp) eq 0,countFin0)
+            cfin1=where(finite(obsTemp) eq 1,countFin1)
+            if countFin0 ge 1 then obsTemp(cfin0)=-999
+            obsCU=total(  (obsTemp ge refValue)*(obsTemp-refValue) )
+            if countFin1 eq 0 then obsCU=!values.f_nan
+            cfin0=where(finite(runTemp) eq 0,countFin0)
+            cfin1=where(finite(runTemp) eq 1,countFin1)
+            if countFin0 ge 1 then runTemp(cfin0)=-999
+            runCU=total(  (runTemp ge refValue)*(runTemp-refValue) )
+            if countFin1 eq 0 then runCU=!values.f_nan
+            statXYResult[i1,i2,i3,i4,0]=obsCU/1000.
+            statXYResult[i1,i2,i3,i4,1]=runCU/1000.
+            statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
+          endif          
           if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 or elabCode eq 82 then begin ;OU Target
             signNum=2*stddevOM(obstemp)*stddevOM(runTemp)*(1.-correlate(obsTemp,runTemp))
             signDen=(stddevOM(obstemp)-stddevOM(runTemp))^2

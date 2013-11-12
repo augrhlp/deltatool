@@ -1815,9 +1815,9 @@ PRO FMApplication::startUp
         'DAYPERIOD_FILE' : self.dayPeriodList->fillDataFromFile, confDir+fileName
         'PARAMETER_FILE' : parameterFileName=confDir+fileName ; Save parameter File Name for later use
         'OBSERVED_FILE' : observedFileName=confDir+fileName ; Save observed File Name for later use
-        'TXT_VERSION_DATE' : self.versionDate='12-06-2013'  ;varName ; save
+        'TXT_VERSION_DATE' : self.versionDate='12-11-2013'  ;varName ; save
         'TXT_PS_CHARSIZE_FACTOR' : self.psCharSizeFactor=float(varName) ; save
-        'TXT_VERSION_CODE' : self.versionCode='3.4'  ;varName ; save
+        'TXT_VERSION_CODE' : self.versionCode='3.5'  ;varName ; save
         'BROWSER_LOCATION' : self->setBrowserLocation, fileName ; save location of browser application
         'NOTEPAD_LOCATION' : self->setNotePadLocation, fileName ; save location of notepad application
         'DOCUMENTSREADER_LOCATION' : self->setDocReaderLocation, fileName ; Save location of doc reader
