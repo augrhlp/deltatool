@@ -3,7 +3,7 @@
 ;********************
 ;  ;MM summer 2012 Start
 ;  ;for Goals & Criteria now you can use (inside elaboration.dat)
-;  ;elaboration related info called OCTimeAvgName & OCStat 
+;  ;elaboration related info called OCTimeAvgName & OCStat
 ;  OCTimeAvgName=request->getElaborationOCTimeAvgName()
 ;  OCStat=request->getElaborationOCStat()
 ;  ;MM summer 2012 End
@@ -25,8 +25,8 @@ PRO FM_PlotBars, plotter, request, result
   mytek_color;, 0, 32
   !p.color=0
   !y.charsize=1.5
-; !p.Charthick=1.5
-;  !p.thick=1.5
+  ; !p.Charthick=1.5
+  ;  !p.thick=1.5
   allDataXY=targetInfo->getXYS()
   if string(allDataXY[0]) eq 'AllNaN' then begin
     res=dialog_message(['No validated stations - all MOD/OBS NaN',' '],/information)
@@ -188,7 +188,7 @@ PRO FM_PlotBars, plotter, request, result
   xtitle=choices2(ntxt1)
   
   if ntxt1 ge 0 then longBarNames1=reform(legNames(*,ntxt1))
-;300113 longnames into shortnames in barplot legend
+  ;300113 longnames into shortnames in barplot legend
   if ntxt1 eq 3 then longBarNames1=reform(legNames(*,4))
   if ntxt2 ge 0 then longBarNames2=reform(legNames(*,ntxt2))
   if ntxt3 ge 0 then longBarNames3=reform(legNames(*,ntxt3))
@@ -246,7 +246,7 @@ PRO FM_PlotBars, plotter, request, result
     mybar_plot,plotHlp,nsubbars,barnames=strmid(longBarNames1,0,7),colors=colors,background=255,$
       ytitle=ytitle,outline=1,tickV0,request,result,title=elabname+'   '+pars,$
       baroffset=bo,overplot=(isubbar gt 0),xtitle=xtitle
-    tickV[isubbar*nBars:isubbar*nBars+nBars-1]=tickV0    
+    tickV[isubbar*nBars:isubbar*nBars+nBars-1]=tickV0
     if nchlp ge 1 then begin
       xyouts,tickV0(chlp),float(replicate('1.',nchlp))*recognizeRangeY,replicate('',nchlp),$
         charsize=1.5,charthick=1.5,orientation=90
@@ -280,7 +280,7 @@ PRO FM_PlotBars, plotter, request, result
         if ifree eq '0001' then begin
           longBarNames4=reform(legNames(*,ntxt1))
           recognizeNames[j]=longBarNames4[j]
- ;         if nstat gt 12 then recognizeNames[j]=strcompress(j+1,/remove_all)+'='+recognizeNames[j]
+        ;         if nstat gt 12 then recognizeNames[j]=strcompress(j+1,/remove_all)+'='+recognizeNames[j]
         endif
       endif
       recognizeValues[j]=strtrim(plotVarObs[i, isubbar], 2)
@@ -324,12 +324,12 @@ PRO FM_PlotBars, plotter, request, result
     endif else begin
       for idot=0,nDots -1 do begin
         oplot,tickV,plotVarMod(0:nBars-1,idot),psym=8,color=idot+2,symsize=2
-        chlp=where(finite(plotVarMod(0:nBars-1,idot)) eq 0,nchlp)        
+        chlp=where(finite(plotVarMod(0:nBars-1,idot)) eq 0,nchlp)
         if nchlp ge 1 then begin
           xyouts,tickV(chlp),float(replicate('1.',nchlp))*recognizeRangeY,$
             replicate('',nchlp),charsize=1.5,charthick=1.5,orientation=90
         endif
-      endfor 
+      endfor
       if obsbar eq 0 or iUseObserveModel eq 1 then begin
         for ibar=0,nBars-1 do begin
           top=max(plotVarMod(ibar,*),/nan)
@@ -503,27 +503,27 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
     for ipc=1,n_elements(parCodes)-1 do pars=pars+'*'+parCodes(ipc)
   endif
   plot, [-Xaxis,Xaxis], color=0,/nodata, xtitle=ntxt1,ytitle=titleY, title='DynamicEvaluation'+'   '+pars,$
-   charsize=1, background=255,yrange=[-Yaxis,Yaxis],xrange=[-Xaxis,Xaxis],xstyle=1,ystyle=1, $
-   position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
-  adummy=fltarr(10) & adummy(*)=1.  
+    charsize=1, background=255,yrange=[-Yaxis,Yaxis],xrange=[-Xaxis,Xaxis],xstyle=1,ystyle=1, $
+    position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
+  adummy=fltarr(10) & adummy(*)=1.
   CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV  ;hourly/daily
-   PolfX=fltarr(6)
-   PolfY=fltarr(6)
-;   if criteriaOrig gt 0. then begin
-;     vY=2.*(criteriaOrig/100.)*sqrt(alpha*LV^2)
-;     PolfX(0)=-Xaxis   & PolfY(0)=-Xaxis
-;     PolfX(1)=-Xaxis   & PolfY(1)=-Xaxis+vY
-;     PolfX(2)=Xaxis-vY & PolfY(2)=Xaxis
-;     PolfX(3)=Xaxis    & PolfY(3)=Xaxis
-;     PolfX(4)=Xaxis    & PolfY(4)=Xaxis-vY
-;     PolfX(5)=-Xaxis+vY       & PolfY(5)=-Xaxis
-;    polyfill,PolfX,PolfY,/data,color=8
-;    oplot,[PolfX(1),PolfX(2)],[PolfY(1),PolfY(2)],linestyle=2,color=0,thick=2
-;    oplot,[PolfX(5),PolfX(4)],[PolfY(5),PolfY(4)],linestyle=2,color=0,thick=2
-;  endif
+  PolfX=fltarr(6)
+  PolfY=fltarr(6)
+  ;   if criteriaOrig gt 0. then begin
+  ;     vY=2.*(criteriaOrig/100.)*sqrt(alpha*LV^2)
+  ;     PolfX(0)=-Xaxis   & PolfY(0)=-Xaxis
+  ;     PolfX(1)=-Xaxis   & PolfY(1)=-Xaxis+vY
+  ;     PolfX(2)=Xaxis-vY & PolfY(2)=Xaxis
+  ;     PolfX(3)=Xaxis    & PolfY(3)=Xaxis
+  ;     PolfX(4)=Xaxis    & PolfY(4)=Xaxis-vY
+  ;     PolfX(5)=-Xaxis+vY       & PolfY(5)=-Xaxis
+  ;    polyfill,PolfX,PolfY,/data,color=8
+  ;    oplot,[PolfX(1),PolfX(2)],[PolfY(1),PolfY(2)],linestyle=2,color=0,thick=2
+  ;    oplot,[PolfX(5),PolfX(4)],[PolfY(5),PolfY(4)],linestyle=2,color=0,thick=2
+  ;  endif
   
-;  plot, [-Xaxis,Xaxis], color=0,/nodata, xtitle=ntxt1,ytitle=titleY, title='DynamicEvaluation', charsize=1, background=255,$
-;    yrange=[-Yaxis,Yaxis],xrange=[-Xaxis,Xaxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
+  ;  plot, [-Xaxis,Xaxis], color=0,/nodata, xtitle=ntxt1,ytitle=titleY, title='DynamicEvaluation', charsize=1, background=255,$
+  ;    yrange=[-Yaxis,Yaxis],xrange=[-Xaxis,Xaxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
   oplot,[-Xaxis,Xaxis],[0,0],color=0,linestyle=2
   oplot,[0,0],[-Yaxis,Yaxis],color=0,linestyle=2
   oplot,[-Xaxis,Xaxis],[-Yaxis,Yaxis],color=0,linestyle=3
@@ -571,7 +571,7 @@ PRO FM_PlotCategory, plotter, request, result
   mytek_color;, 0, 32
   !p.color=0
   !y.range=0
-;  resPoscript=plotter->currentDeviceIsPostscript()
+  ;  resPoscript=plotter->currentDeviceIsPostscript()
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
   if string(allDataXY[0]) eq 'AllNaN' then begin
@@ -594,7 +594,6 @@ PRO FM_PlotCategory, plotter, request, result
   ccGroup = where(DataSymbolAll eq 13 and finite(DataXYAll(*,0)) eq 1, countGroup)
   ccSing = where(DataSymbolAll ne 13 and finite(DataXYAll(*,0)) eq 1 , countSing)
   
-  ; KeesC put the groups first
   if countGroup ge 1 and countSing ge 1 then begin
     hlp0=reform(DataXYAll(*,0))
     hlp1=[hlp0([ccGroup]),hlp0([ccSing])]
@@ -767,17 +766,17 @@ PRO FM_PlotTimeSeries, plotter, request, result, allDataXY, allDataColor, allDat
   tpInfo=result->getGenericPlotInfo()
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-    modelInfo=request->getModelInfo()
-    year=modelInfo.year
-    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
-       Feb29start=59*24
-       Feb29end=Feb29start+23
-       if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
-       if startIndex ge Feb29start then begin
-         endIndex=endIndex-24
-         startIndex=startIndex-24
-       endif  
-    endif   
+  modelInfo=request->getModelInfo()
+  year=modelInfo.year
+  if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+    Feb29start=59*24
+    Feb29end=Feb29start+23
+    if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+    if startIndex ge Feb29start then begin
+      endIndex=endIndex-24
+      startIndex=startIndex-24
+    endif
+  endif
   allDataXY=tpInfo->getXYS()
   allDataSymbol=tpInfo->getSymbols()
   allDataColor=tpInfo->getColors()
@@ -883,7 +882,7 @@ PRO FM_PlotScatter, plotter, request, result
   allDataColor=targetInfo->getColors()
   modelCodes=request->getModelCodes()
   nobs=request->getSingleObsNumber()
-
+  
   groupTitles=request->getGroupTitles()
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
@@ -917,22 +916,22 @@ PRO FM_PlotScatter, plotter, request, result
     ngroups=n_elements(groupTitles)
   endif
   
-   if n_elements(parCodes) eq 1 and isGroupSelection eq 0 then begin
-  adummy=fltarr(10) & adummy(*)=1.
-  ;if elabCode ne 21 then begin ; hourly values
-     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV  ;hourly/daily
-     if Criteria(0) ne -1 then begin
-        UrLV=criteriaOrig(0)
-        alpha=criteriaOrig(1)
-        Neff=criteriaOrig(2)
-        Nnp=criteriaOrig(3)
-        LV=criteriaOrig(4)
-     endif 
-
-   endif else begin
-   criteria=0
-   endelse
-
+  if n_elements(parCodes) eq 1 and isGroupSelection eq 0 then begin
+    adummy=fltarr(10) & adummy(*)=1.
+    ;if elabCode ne 21 then begin ; hourly values
+    CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV  ;hourly/daily
+    if Criteria(0) ne -1 then begin
+      UrLV=criteriaOrig(0)
+      alpha=criteriaOrig(1)
+      Neff=criteriaOrig(2)
+      Nnp=criteriaOrig(3)
+      LV=criteriaOrig(4)
+    endif
+    
+  endif else begin
+    criteria=0
+  endelse
+  
   musstr=''
   for i=0,n_elements(mus)-1 do musstr=musstr+'/'+mus(i)
   if elabCode eq 6 or elabCode eq 13 then begin
@@ -965,27 +964,28 @@ PRO FM_PlotScatter, plotter, request, result
     critPolyfill05=fltarr(1000,2)
     crit_ii=fltarr(1000)
     for ii=0,999 do begin
-       iix=float(ii)*float(maxAxis)/1000.
-       crit_ii(ii)=UrLV/100.*sqrt( (1.-alpha)*float(iix)^2/float(Neff) +alpha*LV^2/float(Nnp))
-       critPolyfill(ii,1)=min([iix+2.*crit_ii(ii),MaxAxis])
-       critPolyfill(ii,0)=max([iix-2.*crit_ii(ii),MinAxis])
-;KeesC 21OCT2013       
-       critPolyfillsqrt05(ii,1)=min([iix+2.*sqrt(.5)*crit_ii(ii),MaxAxis])
-       critPolyfillsqrt05(ii,0)=max([iix-2.*sqrt(.5)*crit_ii(ii),MinAxis])
-       critPolyfill05(ii,1)=min([iix+crit_ii(ii),MaxAxis])
-       critPolyfill05(ii,0)=max([iix-crit_ii(ii),MinAxis])
+      iix=float(ii)*float(maxAxis)/1000.
+      crit_ii(ii)=UrLV/100.*sqrt( (1.-alpha)*float(iix)^2/float(Neff) +alpha*LV^2/float(Nnp))
+      critPolyfill(ii,1)=min([iix+2.*crit_ii(ii),MaxAxis])
+      critPolyfill(ii,0)=max([iix-2.*crit_ii(ii),MinAxis])
+      ;KeesC 21OCT2013
+      critPolyfillsqrt05(ii,1)=min([iix+2.*sqrt(.5)*crit_ii(ii),MaxAxis])
+      critPolyfillsqrt05(ii,0)=max([iix-2.*sqrt(.5)*crit_ii(ii),MinAxis])
+      critPolyfill05(ii,1)=min([iix+crit_ii(ii),MaxAxis])
+      critPolyfill05(ii,0)=max([iix-crit_ii(ii),MinAxis])
     endfor
     xx=findgen(1000)*maxAxis/1000.
     xx(fix(maxAxis+1))=min([xx(maxAxis+1),maxAxis])
-;KeesC 21OCT2013    
-    if strupcase(frequency) eq 'hour' then polyfill,[xx,xx(999),reverse(xx)],$
-      [critPolyfill(*,1),critPolyfill(999,0),reverse(critPolyfill(*,0))],$    
-      /data,color=205 
-      if strupcase(frequency) eq 'year' then polyfill,[xx,xx(999),reverse(xx)],$
-      [critPolyfill(*,1),critPolyfill(999,0),reverse(critPolyfill(*,0))],$    
+    ;KeesC 21OCT2013
+    ;KeesC 29OCT2013
+    if strupcase(frequency) eq 'HOUR' then polyfill,[xx,xx(999),reverse(xx)],$
+      [critPolyfill(*,1),critPolyfill(999,0),reverse(critPolyfill(*,0))],$
+      /data,color=205
+    if strupcase(frequency) eq 'YEAR' then polyfill,[xx,xx(999),reverse(xx)],$
+      [critPolyfill(*,1),critPolyfill(999,0),reverse(critPolyfill(*,0))],$
       /data,color=150
-;KeesC 21OCT2013      
-      polyfill,[xx,xx(999),reverse(xx)],$
+    ;KeesC 21OCT2013
+    polyfill,[xx,xx(999),reverse(xx)],$
       [critPolyfillsqrt05(*,1),critPolyfillsqrt05(999,0),reverse(critPolyfillsqrt05(*,0))],$
       /data,color=150
     oplot,xx,critPolyfill05(*,1),linestyle=2,color=0,thick=2
@@ -995,7 +995,7 @@ PRO FM_PlotScatter, plotter, request, result
   endif
   plots,[minAxis,maxAxis],[minAxis,maxAxis],color=0,/data
   xyouts,minAxis+recognizeRange*4,maxAxis-recognizeRange*4,'Valid/selected stations/groups: '+strtrim(validStationNb,2)+'/'+strtrim(totalStationNb,2),/data,color=0
-
+  
   recognizeRange=(maxAxis-minAxis)*0.01
   
   size_alldataXY=size(allDataXY)
@@ -1003,9 +1003,9 @@ PRO FM_PlotScatter, plotter, request, result
   
     if elabcode eq 6 or elabCode eq 50 or elabcode eq 56 or elabcode eq 57 then begin
       if elabCode eq 50 then begin
-        allDataXY=allDataXY[nmulti/2:nmulti-1,*] 
+        allDataXY=allDataXY[nmulti/2:nmulti-1,*]
         nmulti=nmulti/2
-      endif  
+      endif
       ;      nObs=n_elements(allDataColor)
       recognizeHighLight=bytarr(nmulti)
       recognizeRegionEdges=ptrarr(nmulti) ; coords (normalized standard)
@@ -1086,6 +1086,171 @@ PRO FM_PlotScatterLegend, plotter, request, result
   legendGenericBuild,request,result,plotter
   legendInfo,request,result,plotter
   jumpend:
+END
+
+; KeesC 2NOV
+PRO FM_PlotGeoMap, plotter, request, result
+
+  ;  plotter->plotBars, request, result
+  plotter->wsetMainDataDraw
+  plotInfo=result->getPlotInfo()
+  targetInfo=result->getGenericPlotInfo()
+  legNames=targetInfo->getLegendNames()
+  allDataXY=targetInfo->getXYS()
+  erase
+  ;  bpInfo=Result->getBarPlotInfo()
+  ;  ObsValues=bpInfo->getLegoValues()  ;also contains RMSE, IOA...
+  obsvalues=reform(allDataXy[*,0])
+  elabName=request->getelaborationName()
+  elabcode=request->getElaborationCode()
+  
+  ;  obsLatitudes=request->getSingleObsLatitudes()
+  ;  obsLongitudes=request->getSingleObsLongitudes()
+  ;  obsLatitudes=float(obsLatitudes)
+  ;  obsLongitudes=float(obsLongitudes)
+  obsLongitudes=reform(allDataXy[*,1])
+  obsLatitudes=reform(allDataXy[*,2])
+  
+  ;  scaleInfo=request->getScaleInfo()
+  ;  resScale=strsplit(scaleinfo,';',/extract)
+  
+  ;  psym_neg=13
+  plotValues=obsValues
+  
+  rangeValLegend=[0,1]
+  colorclasses=[160,210,250]
+  psym_pos=13
+  
+;  class=[0.,sqrt(.5),1.]
+  class=[0.,1.,1.2]
+  nobs=n_elements(obsLatitudes)
+  
+  DEVICE,DECOMPOSE=0
+  LOADCT,39
+  
+  latmin=min(obsLatitudes)  ;resScale(3)
+  latmax=max(obsLatitudes)
+  lonmin=min(obsLongitudes)
+  lonmax=max(obsLongitudes)
+  dlon=lonmax-lonmin
+  dlat=latmax-latmin
+  if dlat ge 0.5*dlon then begin
+    dd=dlat-0.5*dlon
+    lonmin=lonmin-dd/2.
+    lonmax=lonmax+dd/2.
+  endif else begin
+    dd=0.5*dlon-dlat
+    latmin=latmin-dd/2.
+    latmax=latmax+dd/2.
+  endelse
+  latmin=latmin-dlat*0.05
+  latmax=latmax+dlat*0.05
+  lonmin=lonmin-dlon*0.05
+  lonmax=lonmax+dlon*0.05
+  
+  
+  map_set,10.,45.,0.,limit=[latmin,lonmin,latmax,lonmax],/continents,color=0,E_horizon={fill:255,color:255},/noerase,/noborder,title='GEO MAP '+elabName
+  
+  recognizeRange=(lonmax-lonmin)*0.01
+  sizeSymbol=1
+  if nobs gt 100 then sizeSymbol=0.9
+  if nobs gt 500 then sizeSymbol=0.7
+  
+  recognizeHighLight=bytarr(nobs)
+  recognizeRegionEdges=ptrarr(nobs) ; coords (normalized standard)
+  recognizeNames=strarr(nobs)
+  recognizeValues=strarr(nobs)
+  
+  for iobs=0,nobs-1 do begin
+    if finite(plotValues(iobs)) eq 1 then begin
+      ;      if plotValues(iobs) ge 0 then mypsym,psym_pos,1
+      ;      if plotValues(iobs) lt 0 then mypsym,psym_neg,1
+      mypsym,psym_pos,1
+      if abs(plotValues(iobs)) lt class(1) then color=colorclasses(0)
+      if abs(plotValues(iobs)) ge class(1) and abs(plotValues(iobs)) lt class(2) then color=colorclasses(1)
+      if abs(plotValues(iobs)) ge class(2) then color=colorclasses(2)
+      color=fix(color)
+      plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=color, symsize=1*sizeSymbol
+      
+      recognizePoint=fltarr(4,2)
+      recognizePoint[0,*]=[obsLongitudes[iObs]-recognizeRange, obsLatitudes[iObs]-recognizeRange]
+      recognizePoint[1,*]=[obsLongitudes[iObs]-recognizeRange, obsLatitudes[iObs]+recognizeRange]
+      recognizePoint[2,*]=[obsLongitudes[iObs]+recognizeRange, obsLatitudes[iObs]+recognizeRange]
+      recognizePoint[3,*]=[obsLongitudes[iObs]+recognizeRange, obsLatitudes[iObs]-recognizeRange]
+      recognizePoint=transpose(recognizePoint)
+      normRecognizePoint=convert_coord(recognizePoint, /DATA, /TO_NORMAL)
+      normRecognizePoint=transpose(normRecognizePoint)
+      normRecognizePoint=normRecognizePoint[*, 0:1]
+      recognizePointPtr=ptr_new(normRecognizePoint, /NO_COPY)
+      recognizeHighLight[iObs]=0b
+      recognizeRegionEdges[iObs]=recognizePointPtr
+      recognizeNames[iObs]=legNames[iObs]
+      recognizeValues[iObs]=strtrim(plotvalues[iObs], 2)
+    endif
+  endfor
+  
+  map_continents,color=255,fill_continents=0,/overplot
+  map_continents,thick=2,color=0,/countries,/overplot
+  map_continents,thick=2,color=0,/overplot
+  
+  for i=0,2 do begin
+    x=[0.05+i*0.06,0.05+(i+1)*0.06,0.05+(i+1)*0.06,0.05+i*0.06]
+    y=[0.04,0.04,0.07,0.07]
+    POLYFILL, X, Y, COLOR = colorclasses(i), /normal
+    plots,[x(0),x(1)],[y(0),y(0)],/normal,color=0
+    plots,[x(1),x(1)],[y(0),y(2)],/normal,color=0,/continue
+    plots,[x(1),x(0)],[y(2),y(2)],/normal,color=0,/continue
+    plots,[x(0),x(0)],[y(2),y(0)],/normal,color=0,/continue
+    xyouts,x(0),y(2)+0.01,strmid(strtrim(class(i),2),0,4),/normal,alignment=0.5,color=0,charsize=1
+  endfor
+  ;  xyouts,0.17,0.08,strmid(strtrim(class(2),2),0,3),/normal,alignment=0.5,color=0,charsize=1
+  
+  rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
+  plotInfo->setRecognizeInfo, rInfo
+END
+
+PRO FM_PlotGeoMapLegend, plotter, request, result
+  plotter->wsetInfoDataDraw
+  white=obj_new('Color', 200, 200, 200)
+  black=obj_new('Color', 0, 0, 0)
+  whiteL=white->AsLongTrueColor()
+  blackL=black->AsLongTrueColor()
+  obj_destroy, white
+  obj_destroy, black
+  DEVICE, DECOMPOSED=1
+  erase, whiteL
+  
+  DEVICE,DECOMPOSE=0
+  LOADCT,39
+  ; use "tek" color table...
+  tek_color;, 0, 32
+  
+  targetInfo=result->getGenericPlotInfo()
+  legNames=targetInfo->getLegendNames()
+  allDataXY=targetInfo->getXYS()
+  ;  bpInfo=Result->getBarPlotInfo()
+  ;  legoNames=bpInfo->getLegoNames()
+  ;  legoValues=bpInfo->getLegoValues()
+  ;  cc=where(finite(legoValues) eq 1,countValidStat)
+  cc=where(finite(allDataXY[*, 0]) eq 1,countValidStations)
+  
+  legoWidth=.012
+  legoHeight=.05
+  startX=.01
+  maxWidth=0
+  
+  symbolSequenceNo=min([countValidStations,63])
+  
+  for i=0, symbolSequenceNo-1 do begin
+    jheight = i MOD 9
+    startx = .10*fix(i/9)
+    startY=1.-((jheight+1)*legoHeight*2)
+    thisStartX=startX+maxWidth+legoWidth+.02
+    xyouts, thisStartX+legoWidth+.01, startY+.002, strmid(legNames[cc(i)],0,7), COLOR=0, /NORM, charsize=.8, charthick=.8,  WIDTH=textWidth
+  endfor
+  
+  legendInfo,request,result,plotter
+  
 END
 
 PRO FM_PlotGoogleEarth, plotter, request, result
@@ -1273,17 +1438,17 @@ PRO FM_PlotGoogleEarth, plotter, request, result
   
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-    modelInfo=request->getModelInfo()
-    year=modelInfo.year
-    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
-       Feb29start=59*24
-       Feb29end=Feb29start+23
-       if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
-       if startIndex ge Feb29start then begin
-         endIndex=endIndex-24
-         startIndex=startIndex-24
-       endif  
-    endif  
+  modelInfo=request->getModelInfo()
+  year=modelInfo.year
+  if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+    Feb29start=59*24
+    Feb29end=Feb29start+23
+    if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+    if startIndex ge Feb29start then begin
+      endIndex=endIndex-24
+      startIndex=startIndex-24
+    endif
+  endif
   ;  DEVICE,DECOMPOSE=0
   LOADCT,39
   tek_color;, 0, 32
@@ -1665,7 +1830,7 @@ PRO FM_PlotTaylor, plotter, request, result
   parCodes=request->getParameterCodes()
   nmod=request->getModelNumber()
   obsNames=request->getSingleObsNames()
-  elabcode=request->getElaborationCode()  
+  elabcode=request->getElaborationCode()
   allDataXY=tpInfo->getXYS()
   if string(allDataXY[0]) eq 'AllNaN' then begin
     plot,indgen(10),/nodata,color=255,background=255
@@ -1958,7 +2123,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   recognizePoint=fltarr(4,2)
   
   dims=get_screen_size(RESOLUTION=resolution)
-   
+  
   if (criteria eq 0 or countValidStations eq 0) then begin
     plot,indgen(10),/nodata,color=255,background=255
     xyouts,1,9,'No Diagram available for current choice',charsize=2,charthick=2,/data,color=0
@@ -1985,7 +2150,8 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     ystyle=1,/nodata, title='TARGET PLOT'+'   '+pars, charsize=facSize, background=255, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
   ; plot referring circles (4)
   if criteria gt 0 then begin
-    POLYFILL, CIRCLE(0, 0, 1), /data, thick=2, color=8
+    ;KeesC 29OCT2013: 8 changed into 150
+    POLYFILL, CIRCLE(0, 0, 1), /data, thick=2, color=150
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
     plots, CIRCLE(0, 0, 0.5), /data, thick=2, color=0,linestyle=2
   endif else begin
@@ -2012,16 +2178,16 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   fixedLabels[2]='MU > OU'
   
   ;if elabCode eq 81 then fixedLabels[3]='SigM > SigO          SigO > SigM'
-    xfac=0.1
-    ;PHILTH 27032012  Change of axis in test target diagram
-    plots,[-plotRange,-xfac],[-plotRange,-xfac],/data,color=0,thick=2
-    plots,[-plotRange,-xfac],[plotRange,xfac],/data,color=0,thick=2
-    plots,[plotRange,xfac],[-plotRange,-xfac],/data,color=0,thick=2
-    plots,[plotRange,xfac],[plotRange,xfac],/data,color=0,thick=2
-    xyouts, -plotRange*0.1, plotRange*0.85, 'BIAS > 0',charthick=2, color=0,/data,charsize=facSize*1.5
-    xyouts, -plotRange*0.1, -plotRange*0.95, 'BIAS < 0',charthick=2, color=0,/data,charsize=facSize*1.5
-    xyouts, -plotRange*0.95, -plotRange*0.05, 'R',charthick=2, color=0,/data,charsize=facSize*1.5
-    xyouts, plotRange*0.85, -plotRange*0.05, 'SD',charthick=2, color=0,/data,charsize=facSize*1.5
+  xfac=0.1
+  ;PHILTH 27032012  Change of axis in test target diagram
+  plots,[-plotRange,-xfac],[-plotRange,-xfac],/data,color=0,thick=2
+  plots,[-plotRange,-xfac],[plotRange,xfac],/data,color=0,thick=2
+  plots,[plotRange,xfac],[-plotRange,-xfac],/data,color=0,thick=2
+  plots,[plotRange,xfac],[plotRange,xfac],/data,color=0,thick=2
+  xyouts, -plotRange*0.1, plotRange*0.85, 'BIAS > 0',charthick=2, color=0,/data,charsize=facSize*1.5
+  xyouts, -plotRange*0.1, -plotRange*0.95, 'BIAS < 0',charthick=2, color=0,/data,charsize=facSize*1.5
+  xyouts, -plotRange*0.95, -plotRange*0.05, 'R',charthick=2, color=0,/data,charsize=facSize*1.5
+  xyouts, plotRange*0.85, -plotRange*0.05, 'SD',charthick=2, color=0,/data,charsize=facSize*1.5
   
   posLabels=fltarr(4,2)
   posLabels[0, *]=[0.1, 1.3]
@@ -2075,18 +2241,18 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   
   ;addition for paper review
   mypsym,4,1
-;  plots, -4.08, -0.56, psym=8, color=2, symsize=2.3*facSize  ;2*/maxAxis
-;  plots, -2.87, -1.21, psym=8, color=3, symsize=2.3*facSize  ;2*/maxAxis
-;  plots, -2.48, -2.03, psym=8, color=4, symsize=2.3*facSize  ;2*/maxAxis
-
-;PM10
-;   plots, -1.62, 0.07, psym=8, color=2, symsize=2.3*facSize  ;2*/maxAxis
-;   plots, -1.51, -0.37, psym=8, color=3, symsize=2.3*facSize  ;2*/maxAxis
-;   plots, -1.37, -0.40, psym=8, color=4, symsize=2.3*facSize  ;2*/maxAxis
-;   plots, 1.69, -1.18, psym=8, color=5, symsize=2.3*facSize  ;2*/maxAxis
-;   plots, -1.58, 0.08, psym=8, color=6, symsize=2.3*facSize  ;2*/maxAxis
-;   plots, -0.99, 0.00, psym=8, color=7, symsize=2.3*facSize  ;2*/maxAxis
-;  
+  ;  plots, -4.08, -0.56, psym=8, color=2, symsize=2.3*facSize  ;2*/maxAxis
+  ;  plots, -2.87, -1.21, psym=8, color=3, symsize=2.3*facSize  ;2*/maxAxis
+  ;  plots, -2.48, -2.03, psym=8, color=4, symsize=2.3*facSize  ;2*/maxAxis
+  
+  ;PM10
+  ;   plots, -1.62, 0.07, psym=8, color=2, symsize=2.3*facSize  ;2*/maxAxis
+  ;   plots, -1.51, -0.37, psym=8, color=3, symsize=2.3*facSize  ;2*/maxAxis
+  ;   plots, -1.37, -0.40, psym=8, color=4, symsize=2.3*facSize  ;2*/maxAxis
+  ;   plots, 1.69, -1.18, psym=8, color=5, symsize=2.3*facSize  ;2*/maxAxis
+  ;   plots, -1.58, 0.08, psym=8, color=6, symsize=2.3*facSize  ;2*/maxAxis
+  ;   plots, -0.99, 0.00, psym=8, color=7, symsize=2.3*facSize  ;2*/maxAxis
+  ;
   if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
     cc=where(finite(allDataXY[*, 0]) eq 1,countValidStations)
     if countValidStations gt 0 then begin
@@ -2266,7 +2432,7 @@ PRO FM_PlotTable2, plotter, request, result
   mytek_color;, 0, 32
   !p.background=255
   tpInfo=result->getGenericPlotInfo()
-  plotInfo=result->getPlotInfo() 
+  plotInfo=result->getPlotInfo()
   allDataXY=tpInfo->getXYS()
   if string(allDataXY[0]) eq 'AllNaN' then begin
     plot,indgen(10),/nodata,color=255,background=255
@@ -2374,7 +2540,7 @@ PRO FM_PlotTable2, plotter, request, result
       
       xminfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMin(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
       xmaxfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMax(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
-
+      
       if criteria gt 0 then begin
         dx=xmaxfill-xminfill
         if ii ne 3 and ii ne 5 and ii ne 7 then begin
@@ -2387,7 +2553,7 @@ PRO FM_PlotTable2, plotter, request, result
           polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=207,/data
         endif
         if ii eq 7 then begin
-          polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=160,/data 
+          polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=160,/data
         endif
       endif
       plots,[xmin+0.25,xmax-0.10],[ymax-0.20-ii*0.095,ymax-0.20-ii*0.095],/data,thick=2,color=0
@@ -2431,24 +2597,24 @@ PRO FM_PlotTable2, plotter, request, result
       
       if ii eq 2 or ii eq 3 or ii eq 5 or ii eq 4 or ii eq 6 then begin
         cc1=where(abs(allDataXY(*,ii)) gt criteria,countC1)   ; % crit
-;KeesC 1OCT2013: sqrt        
+        ;KeesC 1OCT2013: sqrt
         ccp5=where(abs(allDataXY(*,ii)) le sqrt(.5)*criteria,countCp5)  ; % .5*crit
-      endif      
+      endif
       if ii eq 7 then cc=where(abs(allDataXY(*,ii)) gt 50.,countC1)
-      if ii eq 7 then ccp5=where(abs(allDataXY(*,ii)) le 50.,countCp5) 
-      color_indic=207     
+      if ii eq 7 then ccp5=where(abs(allDataXY(*,ii)) le 50.,countCp5)
+      color_indic=207
       if (ii eq 2 or ii eq 3 or ii eq 4 or ii eq 7) and criteria gt 0 then begin
         if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
         if countC1/float(allDataAxis(1)) gt 0.1 then color_indic=250
         mypsym,9,1
         if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*0.095,psym=8,color=color_indic,symsize=3,/data
-      endif      
+      endif
       if (ii eq 5 or ii eq 6) and criteria gt 0 and n_elements(allDataSymbol) gt 1 then begin
         if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
         if countC1/float(allDataAxis(1)) gt .1 then color_indic=250
         mypsym,9,1
         if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*0.095,psym=8,color=color_indic,symsize=3,/data
-      endif   
+      endif
     endfor
     
     xyouts,xmin-0.03,ymax-0.20,'O',/data,charsize=1.5*psFact,color=3,charthick=2
@@ -2551,9 +2717,9 @@ PRO FM_PlotTable2, plotter, request, result
       
       xminfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMin(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
       xmaxfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMax(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
-
+      
       if criteria gt 0 then begin
-;      polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
+        ;      polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
         dx=xmaxfill-xminfill
         if ii eq 3 then begin
           polyfill,[xminfill+0.15*dx,xminfill+0.15*dx,xmaxfill-0.15*dx,xmaxfill-0.15*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
@@ -2562,7 +2728,7 @@ PRO FM_PlotTable2, plotter, request, result
         endif
         if ii eq 2 then begin
           polyfill,[xminfill,xminfill,xmaxfill-0.15*dx,xmaxfill-0.15*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
-          polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=207,/data 
+          polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=207,/data
         endif
         if ii eq 4 or ii eq 1 then begin
           polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
@@ -2607,19 +2773,19 @@ PRO FM_PlotTable2, plotter, request, result
         xyouts,xmax-0.082,ymax-0.22-ii*deltaY,units(ii),/data,color=0,charsize=psFact
         kg++
       endfor
-; KeesC 9SEP2013      
+      ; KeesC 9SEP2013
       countC1=0 & countCp5=0
       if ii eq 2 or ii eq 3 then begin
         cc1=where(abs(allDataXY(*,ii)) gt criteria,countC1)   ; % crit
-; KeesC 1OCT2013        
+        ; KeesC 1OCT2013
         ccp5=where(abs(allDataXY(*,ii)) le sqrt(0.5)*criteria,countCp5)  ; % .5*crit
       endif
       if ii eq 4 or ii eq 1 then begin
-;        cc=where(abs(allDataXY(*,ii)) le criteria,countC)
+        ;        cc=where(abs(allDataXY(*,ii)) le criteria,countC)
         cc1=where(abs(allDataXY(*,ii)) gt criteria,countC1)   ; % crit
         ccp5=where(abs(allDataXY(*,ii)) le criteria,countCp5)  ; % .5*crit
       endif
-      color_indic=207     
+      color_indic=207
       if ii ne 0 and criteria gt 0 then begin
         if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
         if countC1/float(allDataAxis(1)) gt 0.1 then color_indic=250
@@ -2679,7 +2845,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   DEVICE,DECOMPOSE=0
   LOADCT,39
   mytek_color;, 0, 32
-  tpInfo=result->getGenericPlotInfo() 
+  tpInfo=result->getGenericPlotInfo()
   allDataXY=tpInfo->getXYS()
   if string(allDataXY[0]) eq 'AllNaN' then begin
     plot,indgen(10),/nodata,color=255,background=255
@@ -2706,7 +2872,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   recognizePoint=fltarr(4,2)
   npoints=n_elements(allDataXY(*,0))
   adummy=fltarr(10) & adummy(*)=1.
- 
+  
   if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 then begin  ;NMSD
   
     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
@@ -2728,7 +2894,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
     plot, indgen(fix(maxxaxis+1)), color=0,/nodata, xtitle='RMSU/SigO'+'   '+pars,ytitle='NMSD', title='MPC PLOT', charsize=1, background=255,$
       yrange=[-ymax,ymax],xrange=[minxAxis,maxxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
     if criteria gt 0 then begin
-; KeesC 1OCT2013    
+      ; KeesC 1OCT2013
       xx=fltarr(101) & yy1=fltarr(101) & yy2=fltarr(101) & yy1_05=fltarr(101) & yy2_05=fltarr(101) &
       & yy1_05s=fltarr(101) & yy2_05s=fltarr(101)
       for i=0,100 do begin
@@ -2740,10 +2906,10 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
         yy1_05s(i)= min([ sqrt(.5)*200.*xx(i), ymax])
         yy2_05s(i)= max([-sqrt(.5)*200.*xx(i),-ymax])
       endfor
-; KeesC 29SEP2013   
-;     polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=160   
+      ; KeesC 29SEP2013
+      ;     polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=160
       polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=215
-      polyfill,[xx,reverse(xx)],[yy2_05s,reverse(yy1_05s)],/data,color=160      
+      polyfill,[xx,reverse(xx)],[yy2_05s,reverse(yy1_05s)],/data,color=160
       oplot,xx,yy2_05,linestyle=2,thick=2,color=0
       oplot,xx,yy1_05,linestyle=2,thick=2,color=0
       oplot,xx,yy2,thick=2,color=0
@@ -2796,15 +2962,15 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
         xx(i)=minxAxis+i*(maxxAxis-minxAxis)/100.
         yy(i)=1.-2.*xx(i)^2
         yy05(i)=1.-0.5*xx(i)^2
-; KeesC 1OCT2013         
+        ; KeesC 1OCT2013
         yy05s(i)=1.-sqrt(0.5)*xx(i)^2
         if yy(i) lt ymin then yy(i)=ymin
-; KeesC 29SEP2013        
+        ; KeesC 29SEP2013
         if yy05(i) lt ymin then yy05(i)=ymin
         if yy05s(i) lt ymin then yy05s(i)=ymin
       endfor
-; KeesC 29SEP2013   
-;     polyfill,[xx,xx(100),xx(0)],[yy,ymax,ymax],/data,color=160   
+      ; KeesC 29SEP2013
+      ;     polyfill,[xx,xx(100),xx(0)],[yy,ymax,ymax],/data,color=160
       polyfill,[xx,xx(100),xx(0)],[yy,ymax,ymax],/data,color=215
       polyfill,[xx,xx(100),xx(0)],[yy05s,ymax,ymax],/data,color=160
       oplot,xx,yy,color=0,thick=2
@@ -2877,7 +3043,7 @@ PRO FM_PlotQQ, plotter, request, result
     for ipc=1,n_elements(parCodes)-1 do pars=pars+'*'+parCodes(ipc)
   endif
   plot, indgen(fix(maxaxis)), color=0,/nodata, xtitle='OBSERVED',ytitle='MODELLED', $
-  title='QQ PLOT'+'   '+pars, charsize=1, background=255,xrange=[minAxis,maxAxis],$
+    title='QQ PLOT'+'   '+pars, charsize=1, background=255,xrange=[minAxis,maxAxis],$
     yrange=[minAxis,maxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
     
   plots,[minAxis,maxAxis],[minAxis,maxAxis],color=0,/data
@@ -3074,7 +3240,7 @@ PRO FM_PlotTable2legend, plotter, request, result
   endfor
   
   jumpEnd:
-
+  
 END
 
 
@@ -3097,17 +3263,17 @@ PRO LEGENDINFO,request,result,plotter
   
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-    modelInfo=request->getModelInfo()
-    year=modelInfo.year
-    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
-      Feb29start=59*24
-      Feb29end=Feb29start+23
-      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
-      if startIndex ge Feb29start then begin
-        endIndex=endIndex-24
-        startIndex=startIndex-24
-      endif  
-    endif    
+  modelInfo=request->getModelInfo()
+  year=modelInfo.year
+  if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+    Feb29start=59*24
+    Feb29end=Feb29start+23
+    if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+    if startIndex ge Feb29start then begin
+      endIndex=endIndex-24
+      startIndex=startIndex-24
+    endif
+  endif
   coords=[0.77,0.9]
   if resPoscript then coords(1)=coords(1)-0.15
   coords=plotter->legendNormalize(coords)
@@ -3279,27 +3445,27 @@ pro mytek_color, Start_index, Ncolors
     b_orig = r_orig
   endif
   
-;KeesC 20JUN2012 This is the standard table used in the ScaleDep analysis
-  r = bytscl([ 0,100,100,0,100,0,100,  100,0,   60,0,0,55,100,55,70, $   
+  ;KeesC 20JUN2012 This is the standard table used in the ScaleDep analysis
+  r = bytscl([ 0,100,100,0,100,0,100,  100,0,   60,0,0,55,100,55,70, $
     100,75,45,17,25,50,75,100,67,40,17,17,17,45,75,90])
   g = bytscl([ 0,100,0,0,50,100,0,  100,100,    83,100,50,0,0,55,70, $
     100,100,100,100,83,67,55,33,90,90,90,67,50,33,17,9])
   b = bytscl([ 0,100,0,100,0,100,83,  0,0,      0,60,100,83,55,55,70, $
     33,45,60,75,83,83,83,90,45,55,67,90,100,100,100,100])
-;KeesC 20APR2013
-;black,white,red,dark blue,orange,light blue,dark purple,dark green,light green,light purple
-  r = bytscl([ 0,100,100,0,100,0,100,  0,59,   100,0,  0,55,100,55,70, $   
+  ;KeesC 20APR2013
+  ;black,white,red,dark blue,orange,light blue,dark purple,dark green,light green,light purple
+  r = bytscl([ 0,100,100,0,100,0,100,  0,59,   100,0,  0,55,100,55,70, $
     100,75,45,17,25,50,75,100,67,40,17,17,17,45,75,90])
   g = bytscl([ 0,100,0,0,69,100,0,  69,100,    69,100,  78,0,0,55,70, $
     100,100,100,100,83,67,55,33,90,90,90,67,50,33,17,9])
   b = bytscl([ 0,100,0,100,0,100,78,  0,0,     100,60,  100,83,55,55,70, $
     33,45,60,75,83,83,83,90,45,55,67,90,100,100,100,100])
-; KeesC 22APR2013: Bertrand sequence of colours
+  ; KeesC 22APR2013: Bertrand sequence of colours
 ;  indrgb=[0,1,8,3,6,2,7,4,5,9]    ; 6-9
 ;  r[0:9]=r(indrgb)
 ;  g[0:9]=g(indrgb)
 ;  b[0:9]=b(indrgb)
-    
+  
   if ncolors lt 32 then begin   ;Trim?
     r = r[0:ncolors-1]
     g = g[0:ncolors-1]
@@ -3323,15 +3489,15 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   parCodes=request->getParameterCodes()
   modelInfo=request->getModelInfo()
   year=modelInfo.year
-   if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
-       Feb29start=59*24
-       Feb29end=Feb29start+23
-       if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
-       if startIndex ge Feb29start then begin
-         endIndex=endIndex-24
-         startIndex=startIndex-24
-       endif  
-    endif  
+  if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+    Feb29start=59*24
+    Feb29end=Feb29start+23
+    if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+    if startIndex ge Feb29start then begin
+      endIndex=endIndex-24
+      startIndex=startIndex-24
+    endif
+  endif
   scale=modelInfo.scale
   scale='ALL'
   frequency=modelInfo.frequency
@@ -3345,7 +3511,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   elabcode=request->getElaborationCode()
   ;MM summer 2012 Start
   ;for Goals & Criteria now you can use
-  ;elaboration related info called OCTimeAvgName & OCStat 
+  ;elaboration related info called OCTimeAvgName & OCStat
   OCTimeAvgName=request->getElaborationOCTimeAvgName()
   OCStat=request->getElaborationOCStat()
   ;MM summer 2012 End
@@ -3393,8 +3559,8 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   ; request criteria: check existence
   Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname=statistics, timeAvgName=dailyStatOp, NOVALUES=NOVALUES)
   if Criteria(0) eq -1 then begin
-     Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname=statistics, timeAvgName='ALL', NOVALUES=NOVALUES)
-     if criteria(0) gt 0 then FlagAll=1
+    Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname=statistics, timeAvgName='ALL', NOVALUES=NOVALUES)
+    if criteria(0) gt 0 then FlagAll=1
   endif
   if Criteria(0) ne -1 and statistics eq 'OU' then begin
     UrLV=criteria(0)
@@ -3409,19 +3575,19 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   
   ; calculation of absolute error
   
-;  nobsAv=endIndex-startIndex+1
-;  if statType eq 1 or statType eq 2 or statType eq 3 then nobsAv=nobsAv/24.
-;  if statType eq 0 and (parcodes eq 'PM10' or parCodes eq 'PM25') then nobsAv=nobsAv/24.
-;  if nobsAv lt 1 then nobsAv=1
-;  if frequency eq 'HOUR' then nobsAv=1
+  ;  nobsAv=endIndex-startIndex+1
+  ;  if statType eq 1 or statType eq 2 or statType eq 3 then nobsAv=nobsAv/24.
+  ;  if statType eq 0 and (parcodes eq 'PM10' or parCodes eq 'PM25') then nobsAv=nobsAv/24.
+  ;  if nobsAv lt 1 then nobsAv=1
+  ;  if frequency eq 'HOUR' then nobsAv=1
   
-  if statistics eq 'OU' and criteria(0) ne -1 then begin 
-     if strupcase(frequency) eq 'HOUR' then criteria=UrLV/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)+alpha*LV^2)
-;     criteria=0.15*mean(obsTimeSeries)
-;print,'crit',criteria
-     if strupcase(frequency) eq 'YEAR' then criteria=UrLV/100.*sqrt( (1.-alpha)*(mean(obsTimeSeries)^2)/Neff +alpha*LV^2/Nnp)
-     if (Neff eq -999 or Nnp eq -999) and strupcase(frequency) eq 'YEAR' then criteria=-1
-     ;if parcodes[0] eq 'O3' and strupcase(frequency) eq 'HOUR' then criteria=criteria/1.43
+  if statistics eq 'OU' and criteria(0) ne -1 then begin
+    if strupcase(frequency) eq 'HOUR' then criteria=UrLV/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)+alpha*LV^2)
+    ;     criteria=0.15*mean(obsTimeSeries)
+    ;print,'crit',criteria
+    if strupcase(frequency) eq 'YEAR' then criteria=UrLV/100.*sqrt( (1.-alpha)*(mean(obsTimeSeries)^2)/Neff +alpha*LV^2/Nnp)
+    if (Neff eq -999 or Nnp eq -999) and strupcase(frequency) eq 'YEAR' then criteria=-1
+  ;if parcodes[0] eq 'O3' and strupcase(frequency) eq 'HOUR' then criteria=criteria/1.43
   endif
   jumpend:
 ;**********************
@@ -3429,17 +3595,17 @@ end
 pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries,percentile
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
-    modelInfo=request->getModelInfo()
-    year=modelInfo.year
-    if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
-      Feb29start=59*24
-      Feb29end=Feb29start+23
-      if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
-      if startIndex ge Feb29start then begin
-        endIndex=endIndex-24
-        startIndex=startIndex-24
-      endif  
-    endif  
+  modelInfo=request->getModelInfo()
+  year=modelInfo.year
+  if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
+    Feb29start=59*24
+    Feb29end=Feb29start+23
+    if startIndex lt Feb29start and endIndex ge FEB29end then endIndex=endIndex-24
+    if startIndex ge Feb29start then begin
+      endIndex=endIndex-24
+      startIndex=startIndex-24
+    endif
+  endif
   parCodes=request->getParameterCodes()
   scale=modelInfo.scale
   scale='ALL'
@@ -3493,8 +3659,8 @@ pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries,perce
   ; request criteria: check existence
   Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname='OU', timeAvgName=dailyStatOp, NOVALUES=NOVALUES)
   if Criteria(0) eq -1 then begin
-     Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname='OU', timeAvgName='ALL', NOVALUES=NOVALUES)
-     if criteria(0) gt 0 then FlagAll=1
+    Criteria=request->getGoalsCriteriaValues(parameter=parCodes[0], scalename=scalename, statname='OU', timeAvgName='ALL', NOVALUES=NOVALUES)
+    if criteria(0) gt 0 then FlagAll=1
   endif
   if Criteria(0) ne -1 then begin
     UrLV=criteria(0)
@@ -3507,16 +3673,16 @@ pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries,perce
   CriteriaOrig=criteria
   if keyword_set(NOVALUES) then UrLV=0
   
-  if criteria(0) ne -1 then begin 
-     criteria=UrLV/100.*sqrt( (1.-alpha)*obsTimeSeries^2+alpha*LV^2)
-     diffhlp=abs(modTimeSeries-obsTimeSeries)/criteria
-     res=sort(diffhlp)
-     nFin=fix(n_elements(res)*percentile)-1
-     obsTimeSeries=reform(obsTimeSeries(res(0:nfin)))
-     modTimeSeries=reform(modTimeSeries(res(0:nfin)))
-;     for ii=0,nfin-1 do begin
-;       printf,12,obsTimeSeries(ii),diffhlp(ii)
-;     endfor
+  if criteria(0) ne -1 then begin
+    criteria=UrLV/100.*sqrt( (1.-alpha)*obsTimeSeries^2+alpha*LV^2)
+    diffhlp=abs(modTimeSeries-obsTimeSeries)/criteria
+    res=sort(diffhlp)
+    nFin=fix(n_elements(res)*percentile)-1
+    obsTimeSeries=reform(obsTimeSeries(res(0:nfin)))
+    modTimeSeries=reform(modTimeSeries(res(0:nfin)))
+  ;     for ii=0,nfin-1 do begin
+  ;       printf,12,obsTimeSeries(ii),diffhlp(ii)
+  ;     endfor
   endif
   jumpend:
 ;**********************
@@ -3705,7 +3871,6 @@ pro legendGenericBuildDiag0,request,result,plotter
       legPrint2=['']
     endif
     if ifree eq '0101' then begin
-; KeesC 20JUN2012: (0,*) changed into (*,0)    
       legPrint=modelCodes & legColors2=legColors(*,0) & legSyms2=legSyms(*,0) & legPrint2='OBS'
       if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0  then legPrint2=['']
     endif
@@ -3751,7 +3916,7 @@ pro legendGenericBuildDiag0,request,result,plotter
         mypsym,5,1.5
         plots, coords[0], coords[1], psym=8, color=15-i, /NORM, symsize=1.
         mypsym,14,1.5
-        plots,coords[0],coords[1],psym=8,color=0,/norm,symsize=1.   
+        plots,coords[0],coords[1],psym=8,color=0,/norm,symsize=1.
         coords=[thisStartX+legoWidth+.01, startY+.002]
         coords=plotter->legendNormalize(coords)
         xyouts, coords[0], coords[1]-.5*legoHeight , legPrint2[i], COLOR=0, /NORM, charsize=.8, charthick=.8,  WIDTH=textWidth
@@ -3851,7 +4016,6 @@ pro mybar_plot,values,nsubbars,baselines=baselines,colors=colors,barnames=barnam
   if elabcode eq 30 then statistics='RPE'
   if elabcode eq 54 then statistics='MFS'
   if total(where(elabCode eq [2,7,8,23,28,30,54])) ge 0 then begin
-    ;  KeesC 28MAR2012: obsTemp changed into values
     CheckCriteria, request, result, statistics, criteria, values,alpha,criteriaOrig,LV
   endif else begin
     criteria=0
