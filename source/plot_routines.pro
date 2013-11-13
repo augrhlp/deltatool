@@ -1070,7 +1070,7 @@ PRO FM_PlotScatter, plotter, request, result
           endif
           if strupcase(frequency) eq 'HOUR' then begin
             polyfill,[0.15,0.65,0.65,0.15],[0.85,0.85,0.92,0.92],color=14,/normal
-            xyouts,0.16,0.87,'valid/selected stations/groups:'+strtrim(validStationNb,2)+'/'+strtrim(totalStationNb,2),$
+            xyouts,0.16,0.87,'valid/selected stations/groups: '+strtrim(validStationNb,2)+'/'+strtrim(totalStationNb,2),$
               color=0,/normal,charthick=2,charsize=1.5*psFact
           endif
         endif
@@ -1287,10 +1287,12 @@ PRO FM_PlotGeoMapLegend, plotter, request, result
     mypsym,13,1.8
     plots, 0.05,0.6, psym=8, color=250, symsize=1, /normal
     xyouts, 0.07,0.58, 'Bias < 0',COLOR=0,/NORMal,charsize=1, charthick=1
-    mypsym,5,2
+;KeesC 13NOV2013: 5,2 changed into 2,2
+    mypsym,2,2
     plots, 0.05,0.45, psym=8, color=250, symsize=1,/normal
     xyouts, 0.07,0.43, 'R dominated',COLOR=0,/NORMal,charsize=1, charthick=1
-    mypsym,2,2
+;KeesC 13NOV2013: 2,2 changed into 5,2
+    mypsym,5,2
     plots, 0.05,0.3, psym=8, color=250, symsize=1,/normal
     xyouts, 0.07,0.28, 'Sigma dominated',COLOR=0,/NORMal,charsize=1, charthick=1
   endif
@@ -2218,10 +2220,13 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     coords3=[-plotRange*0.15, plotrange-plotRange*0.05]
     coords4=[-plotRange+plotRange*0.05, plotrange-plotRange*0.05]
     
-    polyfill,[coords1[0],coords2[0],coords3[0],coords4[0]],[coords1[1],coords2[1],coords3[1],coords4[1]],color=14,/data
+;    polyfill,[coords1[0],coords2[0],coords3[0],coords4[0]],[coords1[1],coords2[1],coords3[1],coords4[1]],color=14,/data
+    polyfill,[0.09,0.48,0.48,0.09],[0.875,0.875,0.945,0.945],color=14,/normal
     coords=[-plotRange+plotRange*0.07,plotrange-plotRange*0.15]
     psFact=plotter->getPSCharSizeFactor()
-    xyouts,coords[0],coords[1],'Stations within Crit (T=1):',color=3,/data,charthick=2,charsize=1.5*psFact
+;KeesC 13NOV2013    
+    xyouts,0.11,0.90,'Stations within Crit (T=1): ',color=0,/normal,charthick=2,charsize=1.5*psFact
+;    xyouts,coords[0],coords[1],'Stations within Crit (T=1):',color=3,/data,charthick=2,charsize=1.5*psFact
   endif
   
   fixedLabels=strarr(4)
@@ -2314,8 +2319,10 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       if percentageCrit ge 90 then colorPerc=160  ;7   ;green
       ;      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=210  ;16   ;orange
       if percentageCrit lt 90 then colorPerc=250  ;2   ;red
-      xyouts,-plotRange*0.31,plotrange-plotRange*0.15,strtrim(percentageCrit,2)+'%',$
-        /data,charsize=2*facSize,charthick=3,color=colorPerc
+;KeesC 13NOV2013      
+      xyouts,0.42,0.90,strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,charthick=2,charsize=1.5*psFact
+;      xyouts,-plotRange*0.31,plotrange-plotRange*0.15,strtrim(percentageCrit,2)+'%',$
+;        /data,charsize=2*facSize,charthick=3,color=colorPerc
     endif
   endif
   
