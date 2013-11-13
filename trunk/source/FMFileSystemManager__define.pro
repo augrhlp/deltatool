@@ -30,7 +30,7 @@ FUNCTION FMFileSystemManager::checkStartupFileContents, txt=txt, alltxt=alltxt
         endif
         atxt=discardComments(unit)
         frequency=strlowcase(atxt)
-        if frequency ne 'hour' and frequency ne 'year' then begin
+        if strupcase(frequency) ne 'HOUR' and strupcase(frequency) ne 'YEAR' then begin
           txt='STEP 03: STOP! MODEL second line is NE a hour and NE to year : See MODEL section in STARTUPfile'
           alltxt=[txt,alltxt]
 ;          widget_control,labcom_txt,set_value=alltxt

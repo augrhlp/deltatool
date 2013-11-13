@@ -218,7 +218,7 @@ pro All_Steps
         endif
         atxt=discardComments(1)
         frequency=strlowcase(atxt)
-        if frequency ne 'hour' and frequency ne 'year' then begin
+        if strupcase(frequency) ne 'HOUR' and strupcase(frequency) ne 'YEAR' then begin
           txt='STEP 03: STOP! MODEL second line is NE to hour and NE to year : See MODEL section in STARTUPfile'
           txtall=[txt,txtall]
           widget_control,labcom_txt,set_value=txtall
