@@ -1,6 +1,0 @@
-[PERIODDAY: Code,DisplayName,StartValue,EndValue,Template,Description]
-0;All;00;23;hh;Desc:All
-1;Day (08-19);08;19;hh;Desc:Day (08-19)
-2;Night (00-07/20-23);00*20;07*23;hh;Desc:Night (00-07/20-23)
-3;WeekDays (Mo-Fr);WD;WD;dd;WeekDays
-4;WeekEnd (Sa-Su);WE;WE;dd;WeekEnd
