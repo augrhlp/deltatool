@@ -1466,7 +1466,8 @@ endif else begin
 endelse
 
 nvar=8
-legendNames=['Mean','Exceed,','Bias Norm','Corr Norm','StdDev Norm','Corr Norm','StdDeV Norm','RDE']
+;KeesC 23NOV2013: Exceed, replaced by Exceed
+legendNames=['Mean','Exceed','Bias Norm','Corr Norm','StdDev Norm','Corr Norm','StdDeV Norm','RDE']
 
 if isSingleSelection eq 0 then countFiniteS=0
 if isSingleSelection eq 0 then nobsS=0
