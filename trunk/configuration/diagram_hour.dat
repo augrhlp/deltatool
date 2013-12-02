@@ -7,7 +7,7 @@
 5;MPC (OU);FM_PlotBugle;2;Descr of:Composite
 #7;Category Diagram (OU);FM_PlotCategory;1;Descr of:2D Maps
 3;Taylor;FM_PlotTaylor;2;Descr of:Taylor plot
-6;Soccer Diagram;FM_PlotSoccer;2;Descr of:Soccer
+#6;Soccer Diagram;FM_PlotSoccer;2;Descr of:Soccer
 8;Q_Q plot;FM_PlotQQ;2;Descr of:Composite
 9;Geo Map;FM_PlotGeoMap;1;Descr of:2D Maps
 #9;PrintAllStat;FM_PlotAllStat;1;Descr of:StatAllStat
