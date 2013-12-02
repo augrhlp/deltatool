@@ -197,7 +197,7 @@ PRO fairmode_helpMenuSelection, ev
   print, 'Browser launcher:',mgr->getBrowserLocation()
   fs=mgr->getFileSystemMgr()
   helpfolder=fs->getHelpDir(withseparator=withseparator)+'\'
-  spawn,[mgr->getPdfReaderLocation(),helpfolder+'DELTA_UserGuide_V3.pdf'],/noshell,/nowait
+  spawn,[mgr->getPdfReaderLocation(),helpfolder+'DELTA_UserGuide_V3_5.pdf'],/noshell,/nowait
 
 END
 
