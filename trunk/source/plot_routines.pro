@@ -2702,13 +2702,13 @@ PRO FM_PlotTable2, plotter, request, result
       ;      color_indic=207
       if (ii eq 2 or ii eq 3 or ii eq 4 or ii eq 7) and criteria gt 0 then begin
 ;        if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
-        if countC1/float(allDataAxis(1)) gt 0.9 then color_indic=160
+        if countC1/float(allDataAxis(1)) ge 0.9 then color_indic=160
         mypsym,9,1
         if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*0.095,psym=8,color=color_indic,symsize=3,/data
       endif
       if (ii eq 5 or ii eq 6) and criteria gt 0 and n_elements(allDataSymbol) gt 1 then begin
 ;        if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
-        if countC1/float(allDataAxis(1)) gt .9 then color_indic=160
+        if countC1/float(allDataAxis(1)) ge .9 then color_indic=160
         mypsym,9,1
         if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*0.095,psym=8,color=color_indic,symsize=3,/data
       endif
@@ -2918,7 +2918,7 @@ PRO FM_PlotTable2, plotter, request, result
       color_indic=250
       if ii ne 0 and criteria gt 0 then begin
 ;        if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
-        if countC1/float(allDataAxis(1)) gt 0.9 then color_indic=160
+        if countC1/float(allDataAxis(1)) ge 0.9 then color_indic=160
         mypsym,9,1
         if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*deltaY,psym=8,color=color_indic,symsize=3,/data
       endif
