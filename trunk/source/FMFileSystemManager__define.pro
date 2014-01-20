@@ -6,151 +6,151 @@ FUNCTION FMFileSystemManager::checkStartupFileContents, txt=txt, alltxt=alltxt
   alltxt=''
   openr, unit, self->getStartUpFileName(), /GET_LUN
   
-; copied from Check_io   
-    check_MODEL=0
-    check_PARAMETERS=0
-    check_MONITORING=0
-    while ~eof(unit) do begin
+  ; copied from Check_io
+  check_MODEL=0
+  check_PARAMETERS=0
+  check_MONITORING=0
+  while ~eof(unit) do begin
+    atxt=discardComments(unit)
+    if atxt eq '[MODEL]' then begin
+      check_MODEL=1
       atxt=discardComments(unit)
-      if atxt eq '[MODEL]' then begin
-        check_MODEL=1
-        atxt=discardComments(unit)
-        fileYear=atxt
-        utility=obj_new('FMUtility')
-        if not(utility->IsNumber(fileYear)) then begin
-          txt='STEP 03: STOP! MODEL first line is NE a year : See MODEL section in STARTUPfile'
-          alltxt=[txt,alltxt]
-;          widget_control,labcom_txt,set_value=alltxt
-          alltxt=['STOP',alltxt]
-;          widget_control,labcom_txt,set_value=alltxt
-;          close,11
-;          close,12
-;          ierror=1
-          return,0
-        endif
-        atxt=discardComments(unit)
-        frequency=strlowcase(atxt)
-        if strupcase(frequency) ne 'HOUR' and strupcase(frequency) ne 'YEAR' then begin
-          txt='STEP 03: STOP! MODEL second line is NE a hour and NE to year : See MODEL section in STARTUPfile'
-          alltxt=[txt,alltxt]
-;          widget_control,labcom_txt,set_value=alltxt
-          alltxt=['STOP',alltxt]
-;          widget_control,labcom_txt,set_value=alltxt
-;          close,11
-;          close,12
-;          ierror=1
-          return,0
-        endif
-        atxt=discardComments(unit)
-        scale=strlowcase(atxt)
-        if (scale ne 'local' and scale ne 'urban' and scale ne 'regional') then begin
-          txt='STEP 03: STOP! MODEL third line is NE local/urban/regional: See MODEL section in STARTUPfile'
-          alltxt=[txt,alltxt]
-;          widget_control,labcom_txt,set_value=alltxt
-          alltxt=['STOP',alltxt]
-;          widget_control,labcom_txt,set_value=alltxt
-;          close,11
-;          close,12
-;          ierror=1
-          return,0
-        endif 
-        txt='STEP 03 OK: MODEL / '+fileYear+' '+frequency+' '+scale+' section exists in STARTUPfile'
-;        printf,11,txt
+      fileYear=atxt
+      utility=obj_new('FMUtility')
+      if not(utility->IsNumber(fileYear)) then begin
+        txt='STEP 03: STOP! MODEL first line is NE a year : See MODEL section in STARTUPfile'
         alltxt=[txt,alltxt]
-;        widget_control,labcom_txt,set_value=alltxt
-        continue
-        if fix(fileYear) lt 1900 or fix(fileYear) gt 2100 then begin
-          txt='STEP 03: WARNING! YEAR LT 1900 or YEAR GT 2100. MODEL section in STARTUPfile'
-          alltxt=[txt,alltxt]
-;          widget_control,labcom_txt,set_value=alltxt
-          alltxt=['WARNING',alltxt]
-;          widget_control,labcom_txt,set_value=alltxt
-        endif else begin
-;          printf,11,'STEP 03 OK: 1900 < YEAR < 2100'
-          txt='STEP 03 OK: 1900 < YEAR < 2100'
-          alltxt=[txt,alltxt]
-;          widget_control,labcom_txt,set_value=alltxt
-          continue
-        endelse
+        ;          widget_control,labcom_txt,set_value=alltxt
+        alltxt=['STOP',alltxt]
+        ;          widget_control,labcom_txt,set_value=alltxt
+        ;          close,11
+        ;          close,12
+        ;          ierror=1
+        return,0
       endif
-      if atxt eq '[PARAMETERS]' then begin
-        check_PARAMETERS=1
-        readf,unit,atxt
-        if strmid(atxt,0,1) ne ';' then begin
-        txt='STEP 03: STOP! Line after [PARAMETERS] in STARTUPfile does not start with ;'
-        alltxt=[txt,alltxt]
-;        widget_control,labcom_txt,set_value=alltxt
-        alltxt=['STOP',alltxt]
-;        widget_control,labcom_txt,set_value=alltxt
-;          close,11
-;          close,12
-;          ierror=1
-          return,0
-      endif else begin
-;        printf,11,'STEP 03 OK: PARAMETERS section exists in STARTUPfile'
-        txt='STEP 03 OK: PARAMETERS section exists in STARTUPfile'
-        alltxt=[txt,alltxt]
-;        widget_control,labcom_txt,set_value=alltxt
-      endelse
-    endif
-    if atxt eq '[MONITORING]' then begin
-      check_MONITORING=1
       atxt=discardComments(unit)
-      if strmid(atxt,0,4) ne 'Stat' then begin
-        txt='STEP 03: STOP! Line after [MONITORING] in STARTUPfile does not start with Stat'
+      frequency=strlowcase(atxt)
+      if strupcase(frequency) ne 'HOUR' and strupcase(frequency) ne 'YEAR' then begin
+        txt='STEP 03: STOP! MODEL second line is NE a hour and NE to year : See MODEL section in STARTUPfile'
         alltxt=[txt,alltxt]
-;        widget_control,labcom_txt,set_value=alltxt
+        ;          widget_control,labcom_txt,set_value=alltxt
         alltxt=['STOP',alltxt]
-;        widget_control,labcom_txt,set_value=alltxt
-;          close,11
-;          close,12
-;          ierror=1
-          return,0
-      endif else begin
-;        printf,11,'STEP 03 OK: MONITORING section exists in STARTUPfile'
-        txt='STEP 03 OK: MONITORING section exists in STARTUPfile'
+        ;          widget_control,labcom_txt,set_value=alltxt
+        ;          close,11
+        ;          close,12
+        ;          ierror=1
+        return,0
+      endif
+      atxt=discardComments(unit)
+      scale=strlowcase(atxt)
+      if (scale ne 'local' and scale ne 'urban' and scale ne 'regional') then begin
+        txt='STEP 03: STOP! MODEL third line is NE local/urban/regional: See MODEL section in STARTUPfile'
         alltxt=[txt,alltxt]
-;        widget_control,labcom_txt,set_value=alltxt
+        ;          widget_control,labcom_txt,set_value=alltxt
+        alltxt=['STOP',alltxt]
+        ;          widget_control,labcom_txt,set_value=alltxt
+        ;          close,11
+        ;          close,12
+        ;          ierror=1
+        return,0
+      endif
+      txt='STEP 03 OK: MODEL / '+fileYear+' '+frequency+' '+scale+' section exists in STARTUPfile'
+      ;        printf,11,txt
+      alltxt=[txt,alltxt]
+      ;        widget_control,labcom_txt,set_value=alltxt
+      continue
+      if fix(fileYear) lt 1900 or fix(fileYear) gt 2100 then begin
+        txt='STEP 03: WARNING! YEAR LT 1900 or YEAR GT 2100. MODEL section in STARTUPfile'
+        alltxt=[txt,alltxt]
+        ;          widget_control,labcom_txt,set_value=alltxt
+        alltxt=['WARNING',alltxt]
+      ;          widget_control,labcom_txt,set_value=alltxt
+      endif else begin
+        ;          printf,11,'STEP 03 OK: 1900 < YEAR < 2100'
+        txt='STEP 03 OK: 1900 < YEAR < 2100'
+        alltxt=[txt,alltxt]
+        ;          widget_control,labcom_txt,set_value=alltxt
         continue
       endelse
     endif
-  endwhile
-  if check_MODEL eq 0 then begin
-    txt='STEP 03: STOP! No [MODEL] section in STARTUPfile file or check spelling'
-    alltxt=[txt,alltxt]
-;    widget_control,labcom_txt,set_value=alltxt
-    alltxt=['STOP',alltxt]
-;    widget_control,labcom_txt,set_value=alltxt
-;          close,11
-;          close,12
-;          ierror=1
-          return,0
+    if atxt eq '[PARAMETERS]' then begin
+      check_PARAMETERS=1
+      readf,unit,atxt
+      if strmid(atxt,0,1) ne ';' then begin
+      txt='STEP 03: STOP! Line after [PARAMETERS] in STARTUPfile does not start with ;'
+      alltxt=[txt,alltxt]
+      ;        widget_control,labcom_txt,set_value=alltxt
+      alltxt=['STOP',alltxt]
+      ;        widget_control,labcom_txt,set_value=alltxt
+      ;          close,11
+      ;          close,12
+      ;          ierror=1
+      return,0
+    endif else begin
+      ;        printf,11,'STEP 03 OK: PARAMETERS section exists in STARTUPfile'
+      txt='STEP 03 OK: PARAMETERS section exists in STARTUPfile'
+      alltxt=[txt,alltxt]
+    ;        widget_control,labcom_txt,set_value=alltxt
+    endelse
   endif
-  if check_PARAMETERS eq 0 then begin
-    txt='STEP 03: STOP! No [PARAMETERS] section in STARTUPfile file or check spelling'
-    alltxt=[txt,alltxt]
-;    widget_control,labcom_txt,set_value=alltxt
-    alltxt=['STOP',alltxt]
-;    widget_control,labcom_txt,set_value=alltxt
-;          close,11
-;          close,12
-;          ierror=1
-          return,0
+  if atxt eq '[MONITORING]' then begin
+    check_MONITORING=1
+    atxt=discardComments(unit)
+    if strmid(atxt,0,4) ne 'Stat' then begin
+      txt='STEP 03: STOP! Line after [MONITORING] in STARTUPfile does not start with Stat'
+      alltxt=[txt,alltxt]
+      ;        widget_control,labcom_txt,set_value=alltxt
+      alltxt=['STOP',alltxt]
+      ;        widget_control,labcom_txt,set_value=alltxt
+      ;          close,11
+      ;          close,12
+      ;          ierror=1
+      return,0
+    endif else begin
+      ;        printf,11,'STEP 03 OK: MONITORING section exists in STARTUPfile'
+      txt='STEP 03 OK: MONITORING section exists in STARTUPfile'
+      alltxt=[txt,alltxt]
+      ;        widget_control,labcom_txt,set_value=alltxt
+      continue
+    endelse
   endif
-  if check_MONITORING eq 0 then begin
-    txt='STEP 03: STOP! No [MONITORING] section in STARTUPfile file or check spelling'
-    alltxt=[txt,alltxt]
-;    widget_control,labcom_txt,set_value=alltxt
-    alltxt=['STOP',alltxt]
-;    widget_control,labcom_txt,set_value=alltxt
-;          close,11
-;          close,12
-;          ierror=1
-          return,0
-  endif
+endwhile
+if check_MODEL eq 0 then begin
+  txt='STEP 03: STOP! No [MODEL] section in STARTUPfile file or check spelling'
+  alltxt=[txt,alltxt]
+  ;    widget_control,labcom_txt,set_value=alltxt
+  alltxt=['STOP',alltxt]
+  ;    widget_control,labcom_txt,set_value=alltxt
+  ;          close,11
+  ;          close,12
+  ;          ierror=1
+  return,0
+endif
+if check_PARAMETERS eq 0 then begin
+  txt='STEP 03: STOP! No [PARAMETERS] section in STARTUPfile file or check spelling'
+  alltxt=[txt,alltxt]
+  ;    widget_control,labcom_txt,set_value=alltxt
+  alltxt=['STOP',alltxt]
+  ;    widget_control,labcom_txt,set_value=alltxt
+  ;          close,11
+  ;          close,12
+  ;          ierror=1
+  return,0
+endif
+if check_MONITORING eq 0 then begin
+  txt='STEP 03: STOP! No [MONITORING] section in STARTUPfile file or check spelling'
+  alltxt=[txt,alltxt]
+  ;    widget_control,labcom_txt,set_value=alltxt
+  alltxt=['STOP',alltxt]
+  ;    widget_control,labcom_txt,set_value=alltxt
+  ;          close,11
+  ;          close,12
+  ;          ierror=1
+  return,0
+endif
 ;  printf,11,' '
 ;  widget_control,labok(3),set_value=' *OK* '
-  
+
 ;  while ~eof(unit) do begin
 ;    atxt=discardComments(unit)
 ;    if atxt eq '[MODEL]' then begin
@@ -1538,7 +1538,7 @@ FUNCTION FMFileSystemManager::readOldScaleAsModelSection, unit, lines=lines
       sInfo=strsplit(bufferString, ';', /EXTRACT)
       modelInfo.scale=sInfo[0]
       modelInfo.year=fix(sInfo[1])
-      if modelInfo.year le 1800 then modelInfo.year=2009 
+      if modelInfo.year le 1800 then modelInfo.year=2009
       break
     endelse
   endwhile
@@ -1913,7 +1913,25 @@ END
 FUNCTION FMFileSystemManager::getObservedDataDir, WITHSEPARATOR=WITHSEPARATOR
 
   dir=self->getDataDir(/WITH)
-  dir=dir+"monitoring"
+  ;KeesC 18JAN2014  
+  fileHlp='monitoring'
+  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  if err eq 0 then begin
+    txt=' '
+    readf,unit,txt
+    readf,unit,txt
+    readf,unit,txt
+    fileHlp=strcompress(txt,/remove_all)
+    close,unit
+    free_lun, unit
+  endif
+  dir=dir+fileHlp
+  res=file_test(dir,/directory)
+  if res eq 0 then begin
+    rsult=dialog_message(['Input OBS directory',' ',dir,' ','does not exist'],/error)
+    stop
+  endif
+  ;  dir=dir+"monitoring"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
   
@@ -1922,7 +1940,24 @@ END
 FUNCTION FMFileSystemManager::getRunDataDir, WITHSEPARATOR=WITHSEPARATOR
 
   dir=self->getDataDir(/WITH)
-  dir=dir+"modeling"
+;KeesC 19JAN2014  
+  fileHlp='modeling'
+  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  if err eq 0 then begin
+    txt=' '
+    readf,unit,txt
+    readf,unit,txt
+    fileHlp=strcompress(txt,/remove_all)
+    close,unit
+    free_lun, unit
+  endif
+  dir=dir+fileHlp
+  res=file_test(dir,/directory)
+  if res eq 0 then begin
+    rsult=dialog_message(['Input MOD directory',' ',dir,' ','does not exist'],/error)
+    stop
+  endif
+;  dir=dir+"modeling"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
   
@@ -2039,7 +2074,26 @@ END
 FUNCTION FMFileSystemManager::getStartUpFileName
 
   fileName=self->getResourceDir(/WITH)
-  fileName=fileName+"startup.ini"
+  ;KeesC 18JAN2014
+  fileHlp='startup.ini'
+  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  if err eq 0 then begin
+    txt=' '
+    readf,unit,txt
+    fileHlp=strcompress(txt,/remove_all)
+    close, unit
+    free_lun, unit
+  endif
+  fileName=fileName+fileHlp
+  openr,unit,fileName,/get_lun,error=err
+  if err eq 0 then begin
+    close, unit
+    free_lun, unit
+  endif else begin
+    rsult=dialog_message(['Input file',' ',fileName,' ','does not exist'],/error)
+    stop
+  endelse
+;  fileName=fileName+"startup.ini"
   return, fileName
   
 END

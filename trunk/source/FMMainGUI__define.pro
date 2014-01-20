@@ -808,9 +808,42 @@ PRO FMMainGUI::buildGraphInfoSection, base, dims
   graphDraw = WIDGET_DRAW(graphDrawBase,RETAIN=2,SCR_XSIZE=self->xInfoGraphSize(),SCR_YSIZE=self->yInfoGraphSize()/2, $
     UNAME='GRAPHDRAW')
     
+;KeesC 18JAN2014    
+  fileStr='startup.ini'
+  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  if err eq 0 then begin
+    txt=' '
+    readf,unit,txt
+    fileStr=strcompress(txt,/remove_all)
+    close, unit
+    free_lun, unit
+  endif
+  fileMod='monitoring'
+  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  if err eq 0 then begin
+    txt=' '
+    readf,unit,txt
+    readf,unit,txt
+    fileMod=strcompress(txt,/remove_all)
+    close,unit
+    free_lun, unit
+  endif 
+  fileMon='monitoring'
+  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  if err eq 0 then begin
+    txt=' '
+    readf,unit,txt
+    readf,unit,txt
+    readf,unit,txt
+    fileMon=strcompress(txt,/remove_all)
+    close,unit
+    free_lun, unit
+  endif 
+
+  infoSMM='['+fileStr+'   \\'+fileMod+'   \\'+fileMon+']'
   titleLabel = Widget_Label(graphDrawBase, UNAME='STATUSBARGRAPH', $
     XOFFSET=0 ,YOFFSET=0 ,SCR_XSIZE=self->xInfoGraphSize() ,SCR_YSIZE=self->getTitleYDim() ,/ALIGN_LEFT, $
-    VALUE='---Information about plot graph data---', /SUNKEN_FRAME, font=self.labelFont)
+    VALUE='---Info input data =>  '+infoSMM, /SUNKEN_FRAME, font=self.labelFont)
     
 END
 
@@ -848,7 +881,7 @@ PRO FMMainGUI::buildMainDrawSection, base, dims
     
   titleLabel = Widget_Label(mainDrawBase, UNAME='STATUSBARMAP', $
     XOFFSET=0 ,YOFFSET=0 ,SCR_XSIZE=self->xGraphSize() ,SCR_YSIZE=self->getTitleYDim() ,/ALIGN_LEFT, $
-    VALUE='---Information about plot data---', /SUNKEN_FRAME, font=self.labelFont)
+    VALUE='---Info about plot data---', /SUNKEN_FRAME, font=self.labelFont)
     
 END
 
