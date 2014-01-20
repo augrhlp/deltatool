@@ -818,7 +818,7 @@ PRO FMMainGUI::buildGraphInfoSection, base, dims
     close, unit
     free_lun, unit
   endif
-  fileMod='monitoring'
+  fileMod='modeling'
   openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
   if err eq 0 then begin
     txt=' '
