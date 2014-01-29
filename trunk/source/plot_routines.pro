@@ -3784,7 +3784,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   ;OCStat=request->getElaborationOCStat()
   ; MM summer 2012 End
   if strupcase(frequency) eq 'YEAR' then begin  ;annual averages
-    if parcodes[0] eq 'PM10' then dailyStatOp='PMEAN'
+    if parcodes[0] eq 'PM10' or parcodes[0] eq 'PM25' then dailyStatOp='PMEAN'
     if parcodes[0] eq 'NO2'  then dailyStatOp='PP'
     if parcodes[0] eq 'O3'   then dailyStatOp='N/A'
   endif
