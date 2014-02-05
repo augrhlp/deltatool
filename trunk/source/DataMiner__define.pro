@@ -379,8 +379,14 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
     checkName=ncdf_varid(Id,cdfBlockName)
     ;Old: variable = StationName_Parameter
     if checkName ne -1 then begin
-      ncdf_varget, Id, cdfBlockName, data
+; KeesC 05FEB 2014    
+      data=fltarr(8784) & data(*)=-999
+      ncdf_varget, Id, cdfBlockName, dataShort
       ncdf_close, Id
+      dataShort=reform(dataShort)
+      dimShort=n_elements(dataShort)
+      data(0:dimShort-1)=dataShort
+      if 4*(fix(year)/4) ne fix(year) then data=reform(data(0:8759))
       return, data
     endif else begin
       ;New: Variable = StationName
