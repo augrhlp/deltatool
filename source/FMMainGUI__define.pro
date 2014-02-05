@@ -747,6 +747,23 @@ FUNCTION FMMainGUI::xInfoGraphSize
   
 END
 
+; KeesC 04FEB2014
+FUNCTION FMMainGUI::getResourceDir, WITHSEPARATOR=WITHSEPARATOR
+
+  return, self.mgr->getResourceDir(WITHSEPARATOR=WITHSEPARATOR)
+
+END
+
+FUNCTION FMMainGUI::getHomeDir, WITHSEPARATOR=WITHSEPARATOR
+  cd,current=dir
+  ;dir=strcompress(direct,/remove_all)
+  ;dir="C:\work\informatica\sviluppo\idl_projects\POMI"
+  ;dir="D:\FairModeApp"
+  dir=self.applicationRoot
+  if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
+  return, dir
+END
+
 FUNCTION FMMainGUI::yInfoGraphSize
 
   return, self.dimensions[1]-self->yGraphSize()
@@ -800,7 +817,6 @@ END
 
 PRO FMMainGUI::buildGraphInfoSection, base, dims
 
-
   graphDrawBase = Widget_Base(base, UNAME='mainDrawBase', $
     XOFFSET=0 ,YOFFSET=0 ,SCR_XSIZE=self->xInfoGraphSize() ,SCR_YSIZE=self->yInfoGraphSize(), $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=2, /COLUMN, /ALIGN_CENTER)
@@ -808,9 +824,10 @@ PRO FMMainGUI::buildGraphInfoSection, base, dims
   graphDraw = WIDGET_DRAW(graphDrawBase,RETAIN=2,SCR_XSIZE=self->xInfoGraphSize(),SCR_YSIZE=self->yInfoGraphSize()/2, $
     UNAME='GRAPHDRAW')
     
-;KeesC 18JAN2014    
+;KeesC 30JAN2014    
   fileStr='startup.ini'
-  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  dirResource=self->getResourceDir(/WITH)
+  openr,unit,dirResource+'MyDeltaInput.dat',/get_lun,error=err
   if err eq 0 then begin
     txt=' '
     readf,unit,txt
@@ -819,7 +836,7 @@ PRO FMMainGUI::buildGraphInfoSection, base, dims
     free_lun, unit
   endif
   fileMod='modeling'
-  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  openr,unit,dirResource+'MyDeltaInput.dat',/get_lun,error=err
   if err eq 0 then begin
     txt=' '
     readf,unit,txt
@@ -829,7 +846,7 @@ PRO FMMainGUI::buildGraphInfoSection, base, dims
     free_lun, unit
   endif 
   fileMon='monitoring'
-  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  openr,unit,dirResource+'MyDeltaInput.dat',/get_lun,error=err
   if err eq 0 then begin
     txt=' '
     readf,unit,txt

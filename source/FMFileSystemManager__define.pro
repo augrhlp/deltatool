@@ -1816,9 +1816,10 @@ FUNCTION FMFileSystemManager::getHomeDir, WITHSEPARATOR=WITHSEPARATOR
   ;dir="D:\FairModeApp"
   dir=self.applicationRoot
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
+
   return, dir
-  
 END
+
 
 FUNCTION FMFileSystemManager::getDataDir, WITHSEPARATOR=WITHSEPARATOR
 
@@ -1911,11 +1912,11 @@ END
 ;END
 
 FUNCTION FMFileSystemManager::getObservedDataDir, WITHSEPARATOR=WITHSEPARATOR
-
+;KeesC 30JAN2014
   dir=self->getDataDir(/WITH)
-  ;KeesC 18JAN2014  
+  dirResource=self->getResourceDir(/WITH)  
   fileHlp='monitoring'
-  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  openr,unit,dirResource+'\MyDeltaInput.dat',/get_lun,error=err
   if err eq 0 then begin
     txt=' '
     readf,unit,txt
@@ -1939,10 +1940,11 @@ END
 
 FUNCTION FMFileSystemManager::getRunDataDir, WITHSEPARATOR=WITHSEPARATOR
 
+;KeesC 30JAN2014
   dir=self->getDataDir(/WITH)
-;KeesC 19JAN2014  
+  dirResource=self->getResourceDir(/WITH)  
   fileHlp='modeling'
-  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  openr,unit,dirResource+'\MyDeltaInput.dat',/get_lun,error=err
   if err eq 0 then begin
     txt=' '
     readf,unit,txt
@@ -2072,11 +2074,10 @@ FUNCTION FMFileSystemManager::getIesLogoFileName
 END
 
 FUNCTION FMFileSystemManager::getStartUpFileName
-
-  fileName=self->getResourceDir(/WITH)
-  ;KeesC 18JAN2014
+;KeesC 30JAN2014
+  dirResource=self->getResourceDir(/WITH)
   fileHlp='startup.ini'
-  openr,unit,'d:\deltatool\MyDeltaInput.dat',/get_lun,error=err
+  openr,unit,dirResource+'MyDeltaInput.dat',/get_lun,error=err
   if err eq 0 then begin
     txt=' '
     readf,unit,txt
@@ -2084,7 +2085,7 @@ FUNCTION FMFileSystemManager::getStartUpFileName
     close, unit
     free_lun, unit
   endif
-  fileName=fileName+fileHlp
+  fileName=dirResource+fileHlp
   openr,unit,fileName,/get_lun,error=err
   if err eq 0 then begin
     close, unit
