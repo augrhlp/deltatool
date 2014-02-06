@@ -3783,8 +3783,13 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   ; OCTimeAvgName=request->getElaborationOCTimeAvgName()
   ;OCStat=request->getElaborationOCStat()
   ; MM summer 2012 End
+  
+  YearPMSpec=['NH4-25','NO3-25','SO4-25','NH4-10','NO3-10','SO4-10',$
+              'EC-10','TOM-10','PM10','PM25']
+    
   if strupcase(frequency) eq 'YEAR' then begin  ;annual averages
-    if parcodes[0] eq 'PM10' or parcodes[0] eq 'PM25' then dailyStatOp='PMEAN'
+    cc=where(parcodes[0] eq YearPMSpec, countCC)
+    if countCC eq 1 then dailyStatOp='PMEAN'
     if parcodes[0] eq 'NO2' or parcodes[0] eq 'NOX'  then dailyStatOp='PP'
     if parcodes[0] eq 'O3'   then dailyStatOp='N/A'
   endif
