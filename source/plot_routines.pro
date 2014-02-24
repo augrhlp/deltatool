@@ -447,8 +447,10 @@ PRO FM_PlotBarsLegend, plotter, request, result
 END
 PRO FM_PlotDynamicEvaluation, plotter,request,result
   ;PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymbol
-
   !y.range=0
+;KeesC 07FEB2014
+  !p.font=0
+  device,set_font='Arial*18*bold'
   plotter->wsetMainDataDraw
   
   tpInfo=result->getGenericPlotInfo()
@@ -573,7 +575,9 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   
   rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
   plotInfo->setRecognizeInfo, rInfo
-  
+; KeesC 07FEB2014  
+  !p.font=-1
+  device,set_font='System'
 END
 PRO FM_PLOTDYNAMICEVALUATIONLEGEND, plotter, request, result
   targetInfo=result->getGenericPlotInfo()
@@ -974,6 +978,11 @@ PRO FM_PlotScatter, plotter, request, result
     xtitle='OBS '+musstr
     ytitle='MOD '+musstr
   endif
+  if elabCode eq 39 then begin
+    cumulstr='[CUMUL]'
+    xtitle='OBS '+'mg.m-2   '+cumulstr
+    ytitle='MOD/mg.m-2/'+cumulstr  
+  endif
   if elabCode eq 50 then begin
     xtitle=modelCodes(0)+'/'+mus[0]
     ytitle=modelCodes(1)+'/'+'EmisUnits'
@@ -1037,13 +1046,18 @@ PRO FM_PlotScatter, plotter, request, result
     oplot,xx,critPolyfill(*,0),color=0,thick=2
   endif
   plots,[minAxis,maxAxis],[minAxis,maxAxis],color=0,/data
+  if elabCode eq 39 then begin
+    plots,[minAxis,0.5*maxAxis],[minAxis,maxAxis],color=0,/data,linestyle=2
+    plots,[minAxis,maxAxis],[minAxis,0.5*maxAxis],color=0,/data,linestyle=2
+  endif
   
   recognizeRange=(maxAxis-minAxis)*0.01
   
   size_alldataXY=size(allDataXY)
   if size_alldataXY(0) eq 2 then begin    ; scatter mean
   
-    if elabcode eq 6 or elabCode eq 50 or elabcode eq 56 or elabcode eq 57 then begin
+    if elabcode eq 6 or elabCode eq 39 or elabCode eq 50 or elabcode eq 56 or $
+    elabcode eq 57 then begin
       if elabCode eq 50 then begin
         allDataXY=allDataXY[nmulti/2:nmulti-1,*]
         nmulti=nmulti/2
@@ -1146,7 +1160,7 @@ PRO FM_PlotScatter, plotter, request, result
     endfor
   endelse
   ;  endif
-  if elabcode eq 6 or elabCode eq 50 or elabCode eq 56 or elabCode eq 57 then begin
+  if elabcode eq 6 or elabCode eq 39 or elabCode eq 50 or elabCode eq 56 or elabCode eq 57 then begin
     rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
     plotInfo->setRecognizeInfo, rInfo
   endif
@@ -1192,7 +1206,6 @@ PRO FM_PlotGeoMap, plotter, request, result
   if strupcase(frequency) eq 'YEAR' then plotValues=Bvalues
   
   rangeValLegend=[0,1]
-  ;  psym_pos=13
   
   DEVICE,DECOMPOSE=0
   LOADCT,39
@@ -1217,7 +1230,8 @@ PRO FM_PlotGeoMap, plotter, request, result
   lonmin=lonmin-dlon*0.05
   lonmax=lonmax+dlon*0.05
   
-  map_set,10.,45.,0.,limit=[latmin,lonmin,latmax,lonmax],/continents,color=0,E_horizon={fill:255,color:255},/noerase,/noborder,title='GEO MAP '+elabName
+  map_set,10.,45.,0.,limit=[latmin,lonmin,latmax,lonmax],/continents,$
+    color=0,E_horizon={fill:255,color:255},/noerase,/noborder,title='GEO MAP '+elabName
   
   recognizeRange=(lonmax-lonmin)*0.01
   sizeSymbol=1
@@ -1243,9 +1257,11 @@ PRO FM_PlotGeoMap, plotter, request, result
           endif
           ; circle
           if abs(Bvalues(iobs)) ge abs(Cvalues(iobs)) and Bvalues(iobs) lt 0. then begin
-            mypsym,13,1.8
+;KeesC 15FEB2014 13 changed into 15
+            mypsym,15,1.8
             plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
-            mypsym,13,1.6
+;KeesC 15FEB2014 13 changed into 15
+            mypsym,15,1.6
             plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
           endif
           ; triangle
@@ -3564,6 +3580,8 @@ PRO LEGENDINFO,request,result,plotter
   
   timeAverage='Preserved'
   hourStat=request->getGroupByTimeInfo() ;HourType
+;KeesC 12FEB2014  
+  if hourStat(0).value eq '15' then timeAverage='15h'
   if hourStat(0).value eq '08' then timeAverage='8h'
   if hourStat(0).value eq '01' then timeAverage='1h'
   if hourStat(0).value eq 'Year' then timeAverage='All period'
@@ -3771,6 +3789,8 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   if flag_average eq 'preserve' then flag_average='P'
   if flag_average eq '08' then flag_average='8H'
   if flag_average eq '03' then flag_average='3H'
+;KeesC 12FEB2014  
+  if flag_average eq '15' then flag_average='15H'
   
   if statType eq 0 then flagDailyStat='P'
   if statType eq 1 then flagDailyStat='MEAN'
@@ -3880,6 +3900,9 @@ pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries,perce
   ; put user choices into Criteria langage (goalsandcriteria.dat file)
   if flag_average eq 'preserve' then flag_average='P'
   if flag_average eq '08' then flag_average='8H'
+;KeesC 12FEB2014  
+  if flag_average eq '03' then flag_average='3H'
+  if flag_average eq '15' then flag_average='15H'
   
   if statType eq 0 then flagDailyStat='P'
   if statType eq 1 then flagDailyStat='MEAN'

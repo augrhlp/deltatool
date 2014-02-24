@@ -581,17 +581,25 @@ pro mypsym,number,size_symb
       Y = [size_symb*0.2,size_symb*0.2,-size_symb*0.2,-size_symb*0.2,-size_symb*0.2]
       USERSYM, X, Y,thick=2
     end
-; KeesC 12NOV2013
+    
+; This is not an empty circle ; see 15   
     13:begin ; circle empty
-      A = FINDGEN(17) * (!PI*2/16.)
-      USERSYM, size_symb*COS(A), size_symb*SIN(A),thick=2
-    end
+    A = FINDGEN(17) * (!PI*2/16.)
+    USERSYM, size_symb*1.7*COS(A), 1.7*SIN(A),thick=2,/fill
+  end
       
     14: begin ; square line
       X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*.75
       Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*.75
       USERSYM, X, Y, color=0
     end
+   
+; KeesC 15FEB2014   was 13 before (new for geomap)
+    15:begin ; circle empty
+    A = FINDGEN(17) * (!PI*2/16.)
+    USERSYM, size_symb*COS(A), size_symb*SIN(A),thick=2
+  end
+ 
       
 endcase
 
@@ -816,7 +824,8 @@ pro time_operations, request, result, obsTemp, runTemp
   if flag_average eq 'preserve' then begin
   ;    no action
   endif
-  if flag_average eq '08' or flag_average eq '03' then begin
+; KeesC 12FEB2014  
+  if flag_average eq '08' or flag_average eq '03' or flag_average eq '15' then begin
     flag_average=fix(flag_average)
     ahlp=fltarr(yrhrs,flag_average)
     bhlp=fltarr(yrhrs,flag_average)
