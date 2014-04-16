@@ -814,7 +814,7 @@ PRO FM_PlotTimeSeries, plotter, request, result, allDataXY, allDataColor, allDat
   tek_color;, 0, 32
 ;KeesC 17JAN2013
   !p.font=0
-  device,set_font='Arial*18*bold'
+  ;device,set_font='Arial*18*bold'
   
   yrange=[min(alldataXY,/nan),max(alldataXY,/nan)]
   
@@ -851,7 +851,7 @@ PRO FM_PlotTimeSeriesLegend, plotter, request, result
   ;erase, whiteL
 ;KeesC 17JAN2013
   !p.font=0
-  device,set_font='Arial*12*bold'
+ ; device,set_font='Arial*12*bold'
   
   DEVICE,DECOMPOSE=0
   LOADCT,39
@@ -899,10 +899,13 @@ END
 
 PRO FM_PlotScatter, plotter, request, result
   !y.range=0
-;KeesC 17JAN2014
-  !p.font=0
-  device,set_font='Arial*18*bold'
   plotter->wsetMainDataDraw
+  resPoscript=plotter->currentDeviceIsPostscript()
+  ;KeesC 17JAN2014
+  if resPoscript eq 0 then begin
+    !p.font=0
+    device,set_font='Arial*18*bold'
+  endif
   plotInfo=result->getPlotInfo()
   DEVICE,decomposed=0
   LOADCT,38
@@ -1339,7 +1342,7 @@ PRO FM_PlotGeoMapLegend, plotter, request, result
   LOADCT,39
 ;KeesC 17JAN2013
   !p.font=0
-  device,set_font='Arial*12*bold'
+  ;device,set_font='Arial*12*bold'
   modelInfo=request->getModelInfo()
   frequency=modelInfo.frequency  ; hour year
   if strupcase(frequency) eq 'HOUR' then begin
@@ -2206,9 +2209,15 @@ END
 PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSymbol
   !y.range=0
 ;KeesC 17JAN2014
-  !p.font=0
-  device,set_font='Arial*18*bold'
+  
   plotter->wsetMainDataDraw
+  resPoscript=plotter->currentDeviceIsPostscript()
+  ;KeesC 17JAN2014
+  if resPoscript eq 0 then begin
+    !p.font=0
+    device,set_font='Arial*18*bold'
+  endif
+  
   DEVICE,DECOMPOSE=0
   LOADCT,38
   mytek_color;, 0, 32
@@ -2564,15 +2573,21 @@ END
 PRO FM_PlotTable2, plotter, request, result
   !y.range=0
   plotter->wsetMainDataDraw
+  resPoscript=plotter->currentDeviceIsPostscript()
+  ;KeesC 17JAN2014
+  if resPoscript eq 0 then begin
+    !p.font=0
+    device,set_font='Arial*18*bold'
+  endif
   modelInfo=request->getModelInfo()
   frequency=modelInfo.frequency
   DEVICE,DECOMPOSE=0
   LOADCT,39
   mytek_color;, 0, 32
   !p.background=255
-;KeesC 17JAN2014
-  !p.font=0
-  device,set_font='Arial*18*bold'
+;;KeesC 17JAN2014
+;  !p.font=0
+;  device,set_font='Arial*18*bold'
   tpInfo=result->getGenericPlotInfo()
   plotInfo=result->getPlotInfo()
   allDataXY=tpInfo->getXYS()
@@ -3468,13 +3483,15 @@ END
 
 
 PRO LEGENDINFO,request,result,plotter
-;KeesC 09DEC2013
-  !p.font=0
-  device,set_font='Arial*12*bold'
   
   elabCode=request->getelaborationCode()
   psFact=plotter->getPSCharSizeFactor()
   resPoscript=plotter->currentDeviceIsPostscript()
+  ;KeesC 17JAN2014
+  if resPoscript eq 0 then begin
+    !p.font=0
+    device,set_font='Arial*12*bold'
+  endif
   
   coord1=[0.75,0]
   coord1=plotter->legendNormalize(coord1)
@@ -3951,10 +3968,14 @@ pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries,perce
 ;**********************
 end
 pro legendGenericBuild,request,result,plotter
-;KeesC 09DEC2013
-  !p.font=0
-  device,set_font='Arial*12*bold'
+
   plotter->wsetInfoDataDraw
+  resPoscript=plotter->currentDeviceIsPostscript()
+  ;KeesC 17JAN2014
+  if resPoscript eq 0 then begin
+    !p.font=0
+    device,set_font='Arial*12*bold'
+  endif
   psFact=plotter->getPSCharSizeFactor()
   resPoscript=plotter->currentDeviceIsPostscript()
   white=obj_new('Color', 200, 200, 200)
