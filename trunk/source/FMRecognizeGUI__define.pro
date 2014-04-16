@@ -98,7 +98,7 @@ END
 
 FUNCTION FMRecognizeGUI::getTitle
 
-  return, 'Recognize'
+  return, 'Info on data points (click!)'
   
 END
 ;*************************************************************

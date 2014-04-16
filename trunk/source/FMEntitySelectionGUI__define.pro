@@ -1017,7 +1017,7 @@ END
 
 PRO FMEntitySelectionGUI::buildModelSection, base
 
-  sectionTitle=widget_label(base, value='Model', SCR_YSIZE=self->getLabelYSize(), /ALIGN_LEFT, font=self.titleFont)
+  sectionTitle=widget_label(base, value='Model & Scenario selection', SCR_YSIZE=self->getLabelYSize(), /ALIGN_LEFT, font=self.titleFont)
   
   doubleListBase=widget_base(base, xpad=0, ypad=0, space=0, /ROW)
   runsListBase=widget_base(base, xpad=0, ypad=0, space=0, /COLUMN)
@@ -1071,7 +1071,7 @@ PRO FMEntitySelectionGUI::buildParameterSection, base
     SCR_XSIZE=self->getParameterSectionXSize(), SCR_YSIZE=self->getObservationListBoxYSize(), $
     event_pro=self.eventPrefix+'parameterTypeListSelection', /MULTIPLE)
     
-  parameterTypeTitle=widget_label(parameterBase, value='Parameter', $
+  parameterTypeTitle=widget_label(parameterBase, value='Parameter selection', $
     scr_ysize=self->getLabelYSize(), /ALIGN_LEFT, font=self.titleFont)
     
   self.parameterList=widget_list(parameterBase, value=[''], $
@@ -1086,7 +1086,7 @@ END
 ;end
 PRO FMEntitySelectionGUI::buildObservationSection, base
 
-  sectionTitle=widget_label(base, value='Observation', $
+  sectionTitle=widget_label(base, value='Stations: Filtering and selection', $
     scr_ysize=self->getLabelYSize(), /ALIGN_LEFT, font=self.titleFont)
     
   categorySelectionsBase=widget_base(base, xpad=0, ypad=0, space=0, /ROW)
@@ -1099,7 +1099,7 @@ PRO FMEntitySelectionGUI::buildObservationSection, base
   
   fillFromQueryBase=widget_base(queryAndDescrBase, xpad=0, ypad=0, space=0, /COLUMN)
   
-  queryResultTitle=widget_label(fillFromQueryBase, value='Available', $
+  queryResultTitle=widget_label(fillFromQueryBase, value='Available stations', $
     SCR_YSIZE=self->getLabelYSize(), /ALIGN_LEFT, font=self.titleFont)
   self.queryResultList=widget_list(fillFromQueryBase, value=[''], $
     SCR_XSIZE=self->getObservationListBoxXSize(), SCR_YSIZE=self->getObservationListBoxYSize(), $
@@ -1144,7 +1144,7 @@ PRO FMEntitySelectionGUI::buildObservationSection, base
     
   selectionsBase=widget_base(observationsSelectionsListBase, xpad=0, ypad=0, space=0, /COLUMN)
   
-  selectedTitle=widget_label(selectionsBase, value='Selected', $
+  selectedTitle=widget_label(selectionsBase, value='Selected stations', $
     SCR_YSIZE=self->getLabelYSize(), /ALIGN_LEFT, font=self.titleFont)
   self.selectedObservedList=widget_list(selectionsBase, value=[''], $
     SCR_XSIZE=self->getObservationListBoxXSize(), SCR_YSIZE=self->getObservationListBoxYSize(), $
