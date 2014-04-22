@@ -1119,7 +1119,9 @@ PRO FM_PlotScatter, plotter, request, result
           ;          cctest=where(test eq 1,nctest)
           if strupcase(frequency) eq 'YEAR' then begin
             polyfill,[0.15,0.54,0.54,0.15],[0.85,0.85,0.92,0.92],color=14,/normal
-            cctest=where(abs(allDataXY[cc,0] - allDataXY[cc,1])/(2.*criteria[0]) le 1.,nctest)
+  ;add Phil 22/04/2014
+            crit=UrLV/100.*sqrt( (1.-alpha)*(abs(allDataXY[cc,0])^2)/Neff +alpha*LV^2/Nnp)
+            cctest=where(abs(allDataXY[cc,0] - allDataXY[cc,1])/(2.*crit) le 1.,nctest)
             percentageCrit=fix(100.*float(nctest)/float(countValidStations))
             if percentageCrit ge 90 then colorPerc=160  ;7   ;green
             if percentageCrit lt 90 then colorPerc=250  ;2   ;red
