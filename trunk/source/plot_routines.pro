@@ -1271,14 +1271,14 @@ PRO FM_PlotGeoMap, plotter, request, result
           endif
           ; triangle
           mypsym,2,2
-          if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) ge 0. then begin
+          if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) lt 0. then begin
             mypsym,2,2
             plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
             mypsym,2,1.8
             plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
           endif
           ; square
-          if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) lt 0. then begin
+          if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) ge 0. then begin
             mypsym,5,2.5
             plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
           endif
@@ -1354,7 +1354,7 @@ PRO FM_PlotGeoMapLegend, plotter, request, result
     mypsym,9,2
     plots, 0.05,0.75, psym=8, color=250, symsize=1,/normal
     xyouts, 0.07,0.73, 'Bias >= 0',COLOR=0,/NORMal,charsize=1, charthick=1
-    mypsym,13,1.8
+    mypsym,15,1.8
     plots, 0.05,0.6, psym=8, color=250, symsize=1, /normal
     xyouts, 0.07,0.58, 'Bias < 0',COLOR=0,/NORMal,charsize=1, charthick=1
     ;KeesC 13NOV2013: 5,2 changed into 2,2
