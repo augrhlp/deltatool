@@ -79,12 +79,15 @@ function stddevOM, obsValues
 
 end
 ;*********************
-function resilience, obsValues
+function resilience, obsValues, flagTimeAverage
 
-  valNum=n_elements(obsValues)
+  if flagTimeAverage ge 1 then flagMulti=24
+  if flagTimeAverage eq 0 then flagMulti=1
+  
+  valNum=n_elements(obsValues)/flagMulti
   tothlp=0.
   for i=1,valNum-1 do begin
-   tothlp=tothlp+(obsValues(i)-obsValues(i-1))^2
+   tothlp=tothlp+(obsValues(i*flagmulti)-obsValues((i-1)*flagmulti))^2
   endfor
   statisticValue=sqrt(tothlp/(valNum-1))
   return, statisticValue

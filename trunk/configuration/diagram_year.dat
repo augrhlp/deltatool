@@ -3,7 +3,7 @@
 2;Scatter;FM_PlotScatter;2;Descr of:Scatter plot
 #1;Time Series;FM_PlotTimeSeries;1;Descr of:TimeSeries
 #4;Target (OU);FM_PlotTarget;2;Descr of:Target plot
-10;Summary Report (OU);FM_PlotTable2;1;Descr of:StatAllStat
+10;Summary Report & Print (OU);FM_PlotTable2;1;Descr of:StatAllStat
 #5;MPC (OU);FM_PlotBugle;2;Descr of:Composite
 #7;Category Diagram (OU);FM_PlotCategory;1;Descr of:2D Maps
 #3;Taylor;FM_PlotTaylor;2;Descr of:Taylor plot
