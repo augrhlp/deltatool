@@ -2294,12 +2294,12 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     ;KeesC 29OCT2013: 8 changed into 135
     POLYFILL, CIRCLE(0, 0, 1), /data, thick=2, color=135  ;green
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
-    plots, CIRCLE(0, 0, 0.5), /data, thick=2, color=0,linestyle=2
+    if elabcode ne 74 then plots, CIRCLE(0, 0, 0.5), /data, thick=2, color=0,linestyle=2
   endif else begin
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
   endelse
   xyouts,0.1,1.05,'T=1',color=0,/data,charthick=3,charsize=facSize*1.3
-  xyouts,0.1,0.5,'T=.5',color=0,/data,charthick=3,charsize=facSize*1.3
+  if elabCode ne 74 then xyouts,0.1,0.5,'T=.5',color=0,/data,charthick=3,charsize=facSize*1.3
   
   if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
   
@@ -2331,8 +2331,13 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   plots,[plotRange,xfac],[plotRange,xfac],/data,color=0,thick=2
   xyouts, -plotRange*0.1, plotRange*0.85, 'BIAS > 0',charthick=2, color=0,/data,charsize=facSize*1.5
   xyouts, -plotRange*0.1, -plotRange*0.95, 'BIAS < 0',charthick=2, color=0,/data,charsize=facSize*1.5
-  xyouts, -plotRange*0.95, -plotRange*0.07, 'R',charthick=2, color=0,/data,charsize=facSize*1.5
-  xyouts, plotRange*0.85, -plotRange*0.07, 'SD',charthick=2, color=0,/data,charsize=facSize*1.5
+  if elabcode eq 74 then begin  ;forecast
+    xyouts, -plotRange*0.95, -plotRange*0.07, 'FAR > 0.5',charthick=2, color=0,/data,charsize=facSize*1.5
+    xyouts, plotRange*0.75, -plotRange*0.07, 'FAR < 0.5',charthick=2, color=0,/data,charsize=facSize*1.5
+  endif else begin
+    xyouts, -plotRange*0.95, -plotRange*0.07, 'R',charthick=2, color=0,/data,charsize=facSize*1.5
+    xyouts, plotRange*0.85, -plotRange*0.07, 'SD',charthick=2, color=0,/data,charsize=facSize*1.5
+  endelse
   
 ;KeesC 17JAN2014  
   posLabels=fltarr(4,2)
@@ -2627,7 +2632,7 @@ PRO FM_PlotTable2, plotter, request, result
   
   if strupcase(frequency) eq 'HOUR' then begin  ;Hourly/daily values
   
-    statis=['Mean','Exc','NMB','R','NMSD','Rspace','NMSDspace','RDE']
+    ;statis=['Mean','Exc','NMB','R','NMSD','Rspace','NMSDspace','RDE']
     nvar=8
     xmax=1 &  xmin=0 & ymin=0 & ymax=1
     plot, indgen(1),color=255,/nodata,xrange=[0,1],xstyle=1,position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
@@ -2645,9 +2650,9 @@ PRO FM_PlotTable2, plotter, request, result
     plots,[xmin-0.05,xmax],[ymax-0.33,ymax-0.33],/data,thick=2,color=0
     plots,[xmin,xmin+0.15],[ymax-0.425,ymax-0.425],/data,thick=2,color=0
     plots,[xmin,xmin+0.15],[ymax-0.52,ymax-0.52],/data,thick=2,color=0
-    plots,[xmin-0.05,xmax],[ymax-0.615,ymax-0.615],/data,thick=2,color=0
-    plots,[xmin,xmin+0.15],[ymax-0.71,ymax-0.71],/data,thick=2,color=0
-    plots,[xmin-0.05,xmax],[ymax-0.805,ymax-0.805],/data,thick=2,color=0
+    plots,[xmin,xmin+0.15],[ymax-0.615,ymax-0.615],/data,thick=2,color=0
+    plots,[xmin-0.05,xmax],[ymax-0.71,ymax-0.71],/data,thick=2,color=0
+    plots,[xmin,xmin+0.15],[ymax-0.81,ymax-0.81],/data,thick=2,color=0
     
     plots,[xmin+0.10,xmin+0.10],[ymin+0.07,ymax-0.14],/data,thick=2,color=0
     plots,[xmin+0.15,xmin+0.15],[ymin+0.07,ymax-0.08],/data,thick=2,color=0
@@ -2657,8 +2662,8 @@ PRO FM_PlotTable2, plotter, request, result
       /data,charsize=1.0*facSize*psFact,color=0
     xyouts,xmin+0.01,ymax-0.12,'INDICATOR',/data,charsize=1.2*facSize*psFact,color=0,charthick=2.3
     
-    minVal=[0,    0, -2, 0, -2,  0, -2,  0]
-    maxVal=[100,100,  2, 2,  2,  2,  2,100]
+    minVal=[0,    0, -2, 0, -2,  -2, 0, -2]
+    maxVal=[100,100,  2, 2,  2,  2,  2,  2]
     ;KeesC 24NOV2013
     ;    fillint1=['20',  '20',  '-1.2', '0.4','-1.2','0.4','-1.2','20']
     ;    fillint2=['40',  '40',  '-0.4', '0.8','-0.4','0.8','-0.4','40']
@@ -2670,10 +2675,11 @@ PRO FM_PlotTable2, plotter, request, result
     fillint(2)=9 & fillstr(2,0:8)=['-1.5','-1','-.7','-.5','0','.5','.7','1.0','1.5']
     fillint(3)=4 & fillstr(3,0:3)=['.5','.7','1.0','1.5']
     fillint(4)=9 & fillstr(4,0:8)=['-1.5','-1','-.7','-.5','0','.5','.7','1.0','1.5']
-    fillint(5)=4 & fillstr(5,0:3)=['.5','.7','1.0','1.5']
-    fillint(6)=9 & fillstr(6,0:8)=['-1.5','-1','-.7','-.5','0','.5','.7','1.0','1.5']
-    fillint(7)=4 & fillstr(7,0:3)=['20','40','60','80']
-    units=  ['ug/m3','days',  '%',  ' ',' ',' ',' ','%']
+    fillint(5)=9 & fillstr(5,0:8)=['-1.5','-1','-.7','-.5','0','.5','.7','1.0','1.5']
+    fillint(6)=4 & fillstr(6,0:3)=['.5','.7','1.0','1.5']
+    fillint(7)=9 & fillstr(7,0:8)=['-1.5','-1','-.7','-.5','0','.5','.7','1.0','1.5']
+    
+    units=  ['ug/m3','days',  '%',  ' ',' ',' ',' ',' ']
     
     recognizeRange=0.01
     recognizeHighLight=bytarr(8*n_elements(allDataSymbol))
@@ -2685,7 +2691,7 @@ PRO FM_PlotTable2, plotter, request, result
     
     for ii=0,7 do begin
     
-      if ii ge 2 and ii ne 7 then begin
+      if ii ge 2 then begin
         res1=strsplit(legnames(ii),' ',/extract)
         xyouts,xmin+0.005,ymax-0.18-ii*0.095,res1(0),/data,charsize=1.2*facSize*psFact,color=3,charthick=2.3
         xyouts,xmin+0.035,ymax-0.22-ii*0.095,res1(1),/data,charsize=1.0*facSize*psFact,color=3,charthick=2.3
@@ -2703,38 +2709,38 @@ PRO FM_PlotTable2, plotter, request, result
       if ii eq 2 then xx=[.125,.25,0.325,0.375,0.5,.625,0.675,.75,.875]
       if ii eq 3 then xx=[.25,.35,.5,.75]
       if ii eq 4 then xx=[.125,.25,0.325,0.375,0.5,.625,0.675,.75,.875]
-      if ii eq 5 then xx=[.25,.35,.5,.75]
-      if ii eq 6 then xx=[.125,.25,0.325,0.375,0.5,.625,0.675,.75,.875]
-      if ii eq 7 then xx=[0.2,0.4,0.6,0.8]
-      criteria=0
-      if ii eq 2 or ii eq 3 or ii eq 4 or ii eq 5 or ii eq 6 then criteria=1.
-      if ii eq 7 then criteria=50.
+      if ii eq 5 then xx=[.125,.25,0.325,0.375,0.5,.625,0.675,.75,.875]
+      if ii eq 6 then xx=[.25,.35,.5,.75]
+      if ii eq 7 then xx=[.125,.25,0.325,0.375,0.5,.625,0.675,.75,.875]
       
-      fillValMin=[0,0,-criteria,0, -criteria,0, -criteria,    0]
-      fillValMax=[0,0, criteria,1,  criteria,1,  criteria,criteria]
+      criteria=0
+      if ii ge 2 then criteria=1.
+      
+      fillValMin=[0,0,-criteria,0, -criteria,-criteria, 0, -criteria]
+      fillValMax=[0,0, criteria,1,  criteria, criteria, 1,  criteria]
       
       xminfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMin(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
       xmaxfill=xmin+0.25+(xmax-0.10-xmin-0.25)*(fillValMax(ii)-minVal(ii))/(maxVal(ii)-minVal(ii))
       
       if criteria gt 0 then begin
         dx=xmaxfill-xminfill
-        if ii ne 3 and ii ne 5 and ii ne 7 then begin
+        if ii ne 3 and ii ne 5 and ii ne 6 then begin
           polyfill,[xminfill+0.15*dx,xminfill+0.15*dx,xmaxfill-0.15*dx,xmaxfill-0.15*dx],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=160,/data
           polyfill,[xminfill,xminfill,xminfill+0.15*dx,xminfill+0.15*dx],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=207,/data
           polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=207,/data
-          ;KeesC 23NOV2013
-          ;      for ix=0,fillint(ii)-1 do  xyouts,xmin+0.25+(xmax-0.10-xmin-0.25)*xx(ix),ymax-0.22-ii*0.095,$
-          ;        fillstr(ii,ix),/data,charsize=0.9*facSize*psFact,charthick=2.3,alignment=0.5,color=0
           for ix=0,fillint(ii)-1 do begin
             plots,[xmin+0.25+(xmax-0.10-xmin-0.25)*xx(ix),xmin+0.25+(xmax-0.10-xmin-0.25)*xx(ix)],$
               [ymax-0.20-ii*0.095,ymax-0.19-ii*0.095],color=0,/data,thick=2,linestyle=0
           endfor
-        ;          plots,[xmaxfill-0.25*dx,xmaxfill-0.25*dx],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095],$
-        ;            color=0,/data,thick=2,linestyle=2
-        ;          plots,[xminfill+0.25*dx,xminfill+0.25*dx],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095],$
-        ;            color=0,/data,thick=2,linestyle=2
         endif
-        if ii eq 3 or ii eq 5 then begin
+        if ii eq 5 then begin
+          polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=160,/data
+         for ix=0,fillint(ii)-1 do begin
+            plots,[xmin+0.25+(xmax-0.10-xmin-0.25)*xx(ix),xmin+0.25+(xmax-0.10-xmin-0.25)*xx(ix)],$
+              [ymax-0.20-ii*0.095,ymax-0.19-ii*0.095],color=0,/data,thick=2,linestyle=0
+          endfor
+        endif
+        if ii eq 3 or ii eq 6 then begin
           polyfill,[xminfill,xminfill,xmaxfill-0.30*dx,xmaxfill-0.30*dx],[ymax-0.20-ii*0.095,$
             ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=160,/data
           polyfill,[xmaxfill-0.30*dx,xmaxfill-0.30*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,$
@@ -2747,16 +2753,13 @@ PRO FM_PlotTable2, plotter, request, result
         ;          plots,[xmaxfill-0.5*dx,xmaxfill-0.5*dx],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095],$
         ;            color=0,/data,thick=2,linestyle=2
         endif
-        if ii eq 7 then begin
-          polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095,ymax-0.16-ii*0.095,ymax-0.20-ii*0.095],color=160,/data
-          plots,[xmaxfill,xmaxfill],[ymax-0.20-ii*0.095,ymax-0.19-ii*0.095],color=0,/data,thick=2,linestyle=0
-        endif
+
       endif
       plots,[xmin+0.25,xmax-0.10],[ymax-0.20-ii*0.095,ymax-0.20-ii*0.095],/data,thick=2,color=0
       plots,[xmin+0.25,xmax-0.10],[ymax-0.16-ii*0.095,ymax-0.16-ii*0.095],/data,thick=2,color=0
       plots,[xmax-0.10,xmax-0.05],[ymax-0.20-ii*0.095,ymax-0.20-ii*0.095],/data,thick=2,color=0,linestyle=2
       plots,[xmax-0.10,xmax-0.05],[ymax-0.16-ii*0.095,ymax-0.16-ii*0.095],/data,thick=2,color=0,linestyle=2
-      if ii le 1 or ii eq 3 or ii eq 5 or ii eq 7 then begin
+      if ii le 1 or ii eq 3 or ii eq 6 then begin
         plots,[xmin+0.25,xmin+0.25],[ymax-0.20-ii*0.095,ymax-0.16-ii*0.095],/data,thick=2,color=0
       endif else begin
         plots,[xmin+0.2,xmin+0.25],[ymax-0.20-ii*0.095,ymax-0.20-ii*0.095],/data,thick=2,color=0,linestyle=2
@@ -2791,23 +2794,15 @@ PRO FM_PlotTable2, plotter, request, result
         xyouts,xmax-0.07,ymax-0.23-ii*0.095,units(ii),/data,color=0,charsize=psFact
       endfor
       
-      if ii eq 2 or ii eq 3 or ii eq 5 or ii eq 4 or ii eq 6 then begin
-        cc1=where(abs(allDataXY(*,ii)) le criteria,countC1)   ; % crit
-        ;KeesC 1OCT2013: sqrt
-;        ccp5=where(abs(allDataXY(*,ii)) le sqrt(.5)*criteria,countCp5)  ; % .5*crit
-      endif
-      if ii eq 7 then cc=where(abs(allDataXY(*,ii)) le 50.,countC1)
-;      if ii eq 7 then ccp5=where(abs(allDataXY(*,ii)) le 50.,countCp5)
-      ;KeesC 23NOV2013
+      if ii ge 2 or ii eq 5 then cc1=where(abs(allDataXY(*,ii)) le criteria,countC1)   ; % crit
       color_indic=250
-      ;      color_indic=207
-      if (ii eq 2 or ii eq 3 or ii eq 4 or ii eq 7) and criteria gt 0 then begin
+      if (ii eq 2 or ii eq 3 or ii eq 4 or ii eq 5) and criteria gt 0 then begin
 ;        if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
         if countC1/float(allDataAxis(1)) ge 0.9 then color_indic=160
         mypsym,9,1
         if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*0.095,psym=8,color=color_indic,symsize=3,/data
       endif
-      if (ii eq 5 or ii eq 6) and criteria gt 0 and n_elements(allDataSymbol) gt 1 then begin
+      if (ii eq 7 or ii eq 6) and criteria gt 0 and n_elements(allDataSymbol) gt 1 then begin
 ;        if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
         if countC1/float(allDataAxis(1)) ge .9 then color_indic=160
         mypsym,9,1
@@ -2827,20 +2822,16 @@ PRO FM_PlotTable2, plotter, request, result
     xyouts,xmin-0.035,ymax-0.24,'B',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
     xyouts,xmin-0.035,ymax-0.275,'S',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
     
-    xyouts,xmin-0.037,ymax-0.405,'T',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.03,ymax-0.44,'I',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.475,'M',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.51,'E',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.037,ymax-0.495,'T',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.03,ymax-0.53,'I',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.565,'M',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.60,'E',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
     ;  ;
-    xyouts,xmin-0.035,ymax-0.655,'S',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.69,'P',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.725,'A',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.76,'C',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.795,'E',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    ;  ;
-    xyouts,xmin-0.035,ymax-0.845,'A',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.88,'Q',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.915,'D',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.765,'S',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.80,'P',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.835,'A',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.87,'C',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.905,'E',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
     
     
   ;******************YEARLY*********************************************
@@ -2848,7 +2839,7 @@ PRO FM_PlotTable2, plotter, request, result
   endif else begin  ;yearly values
   
     ;KeesC 24NOV2013:   MNB ? or NMB
-    statis=['Mean','MNB','Rspace','MFSspace','RDE']
+    ;statis=['Mean','MNB','Rspace','MFSspace']
     xmax=1 &  xmin=0 & ymin=0 & ymax=1
     plot, indgen(1),color=255,/nodata,xrange=[0,1],xstyle=1,position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
     
@@ -2861,10 +2852,10 @@ PRO FM_PlotTable2, plotter, request, result
     plots,[xmin,xmax],[ymax-0.08,ymax-0.08],/data,thick=2,color=0
     plots,[xmin-0.05,xmax],[ymax-0.14,ymax-0.14],/data,thick=2,color=0
     
-    plots,[xmin-0.05,xmax],[ymax-0.30,ymax-0.30],/data,thick=2,color=0
-    plots,[xmin-0.05,xmax],[ymax-0.46,ymax-0.46],/data,thick=2,color=0
-    plots,[xmin,xmin+0.15],[ymax-0.62,ymax-0.62],/data,thick=2,color=0
-    plots,[xmin-0.05,xmax],[ymax-0.78,ymax-0.78],/data,thick=2,color=0
+    plots,[xmin-0.05,xmax],[ymax-0.35,ymax-0.35],/data,thick=2,color=0
+    plots,[xmin-0.05,xmax],[ymax-0.56,ymax-0.56],/data,thick=2,color=0
+    plots,[xmin,xmin+0.15],[ymax-0.75,ymax-0.75],/data,thick=2,color=0
+   ; plots,[xmin-0.05,xmax],[ymax-0.78,ymax-0.78],/data,thick=2,color=0
     
     plots,[xmin+0.10,xmin+0.10],[ymin+0.07,ymax-0.14],/data,thick=2,color=0
     plots,[xmin+0.15,xmin+0.15],[ymin+0.07,ymax-0.08],/data,thick=2,color=0
@@ -2873,26 +2864,25 @@ PRO FM_PlotTable2, plotter, request, result
     xyouts,xmin+0.50,ymax-0.05,'    Nb of stations/groups: '+strtrim(allDataAxis(1),2)+' valid / '+strtrim(allDataAxis(0),2)+' selected',/data,charsize=1.0*facsize*psFact,color=0
     xyouts,xmin+0.01,ymax-0.12,'INDICATOR',/data,charsize=1.2*facsize*psFact,color=0,charthick=2.3
     
-    minVal=[0, -2, 0,-2,  0]
-    maxVal=[100,2, 2, 2,100]
+    minVal=[0, -2, 0,-2]
+    maxVal=[100,2, 2, 2]
     ;KeesC 24NOV2013
     ;    fillint1=['20','-1.2','0.4','-1.2','20']
     ;    fillint2=['40','-0.4','0.8','-0.4','40']
     ;    fillint3=['60',' 0.4','1.2',' 0.4','60']
     ;    fillint4=['80',' 1.2','1.6',' 1.2','80']
-    fillstr=strarr(5,10) & fillint=intarr(5)
+    fillstr=strarr(4,10) & fillint=intarr(4)
     fillint(0)=4 & fillstr(0,0:3)=['20','40','60','80']
     fillint(1)=7 & fillstr(1,0:6)=['-1.5','-1','-.5','0','.5','1.0','1.5']
     fillint(2)=4 & fillstr(2,0:3)=['.5','.7','1.0','1.5']
     fillint(3)=9 & fillstr(3,0:8)=['-1.5','-1.0','-.7','-.5','0','.5','.7','1.0','1.5']
-    fillint(4)=4 & fillstr(4,0:3)=['20','40','60','80']
-    units=['ug/m3','%',' ',' ','%']
+    units=['ug/m3',' ',' ',' ']
     
-    cyear=[0,2,5,6,7]
+    cyear=[0,2,6,7]
     legnames=reform(legnames(cyear))
     allDataXY=allDataXY(*,cyear)
     
-    deltaY=0.17
+    deltaY=0.20
     
     recognizeRange=0.01
     recognizeHighLight=bytarr(5*n_elements(allDataSymbol))
@@ -2902,37 +2892,30 @@ PRO FM_PlotTable2, plotter, request, result
     recognizePoint=fltarr(4,2)
     kg=0
     
-    for ii=0,4 do begin
+    for ii=0,3 do begin
     
       adummy=fltarr(10) & adummy(*)=1.
       CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
       
       ;      if ii eq 1 then criteria=criteriaOU*200
-      if ii eq 1 or ii eq 2 or ii eq 3 then criteria=1.
-      if ii eq 4 then criteria=50.
+      if ii ge 1 then criteria=1.
       
-      if ii ge 1 and ii ne 4 then begin
+      if ii ge 1 then begin
         res1=strsplit(legnames(ii),' ',/extract)
-        xyouts,xmin+0.005,ymax-0.18-ii*deltaY,res1(0),/data,charsize=1.2*facsize*psFact,color=3,charthick=2.3
-        xyouts,xmin+0.035,ymax-0.22-ii*deltaY,res1(1),/data,charsize=1.0*facsize*psFact,color=3,charthick=2.3
+        xyouts,xmin+0.005,ymax-0.23-ii*deltaY,res1(0),/data,charsize=1.2*facsize*psFact,color=3,charthick=2.3
+        xyouts,xmin+0.035,ymax-0.27-ii*deltaY,res1(1),/data,charsize=1.0*facsize*psFact,color=3,charthick=2.3
       endif else begin
-        xyouts,xmin+0.005,ymax-0.20-ii*deltaY,legnames(ii),/data,charsize=1.2*facsize*psFact,color=3,charthick=2.3
+        xyouts,xmin+0.005,ymax-0.25-ii*deltaY,legnames(ii),/data,charsize=1.2*facsize*psFact,color=3,charthick=2.3
       endelse
-      xyouts,xmin+0.25,ymax-0.235-ii*deltaY,strtrim(minVal(ii),2),/data,charsize=0.9*facsize*psFact,charthick=2.3,alignment=0.5,color=0
-      xyouts,xmax-0.10,ymax-0.235-ii*deltaY,strtrim(maxVal(ii),2),/data,charsize=0.9*facsize*psFact,charthick=2.3,alignment=0.5,color=0
+      xyouts,xmin+0.25,ymax-0.285-ii*deltaY,strtrim(minVal(ii),2),/data,charsize=0.9*facsize*psFact,charthick=2.3,alignment=0.5,color=0
+      xyouts,xmax-0.10,ymax-0.285-ii*deltaY,strtrim(maxVal(ii),2),/data,charsize=0.9*facsize*psFact,charthick=2.3,alignment=0.5,color=0
       ;KeesC 24NOV2013
       if ii eq 0 then xx=[0.2,0.4,0.6,0.8]
       if ii eq 1 then xx=[.125,.25,0.375,0.5,.625,.75,.875]
       if ii eq 2 then xx=[.25,.35,.5,.75]
       if ii eq 3 then xx=[.125,.25,0.325,0.375,0.5,.625,0.675,.75,.875]
-      if ii eq 4 then xx=[.25,.35,.5,.75]
-      for ix=0,fillint(ii)-1 do  xyouts,xmin+0.25+(xmax-0.10-xmin-0.25)*xx(ix),ymax-0.235-ii*deltaY,$
+      for ix=0,fillint(ii)-1 do  xyouts,xmin+0.25+(xmax-0.10-xmin-0.25)*xx(ix),ymax-0.285-ii*deltaY,$
         fillstr(ii,ix),/data,charsize=0.9*facSize*psFact,charthick=2.3,alignment=0.5,color=0
-      ;      xyouts,xmin+0.25+(xmax-0.10-xmin-0.25)*.2,ymax-0.22-ii*deltaY,fillint1(ii),/data,charsize=0.9*facsize*psFact,charthick=2.3,alignment=0.5,color=0
-      ;      xyouts,xmin+0.25+(xmax-0.10-xmin-0.25)*.4,ymax-0.22-ii*deltaY,fillint2(ii),/data,charsize=0.9*facsize*psFact,charthick=2.3,alignment=0.5,color=0
-      ;      xyouts,xmin+0.25+(xmax-0.10-xmin-0.25)*.6,ymax-0.22-ii*deltaY,fillint3(ii),/data,charsize=0.9*facsize*psFact,charthick=2.3,alignment=0.5,color=0
-      ;      xyouts,xmin+0.25+(xmax-0.10-xmin-0.25)*.8,ymax-0.22-ii*deltaY,fillint4(ii),/data,charsize=0.9*facsize*psFact,charthick=2.3,alignment=0.5,color=0
-        
       fillValMin=[0,-1,  0,   -1,    0]
       fillValMax=[0, 1,  1,    1,criteria]
       
@@ -2943,9 +2926,9 @@ PRO FM_PlotTable2, plotter, request, result
         ;      polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
         dx=xmaxfill-xminfill
         if ii eq 3 then begin
-          polyfill,[xminfill+0.15*dx,xminfill+0.15*dx,xmaxfill-0.15*dx,xmaxfill-0.15*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
-          polyfill,[xminfill,xminfill,xminfill+0.15*dx,xminfill+0.15*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=207,/data
-          polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=207,/data
+          polyfill,[xminfill+0.15*dx,xminfill+0.15*dx,xmaxfill-0.15*dx,xmaxfill-0.15*dx],[ymax-0.25-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.25-ii*deltaY],color=160,/data
+          polyfill,[xminfill,xminfill,xminfill+0.15*dx,xminfill+0.15*dx],[ymax-0.25-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.25-ii*deltaY],color=207,/data
+          polyfill,[xmaxfill-0.15*dx,xmaxfill-0.15*dx,xmaxfill,xmaxfill],[ymax-0.25-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.25-ii*deltaY],color=207,/data
           ;KeesC 23NOV2013
 ;          plots,[xmaxfill-0.25*dx,xmaxfill-0.25*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY],$
 ;            color=0,/data,thick=2,linestyle=2
@@ -2953,28 +2936,28 @@ PRO FM_PlotTable2, plotter, request, result
 ;            color=0,/data,thick=2,linestyle=2
         endif
         if ii eq 2 then begin
-          polyfill,[xminfill,xminfill,xmaxfill-0.30*dx,xmaxfill-0.30*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
-          polyfill,[xmaxfill-0.30*dx,xmaxfill-0.30*dx,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=207,/data
+          polyfill,[xminfill,xminfill,xmaxfill-0.30*dx,xmaxfill-0.30*dx],[ymax-0.25-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.25-ii*deltaY],color=160,/data
+          polyfill,[xmaxfill-0.30*dx,xmaxfill-0.30*dx,xmaxfill,xmaxfill],[ymax-0.25-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.25-ii*deltaY],color=207,/data
           ;KeesC 23NOV2013
 ;          plots,[xmaxfill-0.5*dx,xmaxfill-0.5*dx],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY],$
 ;            color=0,/data,thick=2,linestyle=2
         endif
-        if ii eq 4 or ii eq 1 then begin
-          polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY,ymax-0.20-ii*deltaY],color=160,/data
+        if ii eq 1 then begin
+          polyfill,[xminfill,xminfill,xmaxfill,xmaxfill],[ymax-0.25-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.21-ii*deltaY,ymax-0.25-ii*deltaY],color=160,/data
         endif
       endif
-      plots,[xmin+0.25,xmax-0.10],[ymax-0.20-ii*deltaY,ymax-0.20-ii*deltaY],/data,thick=2,color=0
-      plots,[xmin+0.25,xmax-0.10],[ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY],/data,thick=2,color=0
+      plots,[xmin+0.25,xmax-0.10],[ymax-0.25-ii*deltaY,ymax-0.25-ii*deltaY],/data,thick=2,color=0
+      plots,[xmin+0.25,xmax-0.10],[ymax-0.21-ii*deltaY,ymax-0.21-ii*deltaY],/data,thick=2,color=0
       if ii eq 0 or ii eq 2 or ii eq 4 then begin
-        plots,[xmin+0.25,xmin+0.25],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY],/data,thick=2,color=0
+        plots,[xmin+0.25,xmin+0.25],[ymax-0.25-ii*deltaY,ymax-0.21-ii*deltaY],/data,thick=2,color=0
       endif else begin
-        plots,[xmin+0.2,xmin+0.25],[ymax-0.20-ii*deltaY,ymax-0.20-ii*deltaY],/data,thick=2,color=0,linestyle=2
-        plots,[xmin+0.2,xmin+0.25],[ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY],/data,thick=2,color=0,linestyle=2
-        plots,[xmin+0.2,xmin+0.2],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY],/data,thick=2,color=0,linestyle=2
+        plots,[xmin+0.2,xmin+0.25],[ymax-0.25-ii*deltaY,ymax-0.25-ii*deltaY],/data,thick=2,color=0,linestyle=2
+        plots,[xmin+0.2,xmin+0.25],[ymax-0.21-ii*deltaY,ymax-0.21-ii*deltaY],/data,thick=2,color=0,linestyle=2
+        plots,[xmin+0.2,xmin+0.2],[ymax-0.25-ii*deltaY,ymax-0.21-ii*deltaY],/data,thick=2,color=0,linestyle=2
       endelse
-      plots,[xmax-0.10,xmax-0.05],[ymax-0.20-ii*deltaY,ymax-0.20-ii*deltaY],/data,thick=2,color=0,linestyle=2
-      plots,[xmax-0.10,xmax-0.05],[ymax-0.16-ii*deltaY,ymax-0.16-ii*deltaY],/data,thick=2,color=0,linestyle=2
-      plots,[xmax-0.05,xmax-0.05],[ymax-0.20-ii*deltaY,ymax-0.16-ii*deltaY],/data,thick=2,color=0,linestyle=2
+      plots,[xmax-0.10,xmax-0.05],[ymax-0.25-ii*deltaY,ymax-0.25-ii*deltaY],/data,thick=2,color=0,linestyle=2
+      plots,[xmax-0.10,xmax-0.05],[ymax-0.21-ii*deltaY,ymax-0.21-ii*deltaY],/data,thick=2,color=0,linestyle=2
+      plots,[xmax-0.05,xmax-0.05],[ymax-0.25-ii*deltaY,ymax-0.21-ii*deltaY],/data,thick=2,color=0,linestyle=2
       
       symsizesymbol=1
       
@@ -2984,7 +2967,7 @@ PRO FM_PlotTable2, plotter, request, result
         cc=where(allDataXY(*,ii) gt maxVal(ii),countXpos)
         if allDataXY(ip,ii) gt maxVal(ii) gt 0 then xposDot=xmax-0.07
         if allDataXY(ip,ii) lt minVal(ii) gt 0 then xposDot=xmin+0.22
-        plots,xposDot,ymax-0.18-ii*deltaY,psym=8,color=allDataColors(ip),symsize=1,/data
+        plots,xposDot,ymax-0.23-ii*deltaY,psym=8,color=allDataColors(ip),symsize=1,/data
         
         recognizePoint[0,*]=[xposDot-recognizeRange, ymax-0.18-ii*deltaY-recognizeRange]
         recognizePoint[1,*]=[xposDot-recognizeRange, ymax-0.18-ii*deltaY+recognizeRange]
@@ -2999,7 +2982,7 @@ PRO FM_PlotTable2, plotter, request, result
         recognizeRegionEdges[kg]=recognizePointPtr
         recognizeNames[kg]=legSymbols[ip]
         recognizeValues[kg]=strtrim(allDataXY(ip,ii), 2)
-        xyouts,xmax-0.07,ymax-0.235-ii*deltaY,units(ii),/data,color=0,charsize=psFact
+        xyouts,xmax-0.07,ymax-0.285-ii*deltaY,units(ii),/data,color=0,charsize=psFact
         kg++
       endfor
       ; KeesC 9SEP2013
@@ -3009,7 +2992,7 @@ PRO FM_PlotTable2, plotter, request, result
         ; KeesC 1OCT2013
     ;    ccp5=where(abs(allDataXY(*,ii)) le sqrt(0.5)*criteria,countCp5)  ; % .5*crit
       endif
-      if ii eq 4 or ii eq 1 then begin
+      if ii eq 1 then begin
         ;        cc=where(abs(allDataXY(*,ii)) le criteria,countC)
         cc1=where(abs(allDataXY(*,ii)) le criteria,countC1)   ; % crit
     ;    ccp5=where(abs(allDataXY(*,ii)) le criteria,countCp5)  ; % .5*crit
@@ -3021,36 +3004,36 @@ PRO FM_PlotTable2, plotter, request, result
 ;        if countCp5/float(allDataAxis(1)) gt 0.9 then color_indic=160
         if countC1/float(allDataAxis(1)) ge 0.9 then color_indic=160
         mypsym,9,1
-        if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.18-ii*deltaY,psym=8,color=color_indic,symsize=3,/data
+        if isGroupSelection ne 1 then plots,xmin+0.12,ymax-0.23-ii*deltaY,psym=8,color=color_indic,symsize=3,/data
       endif
       for ix=0,fillint(ii)-1 do begin
 ;        xyouts,xmin+0.25+(xmax-0.10-xmin-0.25)*xx(ix),ymax-0.22-ii*deltaY,$
 ;          fillstr(ii,ix),/data,charsize=0.9*facSize*psFact,charthick=2.3,alignment=0.5,color=0
         plots,[xmin+0.25+(xmax-0.10-xmin-0.25)*xx(ix),xmin+0.25+(xmax-0.10-xmin-0.25)*xx(ix)],$
-          [ymax-0.20-ii*deltaY,ymax-0.19-ii*deltaY],color=0,/data,thick=2,linestyle=0 
+          [ymax-0.25-ii*deltaY,ymax-0.24-ii*deltaY],color=0,/data,thick=2,linestyle=0 
       endfor  
-      plots,[xmin+0.25,xmin+0.25],[ymax-0.20-ii*deltaY,ymax-0.19-ii*deltaY],color=0,/data,thick=2,linestyle=0 
-      plots,[xmax-0.1,xmax-0.1],[ymax-0.20-ii*deltaY,ymax-0.19-ii*deltaY],color=0,/data,thick=2,linestyle=0  
+      plots,[xmin+0.25,xmin+0.25],[ymax-0.25-ii*deltaY,ymax-0.24-ii*deltaY],color=0,/data,thick=2,linestyle=0 
+      plots,[xmax-0.1,xmax-0.1],[ymax-0.25-ii*deltaY,ymax-0.24-ii*deltaY],color=0,/data,thick=2,linestyle=0  
     endfor
     
     xyouts,xmin-0.035,ymax-0.205,'O',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
     xyouts,xmin-0.035,ymax-0.24,'B',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
     xyouts,xmin-0.035,ymax-0.275,'S',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
     
-    xyouts,xmin-0.037,ymax-0.345,'T',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.03,ymax-0.38,'I',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.415,'M',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.45,'E',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.037,ymax-0.415,'T',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.03,ymax-0.45,'I',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.485,'M',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.52,'E',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
     ;  ;
-    xyouts,xmin-0.035,ymax-0.53,'S',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.565,'P',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.60,'A',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.635,'C',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.67,'E',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.66,'S',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.695,'P',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.73,'A',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.765,'C',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+    xyouts,xmin-0.035,ymax-0.80,'E',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
     ;  ;
-    xyouts,xmin-0.035,ymax-0.83,'A',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.865,'Q',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
-    xyouts,xmin-0.035,ymax-0.90,'D',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+;    xyouts,xmin-0.035,ymax-0.83,'A',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+;    xyouts,xmin-0.035,ymax-0.865,'Q',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
+;    xyouts,xmin-0.035,ymax-0.90,'D',/data,charsize=1.5*facsize*psFact,color=3,charthick=2
     
   endelse
   
@@ -3807,7 +3790,6 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   ; put user choices into Criteria langage (goalsandcriteria.dat file)
   if flag_average eq 'preserve' then flag_average='P'
   if flag_average eq '08' then flag_average='8H'
-  if flag_average eq '03' then flag_average='3H'
 ;KeesC 12FEB2014  
   if flag_average eq '15' then flag_average='15H'
   
@@ -3920,7 +3902,6 @@ pro ObsModCriteriaPercentile, request, result, obsTimeSeries,modTimeSeries,perce
   if flag_average eq 'preserve' then flag_average='P'
   if flag_average eq '08' then flag_average='8H'
 ;KeesC 12FEB2014  
-  if flag_average eq '03' then flag_average='3H'
   if flag_average eq '15' then flag_average='15H'
   
   if statType eq 0 then flagDailyStat='P'

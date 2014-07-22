@@ -348,6 +348,7 @@ PRO SG_Computing, $
   isGroupSelection=request->isGroupObsPresent()
   hourStat=request->getGroupByTimeInfo() ;HourType
   flag_average=hourStat[0].value
+  statType=request->getGroupByStatInfo()
   iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
   
   dimAll=(Index1)*(Index2)*(Index3)*(Index4)
@@ -635,7 +636,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=runCU/1000.
             statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
           endif          
-          if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 or elabCode eq 82 then begin ;OU Target
+          if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then begin ;OU Target
             signNum=2*stddevOM(obstemp)*stddevOM(runTemp)*(1.-correlate(obsTemp,runTemp))
             signDen=(stddevOM(obstemp)-stddevOM(runTemp))^2
             sign=0.
@@ -694,11 +695,18 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=nmb([obsTemp1,obsTemp2],[runTemp1,runTemp2])
           endif
           if elabcode eq 74 then begin ;OU Forecast
-            sign=stddevOM(obsTemp)-stddevOM(runTemp)  ;only for target
+            obshlp = obsTemp(sort(obsTemp))
+            obsExc = obshlp(fix(0.95*n_elements(obsTemp)))
+            runhlp = runTemp(sort(runTemp))
+            runExc = runhlp(fix(0.95*n_elements(runTemp)))
+            ccObsMod1 = where (obsTemp lt obsExc and runTemp ge runExc,countExcModYesExcObsNo)
+            ccObsMod2 = where (obsTemp ge obsExc and runTemp ge runExc,countExcModYesExcObsYes)
+            far=(countExcModYesExcObsNo)/(countExcModYesExcObsNo+countExcModYesExcObsYes)
+            sign=0.5 - far  ;only for target
             if finite(sign) eq 1 then sign=sign/abs(sign)   ;only for target
-            statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/resilience(obsTemp)
-            statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/resilience(obsTemp)
-            statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp)
+            statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/resilience(obsTemp,statType)
+            statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/resilience(obsTemp,statType)
+            statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp,statType)
           endif
         endfor  ;i4
       endfor  ;i3  nsce
@@ -842,7 +850,7 @@ PRO SG_Computing, $
                 medIdx=resSort[fix(0.9*n_elements(resSort))]
                 obsStatResult=obsGroupStatResult(medIdx)
                 runStatResult=runGroupStatResult(medIdx)
-                if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 or elabCode eq 82 then begin
+                if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then begin
                   ccNeg=where(obsGroupStatResult lt 0.,countNeg)
                   ccPos=where(obsGroupStatResult gt 0.,countPos)
                   runStatResult=mean(runGroupStatResult)
@@ -1390,7 +1398,8 @@ pro FM_StatTable2, request, result
   endif else begin
     print, 'extra Values not available'
   endelse
-  limitValue=extraVal(0)
+  limitValue=0.
+  if strupcase(frequency) eq 'HOUR' then limitValue=extraVal(0)
   ;  PercValue=extraVal(1)
   
   ;MM summer 2012 Start
@@ -1467,7 +1476,7 @@ endelse
 
 nvar=8
 ;KeesC 23NOV2013: Exceed, replaced by Exceed
-legendNames=['Mean','Exceed','Bias Norm','Corr Norm','StdDev Norm','Corr Norm','StdDeV Norm','RDE']
+legendNames=['Mean','Exceed','Bias Norm','Corr Norm','StdDev Norm','95perc Norm','Corr Norm','StdDeV Norm']
 
 if isSingleSelection eq 0 then countFiniteS=0
 if isSingleSelection eq 0 then nobsS=0
@@ -1482,8 +1491,9 @@ if isSingleSelection then begin
   
   fileName=  modelCodes(0)+'_'+parcodes(0)+'.dat'  ;Printing only in case of single stations choice
   request->openDataDumpFile, fileName;/ADDSYSTIME; --> filename=StatisticName+systime+.txt
-  request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt targ targY targX MO MM SO SM NMB R RDE NMSD ExcO ExcM TargOU OU'
-  
+
+  if strupcase(frequency) eq 'HOUR' then request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt MO MM SO SM R RMSE ExcO ExcM TargetOU OU'
+  if strupcase(frequency) eq 'YEAR' then request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt MO MM TargetOU OU'
   statXYResultS=fltarr(forSLastIndex+1,nvar)
   
   for i=0, forSLastIndex do begin
@@ -1511,47 +1521,55 @@ if isSingleSelection then begin
     statXYResultS(i,5)=countExcMod
     if statType gt 0 then statXYResultS(i,5)=statXYResultS(i,5)/24.
     if statType gt 0 then statXYResultS(i,1)=statXYResultS(i,1)/24.
-    ;CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
     statXYResultS(i,2)=(mean(runTemp)-mean(obsTemp))/(2*CriteriaOU)
     ;    if elabCode eq 31 or elabCode eq 83 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
     ;    if elabCode eq 32 or elabCode eq 84 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
     ; KeesC 9SEP2013
     statXYResultS(i,3)=sqrt((1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(runTemp))/(2*CriteriaOU)
     statXYResultS(i,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(2.*CriteriaOU)
-    statXYResultS(i,7)=rde(obsTemp,runTemp,limitValue)
-    if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=rdeYearly(obsTemp,runTemp,limitValue)
+       
+    if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=0.
     
+  if strupcase(frequency) eq 'HOUR' then begin
+   ; Name Obscode Region Type lon lat alt MO MM SO SM R RMSE ExcO ExcM TargOU OU'
     txt=string(obsnames(i),obsCodes(i), regNamesAll(i),categoryInfo(1,i),$
       obsLongitudes(i), obsLatitudes(i), obsAltitudes(i),$
-      rmse(obsTemp, runTemp)/stddevOM(obsTemp),$
-      bias(obsTemp, runTemp)/stddevOM(obsTemp),crmse(obsTemp, runTemp)/stddevOM(obsTemp),$
       mean(obsTemp),mean(runTemp),stddevOM(obsTemp),stddevOM(runTemp),$
-      nmb(obsTemp, runTemp)/100.,$
-      correlate(obsTemp, runTemp),rde(obsTemp,runTemp,extraVal(0))/100.,$
-      nmb(stddevOM(runTemp),stddevOM(obsTemp)),$
-      statXYResultS(i,1),statXYResultS(i,5), $
-      rmse(obsTemp, runTemp)/(2.*CriteriaOU(0)),$
-      CriteriaOU(0),$
+      correlate(obsTemp, runTemp),rmse(obsTemp, runTemp),statXYResultS(i,1),statXYResultS(i,5),$
+      rmse(obsTemp, runTemp)/(2.*CriteriaOU(0)),CriteriaOU(0),$
       format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
-    request->writeDataDumpFileRecord, txt
-    
+      request->writeDataDumpFileRecord, txt 
+   endif else begin
+   ; Name Obscode Region Type lon lat alt MO MM TargetOU OU'
+    txt=string(obsnames(i),obsCodes(i), regNamesAll(i),categoryInfo(1,i),$
+      obsLongitudes(i), obsLatitudes(i), obsAltitudes(i),$
+      mean(obsTemp),mean(runTemp),bias(obsTemp, runTemp)/(2.*CriteriaOU(0)),CriteriaOU(0),$
+      format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
+      request->writeDataDumpFileRecord, txt 
+   endelse
+   
+   ; !!! redefine statXYResultS (i,5) to contain threshold info after printing exceedances
+   obsTempSort=obsTemp(sort(obsTemp))
+    runTempSort=runTemp(sort(runTemp))
+    percentileThreshold=0.95
+    timeLength=n_elements(obsTemp)
+    indiceT=fix(percentileThreshold*timeLength)
+    obstempThreshold=obstemp
+    obstempThreshold(*)=obstempSort(percentileThreshold*timeLength)
+    CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obstempThreshold,alpha,criteriaOrig,LV
+    statXYResultS(i,5)=(runTempSort(indiceT)-obsTempSort(indiceT))/(2*CriteriaOU)
+      
   endfor
   request->closeDataDumpFile
   cc=where(finite(statXYResultS(*,0)) eq 1, countFiniteS)
   
   if countFiniteS gt 1 then begin
     adummy=statXYResultS(cc,0)
-    ;MM summer 2012 Start
-    ; Replace hard coded 'OU' with specific parameter from elaboration.dat
-    ; request->getElaborationOCStat()
-    ;CheckCriteria, request, result, 'OU', criteriaOU, adummy, 1,alpha,criteriaOrig,LV,nobsAv
-    ;CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, adummy,alpha,criteriaOrig,LV,nobsAv
-    ;MM summer 2012 End
-    statXYResultS(*,5)=(1.-correlate(statXYResultS(cc,0), statXYResultS(cc,6)))/(2*(CriteriaOU/stddevOM(statXYResultS(cc,0)))^2)
-    statXYResultS(*,6)=(stddevOM(statXYResultS(cc,0))-stddevOM(statXYResultS(cc,6)))/(2.*CriteriaOU)
+    statXYResultS(*,6)=(1.-correlate(statXYResultS(cc,0), statXYResultS(cc,6)))/(2*(CriteriaOU/stddevOM(statXYResultS(cc,0)))^2)
+    statXYResultS(*,7)=(stddevOM(statXYResultS(cc,0))-stddevOM(statXYResultS(cc,6)))/(2.*CriteriaOU)
   endif else begin
-    statXYResultS(*,5)=!values.f_nan
     statXYResultS(*,6)=!values.f_nan
+    statXYResultS(*,7)=!values.f_nan
   endelse
   
   ahlp=statXYResultS(*,0)
@@ -1608,10 +1626,16 @@ if isGroupSelection then begin
       statXYResultInt(j,3)=(1.-correlate(obsTemp, runTemp))/(2*(CriteriaOU/stddevOM(obsTemp))^2)
       statXYResultInt(j,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(2.*CriteriaOU)
       
-      ;      statXYResultInt(j,2)=nmb(obsTemp,runTemp)
-      ;      statXYResultInt(j,3)=abs(correlate(obsTemp, runTemp)/(1.-2*(CriteriaOU*mean(obsTemp)/stddevOM(obsTemp))^2))
-      ;      statXYResultInt(j,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(CriteriaOU*mean(obsTemp))
-      statXYResultInt(j,7)=rde(obsTemp,runTemp,limitValue)
+      obsTempSort=obsTemp(sort(obsTemp))
+      runTempSort=runTemp(sort(runTemp))
+      percentileThreshold=0.95
+      timeLength=n_elements(obsTemp)
+      indiceT=fix(percentileThreshold*timeLength)
+      obstempThreshold=obstemp
+      obstempThreshold(*)=obstempSort(percentileThreshold*timeLength)
+      CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obstempThreshold,alpha,criteriaOrig,LV
+      statXYResultS(i,5)=(runTempSort(indiceT)-obsTempSort(indiceT))/(2*CriteriaOU)    
+      if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=0.
     endfor
     
     ahlp=statXYResultInt(*,0)
@@ -1652,11 +1676,11 @@ if isGroupSelection then begin
       ;CheckCriteria, request, result, request->getElaborationOCStat(), criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv
       ;CheckCriteria, request, result, 'OU', criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv
       ;MM summer 2012 End
-      statXYResultG(*,5)=(1.-correlate(statXYResultInt(ccFin,0), statXYResultInt(ccFin,6)))/(2*(CriteriaOU/stddevOM(statXYResultInt(ccFin,0)))^2)
-      statXYResultG(*,6)=(stddevOM(statXYResultInt(ccFin,0))-stddevOM(statXYResultInt(ccFin,6)))/(2.*CriteriaOU)
+      statXYResultG(*,6)=(1.-correlate(statXYResultInt(ccFin,0), statXYResultInt(ccFin,6)))/(2*(CriteriaOU/stddevOM(statXYResultInt(ccFin,0)))^2)
+      statXYResultG(*,7)=(stddevOM(statXYResultInt(ccFin,0))-stddevOM(statXYResultInt(ccFin,6)))/(2.*CriteriaOU)
     endif else begin
-      statXYResultG(i,5)=!values.f_nan
       statXYResultG(i,6)=!values.f_nan
+      statXYResultG(i,7)=!values.f_nan
     endelse
   endfor
   
