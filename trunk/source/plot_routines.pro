@@ -1271,14 +1271,14 @@ PRO FM_PlotGeoMap, plotter, request, result
           endif
           ; triangle
           mypsym,2,2
-          if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) lt 0. then begin
+          if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(iobs) lt 0. then begin
             mypsym,2,2
             plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
             mypsym,2,1.8
             plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
           endif
           ; square
-          if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(Cvalues(iobs)) ge 0. then begin
+          if abs(Bvalues(iobs)) lt abs(Cvalues(iobs)) and sign(iobs) ge 0. then begin
             mypsym,5,2.5
             plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=250, symsize=1*sizeSymbol
           endif
@@ -2252,6 +2252,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   
   adummy=fltarr(10) & adummy(*)=1.
   CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
+  if elabcode eq 74 then criteria=1 ;for forecast no need of criteria 
   ;  criteria=criteria/2.
   
   hourStat=request->getGroupByTimeInfo() ;HourType
