@@ -2294,6 +2294,13 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   if criteria gt 0 then begin
     ;KeesC 29OCT2013: 8 changed into 135
     POLYFILL, CIRCLE(0, 0, 1), /data, thick=2, color=135  ;green
+    ;half circle Phil 14/09/2014
+    if elabcode eq 74 then begin
+        phi = Findgen(36) * (!PI * 2 / 36.)
+        phi = [ phi, phi(0) ]
+        POLYFILL, [Cos(phi[9:27]), Cos(phi[9])], [Sin(phi[9:27]), Sin(phi[9])], /data, thick=2, color=4  ;orange
+    endif
+    ; end Phil 14/09/2014
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
     if elabcode ne 74 then plots, CIRCLE(0, 0, 0.5), /data, thick=2, color=0,linestyle=2
   endif else begin
@@ -2333,8 +2340,8 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   xyouts, -plotRange*0.1, plotRange*0.85, 'BIAS > 0',charthick=2, color=0,/data,charsize=facSize*1.5
   xyouts, -plotRange*0.1, -plotRange*0.95, 'BIAS < 0',charthick=2, color=0,/data,charsize=facSize*1.5
   if elabcode eq 74 then begin  ;forecast
-    xyouts, -plotRange*0.95, -plotRange*0.07, 'FAR > 0.5',charthick=2, color=0,/data,charsize=facSize*1.5
-    xyouts, plotRange*0.75, -plotRange*0.07, 'FAR < 0.5',charthick=2, color=0,/data,charsize=facSize*1.5
+    xyouts, -plotRange*0.95, -plotRange*0.07, '(FA+MA)R > 0.1',charthick=2, color=0,/data,charsize=facSize*1.5
+    xyouts, plotRange*0.65, -plotRange*0.07,  '(FA+MA)R < 0.1',charthick=2, color=0,/data,charsize=facSize*1.5
   endif else begin
     xyouts, -plotRange*0.95, -plotRange*0.07, 'R',charthick=2, color=0,/data,charsize=facSize*1.5
     xyouts, plotRange*0.85, -plotRange*0.07, 'SD',charthick=2, color=0,/data,charsize=facSize*1.5
@@ -2416,8 +2423,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       ;      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=210  ;16   ;orange
       if percentageCrit lt 90 then colorPerc=250  ;2   ;red
       ;KeesC 13NOV2013
-      xyouts,0.42,0.90,strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,charthick=2,charsize=1.5*psFact
-    ;      xyouts,-plotRange*0.31,plotrange-plotRange*0.15,strtrim(percentageCrit,2)+'%',$
+      xyouts,0.42,0.90,strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,charthick=2,charsize=10    ;      xyouts,-plotRange*0.31,plotrange-plotRange*0.15,strtrim(percentageCrit,2)+'%',$
     ;        /data,charsize=2*facSize,charthick=3,color=colorPerc
     endif
   endif
