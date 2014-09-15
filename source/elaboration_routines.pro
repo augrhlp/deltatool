@@ -699,10 +699,10 @@ PRO SG_Computing, $
             obsExc = obshlp(fix(0.95*n_elements(obsTemp)))
             runhlp = runTemp(sort(runTemp))
             runExc = runhlp(fix(0.95*n_elements(runTemp)))
-            ccObsMod1 = where (obsTemp lt obsExc and runTemp ge runExc,countExcModYesExcObsNo)
-            ccObsMod2 = where (obsTemp ge obsExc and runTemp ge runExc,countExcModYesExcObsYes)
-            far=(countExcModYesExcObsNo)/(countExcModYesExcObsNo+countExcModYesExcObsYes)
-            sign=0.5 - far  ;only for target
+            ccObsMod1 = where (obsTemp ge obsExc and runTemp ge runExc,countExcModYesExcObsYes)
+            ccObsMod2 = where (obsTemp lt obsExc and runTemp lt runExc,countExcModNoExcObsNo)
+            far=(countExcModYesExcObsYes+countExcModNoExcObsNo)/float(n_elements(obsTemp))
+            sign=far-0.9  ;only for target
             if finite(sign) eq 1 then sign=sign/abs(sign)   ;only for target
             statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/resilience(obsTemp,statType)
             statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/resilience(obsTemp,statType)
@@ -1476,7 +1476,7 @@ endelse
 
 nvar=8
 ;KeesC 23NOV2013: Exceed, replaced by Exceed
-legendNames=['Mean','Exceed','Bias Norm','Corr Norm','StdDev Norm','95perc Norm','Corr Norm','StdDeV Norm']
+legendNames=['Mean','Exceed','Bias Norm','Corr Norm','StdDev Norm','Hperc Norm','Corr Norm','StdDeV Norm']
 
 if isSingleSelection eq 0 then countFiniteS=0
 if isSingleSelection eq 0 then nobsS=0
@@ -1552,6 +1552,10 @@ if isSingleSelection then begin
    obsTempSort=obsTemp(sort(obsTemp))
     runTempSort=runTemp(sort(runTemp))
     percentileThreshold=0.95
+    if strupcase(parCodes) eq 'NO2' then percentileThreshold=0.998
+    if strupcase(parCodes) eq 'O3' then percentileThreshold=0.904
+    if strupcase(parCodes) eq 'PM10' then percentileThreshold=0.931
+    if strupcase(parCodes) eq 'PM25' then percentileThreshold=0.931
     timeLength=n_elements(obsTemp)
     indiceT=fix(percentileThreshold*timeLength)
     obstempThreshold=obstemp
