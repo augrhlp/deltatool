@@ -63,9 +63,11 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
         if firstRow eq 1 then begin
           firstRow=0     
           if strcompress(strlowcase(info[0]),/remove_all) eq 'yearlyavg' then begin
-            info=['YearlyAvg','mm','dd','hh',info[2:count-1]]
-            infoyr=info[0]
-            year=fix(info[1])
+; KeesC 11SEP2014
+            infoyr=info[1]
+            year=fix(infoyr)
+            info=[infoyr,'mm','dd','hh',info[2:count-1]]
+            infoyr=info[1]
             yearAVG=1  ; yearlyavg
           endif
           HEADER=info
