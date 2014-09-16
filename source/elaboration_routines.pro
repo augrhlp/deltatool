@@ -1523,11 +1523,10 @@ if isSingleSelection then begin
     if statType gt 0 then statXYResultS(i,1)=statXYResultS(i,1)/24.
     statXYResultS(i,2)=(mean(runTemp)-mean(obsTemp))/(2*CriteriaOU)
     ;    if elabCode eq 31 or elabCode eq 83 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
-    ;    if elabCode eq 32 or elabCode eq 84 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
-    ; KeesC 9SEP2013
+    ;    if elabCode eq 32 or elabCode eq 84 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv   
     statXYResultS(i,3)=sqrt((1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(runTemp))/(2*CriteriaOU)
     statXYResultS(i,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(2.*CriteriaOU)
-       
+         
     if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=0.
     
   if strupcase(frequency) eq 'HOUR' then begin
@@ -1569,8 +1568,19 @@ if isSingleSelection then begin
   
   if countFiniteS gt 1 then begin
     adummy=statXYResultS(cc,0)
-    statXYResultS(*,6)=(1.-correlate(statXYResultS(cc,0), statXYResultS(cc,6)))/(2*(CriteriaOU/stddevOM(statXYResultS(cc,0)))^2)
-    statXYResultS(*,7)=(stddevOM(statXYResultS(cc,0))-stddevOM(statXYResultS(cc,6)))/(2.*CriteriaOU)
+;KeesC 11SEP2014  
+    kees0=reform(statXYResultS(cc,0))
+    kees6=reform(statXYResultS(cc,6))
+    kc=where(finite(kees0) eq 1 and finite(kees6) eq 1,nc)
+    if nc ge 2 then begin
+    statXYResultS(*,6)=(1.-correlate(kees0(kc),kees6(kc)))/(2*(CriteriaOU/stddevOM(kees0(kc)))^2)
+    statXYResultS(*,7)=(stddevOM(kees0(kc))-stddevOM(kees6(kc)))/(2.*CriteriaOU)
+;    statXYResultS(*,6)=(1.-correlate(statXYResultS(cc,0), statXYResultS(cc,6)))/(2*(CriteriaOU/stddevOM(statXYResultS(cc,0)))^2)
+;    statXYResultS(*,7)=(stddevOM(statXYResultS(cc,0))-stddevOM(statXYResultS(cc,6)))/(2.*CriteriaOU)   
+    endif else begin
+      statXYResultS(*,6)=!values.f_nan
+      statXYResultS(*,7)=!values.f_nan
+    endelse  
   endif else begin
     statXYResultS(*,6)=!values.f_nan
     statXYResultS(*,7)=!values.f_nan
