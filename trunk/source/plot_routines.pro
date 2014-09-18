@@ -2669,6 +2669,15 @@ PRO FM_PlotTable2, plotter, request, result
   legsymbols=tpInfo->getLegendSymbols()
   hourStat=request->getGroupByTimeInfo() ;HourType
   flag_average=hourStat[0].value
+  ;KeesC 18SEP2014
+  mus=request->getParameterMeasureUnits()
+  extraValNumber=request->getExtraValuesNumber()
+  if extraValNumber gt 0 then begin
+    extraValues=request->getExtraValues()
+    ExcVal=strcompress(fix(extraValues[0]),/remove_all)
+  endif else begin
+    ExcVal='0'
+  endelse
   
   adummy=fltarr(10) & adummy(*)=1.
   CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
@@ -2731,8 +2740,10 @@ PRO FM_PlotTable2, plotter, request, result
     fillint(5)=9 & fillstr(5,0:8)=['-1.5','-1','-.7','-.5','0','.5','.7','1.0','1.5']
     fillint(6)=4 & fillstr(6,0:3)=['.5','.7','1.0','1.5']
     fillint(7)=9 & fillstr(7,0:8)=['-1.5','-1','-.7','-.5','0','.5','.7','1.0','1.5']
-    
-    units=  ['ug/m3','days',  '%',  ' ',' ',' ',' ',' ']
+
+;KeesC 18SEP2014
+    mus=request->getParameterMeasureUnits()    
+    units=  [mus[0],'days',  '%',  ' ',' ',' ',' ',' ']
     
     recognizeRange=0.01
     recognizeHighLight=bytarr(8*n_elements(allDataSymbol))
@@ -2749,7 +2760,13 @@ PRO FM_PlotTable2, plotter, request, result
         xyouts,xmin+0.005,ymax-0.18-ii*0.095,res1(0),/data,charsize=1.2*facSize*psFact,color=3,charthick=2.3
         xyouts,xmin+0.035,ymax-0.22-ii*0.095,res1(1),/data,charsize=1.0*facSize*psFact,color=3,charthick=2.3
       endif else begin
-        xyouts,xmin+0.005,ymax-0.20-ii*0.095,legnames(ii),/data,charsize=1.2*facSize*psFact,color=3,charthick=2.3
+;KeesC 18SEP2014    
+      ; ii=1
+        yii=ymax-0.20-ii*0.095
+        if ii eq 1 then yii=ymax-0.20-ii*0.095+0.015
+        xyouts,xmin+0.005,yii,legnames(ii),/data,charsize=1.2*facSize*psFact,color=3,charthick=2.3
+        if ii eq 1 then $
+          xyouts,xmin+0.005,yii-0.035,ExcVal+' '+mus[0],/data,charsize=facSize*psFact,color=0,charthick=1.5
       endelse
       xyouts,xmin+0.25,ymax-0.23-ii*0.095,strtrim(minVal(ii),2),/data,charsize=0.9*facSize*psFact,charthick=2.3,alignment=0.5,color=0
       xyouts,xmax-0.10,ymax-0.23-ii*0.095,strtrim(maxVal(ii),2),/data,charsize=0.9*facSize*psFact,charthick=2.3,alignment=0.5,color=0
@@ -3479,6 +3496,12 @@ PRO FM_PlotTable2legend, plotter, request, result
   obj_destroy, black
   DEVICE, DECOMPOSED=1
   plotter->erase, whiteL
+;KeesC 18SEP2014
+  resPoscript=plotter->currentDeviceIsPostscript()
+  if resPoscript eq 0 then begin
+    !p.font=0
+    device,set_font='Arial*16'
+  endif
   
   DEVICE,DECOMPOSE=0
   LOADCT,39
@@ -3486,78 +3509,60 @@ PRO FM_PlotTable2legend, plotter, request, result
   mytek_color;, 0, 32
   
   legoWidth=.012
-  legoHeight=.05
+  legoHeight=.03
   startX=.01;  maxWidth=0
   
   targetInfo=Result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
   if string(allDataXY[0]) eq 'AllNaN' then goto,jumpend
-  
-;  cc=where(finite(allDataXY(*,0)) eq 1, countCC)
-;  if countCC eq 0 then goto,jumpEnd
-;  legcolorsPrint=targetInfo->getColors()
-;  symbols=targetInfo->getSymbols()
-;  isGroupSelection=request->isGroupObsPresent()
-;  legSyms=targetInfo->getLegendSymbols()
-;  ;  ccfin=where(symbols eq 13,countGR)
-;  ;  if countGR gt 0 then begin
-;  legNamesPrint=strmid(legSyms,0,7)
-;  legoSequenceNo=n_elements(legNamesPrint)
-;  symbolSequenceNo=n_elements(legNamesPrint)
-;  for i=0, min([62,symbolSequenceNo-1]) do begin
-;    jheight = i MOD 9
-;    startx = .10*fix(i/9)
-;    if resPoscript then startx = startx+0.1
-;    startY=1.-((jheight+1)*legoHeight*2)
-;    thisStartX=startX+maxWidth+legoWidth+.02
-;    lego=[[thisStartX,startY], [thisStartX,startY+legoHeight], [thisStartX+legoWidth,startY+legoHeight], [thisStartX+legoWidth,startY], [thisStartX,startY]]
-;    mypsym,symbols[i],1
-;    coords=[thisStartX+(legoWidth/2), startY+.002]
-;    coords=plotter->legendNormalize(coords)
-;    plots, coords[0], coords[1], psym=8, color=legColorsPrint[i], /NORM, symsize=1.
-;    coords=[thisStartX+legoWidth+.01, startY+.002]
-;    coords=plotter->legendNormalize(coords)
-;    xyouts, coords[0], coords[1] , legNamesPrint[i], COLOR=0, /NORM, charsize=.8, charthick=.8,  WIDTH=textWidth
-;  endfor
-    
+
+;KeesC 18SEP2014
     thisStartX=startX+legoWidth+.02
     mypsym,5,2
-    startY=1-2*legoHeight
-    coords=[thisStartX+(legoWidth/2), startY+.002]
+    startY=0.9-1.5*legoHeight
+    coords=[thisStartX+(legoWidth/2), startY]
     coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.5
-    coords=[thisStartX+3*(legoWidth/2), startY+.002]
+    plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.25
+    coords=[thisStartX+3*(legoWidth/2), startY]
     coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.5
-    coords=[thisStartX+5*(legoWidth/2), startY+.002]
+    plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.25
+    coords=[thisStartX+5*(legoWidth/2), startY]
     coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.5
+    plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.25
     x00=coords[0]+0.025
-    xyouts,x00, coords[1]-0.05,'text1',/normal,color=0,charsize=1.5,charthick=2
+    text1='Performance Criteria satisfied'
+    xyouts,x00, coords[1]-0.05,text1,/normal,color=0,charsize=1.25,charthick=1.25
     mypsym,5,2
-    startY=1-6*legoHeight
-    coords=[thisStartX+(legoWidth/2), startY+.002]
+    startY=0.9-6.5*legoHeight
+    coords=[thisStartX+(legoWidth/2), startY]
     coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.5  
-    coords=[thisStartX+3*(legoWidth/2), startY+.002]
+    plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.25  
+    coords=[thisStartX+3*(legoWidth/2), startY]
     coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.5
-    coords=[thisStartX+5*(legoWidth/2), startY+.002]
+    plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.25
+    coords=[thisStartX+5*(legoWidth/2), startY]
     coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.5
-    xyouts,x00, coords[1]-0.05,'text2',/normal,color=0,charsize=1.5,charthick=2
+    plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.25
+    text2='Performance Criteria satisfied; Error dominated by corresponding Indicator'
+    xyouts,x00, coords[1]-0.05,text2,/normal,color=0,charsize=1.25,charthick=2
     mypsym,9,2
-    startY=1-10*legoHeight
-    coords=[thisStartX+(legoWidth/2), startY+.002]
+    startY=0.9-11.5*legoHeight
+    coords=[thisStartX+(legoWidth/2), startY]
     coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.5
-    xyouts,x00, coords[1]-0.05,'text3',/normal,color=0,charsize=1.5,charthick=2
+    plots, coords[0]+legoWidth, coords[1], psym=8, color=7, /NORM, symsize=1.25
+    text3a='TIME: >90% of stations fulfills the Performance Criteria
+    xyouts,x00, coords[1]-0.05,text3a,/normal,color=0,charsize=1.25,charthick=2
+    text3b='SPACE: Dot fulfills the Performance Criteria
+    xyouts,x00, coords[1]-0.2,text3b,/normal,color=0,charsize=1.25,charthick=2
     mypsym,9,2
-    startY=1-14*legoHeight
-    coords=[thisStartX+(legoWidth/2), startY+.002]
+    startY=1-25*legoHeight
+    coords=[thisStartX+(legoWidth/2), startY]
     coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=2, /NORM, symsize=1.5
-    xyouts,x00, coords[1]-0.05,'text4',/normal,color=0,charsize=1.5,charthick=2
+    plots, coords[0]+legoWidth, coords[1], psym=8, color=2, /NORM, symsize=1.25
+    text4a='TIME: <90% of stations fulfills the Performance Criteria
+    xyouts,x00, coords[1]-0.05,text4a,/normal,color=0,charsize=1.25,charthick=2
+    text4b='SPACE: Dot does not fulfill the Performance Criteria
+    xyouts,x00, coords[1]-0.2,text4b,/normal,color=0,charsize=1.25,charthick=2
   
   jumpEnd:
   
