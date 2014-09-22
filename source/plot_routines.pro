@@ -1208,12 +1208,12 @@ PRO FM_PlotGeoMap, plotter, request, result
   targetInfo=result->getGenericPlotInfo()
   legNames=targetInfo->getLegendNames()
   allDataXY=targetInfo->getXYS()
-;KeesC 14SEP2014  
+  ;KeesC 14SEP2014
   if string(allDataXY[0]) eq 'AllNaN' then begin
     plot,indgen(10),/nodata ,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
     goto,jumpend
-  endif 
+  endif
   erase
   Bvalues=reform(allDataXy[*,0])  ; can be pos or neg
   Cvalues=reform(allDataXy[*,1])  ; + nmsd>R ; - nmsd<R
@@ -1348,7 +1348,7 @@ PRO FM_PlotGeoMap, plotter, request, result
   
   rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
   plotInfo->setRecognizeInfo, rInfo
-;KeesC 14SEP2014  
+  ;KeesC 14SEP2014
   jumpend:
 END
 
@@ -2312,7 +2312,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   if n_elements(parCodes) ge 2 then begin
     for ipc=1,n_elements(parCodes)-1 do pars=pars+'*'+parCodes(ipc)
   endif
-;KeesC 14SEP2014  
+  ;KeesC 14SEP2014
   xt=fix(2*plotrange)  ;xticks
   xv=fltarr(xt+1)  ;xtickv
   fpr=fix(plotrange)
@@ -2323,15 +2323,15 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     ystyle=1,/nodata,title='TARGET PLOT'+'   '+pars,charsize=facSize,background=255, $
     xticks=xt,xtickv=xv,xtickname=xtn,$
     position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
-
+    
   if criteria gt 0 then begin
     ;KeesC 29OCT2013: 8 changed into 135
     POLYFILL, CIRCLE(0, 0, 1), /data, thick=2, color=135  ;green
     ;half circle Phil 14/09/2014
     if elabcode eq 74 then begin
-        phi = Findgen(36) * (!PI * 2 / 36.)
-        phi = [ phi, phi(0) ]
-        POLYFILL, [Cos(phi[9:27]), Cos(phi[9])], [Sin(phi[9:27]), Sin(phi[9])], /data, thick=2, color=4  ;orange
+      phi = Findgen(36) * (!PI * 2 / 36.)
+      phi = [ phi, phi(0) ]
+      POLYFILL, [Cos(phi[9:27]), Cos(phi[9])], [Sin(phi[9:27]), Sin(phi[9])], /data, thick=2, color=4  ;orange
     endif
     ; end Phil 14/09/2014
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
@@ -2341,21 +2341,6 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   endelse
   xyouts,0.1,1.05,'T=1',color=0,/data,charthick=3,charsize=facSize*1.3
   if elabCode ne 74 then xyouts,0.1,0.5,'T=.5',color=0,/data,charthick=3,charsize=facSize*1.3
-  
-  ;KeesC 14SEP2014
-  ;  if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
-  ;    coords1=[-plotRange+plotRange*0.05, plotrange-plotRange*0.2]
-  ;    coords2=[-plotRange*0.15, plotrange-plotRange*0.2]
-  ;    coords3=[-plotRange*0.15, plotrange-plotRange*0.05]
-  ;    coords4=[-plotRange+plotRange*0.05, plotrange-plotRange*0.05]
-  ;    ;    polyfill,[coords1[0],coords2[0],coords3[0],coords4[0]],[coords1[1],coords2[1],coords3[1],coords4[1]],color=14,/data
-  ;    polyfill,[0.09,0.48,0.48,0.09],[0.875,0.875,0.945,0.945],color=15,/normal
-  ;    coords=[-plotRange+plotRange*0.07,plotrange-plotRange*0.15]
-  ;    psFact=plotter->getPSCharSizeFactor()
-  ;    ;KeesC 13NOV2013
-  ;    xyouts,0.11,0.90,'Stations within Crit (T=1): ',color=0,/normal,charthick=2,charsize=1.5*psFact
-  ;  ;    xyouts,coords[0],coords[1],'Stations within Crit (T=1):',color=3,/data,charthick=2,charsize=1.5*psFact
-  ;  endif
   
   fixedLabels=strarr(4)
   fixedLabels[0]='BIAS'
@@ -2407,7 +2392,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   
   for i=0, 1 do begin
     xyouts, posLabels[i,0], posLabels[i,1], fixedLabels[i], orient=orientLabels[i],$
-    charthick=thickLabels[i], color=0,/normal,charsize=facSize*1.2
+      charthick=thickLabels[i], color=0,/normal,charsize=facSize*1.2
   endfor
   
   recognizeRange=plotRange*0.02
@@ -2431,20 +2416,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     recognizeValues[iobs]=strcompress(allDataXY(iObs, 0),/remove_all)+','+strcompress(allDataXY(iObs, 1),/remove_all)
   endfor
   
-  ;addition for paper review
   mypsym,4,1
-  ;  plots, -4.08, -0.56, psym=8, color=2, symsize=2.3*facSize  ;2*/maxAxis
-  ;  plots, -2.87, -1.21, psym=8, color=3, symsize=2.3*facSize  ;2*/maxAxis
-  ;  plots, -2.48, -2.03, psym=8, color=4, symsize=2.3*facSize  ;2*/maxAxis
-  
-  ;PM10
-  ;   plots, -1.62, 0.07, psym=8, color=2, symsize=2.3*facSize  ;2*/maxAxis
-  ;   plots, -1.51, -0.37, psym=8, color=3, symsize=2.3*facSize  ;2*/maxAxis
-  ;   plots, -1.37, -0.40, psym=8, color=4, symsize=2.3*facSize  ;2*/maxAxis
-  ;   plots, 1.69, -1.18, psym=8, color=5, symsize=2.3*facSize  ;2*/maxAxis
-  ;   plots, -1.58, 0.08, psym=8, color=6, symsize=2.3*facSize  ;2*/maxAxis
-  ;   plots, -0.99, 0.00, psym=8, color=7, symsize=2.3*facSize  ;2*/maxAxis
-  ;
   ;KeesC 14SEP2014
   if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
     psFact=plotter->getPSCharSizeFactor()
@@ -2740,9 +2712,9 @@ PRO FM_PlotTable2, plotter, request, result
     fillint(5)=9 & fillstr(5,0:8)=['-1.5','-1','-.7','-.5','0','.5','.7','1.0','1.5']
     fillint(6)=4 & fillstr(6,0:3)=['.5','.7','1.0','1.5']
     fillint(7)=9 & fillstr(7,0:8)=['-1.5','-1','-.7','-.5','0','.5','.7','1.0','1.5']
-
-;KeesC 18SEP2014
-    mus=request->getParameterMeasureUnits()    
+    
+    ;KeesC 18SEP2014
+    mus=request->getParameterMeasureUnits()
     units=  [mus[0],'days',  '%',  ' ',' ',' ',' ',' ']
     
     recognizeRange=0.01
@@ -2760,8 +2732,8 @@ PRO FM_PlotTable2, plotter, request, result
         xyouts,xmin+0.005,ymax-0.18-ii*0.095,res1(0),/data,charsize=1.2*facSize*psFact,color=3,charthick=2.3
         xyouts,xmin+0.035,ymax-0.22-ii*0.095,res1(1),/data,charsize=1.0*facSize*psFact,color=3,charthick=2.3
       endif else begin
-;KeesC 18SEP2014    
-      ; ii=1
+        ;KeesC 18SEP2014
+        ; ii=1
         yii=ymax-0.20-ii*0.095
         if ii eq 1 then yii=ymax-0.20-ii*0.095+0.015
         xyouts,xmin+0.005,yii,legnames(ii),/data,charsize=1.2*facSize*psFact,color=3,charthick=2.3
@@ -3135,7 +3107,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
 
   !y.range=0
   plotter->wsetMainDataDraw
-;KeesC 14SEP2014
+  ;KeesC 14SEP2014
   resPoscript=plotter->currentDeviceIsPostscript()
   if resPoscript eq 0 then begin
     !p.font=0
@@ -3162,6 +3134,9 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   parCodes=request->getParameterCodes()
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
+  ;KeesC 20SEP2014
+  nsce=request->getScenarioNumber()
+  psFact=plotter->getPSCharSizeFactor()
   obsNames=request->getSingleObsNames()
   nobs=n_elements(allDataXY(*,0))
   nMulti=nobs*npar*nmod   ;8
@@ -3172,6 +3147,9 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   recognizePoint=fltarr(4,2)
   npoints=n_elements(allDataXY(*,0))
   adummy=fltarr(10) & adummy(*)=1.
+  mus=request->getParameterMeasureUnits()
+  modelInfo=request->getModelInfo()
+  frequency=modelInfo.frequency  ; hour year
   
   if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 then begin  ;NMSD
   
@@ -3206,7 +3184,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
         yy1_05s(i)= min([ sqrt(.5)*200.*xx(i), ymax])
         yy2_05s(i)= max([-sqrt(.5)*200.*xx(i),-ymax])
       endfor
-; KeesC 14SEP2014
+      ; KeesC 14SEP2014
       polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=4
       polyfill,[xx,reverse(xx)],[yy2_05s,reverse(yy1_05s)],/data,color=7
       oplot,xx,yy2_05,linestyle=2,thick=2,color=0
@@ -3291,14 +3269,48 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
       recognizeNames[iobs]=legNames[iobs]
       recognizeValues[iobs]=strcompress(allDataXY(iObs, 0),/remove_all)+'/'+strcompress(allDataXY(iObs, 1),/remove_all)
     endfor
-    
   endif
+  
+  ;KeesC 20SEP2014
+;  cc=where(finite(allDataXY(*,2)) eq 1,countValidStations)
+;  countValidStations=countValidStations/(npar*nmod*nsce)
+;  if countValidStations gt 0 then begin
+;    radius = sqrt(allDataXY[cc,2]^2+allDataXY[cc,3]^2)
+;    ccCrit=where(radius le 1,countCritPerc)
+;    percentageCrit=fix(100.*float(countCritPerc)/float(countValidStations))
+;    if percentageCrit ge 90 then colorPerc=7   ;green
+;    if percentageCrit lt 90 then colorPerc=2   ;red
+;    !p.font=-1
+;    device,set_font='System'
+;    xyouts,0.1,0.88,strtrim(percentageCrit,2)+'% ',color=colorPerc,/normal,$
+;      charthick=4,charsize=3*psFact
+;    xyouts,0.2,0.88,'based on rmse',color=0,/normal,$
+;      charthick=2,charsize=2*psFact
+;    if resPoscript eq 0 then begin
+;      !p.font=0
+;      device,set_font='Arial*18*bold'
+;    endif
+;  endif
   
   rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
   plotInfo->setRecognizeInfo, rInfo
   
   jumpend:
-;KeesC 14SEP2014  
+;KeesC 22SEP2014
+  if criteria gt 0. then begin
+    ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
+    astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
+    rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
+    xyouts,.83,.92,'U = '+ustr+' %',/normal,color=0
+    xyouts,.83,.89,'Alpha = '+astr,/normal,color=0
+    xyouts,.83,.86,'RV = '+rstr+' '+mus[0],/normal,color=0
+    if strupcase(frequency) eq 'YEAR' then begin
+      xyouts,.81,.81,'Np = '+npstr,/normal,color=0
+      xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0
+    endif
+  endif
+  
+  ;KeesC 14SEP2014
   !p.font=-1
   device,set_font='System'
 END
@@ -3484,7 +3496,7 @@ END
 
 PRO FM_PlotTable2legend, plotter, request, result
 
-;KeesC 15SEP2014  No Legend for Summ report
+  ;KeesC 15SEP2014  No Legend for Summ report
   plotter->wsetInfoDataDraw
   psFact=plotter->getPSCharSizeFactor()
   resPoscript=plotter->currentDeviceIsPostscript()
@@ -3496,7 +3508,7 @@ PRO FM_PlotTable2legend, plotter, request, result
   obj_destroy, black
   DEVICE, DECOMPOSED=1
   plotter->erase, whiteL
-;KeesC 18SEP2014
+  ;KeesC 18SEP2014
   resPoscript=plotter->currentDeviceIsPostscript()
   if resPoscript eq 0 then begin
     !p.font=0
@@ -3515,54 +3527,54 @@ PRO FM_PlotTable2legend, plotter, request, result
   targetInfo=Result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
   if string(allDataXY[0]) eq 'AllNaN' then goto,jumpend
-
-;KeesC 18SEP2014
-    thisStartX=startX+legoWidth+.02
-    mypsym,5,2
-    startY=0.9-1.5*legoHeight
-    coords=[thisStartX+(legoWidth/2), startY]
-    coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.25
-    coords=[thisStartX+3*(legoWidth/2), startY]
-    coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.25
-    coords=[thisStartX+5*(legoWidth/2), startY]
-    coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.25
-    x00=coords[0]+0.025
-    text1='Performance Criteria satisfied'
-    xyouts,x00, coords[1]-0.05,text1,/normal,color=0,charsize=1.25,charthick=1.25
-    mypsym,5,2
-    startY=0.9-6.5*legoHeight
-    coords=[thisStartX+(legoWidth/2), startY]
-    coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.25  
-    coords=[thisStartX+3*(legoWidth/2), startY]
-    coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.25
-    coords=[thisStartX+5*(legoWidth/2), startY]
-    coords=plotter->legendNormalize(coords)
-    plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.25
-    text2='Performance Criteria satisfied; Error dominated by corresponding Indicator'
-    xyouts,x00, coords[1]-0.05,text2,/normal,color=0,charsize=1.25,charthick=2
-    mypsym,9,2
-    startY=0.9-11.5*legoHeight
-    coords=[thisStartX+(legoWidth/2), startY]
-    coords=plotter->legendNormalize(coords)
-    plots, coords[0]+legoWidth, coords[1], psym=8, color=7, /NORM, symsize=1.25
-    text3a='TIME: >90% of stations fulfills the Performance Criteria
-    xyouts,x00, coords[1]-0.05,text3a,/normal,color=0,charsize=1.25,charthick=2
-    text3b='SPACE: Dot fulfills the Performance Criteria
-    xyouts,x00, coords[1]-0.2,text3b,/normal,color=0,charsize=1.25,charthick=2
-    mypsym,9,2
-    startY=1-25*legoHeight
-    coords=[thisStartX+(legoWidth/2), startY]
-    coords=plotter->legendNormalize(coords)
-    plots, coords[0]+legoWidth, coords[1], psym=8, color=2, /NORM, symsize=1.25
-    text4a='TIME: <90% of stations fulfills the Performance Criteria
-    xyouts,x00, coords[1]-0.05,text4a,/normal,color=0,charsize=1.25,charthick=2
-    text4b='SPACE: Dot does not fulfill the Performance Criteria
-    xyouts,x00, coords[1]-0.2,text4b,/normal,color=0,charsize=1.25,charthick=2
+  
+  ;KeesC 18SEP2014
+  thisStartX=startX+legoWidth+.02
+  mypsym,5,2
+  startY=0.9-1.5*legoHeight
+  coords=[thisStartX+(legoWidth/2), startY]
+  coords=plotter->legendNormalize(coords)
+  plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.25
+  coords=[thisStartX+3*(legoWidth/2), startY]
+  coords=plotter->legendNormalize(coords)
+  plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.25
+  coords=[thisStartX+5*(legoWidth/2), startY]
+  coords=plotter->legendNormalize(coords)
+  plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.25
+  x00=coords[0]+0.025
+  text1='Performance Criteria satisfied'
+  xyouts,x00, coords[1]-0.05,text1,/normal,color=0,charsize=1.25,charthick=1.25
+  mypsym,5,2
+  startY=0.9-6.5*legoHeight
+  coords=[thisStartX+(legoWidth/2), startY]
+  coords=plotter->legendNormalize(coords)
+  plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.25
+  coords=[thisStartX+3*(legoWidth/2), startY]
+  coords=plotter->legendNormalize(coords)
+  plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.25
+  coords=[thisStartX+5*(legoWidth/2), startY]
+  coords=plotter->legendNormalize(coords)
+  plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.25
+  text2='Performance Criteria satisfied; Error dominated by corresponding Indicator'
+  xyouts,x00, coords[1]-0.05,text2,/normal,color=0,charsize=1.25,charthick=2
+  mypsym,9,2
+  startY=0.9-11.5*legoHeight
+  coords=[thisStartX+(legoWidth/2), startY]
+  coords=plotter->legendNormalize(coords)
+  plots, coords[0]+legoWidth, coords[1], psym=8, color=7, /NORM, symsize=1.25
+  text3a='TIME: >90% of stations fulfills the Performance Criteria
+  xyouts,x00, coords[1]-0.05,text3a,/normal,color=0,charsize=1.25,charthick=2
+  text3b='SPACE: Dot fulfills the Performance Criteria
+  xyouts,x00, coords[1]-0.2,text3b,/normal,color=0,charsize=1.25,charthick=2
+  mypsym,9,2
+  startY=1-25*legoHeight
+  coords=[thisStartX+(legoWidth/2), startY]
+  coords=plotter->legendNormalize(coords)
+  plots, coords[0]+legoWidth, coords[1], psym=8, color=2, /NORM, symsize=1.25
+  text4a='TIME: <90% of stations fulfills the Performance Criteria
+  xyouts,x00, coords[1]-0.05,text4a,/normal,color=0,charsize=1.25,charthick=2
+  text4b='SPACE: Dot does not fulfill the Performance Criteria
+  xyouts,x00, coords[1]-0.2,text4b,/normal,color=0,charsize=1.25,charthick=2
   
   jumpEnd:
   
