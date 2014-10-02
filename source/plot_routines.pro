@@ -925,8 +925,9 @@ PRO FM_PlotScatter, plotter, request, result
   allDataColor=targetInfo->getColors()
   modelCodes=request->getModelCodes()
   nobs=request->getSingleObsNumber()
+; KeesC 02OCT2014
+  totalStationNb=nobs
   mus=request->getParameterMeasureUnits()
-  
   groupTitles=request->getGroupTitles()
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
@@ -939,7 +940,7 @@ PRO FM_PlotScatter, plotter, request, result
   psFact=plotter->getPSCharSizeFactor()
   dims=size(allDataXY,/dimensions)
   nobs=dims(0)/npar/nmod/nsce
-  totalStationNb=nobs
+; KeesC 02OCT2014
   nmulti=npar*nsce*nmod*nobs
   if elabCode ne 50 then begin
     maxAxis=max([0,max(allDataXY,/nan)])*1.2
@@ -1077,7 +1078,7 @@ PRO FM_PlotScatter, plotter, request, result
         ipar=iobs-(iobs/npar)*npar
         istat=(iobs/npar)
         mypsym,allDataSymbol[iobs],1
-        plots, allDataXY[iObs, 0], allDataXY[iObs, 1], psym=8, color=2+allDataColor[iobs], symsize=1.5
+        plots, allDataXY[iObs,0], allDataXY[iObs,1], psym=8, color=2+allDataColor[iobs], symsize=1.5
         recognizePoint=fltarr(4,2)
         recognizePoint[0,*]=[allDataXY[iObs, 0]-recognizeRange, allDataXY[iObs, 1]-recognizeRange]
         recognizePoint[1,*]=[allDataXY[iObs, 0]-recognizeRange, allDataXY[iObs, 1]+recognizeRange]
@@ -1106,7 +1107,7 @@ PRO FM_PlotScatter, plotter, request, result
       endfor
       
       if criteria[0] gt 0 and isGroupSelection eq 0 then begin
-        cc=where(finite(allDataXY[*, 0]) eq 1 and finite(allDataXY[*, 1]) eq 1,countValidStations)
+        cc=where(finite(allDataXY[*,0]) eq 1 and finite(allDataXY[*,1]) eq 1,countValidStations)
         if countValidStations gt 0 then begin
           psFact=plotter->getPSCharSizeFactor()
           ;KeesC 14SEP2014
@@ -1132,7 +1133,8 @@ PRO FM_PlotScatter, plotter, request, result
           if strupcase(frequency) eq 'HOUR' then begin
             ;KeesC 17JAN2014
             polyfill,[0.15,0.55,0.55,0.15],[0.85,0.85,0.92,0.92],color=15,/normal
-            xyouts,0.16,0.87,'valid/selected stations/groups: '+strtrim(validStationNb,2)+'/'+strtrim(totalStationNb,2),$
+            xyouts,0.16,0.87,'valid/selected stations/groups: '+$
+              strtrim(validStationNb,2)+'/'+strtrim(totalStationNb,2),$
               color=0,/normal,charthick=2,charsize=1.5*psFact
           endif
         endif
