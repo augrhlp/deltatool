@@ -388,9 +388,9 @@ PRO SG_Computing, $
             obsTemp(*)=-999
           endelse
           
-          ccc=where(obsTemp eq 0, countCCC)
+;          ccc=where(obsTemp eq 0, countCCC)
 ; KeesC 8NOV2013: added elabCode=38
-          if countCCC gt 0 and elabCode ne 38 then obsTemp(ccc)=-999.
+;          if countCCC gt 0 and elabCode ne 38 then obsTemp(ccc)=-999.
           
           
           if elabCode ne 71 and elabCode ne 72 and elabCode ne 73 then begin
