@@ -1552,9 +1552,9 @@ if isSingleSelection then begin
     runTempSort=runTemp(sort(runTemp))
     percentileThreshold=0.95
     if strupcase(parCodes) eq 'NO2' then percentileThreshold=0.998
-    if strupcase(parCodes) eq 'O3' then percentileThreshold=0.904
-    if strupcase(parCodes) eq 'PM10' then percentileThreshold=0.931
-    if strupcase(parCodes) eq 'PM25' then percentileThreshold=0.931
+    if strupcase(parCodes) eq 'O3' then percentileThreshold=0.929
+    if strupcase(parCodes) eq 'PM10' then percentileThreshold=0.901
+    if strupcase(parCodes) eq 'PM25' then percentileThreshold=0.901
     timeLength=n_elements(obsTemp)
     indiceT=fix(percentileThreshold*timeLength)
     obstempThreshold=obstemp
