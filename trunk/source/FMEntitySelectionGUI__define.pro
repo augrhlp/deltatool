@@ -1050,9 +1050,10 @@ PRO FMEntitySelectionGUI::buildModelSection, base
   obsModelBase = widget_base(extraFlagBase, $
     XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
+; KeesC 20NOV2014    
   self.observedModelFlagButton = widget_button(obsModelBase, $
     XOFFSET=0 ,YOFFSET=0, VALUE='MOD without OBS', event_pro=self.eventPrefix+'useObsModButton', $
-    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedFilter())
+    SCR_YSIZE=self->getLabelYSize(), sensitive=1)   ;self.mgr->isAdvancedFilter())
     
 END
 
