@@ -63,7 +63,6 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
         if firstRow eq 1 then begin
           firstRow=0     
           if strcompress(strlowcase(info[0]),/remove_all) eq 'yearlyavg' then begin
-; KeesC 11SEP2014
             infoyr=info[1]
             year=fix(infoyr)
             info=[infoyr,'mm','dd','hh',info[2:count-1]]
@@ -72,20 +71,26 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
           endif
           HEADER=info
           storeData=strarr(n_elements(info),8785) & storeData(*,*)='-999'  ;8760
-          nInf=n_elements(info)
+;KeesC 05NOV2014 (1 line)    
+          nStoreData=n_elements(info)
         endif else begin
           if yearAVG eq 1 then begin
              info=[infoyr,'mm','dd','hh',info]
              storeData[*, 0]=strcompress(info, /REMOVE_all)
              goto,yAvg
-          endif  
-; KeesC 8APR2013          
+          endif           
           year=fix(info[0])       
           k1=day_sum(fix(info(1))-1)*24
           k2=(fix(info(2))-1)*24
           k3=fix(info(3))
           k0=k1+k2+k3
-          storeData[*, k0]=strcompress(info, /REMOVE_all)
+;KeesC 05NOV2014 (6 lines)       
+          nInf=n_elements(info)
+          infoHLP=fltarr(nStoreData)
+          if nInf eq nStoreData then infoHLP=info
+          if nInf lt nStoreData then infoHLP[0:nInf-1]=info
+          if nInf ge nStoreData then infoHLP=info[0:nStoreData-1] 
+          storeData[*, k0]=strcompress(infoHLP, /REMOVE_all)
         endelse
       endelse
     endwhile
