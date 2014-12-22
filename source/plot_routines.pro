@@ -2929,10 +2929,11 @@ PRO FM_PlotTable2, plotter, request, result
     deltaY=0.20
     
     recognizeRange=0.01
-    recognizeHighLight=bytarr(5*n_elements(allDataSymbol))
-    recognizeRegionEdges=ptrarr(5*n_elements(allDataSymbol)) ; coords (normalized standard)
-    recognizeNames=strarr(5*n_elements(allDataSymbol))
-    recognizeValues=strarr(5*n_elements(allDataSymbol))
+;KeesC 19DEC2014: 5* changed into 4* in the following 4 lines    
+    recognizeHighLight=bytarr(4*n_elements(allDataSymbol))     ;5*
+    recognizeRegionEdges=ptrarr(4*n_elements(allDataSymbol)) ; coords (normalized standard)
+    recognizeNames=strarr(4*n_elements(allDataSymbol))
+    recognizeValues=strarr(4*n_elements(allDataSymbol))
     recognizePoint=fltarr(4,2)
     kg=0
     
@@ -3013,10 +3014,11 @@ PRO FM_PlotTable2, plotter, request, result
         if allDataXY(ip,ii) lt minVal(ii) gt 0 then xposDot=xmin+0.22
         plots,xposDot,ymax-0.23-ii*deltaY,psym=8,color=allDataColors(ip),symsize=1,/data
         
-        recognizePoint[0,*]=[xposDot-recognizeRange, ymax-0.18-ii*deltaY-recognizeRange]
-        recognizePoint[1,*]=[xposDot-recognizeRange, ymax-0.18-ii*deltaY+recognizeRange]
-        recognizePoint[2,*]=[xposDot+recognizeRange, ymax-0.18-ii*deltaY+recognizeRange]
-        recognizePoint[3,*]=[xposDot+recognizeRange, ymax-0.18-ii*deltaY-recognizeRange]
+;KeesC 19DEC2014: 0.18 changed into 0.23 in the following 4 lines        
+        recognizePoint[0,*]=[xposDot-recognizeRange, ymax-0.23-ii*deltaY-recognizeRange]   ;0.18
+        recognizePoint[1,*]=[xposDot-recognizeRange, ymax-0.23-ii*deltaY+recognizeRange]
+        recognizePoint[2,*]=[xposDot+recognizeRange, ymax-0.23-ii*deltaY+recognizeRange]
+        recognizePoint[3,*]=[xposDot+recognizeRange, ymax-0.23-ii*deltaY-recognizeRange]
         recognizePoint1=transpose(recognizePoint)
         normRecognizePoint=convert_coord(recognizePoint1, /DATA, /TO_NORMAL)
         normRecognizePoint=transpose(normRecognizePoint)
