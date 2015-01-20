@@ -18,7 +18,8 @@ pro All_Steps
   ;STEP 03: MODEL/PARAMETERS/MONITORING sections in STARTUPfile
   ;STEP 04: Read Species from PARAMETERS section in STARTUPfile
   ;STEP 05: Read Stations from MONITORING section in STARTUPfile
-  ;STEP 06: Check redundant station-filenames in STARTUPfile
+;KeesC 18JAN2015 1 line
+  ;STEP 06: Check redundant station-Codes/Names/Abbr in STARTUPfile
   ;STEP 07: Check Nb of stations in STARTUPfile and MONITORING_DIR
   ;STEP 08: Consistency of statnames and OBSfiles
   ;STEP 09: Check consistency of species in STARTUPfile and OBSfile
@@ -46,6 +47,9 @@ pro All_Steps
   types=strarr(100)
   units=strarr(100)
   statnames=strarr(6000)
+;KeesC 18JAN2015  2 lines  
+  statcodes=strarr(6000)
+  statabbr=strarr(6000)
   staterror=strarr(6000)
   spec_stations=strarr(6000)
   ierror=0
@@ -466,21 +470,57 @@ if itobs eq 1 then begin
   ReadStatSpec
   
   widget_control,labprog_txt,set_value='STEP 06'
-  res0=sort(STRLOWCASE(statnames))
-  res1=strlowcase(statnames(res0))
-  res=uniq(res1)
-  cc=where(indgen(n_elements(statnames)) eq res)
+;KeesC 18JAN2015 12 lines  
+  Nres0=sort(strupcase(statnames))
+  Nres1=strupcase(statnames(Nres0))
+  Nres=uniq(Nres1)
+  Ncc=where(indgen(n_elements(statnames)) eq Nres)
+  Cres0=sort(strupcase(statcodes))
+  Cres1=strupcase(statcodes(Cres0))
+  Cres=uniq(Cres1)
+  Ccc=where(indgen(n_elements(statcodes)) eq Cres)
+  Ares0=sort(strupcase(statabbr))
+  Ares1=strupcase(statabbr(Ares0))
+  Ares=uniq(Ares1)
+  Acc=where(indgen(n_elements(statabbr)) eq Ares)
   printf,11,'*************************************************************'
   printf,11,'***         STEP 06                                         *'
-  printf,11,'*** Check redundant station-filenames in STARTUPfile        *'
+  printf,11,'*** Check redundant station-Codes/Names/Abbr in STARTUPfile        *'
   printf,11,'*************************************************************'
+; KeesC 18JAN2015 5 lines  
+  printf,11,'See SummaryFile'
+  printf,12,'*************************************************************'
+  printf,12,'***         STEP 06                                         *'
+  printf,12,'*** Check redundant station-Codes/Names/Abbr in STARTUPfile        *'
+  printf,12,'*************************************************************'
   print,'STEP 06'
-  if n_elements(res) eq n_elements(statnames) then begin
+; KeesC 18JAN2015 1 line  
+  if n_elements(Nres) eq n_elements(statnames) and n_elements(Cres) eq n_elements(statcodes) and $
+    n_elements(Ares) eq n_elements(statabbr) then begin
     printf,11,'STEP 06 OK: No redundant filenames in STARTUPfile'
-  endif else begin
-    txt='STEP 06: STOP! Redundancy in STARTUPfile: '+res1(n_elements(cc))+'stations to be schecked '
+    txt='STEP 06 OK: No redundant filenames in STARTUPfile'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
+  endif else begin
+;KeesC 18JAN2015 18 lines
+    if n_elements(Nres) ne n_elements(statnames) then begin
+      txt='STEP 06: STOP! Redundancy in STARTUPfile: '+Nres1(n_elements(Ncc))+' station to be checked '
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+      printf,12,'Redundancy in STARTUPfile: '+Nres1(n_elements(Ncc))+' station to be checked '
+    endif  
+    if n_elements(Cres) ne n_elements(statcodes) then begin
+      txt='STEP 06: STOP! Redundancy in STARTUPfile: '+Cres1(n_elements(Ccc))+' station to be checked '
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+       printf,12,'Redundancy in STARTUPfile: '+Cres1(n_elements(Ccc))+' station to be checked '
+    endif  
+    if n_elements(Ares) ne n_elements(statabbr) then begin
+      txt='STEP 06: STOP! Redundancy in STARTUPfile: '+Ares1(n_elements(Acc))+' station to be checked '
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+      printf,12,'Redundancy in STARTUPfile: '+Ares1(n_elements(Acc))+' station to be checked '
+    endif  
     txtall=['STOP',txtall]
     widget_control,labcom_txt,set_value=txtall
     close,11
@@ -489,6 +529,8 @@ if itobs eq 1 then begin
     return
   endelse
   printf,11,' '
+;KeesC 18JAN2015 1 line  
+  printf,12,' '
   widget_control,labok(6),set_value=' *OK* '
   
   ; *******************************************************************************************************
@@ -542,7 +584,7 @@ if itobs eq 1 then begin
   inconsistent_files=' '
   for i=0,n_elements(statnames)-1 do begin
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
-      cc=where(statnames(i) eq filenames, count)
+      cc=where(strupcase(statnames(i)) eq strupcase(filenames), count)
       if count eq 0 then inconsistent_files=[inconsistent_files,statnames(i)]
       count_file=count_file+count
     endif
@@ -583,6 +625,7 @@ if itobs eq 1 then begin
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
       fn=file_search(dir_obs+statnames[i]+'.csv',count=count)
       if count eq 1 then begin
+;      print,statnames[i]
         close,1 & openr,1,fn
         speclist=strsplit(spec_stations(i),'*',/extract) ; speclist is list of specs at station i from startup.ini
         readf,1,atxt  ; first line in obsfile
@@ -733,6 +776,7 @@ if itobs eq 1 then begin
   extvalues=0
   day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
   for i=0,n_elements(statnames)-1 do begin
+;  print,i
     widget_control,labprog_txt,set_value='STEP 11: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
       fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
@@ -1407,6 +1451,9 @@ if itobsmod eq 1 then begin
         !quiet=1
       endfor
     endif
+;KeesC 12JAN2015    
+    startHour=float(startHour)
+    endHour=float(endHour)
     if icase eq 1 then begin
       ncdf_attget,id,'Parameters',params,/global
       params=string(params)
@@ -1457,7 +1504,8 @@ if itobsmod eq 1 then begin
           kc=where(ivar eq 0,nkc)
           if nkc ge 1 then var(kc)=-999
           cc=where(var gt -800.,count)   ;var(8760)
-          avail(i,is)=count/(EndHour-StartHour)*100.
+;KeesC 12JAN2015           
+          avail(i,is)=float(count)/(EndHour-StartHour+1.)*100.
           cc=where(var le -800.,count)   ;var(8760)
           if count ge 1 then var(cc)=!values.f_nan
           minv=min(var,/nan)
