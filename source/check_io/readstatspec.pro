@@ -20,12 +20,17 @@ while ~eof(1) do begin
     staterror(i)=1
   endif
   statnames(i)=res(1)
+;KeesC 18JAN2015 2 lines  
+  statcodes(i)=res(0)  
+  statabbr(i)=res(2)
   print,statnames(i)
   spec_stations(i)=res(n_elements(res)-1)
   i++
 endwhile
 close,1 
 statnames=reform(statnames(0:i-1))
+statcodes=reform(statcodes(0:i-1))
+statabbr=reform(statabbr(0:i-1))
 spec_stations=reform(spec_stations(0:i-1))
 spec_stations=strcompress(spec_stations,/remove_all)
 cc=where(strupcase(spec_stations) eq 'NOOBS',numb_NoOBS)

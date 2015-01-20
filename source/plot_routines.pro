@@ -68,11 +68,13 @@ PRO FM_PlotBars, plotter, request, result
     endif
   endif
   if strmid(ifree,2,1) eq '1' then begin
-    allDataXY(*,*,*,*,0)=0.
-    obsbar=0
+;KeesC 23DEC2014    
+;    allDataXY(*,*,*,*,0)=0.
+;    obsbar=0
   endif
   if ifree eq '1011' or ifree eq '0111' then begin
-    allDataXY(*,*,*,*,0)=(!y.range(1)-!y.range(0))/50.
+;KeesC 23DEC2014    
+;    allDataXY(*,*,*,*,0)=(!y.range(1)-!y.range(0))/50.
     obsbar=1
   endif
   
