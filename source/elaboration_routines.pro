@@ -350,6 +350,8 @@ PRO SG_Computing, $
   flag_average=hourStat[0].value
   statType=request->getGroupByStatInfo()
   iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
+  extraValNumber=request->getExtraValuesNumber()
+  if extraValNumber gt 0 then extraVal=request->getExtraValues()
   
   dimAll=(Index1)*(Index2)*(Index3)*(Index4)
 ;KeesC 9NOV2013: 3 changed into 4  
@@ -695,17 +697,26 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=nmb([obsTemp1,obsTemp2],[runTemp1,runTemp2])
           endif
           if elabcode eq 74 then begin ;OU Forecast
-            obshlp = obsTemp(sort(obsTemp))
-            obsExc = obshlp(fix(0.95*n_elements(obsTemp)))
-            runhlp = runTemp(sort(runTemp))
-            runExc = runhlp(fix(0.95*n_elements(runTemp)))
-            ccObsMod1 = where (obsTemp ge obsExc and runTemp ge runExc,countExcModYesExcObsYes)
-            ccObsMod2 = where (obsTemp lt obsExc and runTemp lt runExc,countExcModNoExcObsNo)
-            far=(countExcModYesExcObsYes+countExcModNoExcObsNo)/float(n_elements(obsTemp))
-            sign=far-0.9  ;only for target
-            if finite(sign) eq 1 then sign=sign/abs(sign)   ;only for target
+            limitValue=extraVal(0)
+            uncertainty=extraVal(1)/100.
+            runOU=runTemp
+            for ii=0,n_elements(obsTemp) -1 do begin
+              if runtemp(ii) lt obsTemp(ii) then runOU(ii)=min([runTemp(ii)*(1+uncertainty),obsTemp(ii)])
+              if runtemp(ii) ge obsTemp(ii) then runOU(ii)=max([runTemp(ii)*(1-uncertainty),obsTemp(ii)])
+;              if obsTemp(ii) le limitValue then runOU(ii)=runTemp(ii)*(1-uncertainty)
+;              if obsTemp(ii) gt limitValue then runOU(ii)=runTemp(ii)*(1+uncertainty)
+            endfor
+            runTemp=runOU
+            GA_plus=where (obsTemp ge limitValue and runOU ge limitValue,countGaplus)
+            MA=where (obsTemp ge limitValue and runOU lt limitValue,countMA)          
+            FA=where (obsTemp lt limitValue and runOU ge limitValue,countFA)  
+            if countMA+countFA gt 0 then far=float(countGAplus)/float((countMA+countFA))
+            if countMA+countFA eq 0 then far=1
+            if countFA ge countMA then sign=1
+            if countFA lt countMA then sign=-1  ;only for target
             statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/resilience(obsTemp,statType)
             statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/resilience(obsTemp,statType)
+            statXYResult[i1,i2,i3,i4,2]=far
             statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp,statType)
           endif
         endfor  ;i4

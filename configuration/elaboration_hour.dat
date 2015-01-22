@@ -61,7 +61,7 @@
 71;1;Day-Night ;12;FREE;FREE;FREE;1;*1000*0100*0001*1001*0101*;0;NO;1*1*1*1*1;Dynamic Evaluation (Day-Night), additional selection fixed: Year, Summer(JJA), Winter(DJF);NONE;NONE
 72;1;Summer-Winter;12;FREE;FREE;0;0;*1000*0100*0001*1001*0101*;0;NO;1*1*1*1*1;Dynamic Evaluation (Summer-Winter), additional selection fixed: Day(7-19), Night(0-6,19-24), WD(Mo-Fr), WE(Sa-Su);NONE;NONE
 73;1;Weekdays-WeekEnd;12;FREE;FREE;FREE;0;*1000*0100*0001*1001*0101*;0;NO;1*1*1*1*1;Dynamic Evaluation (WD-WE), additional selection fixed: Year, Summer(JJA), Winter(DJF);NONE;NONE
-74;1;Forecast;4;FREE;FREE;FREE;FREE;0100*0001*0101*;0;NO;1*0*1*1*1;Target diagram for forecast. Based on Target for daily and hourly values and on Bugle for annual averages. This diagram is based on the normalized RMSE (or MFB for annual) and will work only if a performance criteria is available (check configuration file) and the choice of the users are fulfilling the conditions of application of this criteria.;OU;PMEAN
+74;1;Forecast;4;FREE;FREE;FREE;FREE;0100*0001*0101*;2;NO;1*0*1*1*1;Target diagram for forecast. First threshold parameter is the limit value, the second is the observation uncertainty in percent (e.g. from 1 to 100;OU;PMEAN
 
 75;1;O3/NO2 Bias (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;1*0*1*1*1;Bias category plot. All stations Bias are normalized by the observation uncertainty and classified in terms of their category (first station selection filter);OU;ALL
 76;1;O3/NO2 Correlation (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;1*0*1*1*1;All stations R criteria (function of OU) are classified in terms of their category (first station selection filter);OU;ALL

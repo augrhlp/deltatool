@@ -2272,6 +2272,27 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   isGroupSelection=request->isGroupObsPresent()
   mus=request->getParameterMeasureUnits()
   
+  if elabCode eq 74 then begin
+   no=n_elements(allDataSymbol)/nmod
+   allDataSymbol(0:no-1)=9  ;mod1
+   if nmod gt 1 then allDataSymbol(1*no:2*no-1)=8  ;mod2
+   if nmod gt 2 then allDataSymbol(2*no:3*no-1)=7  ;mod3
+   if nmod gt 3 then allDataSymbol(3*no:4*no-1)=6  ;mod4
+   if nmod gt 4 then allDataSymbol(4*no:5*no-1)=5  ;mod5
+   if nmod gt 5 then allDataSymbol(5*no:n_elements(allDataSymbol)-1)=4  ;all models beyond 5
+   far=reform(allDataXY(*,2))
+   cc=where(far lt 0.2,count)
+   if count gt 0 then allDataColor(cc)=2-2
+   cc=where(far ge 0.2 and far lt 0.4,count)
+   if count gt 0 then allDataColor(cc)=4-2
+   cc=where(far ge 0.4 and far lt 0.6,count)
+   if count gt 0 then allDataColor(cc)=16-2
+   cc=where(far ge 0.6 and far lt 0.8,count)
+   if count gt 0 then allDataColor(cc)=8-2
+   cc=where(far ge 0.8,count)
+   if count gt 0 then allDataColor(cc)=7-2
+  endif
+  
   npoints=n_elements(allDataXY(*,0))
   
   cc=where(finite(allDataXY(*,0)) eq 1,countValidStations)
@@ -2306,6 +2327,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   endif
   
   maxAxis=max([max(abs(allDataXY),/nan),1.5])
+  if elabCode eq 74 then maxAxis=max([max(abs(allDataXY(*,0:1)),/nan),1.5])
   plotRange=maxAxis + maxAxis*.4
   if finite(maxAxis) eq 0 then plotRange=1
   if finite(maxAxis) eq 0 then maxAxis=1
@@ -2332,11 +2354,11 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     ;KeesC 29OCT2013: 8 changed into 135
     POLYFILL, CIRCLE(0, 0, 1), /data, thick=2, color=135  ;green
     ;half circle Phil 14/09/2014
-    if elabcode eq 74 then begin
-      phi = Findgen(36) * (!PI * 2 / 36.)
-      phi = [ phi, phi(0) ]
-      POLYFILL, [Cos(phi[9:27]), Cos(phi[9])], [Sin(phi[9:27]), Sin(phi[9])], /data, thick=2, color=4  ;orange
-    endif
+;    if elabcode eq 74 then begin
+;      phi = Findgen(36) * (!PI * 2 / 36.)
+;      phi = [ phi, phi(0) ]
+;      POLYFILL, [Cos(phi[9:27]), Cos(phi[9])], [Sin(phi[9:27]), Sin(phi[9])], /data, thick=2, color=4  ;orange
+;    endif
     ; end Phil 14/09/2014
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
     if elabcode ne 74 then plots, CIRCLE(0, 0, 0.5), /data, thick=2, color=0,linestyle=2
@@ -2361,8 +2383,8 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   xyouts, -plotRange*0.1, plotRange*0.85, 'BIAS > 0',charthick=2, color=0,/data,charsize=facSize*1.5
   xyouts, -plotRange*0.1, -plotRange*0.95, 'BIAS < 0',charthick=2, color=0,/data,charsize=facSize*1.5
   if elabcode eq 74 then begin  ;forecast
-    xyouts, -plotRange*0.95, -plotRange*0.07, '(FA+MA)R > 0.1',charthick=2, color=0,/data,charsize=facSize*1.5
-    xyouts, plotRange*0.65, -plotRange*0.07,  '(FA+MA)R < 0.1',charthick=2, color=0,/data,charsize=facSize*1.5
+    xyouts, -plotRange*0.95, -plotRange*0.07, 'FA < MA',charthick=2, color=0,/data,charsize=facSize*1.5
+    xyouts, plotRange*0.65, -plotRange*0.07,  'FA > MA',charthick=2, color=0,/data,charsize=facSize*1.5
   endif else begin
     xyouts, -plotRange*0.95, -plotRange*0.07, 'R',charthick=2, color=0,/data,charsize=facSize*1.5
     xyouts, plotRange*0.85, -plotRange*0.07, 'SD',charthick=2, color=0,/data,charsize=facSize*1.5
@@ -2444,13 +2466,21 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   endif
   
   ;KeesC 11SEP2014
-  if criteria gt 0. then begin
+  if criteria gt 0. and elabcode ne 74 then begin
     ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
     astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
     rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
     xyouts,.83,.92,'U = '+ustr+' %',/normal,color=0
     xyouts,.83,.89,'Alpha = '+astr,/normal,color=0
     xyouts,.83,.86,'RV = '+rstr+' '+mus[0],/normal,color=0
+  endif
+  if elabCode eq 74 then begin
+    extraValNumber=request->getExtraValuesNumber()
+    if extraValNumber gt 0 then extraVal=request->getExtraValues()
+    ustr=strcompress(fix(extraVal[0]),/remove_all)
+    astr=strmid(strcompress(extraVal[1],/remove_all),0,3)
+    xyouts,.83,.92,'LV = '+ustr,/normal,color=0
+    xyouts,.83,.89,'OU = '+astr+' %',/normal,color=0
   endif
   rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
   plotInfo->setRecognizeInfo, rInfo
