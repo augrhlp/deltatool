@@ -505,8 +505,8 @@ if itobs eq 1 then begin
 ;KeesC 18JAN2015 18 lines
     if n_elements(Nres) ne n_elements(statnames) then begin
       txt='STEP 06: STOP! Redundancy in STARTUPfile: '+Nres1(n_elements(Ncc))+' station to be checked '
-      txtall=[txt,txtall]
-      widget_control,labcom_txt,set_value=txtall
+    txtall=[txt,txtall]
+    widget_control,labcom_txt,set_value=txtall
       printf,12,'Redundancy in STARTUPfile: '+Nres1(n_elements(Ncc))+' station to be checked '
     endif  
     if n_elements(Cres) ne n_elements(statcodes) then begin
@@ -541,9 +541,9 @@ if itobs eq 1 then begin
   printf,11,'*** Check Nb of stations in STARTUPfile and MONITORING_DIR    *'
   printf,11,'***************************************************************'
   print,'STEP 07'
-  dir_obs=dir_obs+'\'
-  filenames=file_search(dir_obs+'*.csv',count=count_filenames)
-  filenames=strmid(filenames,strlen(dir_obs),100)
+  ;dir_obs=dir_obs+'\'
+  filenames=file_search(dir_obs+'\*.csv',count=count_filenames)
+  filenames=strmid(filenames,strlen(dir_obs)+1,100)
   for i=0,count_filenames-1 do begin
     res=strsplit(filenames(i),'.',/extract)
     filenames(i)=res(0)
@@ -625,7 +625,6 @@ if itobs eq 1 then begin
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
       fn=file_search(dir_obs+statnames[i]+'.csv',count=count)
       if count eq 1 then begin
-;      print,statnames[i]
         close,1 & openr,1,fn
         speclist=strsplit(spec_stations(i),'*',/extract) ; speclist is list of specs at station i from startup.ini
         readf,1,atxt  ; first line in obsfile
@@ -686,8 +685,8 @@ if itobs eq 1 then begin
   iprob=0
   for i=0,n_elements(statnames)-1 do begin
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
-      fn=dir_obs+statnames[i]+'.csv'
-      fns=strmid(fn,strlen(dir_obs),100)
+      fn=dir_obs+'\'+statnames[i]+'.csv'
+      fns=strmid(fn,strlen(dir_obs)+1,100)
       widget_control,labprog_txt,set_value='STEP 10: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
       nlines=file_lines(fn)
       close,1 & openr,1,fn
@@ -776,7 +775,6 @@ if itobs eq 1 then begin
   extvalues=0
   day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
   for i=0,n_elements(statnames)-1 do begin
-;  print,i
     widget_control,labprog_txt,set_value='STEP 11: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
       fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
