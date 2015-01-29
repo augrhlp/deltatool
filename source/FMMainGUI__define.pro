@@ -170,6 +170,26 @@ PRO FMMainGUI::showDisclaimer
   
 END
 
+PRO FMMainGUI::configureExecutable
+
+  ;getFairModeFileName
+  self.mgr->configureExecutable
+  
+END
+
+;PRO FMMainGUI::showLicense
+;
+;  ;getFairModeFileName
+;  self.mgr->showLicense
+;;  if obj_valid(self.disclaimerGUI) then obj_destroy, self.disclaimerGUI
+;;  logo=self.mgr->getSplashLogoImage()
+;;  self.disclaimerGUI=obj_new('FMDisclaimerGUI', mgr, logo, self.mgr->getVersionCode(), self.mgr->getVersionDate())
+;;  self.disclaimerGUI->realize
+;;  self.disclaimerGUI->moveToCenterScreen
+;;  self.disclaimerGUI->show
+;  
+;END
+
 PRO FMMainGUI::switchRecognize
 
   if self.recognizerVisibleStatus then self.recognizerGUI->hide else self.recognizerGUI->show
@@ -629,7 +649,9 @@ PRO FMMainGUI::build
   checkIntegrityBtt=widget_Button(helpMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
   wwwPageBtt=widget_Button(helpMenu, VALUE='DELTA WWW', UNAME='Download site...', UVALUE='OPENWWW_BTT', event_pro=self.eventPrefix+'downloadMenuSelection')
   aboutBtt=widget_Button(helpMenu, VALUE='About...', UNAME='About', UVALUE='DISPMAP', event_pro=self.eventprefix+'aboutSplash')
-  disclaimerBtt=widget_Button(helpMenu, VALUE='Disclaimer...', UNAME='Disclaimer', UVALUE='DISPMAP', event_pro=self.eventprefix+'disclaimer')
+  ;disclaimerBtt=widget_Button(helpMenu, VALUE='Disclaimer...', UNAME='Disclaimer', UVALUE='DISPMAP', event_pro=self.eventprefix+'disclaimer')
+  foundExeBtt=widget_Button(helpMenu, VALUE='Find external applications paths...', UNAME='UpdateExe', UVALUE='DISPMAP', event_pro=self.eventprefix+'configureExecutable')
+  licenseBtt=widget_Button(helpMenu, VALUE='Licence...', UNAME='License', UVALUE='DISPMAP', event_pro=self.eventprefix+'license')
   
   mBase=WIDGET_BASE(mainbase,xpad=0, ypad=0,space=0,/COLUMN)
   logoBase= WIDGET_BASE(mBase,xpad=0, ypad=0,space=0,/ROW, /ALIGN_CENTER)
