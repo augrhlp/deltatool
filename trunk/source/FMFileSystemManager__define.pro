@@ -1,6 +1,150 @@
 ;********************
 @structure_definition
 ;********************
+FUNCTION FMFileSystemManager::getReleaseDate
+
+  keyName='date'
+  fileName='app.folder.ini'
+  RT_APP=1
+  return, self->readKeyFromInit(fileName, keyName, RT_APP=RT_APP)
+  
+END
+
+FUNCTION FMFileSystemManager::getVersion
+
+  keyName='version'
+  fileName='app.folder.ini'
+  RT_APP=1
+  return, self->readKeyFromInit(fileName, keyName, RT_APP=RT_APP)
+  
+END
+
+FUNCTION FMFileSystemManager::getLicenseFileName, FULLPATH=FULLPATH
+
+  ;keyName='version'
+  ;mainDir=self->readKeyFromInit(fileName, keyName, RT_APP=RT_APP)
+  fileName='licence.rtf'
+  if keyword_set(FULLPATH) then fileName=self->getHelpDir(/WITH)+fileName
+  return, fileName
+
+END
+
+FUNCTION FMFileSystemManager::getHelpFileName, FULLPATH=FULLPATH
+
+  ;keyName='version'
+  ;mainDir=self->readKeyFromInit(fileName, keyName, RT_APP=RT_APP)
+  fileName='DELTA_UserGuide_V'+self->getVersion()+'.pdf'
+  if keyword_set(FULLPATH) then fileName=self->getHelpDir(/WITH)+fileName
+  return, fileName
+  
+END
+
+FUNCTION FMFileSystemManager::getEntityTemplateFileName
+
+  return, 'test_template.ent'
+  
+END
+
+FUNCTION FMFileSystemManager::getElaborationTemplateFileName
+
+  return, 'test_template.elb'
+  
+END
+
+FUNCTION FMFileSystemManager::getBatchTemplateFileName
+
+  return, 'test_template.btc'
+  
+END
+
+FUNCTION FMFileSystemManager::getRequestTemplateFileName, POSTSCRIPT=POSTSCRIPT, RASTER=RASTER
+
+  fName='test_template.rqs'
+  if keyword_set(POSTSCRIPT) then fName='test_template_ps.rqs'
+  if keyword_set(RASTER) then fName='test_template_rst.rqs'
+  return, fName
+  
+END
+
+FUNCTION FMFileSystemManager::getMagicElaborationList
+
+  return, self->getTestDir(/WITH)+'elablist.txt'
+  
+END
+
+FUNCTION FMFileSystemManager::getTestDir, WITHSEPARATOR=WITHSEPARATOR
+
+  if keyword_set(WITHSEPARATOR) then sep=path_sep() else sep=''
+  return, self->getSaveDir(/WITH)+'test'+sep
+  
+END
+
+FUNCTION FMFileSystemManager::getMagicEntityList
+
+  return, self->getTestDir(/WITH)+'entitylist.txt'
+  
+END
+
+FUNCTION FMFileSystemManager::cleanPath, testPath
+
+  cleanPathStr=strtrim(testPath, 2)
+  found=1
+  while found do begin
+    length=strlen(cleanPathStr)
+    slashPos=strpos(cleanPathStr, path_sep(), /REVERSE_SEARCH)
+    if length-1 eq slashPos then cleanPathStr=strmid(cleanPathStr,0, length-1) else found=0
+  endwhile
+  return, cleanPathStr
+  
+END
+
+FUNCTION FMFileSystemManager::isStartUpFileVerified, compareTime
+
+  if n_elements(compareTime) eq 0 then return, 0
+  return, compareTime eq self.startUpFileTime
+  
+END
+
+FUNCTION FMFileSystemManager::isRecentlyUpdated
+
+  lastModifiedDiff=systime(/sec)-self.startUpFileTime
+  maxDiff=self->getStartUpFileUpdatedCheckTime()
+  return, lastModifiedDiff lt maxDiff
+  
+END
+
+FUNCTION FMFileSystemManager::isAutoCheckEnabled
+
+  return, self.autoCheckEnabled
+  
+END
+
+FUNCTION FMFileSystemManager::getStartUpFileTime
+
+  return, self.startUpFileTime
+  
+END
+
+FUNCTION FMFileSystemManager::getStartUpFileUpdatedCheckTime
+
+  return, 60l*60*24*7 ; a week
+  
+END
+
+PRO FMFileSystemManager::addVersionInfo, varName, varValue
+
+  firstFreePos=(where(self.versionInfoText eq '', count))[0]
+  if count ne 0 then self.versionInfoText[firstFreePos]=varName+'='+varValue
+  
+END
+
+PRO FMFileSystemManager::setVersionInfoText, varNames, varValues
+
+  self.versionInfoText[*]=''
+  for i=0, n_elements(varNames)-1 do self.versionInfoText[i]=varNames[i]+'='+varValues[i]
+  
+END
+
 FUNCTION FMFileSystemManager::checkStartupFileContents, txt=txt, alltxt=alltxt
 
   alltxt=''
@@ -314,6 +458,20 @@ END
 ; *****************************
 ; resource building
 ; *****************************
+PRO FMFileSystemManager::buildVersionFileData, FORCE_OVERWRITE=FORCE_OVERWRITE
+  ;, unit, filename, parNames, parValues, WRITE=WRITE
+
+  filename=self->getVersionFileName()
+  fInfo=file_info(filename)
+  if not(fInfo.read) or keyword_set(FORCE_OVERWRITE) then begin
+    openw, unit, filename, /GET_LUN
+    lastInfo=where(self.versionInfoText ne '', count)
+    for i=0, count-1 do printf, unit, self.versionInfoText[i]
+    close, unit & free_lun, unit
+  endif
+  
+END
+
 PRO FMFileSystemManager::buildElaboration, unit, filename, elabs, parList, WRITE=WRITE
 
   if keyword_set(WRITE) then openw, unit, filename ;"ELABORATION"
@@ -1309,6 +1467,34 @@ PRO FMFileSystemManager::writeStartUpFile, fileName, lines
   
 END
 
+PRO FMFileSystemManager::writePlainTextFile, fileName, lines, APPEND=APPEND
+
+  ;file_copy,
+  openw, unit, fileName, /GET_LUN, APPEND=APPEND
+  for i=0, n_elements(lines)-1 do begin
+    printf, unit, lines[i]
+  endfor
+  close, unit & free_lun, unit
+  
+END
+
+FUNCTION FMFileSystemManager::readPlainTextFile, fileName, maxLines=maxLines
+
+  openr, unit, fileName, /GET_LUN
+  mtext=''
+  if n_elements(maxLines) eq 0 then allText=strarr(1000) else allText=strarr(maxLines)
+  
+  i=0
+  while not(eof(unit)) do begin
+    readf,unit, mtext
+    allText[i]=mtext
+    i++
+  endwhile
+  close, unit & free_lun, unit
+  return, allText[0:i-1]
+  
+END
+
 PRO FMFileSystemManager::replaceModelLines, lines, modelInfo
 
   lines[n_elements(lines)-1]='[MODEL]'
@@ -1321,8 +1507,9 @@ PRO FMFileSystemManager::replaceModelLines, lines, modelInfo
   
 END
 
-PRO FMFileSystemManager::loadInitFileData, parameterNames=parameterNames, parameterValues=parameterValues
-
+PRO FMFileSystemManager::loadInitFileData, parameterNames=parameterNames, parameterValues=parameterValues, $
+    parsToBeRemoved=parsToBeRemoved, isRecentlyUpdated=isRecentlyUpdated, checkFileTime=checkFileTime
+    
   ;get all configuration that system need from a configuration file!!!
   ERROR=0
   catch, error_status
@@ -1334,6 +1521,76 @@ PRO FMFileSystemManager::loadInitFileData, parameterNames=parameterNames, parame
   endif
   
   fileName=self->getInitFileName()
+  
+  bufferString=''
+  ;a=dialog_message(fileName+'...start reading')
+  openr, unit, fileName, /GET_LUN
+  
+  ;a=dialog_message('loading...'+observedDataRoot+observed.dataFile)
+  bufferString=''
+  i=0
+  
+  parameterNames=['']
+  parameterValues=['']
+  
+  newFileText='' & overwrite=0
+  while not(eof(unit)) do begin
+    readf, unit, bufferString
+    ;a=dialog_message(bufferString+'...line')
+    newFileText=[newFileText, bufferString]
+    i++
+    ;bufferString=strcompress(bufferString, /REMOVE)
+    void=strcompress(bufferString, /REMOVE)
+    if strlen(void) eq 0 then void=1 else void=0
+    checkFirst=strmid(bufferString, 0,1)
+    check1=(strpos(checkFirst, '[')+1) > 0
+    check2=(strpos(checkFirst, ';')+1) > 0
+    check3=(strpos(checkFirst, '#')+1) > 0
+    null=strlen(checkFirst) eq 0
+    ;a=dialog_message('check discard line')
+    if (check1+check2+check3+void) gt 0 or null then begin
+      ;a=dialog_message('discarded')
+      print, 'Discard row', i
+      print, bufferString
+    endif else begin
+      info=strsplit(bufferString, '=', /EXTRACT)
+      parameterNames=[parameterNames, info[0]]
+      parameterValues=[parameterValues, info[1]]
+      if n_elements(parsToBeRemoved) eq 0 then count=0 else check=where(info[0] eq parsToBeRemoved, count)
+      ;a=dialog_message('good')
+      if count ne 0 then begin
+        newFileText=newFileText[0:n_elements(newFileText)-2]
+        overwrite=1
+      endif
+    endelse
+  endwhile
+  ;a=dialog_message('end read')
+  close, unit & free_lun, unit
+  if overwrite then begin
+    ;a=dialog_message('try to write')
+    openw, unit, fileName, /GET_LUN
+    for i=1, n_elements(newFileText)-1 do printf, unit, newFileText[i]
+    close, unit & free_lun, unit
+  endif
+  parameterNames=parameterNames[1:*]
+  parameterValues=parameterValues[1:*]
+  
+END
+
+PRO FMFileSystemManager::loadVersionFileData, parameterNames=parameterNames, parameterValues=parameterValues
+
+  ;get all configuration that system need from a configuration file!!!
+  self->buildVersionFileData
+  ERROR=0
+  catch, error_status
+  
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL
+    errMsg=dialog_message('problem with file '+fileName+' check existence or read permission.', /ERROR)
+  endif
+  
+  fileName=self->getVersionFileName()
   
   bufferString=''
   openr, unit, fileName, /GET_LUN
@@ -1465,9 +1722,11 @@ END
 FUNCTION FMFileSystemManager::readRunFiles, runDir
   ; KeesC 31MAY2012
   wild='*.cdf'
-  filenamescdf=file_search(runDir+wild)
+  fS1=runDir+wild
+  filenamescdf=file_search(fs1)
   wild='*.csv'
-  filenamescsv=file_search(runDir+wild)
+  fS2=runDir+wild
+  filenamescsv=file_search(fs2)
   filenames=[filenamescdf,filenamescsv]
   if filenamescsv[0] eq '' then filenames=filenamescdf
   if filenamescdf[0] eq '' then filenames=filenamescsv
@@ -1499,6 +1758,7 @@ FUNCTION FMFileSystemManager::readRunFiles, runDir
     runInfo.scenario=testScen
     runInfo.filename=info[0]+'_'+info[1]+'.'+ext
     runInfo.execDate=systime(0, execDate[i])
+    ;if strpos(strlowcase(testScen), 'base') ne -1 then runInfo.isBase=1 else runInfo.isBase=0
     ;print, info
     runInfos=[runInfos, runInfo]
   endfor
@@ -1816,14 +2076,16 @@ FUNCTION FMFileSystemManager::getHomeDir, WITHSEPARATOR=WITHSEPARATOR
   ;dir="D:\FairModeApp"
   dir=self.applicationRoot
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
-
+  
   return, dir
 END
 
 
 FUNCTION FMFileSystemManager::getDataDir, WITHSEPARATOR=WITHSEPARATOR
 
-  dir=self->getHomeDir(/WITH)
+  ;MM jan 2015 start
+  dir=self->getUserDataHome(/WITH)
+  ;MM jan 2015 end
   dir=dir+"data"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -1832,7 +2094,9 @@ END
 
 FUNCTION FMFileSystemManager::getConfigurationDir, WITHSEPARATOR=WITHSEPARATOR
 
-  dir=self->getHomeDir(/WITH)
+  ;MM jan 2015 start
+  dir=self->getUserDataHome(/WITH)
+  ;MM jan 2015 end
   dir=dir+"configuration"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -1841,7 +2105,9 @@ END
 
 FUNCTION FMFileSystemManager::getLogDir, WITHSEPARATOR=WITHSEPARATOR
 
-  dir=self->getHomeDir(/WITH)
+  ;MM jan 2015 start
+  dir=self->getUserDataHome(/WITH)
+  ;MM jan 2015 end
   dir=dir+"log"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -1850,17 +2116,93 @@ END
 
 FUNCTION FMFileSystemManager::getTempDir, WITHSEPARATOR=WITHSEPARATOR
 
-  dir=self->getHomeDir(/WITH)
+  ;MM jan 2015 start
+  dir=self->getUserDataHome(/WITH)
+  ;MM jan 2015 end
   dir=dir+"temp"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
   
 END
 
+;MM jan 2015 start
+FUNCTION FMFileSystemManager::readKeyFromInit, fileName, keyName, RT_APP=RT_APP
+
+  ; on rt installation dir is INST_PATH
+  if keyword_set(RT_APP) then begin
+    fullFileName=strarr(4)
+    cd, current=runDir
+    fullFileName[0]=runDir+path_sep()+fileName
+    ;home=!DIR
+    cd, '..'
+    cd, current=current
+    fullFileName[1]=current+path_sep()+fileName
+    fullFileName[2]=!DIR+path_sep()+fileName
+    cd, !DIR
+    cd, '..'
+    cd, current=current
+    fullFileName[3]=current+path_sep()+fileName
+    cd, runDir
+  endif else begin
+    fullFileName=fileName
+  endelse
+  search1=1
+  search=1
+  i=0
+  while search1 and i lt n_elements(fullFileName) do begin
+    testFile=fullFileName[i]
+    fInfo=file_info(testFile)
+    if fInfo.read eq 1 then begin
+      openr, unit, testFile, /GET_LUN
+      search=1
+      while ~eof(unit) and search do begin
+        atxt=discardComments(unit, ENDOFFILE=EOFFILE)
+        info=strsplit(atxt, '=', /EXTRACT)
+        info[0]=strcompress(info[0], /REMOVE_ALL)
+        if strupcase(info[0]) eq strupcase(keyName) then begin
+          keyValue=info[1]
+          search=0
+          search1=0
+        endif
+        if keyword_set(ENDOFFILE) then break
+      endwhile
+      free_lun, unit
+    endif
+    i++
+  endwhile
+  return, keyValue
+  
+END
+;MM jan 2015 end
+
+;MM jan 2015 start
+FUNCTION FMFileSystemManager::getUserDataHome, WITHSEPARATOR=WITHSEPARATOR
+
+  ;applicationRefFile='data.folder.ini'
+  applicationRefFile='doc.folder.ini'
+  ;keyToFound=strupcase'USER')
+  keyToFound=strupcase('COMMON')
+  userDataHome=self->readKeyFromInit(applicationRefFile, keyToFound, /RT_APP)
+  userDataHome=self->cleanPath(userDataHome)
+  userDataHome=userDataHome+path_sep()+self->getAppFolderName()
+  if keyword_set(WITHSEPARATOR) then finalUserDataHome=userDataHome+path_sep() else finalUserDataHome=userDataHome
+  if (file_info(userDataHome)).read eq 1 then return, finalUserDataHome else return, self->getHomeDir(WITH=WITH)
+  
+END
+
+FUNCTION FMFileSystemManager::getAppFolderName
+
+  return, 'JRC_DELTA'+path_sep()+'delta'
+  
+END
+;MM jan 2015 end
+
 FUNCTION FMFileSystemManager::getResourceDir, WITHSEPARATOR=WITHSEPARATOR
 
-  dir=self->getHomeDir(/WITH)
-  dir=dir+"resource"
+  ;MM jan 2015 start
+  dataHome=self->getUserDataHome(/WITH)
+  ;MM jan 2015 end
+  dir=dataHome+"resource"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
   
@@ -1877,7 +2219,8 @@ END
 
 FUNCTION FMFileSystemManager::getHelpDir, WITHSEPARATOR=WITHSEPARATOR
 
-  dir=self->getHomeDir(/WITH)
+  ;dir=self->getHomeDir(/WITH)
+  dir=self->getUserDataHome(/WITH)
   dir=dir+"help"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -1886,7 +2229,9 @@ END
 
 FUNCTION FMFileSystemManager::getSaveDir, WITHSEPARATOR=WITHSEPARATOR
 
-  dir=self->getHomeDir(/WITH)
+  ;MM jan 2015 start
+  dir=self->getUserDataHome(/WITH)
+  ;MM jan 2015 end
   dir=dir+"save"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -1895,7 +2240,9 @@ END
 
 FUNCTION FMFileSystemManager::getDumpDir, WITHSEPARATOR=WITHSEPARATOR
 
-  dir=self->getHomeDir(/WITH)
+  ;MM jan 2015 start
+  dir=self->getUserDataHome(/WITH)
+  ;MM jan 2015 end
   dir=dir+"dump"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -1904,17 +2251,61 @@ END
 
 ;FUNCTION FMFileSystemManager::getDumpDir, WITHSEPARATOR=WITHSEPARATOR
 ;
-;  dir=self->getHomeDir(/WITH)
+;MM jan 2015 start
+;  dir=self->getUserDataHome(/WITH)
+;MM jan 2015 end
 ;  dir=dir+"dump"
 ;  if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
 ;  return, dir
 ;
 ;END
 
+PRO FMFileSystemManager::setConversionDir, value
+
+  self.conversionDir=self->cleanPath(value)
+  
+END
+
+FUNCTION FMFileSystemManager::getConversionDir, WITHSEPARATOR=WITHSEPARATOR
+
+  dir=self.conversionDir
+  if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
+  return, dir
+  
+END
+
+PRO FMFileSystemManager::setPlanningDir, value
+
+  self.planningDir=self->cleanPath(value)
+  
+END
+
+FUNCTION FMFileSystemManager::getPlanningDir, WITHSEPARATOR=WITHSEPARATOR
+
+  dir=self.planningDir
+  if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
+  return, dir
+  
+END
+
+PRO FMFileSystemManager::setNonLinearDir, value
+
+  self.nonLinearDir=self->cleanPath(value)
+  
+END
+
+FUNCTION FMFileSystemManager::getNonLinearDir, WITHSEPARATOR=WITHSEPARATOR
+
+  dir=self.nonLinearDir
+  if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
+  return, dir
+  
+END
+
 FUNCTION FMFileSystemManager::getObservedDataDir, WITHSEPARATOR=WITHSEPARATOR
-;KeesC 30JAN2014
+  ;KeesC 30JAN2014
   dir=self->getDataDir(/WITH)
-  dirResource=self->getResourceDir(/WITH)  
+  dirResource=self->getResourceDir(/WITH)
   fileHlp='monitoring'
   openr,unit,dirResource+'\MyDeltaInput.dat',/get_lun,error=err
   if err eq 0 then begin
@@ -1940,9 +2331,9 @@ END
 
 FUNCTION FMFileSystemManager::getRunDataDir, WITHSEPARATOR=WITHSEPARATOR
 
-;KeesC 30JAN2014
+  ;KeesC 30JAN2014
   dir=self->getDataDir(/WITH)
-  dirResource=self->getResourceDir(/WITH)  
+  dirResource=self->getResourceDir(/WITH)
   fileHlp='modeling'
   openr,unit,dirResource+'\MyDeltaInput.dat',/get_lun,error=err
   if err eq 0 then begin
@@ -1959,7 +2350,7 @@ FUNCTION FMFileSystemManager::getRunDataDir, WITHSEPARATOR=WITHSEPARATOR
     rsult=dialog_message(['Input MOD directory',' ',dir,' ','does not exist'],/error)
     stop
   endif
-;  dir=dir+"modeling"
+  ;  dir=dir+"modeling"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
   
@@ -2009,6 +2400,18 @@ FUNCTION FMFileSystemManager::getMonitoringFileExtension
   
 END
 
+FUNCTION FMFileSystemManager::getMonitoringCdfFileExtension
+
+  return, '.cdf'
+  
+END
+
+FUNCTION FMFileSystemManager::getMonitoringCsvFileExtension
+
+  return, '.csv'
+  
+END
+
 FUNCTION FMFileSystemManager::getRunFileTimeSuffix
 
   return, '_TIME'
@@ -2037,6 +2440,14 @@ FUNCTION FMFileSystemManager::getSplashLogoFileName
 
   fileName=self->getResourceDir(/WITH)
   fileName=fileName+"fairmode_logo.bmp"
+  return, fileName
+  
+END
+
+FUNCTION FMFileSystemManager::getFairModeLogoFileName
+
+  fileName=self->getResourceDir(/WITH)
+  fileName=fileName+"fairmode_logo.jpg"
   return, fileName
   
 END
@@ -2074,7 +2485,10 @@ FUNCTION FMFileSystemManager::getIesLogoFileName
 END
 
 FUNCTION FMFileSystemManager::getStartUpFileName
-;KeesC 30JAN2014
+  ;KeesC 30JAN2014
+  ;MM fall 2014 Start
+  isRecentlyUpdated=0
+  ;MM fall 2014 End
   dirResource=self->getResourceDir(/WITH)
   fileHlp='startup.ini'
   openr,unit,dirResource+'MyDeltaInput.dat',/get_lun,error=err
@@ -2094,7 +2508,13 @@ FUNCTION FMFileSystemManager::getStartUpFileName
     rsult=dialog_message(['Input file',' ',fileName,' ','does not exist'],/error)
     stop
   endelse
-;  fileName=fileName+"startup.ini"
+  ;  fileName=fileName+"startup.ini"
+  ;MM fall 2014 Start
+  fInfo=file_info(fileName)
+  if fInfo.read eq 1 then begin
+    self.startUpFileTime=fInfo.mtime
+  endif
+  ;MM fall 2014 End
   return, fileName
   
 END
@@ -2112,6 +2532,15 @@ FUNCTION FMFileSystemManager::getInitFileName
 
   fileName=self->getResourceDir(/WITH)
   fileName=fileName+"init.ini"
+  ;fileName=fileName+"setup.ini"
+  return, fileName
+  
+END
+
+FUNCTION FMFileSystemManager::getUpdateStatusFileName
+
+  fileName=self->getResourceDir(/WITH)
+  fileName=fileName+"update.ini"
   return, fileName
   
 END
@@ -2160,15 +2589,45 @@ END
 FUNCTION FMFileSystemManager::init
 
   if not self -> Object :: init() then return , 0
+  
+  ;MM jan 2015 start
+  ;a=!DIR
+  ;cd, current=current
+  ;a=[a, current]
+  ;aa=dialog_message(a)
+  ;MM jan 2015 end
+  
+  RT_APP=0
   self.oSDirSeparator=path_sep()
-  IDLDir=!DIR
-  openr, unit, IDLDir+self.oSDirSeparator+'init.ini', /GET_LUN
-  bufferString=''
-  readf, unit, bufferString
-  mainDir=strsplit(bufferString, '=', /EXTRACT)
-  self.applicationRoot=mainDir[1]
-  close, unit
-  free_lun, unit
+  IDLAppsIni=getenv('IDL_APPS_INI')
+  if IDLAppsIni eq '' then begin
+    IDLDir=!DIR
+    ;temo for test
+    ;IDLDIR='/home/jrc/prj'
+    IDLAppsIni=IDLDir+self.oSDirSeparator+'init.ini'
+  endif
+  ;MM jan 2015 start
+  
+  ;if (file_info(IDLAppsIni)).read eq 1 then begin
+  ;  fileName=IDLAppsIni
+  ;  keyName='DELTA'
+  ;aa=dialog_message('Developer:'+'fileName:'+fileName+'keyName:'+keyName)
+  ;endif else begin
+  ;  fileName='app.folder.ini'
+  ;  keyName='ABSOLUTE'
+  ;  RT_APP=1
+  ;aa=dialog_message('User:'+'fileName:'+fileName+'keyName:'+keyName)
+  ;endelse
+  
+  fileName='app.folder.ini'
+  keyName='ABSOLUTE'
+  RT_APP=1
+  mainDir=self->readKeyFromInit(fileName, keyName, RT_APP=RT_APP)
+  
+  ;MM jan 2015 end
+  self.applicationRoot=mainDir
+  ;close, unit
+  ;free_lun, unit
   
   self.utility=obj_new('FMUtility')
   self.parameterHeader='[PARAMETERS]'
@@ -2180,6 +2639,7 @@ FUNCTION FMFileSystemManager::init
   self.groupNamePrefix='GROUP*'
   self.groupCodesPrefix='GROUPCODES*'
   self.groupStatPrefix='GROUPSTAT*'
+  self.autoCheckEnabled=1b
   return , 1
   
 END
@@ -2203,6 +2663,14 @@ PRO FMFileSystemManager__Define
     singlePrefix: '', $
     parameterHeader: '', $
     monitoringHeader:'', $
+    ;MM fall 2014 Start
+    versionInfoText:strarr(10), $
+    autoCheckEnabled:0b, $
+    startUpFileTime: 0l, $
+    conversionDir: '', $
+    planningDir: '', $
+    nonLinearDir: '', $
+    ;MM fall 2014 End
     ;MM summer 2012 Start
     scaleHeader:'', $
     ;    modelTypeHeader:'', $

@@ -2,80 +2,192 @@
 @structure_definition
 @/check_io/checkcriteria
 ;********************
+PRO FMApplication::configureExecutable
+
+  lines=''
+  parList=strarr(6) & exeList=strarr(6)
+  
+  parList[0]='GOOGLEEARTH_LOCATION'
+  exeList[0]=self.googleEarthLocation
+  
+  parList[1]='WORKSHEET_LOCATION'
+  exeList[1]=self.workSheetLocation
+  
+  parList[2]='NOTEPAD_LOCATION'
+  exeList[2]=self.notepadLocation
+  
+  parList[3]='DOCUMENTSREADER_LOCATION'
+  exeList[3]=self.docReaderLocation
+  
+  parList[4]='PDFREADER_LOCATION'
+  exeList[4]=self.pdfReaderLocation
+  
+  parList[5]='BROWSER_LOCATION'
+  exeList[5]=self.browserLocation
+  
+  test=0
+  textMessage='This operation will take a lot of time (more than one hour, in the worst case). Do you want to proceed anyway?'
+  title='Find external applications'
+  
+  answ=dialog_Message(textMessage, title=title, /question)
+  if strupcase(answ) eq 'YES' then begin
+    if not(keyword_set(test)) then begin
+    
+    
+      for i=0, n_elements(exeList)-1 do begin
+        info=strsplit(exeList[i], path_sep(), /EXTRACT)
+        if n_elements(info) gt 1 then begin
+          print, systime(), 'path of', parList[i], ' looks already modified, skip'
+          print, exeList[i]
+        endif else begin
+          print, 'try to search...', exeList[i]
+          print, '... it will take long time, please wait...'
+          widget_control, /HOURGLASS
+          if strupcase(!VERSION.OS_FAMILY) eq 'WINDOWS' then begin
+            ;deep search
+      ;rootPaths=['C:\']
+            ;fast search
+            rootPaths=['C:\Program Files (x86)', 'C:\Program Files', 'C:\Windows']
+          endif else begin
+            ;deep search
+            rootPaths='/'
+          endelse
+          for j=0, n_elements(rootPaths)-1 do begin
+            result=file_search(rootPaths[j], exeList[i], count=count)
+            widget_control, HOURGLASS=0
+            if count gt 0 then begin
+              lines=[lines, 'replacing '+exeList[i]+'with :'+result[0]]
+              exeList[i]=result[0]
+              break
+            endif else begin
+              lines=[lines, exeList[i]+' not found (root :'+rootPaths[j]+')']
+              print, exeList[i], 'not found (root :'+rootPaths[j]+')'
+            endelse
+          endfor
+        endelse
+      endfor
+    endif else begin
+      exeList[0]='C:\Program Files (x86)\Google\Google Earth\client\googleearth.exe'
+    endelse
+    ;now replace init.ini
+    fileContents=self.fileSystemMgr->readPlainTextFile(self.fileSystemMgr->getInitFileName())
+    for j=0, n_elements(fileContents)-1 do begin
+      for i=0, n_elements(parList)-1 do begin
+        info=strsplit(fileContents[j], '=', /EXTRACT)
+        if strupcase(parList[i]) eq strupcase(info[0]) then begin
+          print, 'replace:', parList[i], 'with:', exeList[i]
+          lines=[lines, fileContents[j]]
+          fileContents[j]=parList[i]+'='+exeList[i]
+          self->setExecutableLocationKey, parList[i], exeList[i]
+        endif
+      endfor
+    endfor
+    lines=[lines, 'overwriting :'+self.fileSystemMgr->getInitFileName()]
+    ;info=self.dialogMessage('Overwrite:'+self.fileSystemMgr->getInitFileName(), title='Replacing init.ini', /info)
+    ;info=dialog_Message(lines, title='Infos', /info)
+    self.fileSystemMgr->writePlainTextFile, self.fileSystemMgr->getInitFileName(), fileContents
+    
+    textMessage='Done.'
+    title='Configuration file updated.'
+    info=dialog_Message(textMessage, title=title, /info)
+  endif else begin
+    textMessage='No actions taken.'
+    title='Find external applications'
+    info=dialog_Message(textMessage, title=title, /info)
+  endelse
+  
+END
+
+PRO FMApplication::setExecutableLocationKey, keyName, value
+
+  if keyName eq 'GOOGLEEARTH_LOCATION' then self.googleEarthLocation= value
+  
+  if keyName eq 'WORKSHEET_LOCATION' then self.workSheetLocation= value
+  
+  if keyName eq 'NOTEPAD_LOCATION' then self.notepadLocation= value
+  
+  if keyName eq 'DOCUMENTSREADER_LOCATION' then self.docReaderLocation= value
+  
+  if keyName eq 'PDFREADER_LOCATION' then self.pdfReaderLocation= value
+  
+  if keyName eq 'BROWSER_LOCATION' then self.browserLocation= value
+  
+END
+
 FUNCTION FMApplication::getBenchmarkManagingEnabled
 
   return, self.mainConfig->getBenchmarkManagingEnabled()
-
+  
 END
 
 FUNCTION FMApplication::IsAdvancedFilter
 
   filterType=self.mainConfig->getElaborationFilterType()
   return, filterType ne 0
-
+  
 END
 
 FUNCTION FMApplication::IsStandardFilter
 
   filterType=self.mainConfig->getElaborationFilterType()
   return, filterType eq 0
-
+  
 END
 
 FUNCTION FMApplication::getElaborationFilterType
 
   return, self.mainConfig->getElaborationFilterType()
-
+  
 END
 
 FUNCTION FMApplication::getAvailableFilterType
 
   return, self.availableFilterType
-
+  
 END
 
 FUNCTION FMApplication::getModelList
 
   return, self.modelList
-
+  
 END
 
 FUNCTION FMApplication::getScenarioList
 
   return, self.scenarioList
-
+  
 END
 
 FUNCTION FMApplication::getFileSystemMgr
 
   return, self.fileSystemMgr
-
+  
 END
 
 FUNCTION FMApplication::getResourceDir, WITHSEPARATOR=WITHSEPARATOR
 
   return, self.fileSystemMgr->getResourceDir(WITHSEPARATOR=WITHSEPARATOR)
-
+  
 END
 
 
 PRO FMApplication::checkDataIntegrityClose
 
   self->enable
-
+  
 END
 
 PRO FMApplication::checkDataIntegrity
 
   self->disable
   DeltaCheck_IO, self
-
+  
 END
 
 PRO FMApplication::restoreElabFilterType
 
   self.mainConfig->setElaborationFilterType, self.lastElabFilterType
-
+  
 END
 
 PRO FMApplication::updateMenuBenchMarkInfoContents, fileName, displayName, fatherCode
@@ -84,7 +196,7 @@ PRO FMApplication::updateMenuBenchMarkInfoContents, fileName, displayName, fathe
   ;confDir=self.fileSystemMgr->getConfigurationDir(/WITH)
   self.benchMarkMenuList->addElement, fileName, displayName, fatherCode;, confDir
   self.mainView->buildBenchMarkMenuTree, /REBUILD
-
+  
 END
 
 FUNCTION FMApplication::getGoogleEarthLocation
@@ -97,122 +209,122 @@ END
 FUNCTION FMApplication::getWorkSheetLocation
 
   return, self.workSheetLocation
-
+  
 END
 
 PRO FMApplication::setWorkSheetLocation, value
 
   self.workSheetLocation=value
-
+  
 END
 
 FUNCTION FMApplication::getDocReaderLocation
 
   return, self.docReaderLocation
-
+  
 END
 
 PRO FMApplication::setDocReaderLocation, value
 
   self.docReaderLocation=value
-
+  
 END
 
 FUNCTION FMApplication::getPdfReaderLocation
 
   return, self.pdfReaderLocation
-
+  
 END
 
 PRO FMApplication::setPdfReaderLocation, value
 
   self.pdfReaderLocation=value
-
+  
 END
 
 FUNCTION FMApplication::getBrowserLocation
 
   return, self.browserLocation
-
+  
 END
 
 PRO FMApplication::setBrowserLocation, value
 
   self.browserLocation=value
-
+  
 END
 
 FUNCTION FMApplication::getNotepadLocation
 
   return, self.notepadLocation
-
+  
 END
 
 PRO FMApplication::setNotepadLocation, value
 
   self.notepadLocation=value
-
+  
 END
 ; Start Modified August 10th 2011 MM
 
 FUNCTION FMApplication::getAllBenchMarkSaveModeNames
 
   return, ['Insert into menu', 'Only save file']
-
+  
 END
 
 FUNCTION FMApplication::getAllBenchMarkSaveModeCodes
 
   return, ['MENU', 'FREE']
-
+  
 END
 
 FUNCTION FMApplication::getAllGraphicTypeNames
 
   return, ['Raster (Image)', 'Vectorial (PostScript)']
-
+  
 END
 
 FUNCTION FMApplication::getAllGraphicTypeCodes
 
   return, ['IMAGE', 'PS']
-
+  
 END
 
 FUNCTION FMApplication::getAllSplitStyleCodes
 
   return, ['1', '2H', '2V', '4']
-
+  
 END
 
 FUNCTION FMApplication::getAllSplitStyleNames
 
   return, ['1', '2 - Horizontal', '2 - Vertical', '4']
-
+  
 END
 
 FUNCTION FMApplication::getAllPageModeNames
 
   return, ['Each graph in a single page/file', 'All graphs in the same page/file']
-
+  
 END
 
 FUNCTION FMApplication::getAllPageModeCodes
 
   return, ['MP', 'SP']
-
+  
 END
 
 FUNCTION FMApplication::getAllPrintOrientNames
 
   return, ['Landscape', 'Portrait']
-
+  
 END
 
 FUNCTION FMApplication::getAllPrintOrientCodes
 
   return, ['LANDSCAPE', 'PORTRAIT']
-
+  
 END
 ;PrintOrient=LANDSCAPE
 
@@ -221,7 +333,7 @@ FUNCTION FMApplication::getSingleSplitInfoLocation
   sInfo=self->getSingleSplitInfo()
   location=[sInfo.borderCoords[0,0],sInfo.borderCoords[1,0],sInfo.borderCoords[0,2],sInfo.borderCoords[1,2]]
   return, location
-
+  
 END
 
 FUNCTION FMApplication::getSingleSplitInfo
@@ -239,7 +351,7 @@ FUNCTION FMApplication::getSingleSplitInfo
   splitInfo.borderCoords=borderCoords
   splitInfo.labelPosition=[0.55,0.45]
   return, splitInfo
-
+  
 END
 
 FUNCTION FMApplication::getDoubleHSplitInfo
@@ -256,7 +368,7 @@ FUNCTION FMApplication::getDoubleHSplitInfo
   borderCoords[*,4]=[.0, .0]
   splitInfo[0].borderCoords=borderCoords
   splitInfo[0].labelPosition=[0.22,0.45]
-
+  
   splitInfo[1].name='2'
   splitInfo[1].index=2
   borderCoords=fltarr(2,5)
@@ -268,7 +380,7 @@ FUNCTION FMApplication::getDoubleHSplitInfo
   splitInfo[1].borderCoords=borderCoords
   splitInfo[1].labelPosition=[0.72,0.45]
   return, splitInfo
-
+  
 END
 
 FUNCTION FMApplication::getDoubleVSplitInfo
@@ -285,7 +397,7 @@ FUNCTION FMApplication::getDoubleVSplitInfo
   borderCoords[*,4]=[0.05, 0.0]
   splitInfo[0].labelPosition=[0.45,0.22]
   splitInfo[0].borderCoords=borderCoords
-
+  
   splitInfo[1].name='2'
   splitInfo[1].index=2
   borderCoords=fltarr(2,5)
@@ -297,14 +409,14 @@ FUNCTION FMApplication::getDoubleVSplitInfo
   splitInfo[1].labelPosition=[0.45,0.72]
   splitInfo[1].borderCoords=borderCoords
   return, splitInfo
-
+  
 END
 
 FUNCTION FMApplication::getFourSplitInfo
 
   ; Phil: setting postscript dimensions (4 elements)
   splitInfo=replicate(getSplitInfoStruct(), 4)
-
+  
   ;upper left
   splitInfo[0].name='1'
   splitInfo[0].index=1
@@ -316,7 +428,7 @@ FUNCTION FMApplication::getFourSplitInfo
   borderCoords[*,4]=[.0, .0]
   splitInfo[0].labelPosition=[0.22,0.22]
   splitInfo[0].borderCoords=borderCoords
-
+  
   ;upper right
   splitInfo[1].name='2'
   splitInfo[1].index=2
@@ -328,7 +440,7 @@ FUNCTION FMApplication::getFourSplitInfo
   borderCoords[*,4]=[.5, .0]
   splitInfo[1].labelPosition=[0.72,0.22]
   splitInfo[1].borderCoords=borderCoords
-
+  
   ;lower left
   splitInfo[2].name='3'
   splitInfo[2].index=3
@@ -340,7 +452,7 @@ FUNCTION FMApplication::getFourSplitInfo
   borderCoords[*,4]=[.0, .5]
   splitInfo[2].labelPosition=[0.22,0.72]
   splitInfo[2].borderCoords=borderCoords
-
+  
   ;lower right
   splitInfo[3].name='4'
   splitInfo[3].index=4
@@ -354,31 +466,31 @@ FUNCTION FMApplication::getFourSplitInfo
   splitInfo[3].borderCoords=borderCoords
   ;sInfo=ptr_new(splitInfo, /NO_COPY)
   return, splitInfo
-
+  
 END
 
 FUNCTION  FMApplication::isRecognizible
 
   return, obj_valid(self.recognizeInfo)
-
+  
 END
 
 PRO FMApplication::switchRecognize
 
   self.mainView->switchRecognize
-
+  
 END
 
 FUNCTION FMApplication::getRecognizeInfo
 
   return, self.recognizeInfo
-
+  
 END
 
 PRO FMApplication::setRecognizeInfo, value
 
   self.recognizeInfo=value
-
+  
 END
 
 ;FUNCTION FMApplication::getScaleInfo
@@ -390,7 +502,7 @@ END
 FUNCTION FMApplication::getModelInfo
 
   return, self.modelInfo
-
+  
 END
 
 ;PRO FMApplication::setScaleInfo, value
@@ -402,7 +514,7 @@ END
 PRO FMApplication::setModelInfo, value
 
   self.modelInfo=value
-
+  
 END
 
 FUNCTION FMApplication::getSplashLogoImage
@@ -412,7 +524,7 @@ FUNCTION FMApplication::getSplashLogoImage
   ; trueImage=bytarr(dims[0], dims[1], 3)
   ; trueImage[*,*,0]=r & trueImage[*,*,1]=g & trueImage[*,*,2]=b
   return, image
-
+  
 END
 
 FUNCTION FMApplication::getLogoImage, true=true
@@ -423,32 +535,35 @@ FUNCTION FMApplication::getLogoImage, true=true
   ; trueImage[*,*,0]=r & trueImage[*,*,1]=g & trueImage[*,*,2]=b
   true=(where(dims eq 3))[0]
   return, image
-
+  
 END
 
 FUNCTION FMApplication::getPSCharSizeFactor
 
   return, self.PSCharSizeFactor
-
+  
 END
 
 FUNCTION FMApplication::setPSCharSizeFactor, value
 
   self.PSCharSizeFactor=value
-
+  
 END
 
+; MM jan 2015 start
 FUNCTION FMApplication::getVersionDate
 
-  return, self.versionDate
-
+  ;return, self.versionDate
+  return, self.fileSystemMgr->getReleaseDate()
+  
 END
 
 FUNCTION FMApplication::getVersionCode
 
-  return, self.versionCode
-
+  return, self.fileSystemMgr->getVersion()
+  
 END
+; MM jan 2015 end
 
 PRO FMApplication::streamPrint
 
@@ -474,7 +589,7 @@ PRO FMApplication::streamPrint
   if obj_valid(self.benchMarkMenuList) then self.benchMarkMenuList->streamPrint else print, '**** benchMarkMenuList:', '<NULL_OBJECT>'
   print, '***********************'
   print, '**End of:<',OBJ_CLASS(self),'>**'
-
+  
 END
 ; *****************************************************
 ; main view related methods
@@ -482,36 +597,36 @@ END
 FUNCTION FMApplication::getMainView
 
   return, self.mainView
-
+  
 END
 
 PRO FMApplication::setMainView, view
 
   self.mainView=view
-
+  
 END
 FUNCTION FMApplication::dialogMessage, textMessage, title=title, info=info, error=error, question=question
 
   return, self.mainView->dialogMessage(textMessage, title=title, INFO=INFO, ERROR=ERROR, QUESTION=QUESTION)
-
+  
 END
 
 PRO FMApplication::show
 
   self.mainView->show
-
+  
 END
 
 PRO FMApplication::enable
 
   self.mainView->enable
-
+  
 END
 
 PRO FMApplication::disable
 
   self.mainView->disable
-
+  
 END
 
 PRO FMApplication::display
@@ -520,8 +635,8 @@ PRO FMApplication::display
   self.mainView=obj_new('FMMainGUI', self)
   self.mainView->realize
   self.plotter=obj_new('Plotter', self.mainView)
-  ;self->displayModeSelectionGUI
-
+;self->displayModeSelectionGUI
+  
 END
 ; *****************************************************
 ; child views related methods
@@ -538,13 +653,13 @@ PRO FMApplication::updateRecognizeData, request, result
     self.recognizeInfo=rInfo
     self.mainView->updateRecognizeStatus
   endif
-
+  
 END
 
 PRO FMApplication::Recognize, coord
 
   print, "do RecognizeJob"
-
+  
   rInfo=self->getRecognizeInfo()
   rEdges=rInfo->getRegionEdges()
   rNames=rInfo->getNames()
@@ -570,19 +685,19 @@ PRO FMApplication::Recognize, coord
     endif
   endfor
   self.mainView->updateRecognizer, foundName, foundValue
-
+  
 END
 
 FUNCTION FMApplication::entityDisplayIsValid
 
   return, self.executeOk[0]
-
+  
 END
 
 FUNCTION FMApplication::elaborationDisplayIsValid
 
   return, self.executeOk[1]
-
+  
 END
 
 PRO FMApplication::doRecognize, x, y
@@ -590,8 +705,8 @@ PRO FMApplication::doRecognize, x, y
   ; if (self.executeOk[0] eq 1 and self.executeOk[1] eq 1) then begin
   destCoord=convert_coord(x, y, /DEVICE, /TO_NORMAL)
   self->recognize, destCoord
-  ;endif
-
+;endif
+  
 END
 
 ;FUNCTION FMApplication::checkMultiple, multipleUserChoices=multipleUserChoices
@@ -684,7 +799,7 @@ FUNCTION FMApplication::checkMultiple, entityDisplay, elaborationDisplay, multip
   ;  print, 'getCurrentDiagramMaxMultipleChoiceNumber->', maxMultipleSelection
   ;  print, 'ElabMultipleChoiceFlags->', specificMultipleSelection
   ;  print, '************'
-
+  
   parCodes=entityDisplay->getParametersSelectedCodes()
   parNames=self.parameterList->getNamesByCodes(parCodes)
   elabName=elaborationDisplay->getSelectedElabName()
@@ -693,7 +808,7 @@ FUNCTION FMApplication::checkMultiple, entityDisplay, elaborationDisplay, multip
   elabCode=elaborationDisplay->getSelectedElabCode()
   elabIsObsSingleAllowed=elabList->getIsSingleObsAllowed(elabCode)
   elabIsObsGroupAllowed=elabList->getIsGroupObsAllowed(elabCode)
-
+  
   if entityDisplay->isSingleObsSelected() and not(elabIsObsSingleAllowed) then begin
     aa=self->dialogMessage(['K_NotAllowedCombination.', 'You cannot select -single- observation(s) with selected elaboration'], title=['Execute'])
     return, 0
@@ -701,7 +816,7 @@ FUNCTION FMApplication::checkMultiple, entityDisplay, elaborationDisplay, multip
   if entityDisplay->isSingleObsSelected() then begin
     singleObsList=entityDisplay->buildSinglesObsNames()
   endif
-
+  
   if entityDisplay->isGroupObsSelected() and not(elabIsObsGroupAllowed) then begin
     aa=self->dialogMessage(['K_NotAllowedCombination.', 'You cannot select -group- observation(s) with selected elaboration'], title=['Execute'])
     return, 0
@@ -709,12 +824,12 @@ FUNCTION FMApplication::checkMultiple, entityDisplay, elaborationDisplay, multip
   if entityDisplay->isGroupObsSelected() then begin
     groupObsList=self.entityDisplay->getObservedGroupTitles()
   endif
-
+  
   if entityDisplay->isRunPresent() then begin
     modsList=entityDisplay->buildModelNames()
     scenList=entityDisplay->buildScenarioNames()
-    ;runCodes=entityDisplay->getRunQueryCodes()
-    ;runFileNames=runList->getFileNamesByCodes(runCodes)
+  ;runCodes=entityDisplay->getRunQueryCodes()
+  ;runFileNames=runList->getFileNamesByCodes(runCodes)
   endif
   ; standard sequence!
   ; parameters, models, scenarios, observations
@@ -772,15 +887,15 @@ FUNCTION FMApplication::checkMultiple, entityDisplay, elaborationDisplay, multip
   ;  if testMultiple[3] eq 1 then begin
   ;    aa=self->dialogMessage(['K_MultipleChoiceNotAllowed.', 'Statistic name: '+'*'+elabName+'*.', 'Only one observation.'], title=['Execute'])
   return, 1b
-  ;  print, 'elaborationDisplay->getCurrentDiagramMaxMultipleChoiceNumber()', elaborationDisplay->getCurrentDiagramMaxMultipleChoiceNumber()
-  ;  print, 'elaborationDisplay->getCurrentElabMultipleChoiceFlags()', elaborationDisplay->getCurrentElabMultipleChoiceFlags()
-
+;  print, 'elaborationDisplay->getCurrentDiagramMaxMultipleChoiceNumber()', elaborationDisplay->getCurrentDiagramMaxMultipleChoiceNumber()
+;  print, 'elaborationDisplay->getCurrentElabMultipleChoiceFlags()', elaborationDisplay->getCurrentElabMultipleChoiceFlags()
+  
 END
 
 FUNCTION FMApplication::getBenchMarkMenuInfo
 
   return, self.benchMarkMenuList
-
+  
 END
 
 FUNCTION FMApplication::buildGroupByTimeStamp, elaborationDisplay, index
@@ -792,7 +907,7 @@ FUNCTION FMApplication::buildGroupByTimeStamp, elaborationDisplay, index
   info.value=gBTValue
   info.template=gBTTimeStamp
   return, info
-
+  
 END
 
 PRO FMApplication::saveRequest
@@ -815,7 +930,7 @@ PRO FMApplication::doCompositeBatch, splitBatchInfo
   print, "********************"
   batchInfo=obj_new("BatchInfo")
   batchInfo->saveData, fileName, path, splitBatchInfo
-
+  
 END
 
 FUNCTION FMApplication::buildCurrentSplitBatchInfo
@@ -831,7 +946,7 @@ FUNCTION FMApplication::buildCurrentSplitBatchInfo
   splitBatchInfo.graphicType=!D.name
   ;(self->getAllBenchMarkSaveModeCodes())[1]
   return, splitBatchInfo
-
+  
 END
 
 ;PRO FMApplication::saveCurrentAsBatch, fileName, path
@@ -854,7 +969,7 @@ FUNCTION FMApplication::saveBatch, fileName, path, splitBatchInfo, GUI=GUI
     batchInfo->saveData, fileName, path, splitBatchInfo
     return, fileName
   endelse
-
+  
 END
 
 ;PRO FMApplication::saveBatch, fileName, path, splitBatchInfo
@@ -908,7 +1023,7 @@ FUNCTION FMApplication::buildParametersObsRelationship, parCodes, obsCodes, obsP
   parNo=n_elements(parCodes)
   parObsRelationsShip=strarr(parNo)
   parObs=ptrarr(parNo)
-
+  
   for i=0, obsNo-1 do begin
     testObsPars=*obsPars[i]
     for j=0, parNo-1 do begin
@@ -922,7 +1037,7 @@ FUNCTION FMApplication::buildParametersObsRelationship, parCodes, obsCodes, obsP
     parObs[i]=ptr_new(obsCodes, /NO_COPY)
   endfor
   return, parObs
-
+  
 END
 
 FUNCTION FMApplication::buildStationsStructs
@@ -930,7 +1045,7 @@ FUNCTION FMApplication::buildStationsStructs
   singles=self.entityDisplay->getObservedCodesSelections()
   groups=self.entityDisplay->getSelectedGroupObsNames()
   codesOfGroups=self.entityDisplay->getObservedCodesGroupSelections()
-
+  
   statsInfo={code:'', name:'', group:'', single:'', altitude:0, longitude:0., latitude:0., $
     gmtLag: '', region:'', stationType:'', areaType: '', siting: ''}
   singleElements=n_elements(singles)
@@ -939,7 +1054,7 @@ FUNCTION FMApplication::buildStationsStructs
   obsCat=self.mainConfig->getObservedCategoryList()
   allCodes=self.observedList->getCodes()
   k=0
-
+  
   for i=0, singleElements-1 do begin
     idx=where(allCodes eq singles[i])
     if idx[0] eq -1 then break
@@ -959,7 +1074,7 @@ FUNCTION FMApplication::buildStationsStructs
     bigStructs[k].siting=values[3]
     k++
   endfor
-
+  
   for i=0, groupElements-1 do begin
     group=groups[i]
     codes=*(codesOfGroups[i])
@@ -982,91 +1097,91 @@ FUNCTION FMApplication::buildStationsStructs
       k++
     endfor
   endfor
-
+  
   return, bigStructs[0:k-1]
-
-  ;colLabels=['Station Code', 'Station Name', 'Group', 'Single', 'Altitude(m)', 'Lon', 'Lat', 'GMTLag', 'Region', 'Station Type', 'AreaType', 'Siting']
-
+  
+;colLabels=['Station Code', 'Station Name', 'Group', 'Single', 'Altitude(m)', 'Lon', 'Lat', 'GMTLag', 'Region', 'Station Type', 'AreaType', 'Siting']
+  
 END
 
 PRO FMApplication::changeStartMonth, index
 
   self.elaborationDisplay->setStartMonthSelection, index
-
+  
 END
 
 PRO FMApplication::changeStartDay, index
 
   self.elaborationDisplay->setStartDaySelection, index
-
+  
 END
 
 PRO FMApplication::changeStartHour, index
 
   self.elaborationDisplay->setStartHourSelection, index
-
+  
 END
 
 PRO FMApplication::changeEndMonth, index
 
   self.elaborationDisplay->setEndMonthSelection, index
-
+  
 END
 
 PRO FMApplication::changeEndDay, index
 
   self.elaborationDisplay->setEndDaySelection, index
-
+  
 END
 
 PRO FMApplication::changeEndHour, index
 
   self.elaborationDisplay->setEndHourSelection, index
-
+  
 END
 
 PRO FMApplication::changeAllStationsSelection, selection
 
   self.entityBatchDisplay->setAllStationsFlag, selection
-
+  
 END
 
 PRO FMApplication::changeAllModelsSelection, selection
 
   self.entityBatchDisplay->setAllModelsFlag, selection
-
+  
 END
 
 PRO FMApplication::changeAllScenariosSelection, selection
 
   self.entityBatchDisplay->setAllScenariosFlag, selection
-
+  
 END
 
 PRO FMApplication::changeAllParametersSelection, selection
 
   self.entityBatchDisplay->setAllParametersFlag, selection
-
+  
 END
 
 PRO FMApplication::changeObsModSelection, selection
 
   self.entityDisplay->setUseObservedModelFlag, selection
-
+  
 END
 
 FUNCTION FMApplication::alreadyOpen
 
   ; if self.openView then return, 1 else return, 0
   return, 0
-
+  
 END
 
 PRO FMApplication::setBlockWindowControl, OFF=OFF
 
   self.lastview=obj_new()
-  ; if keyword_set(OFF) then self.openViewCheck=0 else self.openViewCheck=1
-
+; if keyword_set(OFF) then self.openViewCheck=0 else self.openViewCheck=1
+  
 END
 
 PRO FMApplication::displayModeSelectionGUI
@@ -1079,8 +1194,8 @@ PRO FMApplication::displayModeSelectionGUI
     self.lastView=self.modeView
   endelse
   self->disable
-  ;print, 'Open displayModeSelectionGUI'
-
+;print, 'Open displayModeSelectionGUI'
+  
 END
 
 PRO FMApplication::displayEntitySelectionGUI
@@ -1095,7 +1210,7 @@ PRO FMApplication::displayEntitySelectionGUI
   endelse
   ;print, 'Open displayEntitySelectionGUI'
   self->disable
-
+  
 END
 
 ; Oct 2 2011 MM End
@@ -1124,7 +1239,7 @@ PRO FMApplication::displayElaborationSelectionGUI
   endelse
   ;print, 'Open displayElaborationSelectionGUI'
   self->disable
-
+  
 END
 
 PRO FMApplication::displayCompositeBatchGUI
@@ -1143,13 +1258,13 @@ PRO FMApplication::displayCompositeBatchGUI
     self->initElaborationDisplay, bElabDI, self.mainConfig, self.diagramList, self.groupByStatList, self.groupByTimeList, self.seasonList, self.dayPeriodList
     self.compositeBatchMgr= obj_new('CompositeBatchManager', self, bEntityDI, bElabDI)
     self.compositeBatchMgr->realize
-    ;    self.benchMarkView=obj_new('FMBenchMarkCreationGUI', obj_new(""), self, bEntityDI, bElabDI)
-    ;    self.benchMarkView->realize
-    ;    self.lastView=self.benchMarkView
+  ;    self.benchMarkView=obj_new('FMBenchMarkCreationGUI', obj_new(""), self, bEntityDI, bElabDI)
+  ;    self.benchMarkView->realize
+  ;    self.lastView=self.benchMarkView
   endelse
   ;print, 'displayBenchMarkCreationSelectionGUI'
   self->disable
-
+  
 END
 
 PRO FMApplication::updateEntityDisplayInfo, entityDisplayInfo
@@ -1158,8 +1273,8 @@ PRO FMApplication::updateEntityDisplayInfo, entityDisplayInfo
   self.entityDisplay=entityDisplayInfo
   self.mainView->updateInfo
   self.executeOk[0]=1
-  ;entityDisplayInfo->printStream
-
+;entityDisplayInfo->printStream
+  
 END
 
 PRO FMApplication::updateElaborationDisplayInfo, elaborationDisplayInfo
@@ -1168,7 +1283,7 @@ PRO FMApplication::updateElaborationDisplayInfo, elaborationDisplayInfo
   self.elaborationDisplay=elaborationDisplayInfo
   self.executeOk[1]=1
   self.mainView->updateInfo
-
+  
 END
 
 PRO FMApplication::updateModeInfo, modeDisplay
@@ -1179,10 +1294,10 @@ PRO FMApplication::updateModeInfo, modeDisplay
   ;Batch selection
   case newMode of
     0 : self->updateMode,newMode
-    else : self->startBenchMarkingMode
-  endcase
-  self.mainView->show
-  ; self.view->UpdateModeInfoSection, modeDisplay
+  else : self->startBenchMarkingMode
+endcase
+self.mainView->show
+; self.view->UpdateModeInfoSection, modeDisplay
 
 END
 ; *****************************************************
@@ -1194,7 +1309,7 @@ PRO FMApplication::upDateMode, mode
   elabList->setMode, mode
   ;self->initElaborationDisplay, self.mainConfig, self.diagramList, self.axisTypeList, self.groupByStatList, self.groupByTimeList, self.seasonList, self.dayPeriodList
   self->initElaborationDisplay, self.elaborationDisplay, self.mainConfig, self.diagramList, self.groupByStatList, self.groupByTimeList, self.seasonList, self.dayPeriodList
-
+  
 END
 
 ;FUNCTION FMApplication::isDayPeriodSelected
@@ -1252,7 +1367,7 @@ FUNCTION FMApplication::checkRequest, entityDisplayInfo, elaborationDisplayInfo,
   if not(self->checkMultiple(checkEntity, checkElaboration, multipleUserChoices=multipleUserChoices)) then return, 0b
   ;mChoiceI=self->getMultipleChoiceInfo()
   return, 1b
-
+  
 END
 
 ;FUNCTION FMApplication::buildGroupObsShortNames
@@ -1443,7 +1558,7 @@ FUNCTION FMApplication::buildRequest, multipleUserChoices, location, entityDispl
   dayPeriodInfo=self.dayPeriodList->getInfoByCode(dayCode)
   seasonInfo=self.seasonList->getInfoByCode(seasonCode)
   thresholdFlag=elaborationDisplay->getThresholdFlag()
-
+  
   modCopy=modsList
   scenCopy=scenList
   request->setMultipleChoiceUserSelectionFlags, multipleUserChoices
@@ -1501,7 +1616,7 @@ FUNCTION FMApplication::buildRequest, multipleUserChoices, location, entityDispl
   ;  request->setPrintOrient, 'LANDSCAPE'
   request->setPageBreak, 'CLOSE'
   return, request
-
+  
 END
 
 PRO FMApplication::doElaboration, request, multipleUserChoices
@@ -1527,7 +1642,7 @@ PRO FMApplication::doElaboration, request, multipleUserChoices
   ;elab data (fill result, fill .plotInfo result to manage plot behaviour)
   request->setGoogleEarthLocation, self->getGoogleEarthLocation()
   call_procedure, request->getElaborationRoutine(), request, result
-
+  
   targetInfo=result->getGenericPlotInfo()
   checkXY=targetInfo->getXYS()
   self.plotter->openDevice, request->getPlotDeviceName(), request->getFileName(), $
@@ -1536,10 +1651,10 @@ PRO FMApplication::doElaboration, request, multipleUserChoices
   self.plotter->closeDevice, request->getPageBreak(), request->getFileName(), request->getPrintOrient()
   self->updateRecognizeData, request, result
   ;  endif
-
+  
   obj_destroy, request
   obj_destroy, result
-
+  
 END
 
 
@@ -1557,14 +1672,14 @@ FUNCTION FMApplication::restoreEntity, fileName
     return, 1
   endif
   return, 0
-
+  
 END
 
 PRO FMApplication::updateViewAppearence, updateElements
 
   self.executeOk[updateElements]=1
   self.mainView->updateInfo
-
+  
 END
 
 FUNCTION FMApplication::restoreElaboration, fileName
@@ -1581,7 +1696,7 @@ FUNCTION FMApplication::restoreElaboration, fileName
     return, 1
   endif
   return, 0
-
+  
 END
 
 ;PRO FMApplication::startBenchMarkingMode
@@ -1609,7 +1724,7 @@ FUNCTION FMApplication::restoreRequest, fileName, path
     msg=self.mainView->dialogMessage(['Batch restored failed from:', '<'+fileName+'> file.'], title=['Request'], /INFORMATION)
   endelse
   self.mainConfig->setElaborationFilterType, lastElabFilterType
-
+  
 END
 
 ;PRO FMApplication::restoreRequest, fileName
@@ -1648,19 +1763,19 @@ PRO FMApplication::execRequest, passedRequest, NODISPLAYCHECK=NODISPLAYCHECK
         return
       endif
       print, 'GC needed...'
-      ;      insert here Philippe checkCriteriaRoutine(request, result...)
-      ;      dummy=request->getGoalsCriteriaValues(/CONTENTS, NOVALUES=NOVALUES)
-      ;      if keyword_set(NOVALUES) then begin
-      ;        aa=self->dialogMessage(['No criteria available. Check your selections and/or -elaboration.dat- file and/or', '-goals_criteria_oc.dat- file.'], title=['Execution not possible'])
-      ;        print, '*******'
-      ;        print, 'GC not founds'
-      ;        print, '*******'
-      ;        return
-      ;      endif
-      ;      print, '*******'
-      ;      print, 'GC founds'
-      ;      print, dummy
-      ;      print, '*******'
+    ;      insert here Philippe checkCriteriaRoutine(request, result...)
+    ;      dummy=request->getGoalsCriteriaValues(/CONTENTS, NOVALUES=NOVALUES)
+    ;      if keyword_set(NOVALUES) then begin
+    ;        aa=self->dialogMessage(['No criteria available. Check your selections and/or -elaboration.dat- file and/or', '-goals_criteria_oc.dat- file.'], title=['Execution not possible'])
+    ;        print, '*******'
+    ;        print, 'GC not founds'
+    ;        print, '*******'
+    ;        return
+    ;      endif
+    ;      print, '*******'
+    ;      print, 'GC founds'
+    ;      print, dummy
+    ;      print, '*******'
     endif
     ; Modified summer 2012 MM End
     if n_elements(passedRequest) ne 0 then begin
@@ -1673,9 +1788,9 @@ PRO FMApplication::execRequest, passedRequest, NODISPLAYCHECK=NODISPLAYCHECK
     self->doElaboration, request, mUC
   endif else begin
     print, 'Bad request'
-    ;aa=self.view->dialogMessage(['Check the request!'], title=['Request'], /error)
+  ;aa=self.view->dialogMessage(['Check the request!'], title=['Request'], /error)
   endelse
-
+  
 END
 
 
@@ -1691,32 +1806,32 @@ PRO FMApplication::startBatchMode
     TITLE='Load a previous saved elaboration'  )
   if batchFile ne '' then begin
     self.fileSystemMgr->setLastUsedFileName, batchFile
-    ;fill request
-    ;launch an elaboration
-    ;display result
+  ;fill request
+  ;launch an elaboration
+  ;display result
   endif
-  ;print, 'selected was:', batchFile
-  ;print, 'last is:', self.fileSystemMgr->getLastUsedFileName()
-
+;print, 'selected was:', batchFile
+;print, 'last is:', self.fileSystemMgr->getLastUsedFileName()
+  
 END
 
 PRO FMApplication::exitRequest
 
   exitMessage='Do you really want to quit?'
   if self->dialogMessage(exitMessage, /QUESTION) eq 'Yes' then self->closeApplication
-
+  
 END
 
 PRO FMApplication::closeApplication
 
   obj_destroy, self
-
+  
 END
 
 FUNCTION FMApplication::getApplicationName
 
   return, 'JRC - Fair Mode'
-
+  
 END
 ;****************************************************************************************
 ; start up methods
@@ -1724,7 +1839,7 @@ END
 PRO FMApplication::loadInitFileData, parameterNames=parameterNames, parameterValues=parameterValues
 
   self.fileSystemMgr->loadInitFileData, parameterNames=parameterNames, parameterValues=parameterValues
-
+  
 END
 
 PRO FMApplication::startJournaling
@@ -1734,7 +1849,7 @@ PRO FMApplication::startJournaling
   journalFullFileName=journalFullFileName+util->getSysTime(/FILECOMPATIBILITY)+'.txt'
   journal, journalFullFileName
   obj_destroy, util
-
+  
 END
 
 FUNCTION FMApplication::checkApplicationIntegrity, errorTitle, errorMessage
@@ -1744,37 +1859,37 @@ FUNCTION FMApplication::checkApplicationIntegrity, errorTitle, errorMessage
     errorTitle='Home Dir Error'
     return, 0
   endif
-
+  
   if not(file_test(self.fileSystemMgr->getDataDir(),/directory)) then begin
     errorMessage='DataDir: ' + self.fileSystemMgr->getDataDir()+ ' doesn''t exist. Check your installation!'
     errorTitle='Data Dir Error'
     return, 0
   endif
-
+  
   if not(file_test(self.fileSystemMgr->getObservedDataDir(),/directory)) then begin
     errorMessage='Monitoring Dir '+self.fileSystemMgr->getObservedDataDir()+ ' doesn''t exist. Check your installation!'
     errorTitle='Monitoring Dir Error'
     return, 0
   endif
-
+  
   if not(file_test(self.fileSystemMgr->getRunDataDir(),/directory)) then begin
     errorMessage='Modeling Dir :'+self.fileSystemMgr->getRunDataDir()+ ' doesn''t exist. Check your installation!'
     errorTitle='Modeling Dir Error'
     return, 0
   endif
-
+  
   if not(file_test(self.fileSystemMgr->getResourceDir(),/directory)) then begin
     errorMessage='Resource Dir ' + self.fileSystemMgr->getResourceDir()+ ' doesn''t exist. Check your installation!'
     errorTitle='Resource Dir Error'
     return, 0
   endif
-
+  
   if not(file_test(self.fileSystemMgr->getStartUpFileName())) then begin
     errorMessage='StartupFile: ' + self.fileSystemMgr->getStartUpFileName()+ ' doesn''t exist. Check your installation!'
     errorTitle='StartupFile existence Error'
     return, 0
   endif
-
+  
   ;  if not(self.fileSystemMgr->checkStartupFileContents(txt=txt, alltxt=alltxt)) then begin
   ;
   ;    errorMessage='StartupFile: ' + self.fileSystemMgr->getStartUpFileName()+ ' isn''t consistent. Check your installation!'
@@ -1783,9 +1898,9 @@ FUNCTION FMApplication::checkApplicationIntegrity, errorTitle, errorMessage
   ;    errorTitle='StartupFile consistency Error'
   ;    return, 0
   ;  endif
-
+  
   return, 1
-
+  
 END
 
 PRO FMApplication::startUp
@@ -1793,12 +1908,13 @@ PRO FMApplication::startUp
   if self->checkApplicationIntegrity(errorTitle, errorMessage) then begin
     self->startJournaling
     confDir=self.fileSystemMgr->getConfigurationDir(/WITH)
+    ;self.fileSystemMgr->fileCopy, self.fileSystemMgr->getInitFileName(), self.fileSystemMgr->getInitFileName()+'_', /OVERWRITE
     self->loadInitFileData, parameterName=parameterName, parameterValue=parameterValue
-
+    
     lookUpIdx=(where(parameterName eq 'STARTUP_LOOKUP'))[0]
     if lookUpIdx[0] eq -1 then doLookUp=1 else doLookUp=fix(parameterValue[lookUpIdx])
     if doLookUp then self.fileSystemMgr->lookUpSystemData, modelInfo=modelInfo
-
+    
     if n_elements(modelInfo) ne 0 then self->setModelInfo, modelInfo
     extraParameterNames=[''] & extraParameterValues=['']
     for i=0, n_elements(parameterName)-1 do begin
@@ -1822,26 +1938,26 @@ PRO FMApplication::startUp
         'DAYPERIOD_FILE' : self.dayPeriodList->fillDataFromFile, confDir+fileName
         'PARAMETER_FILE' : parameterFileName=confDir+fileName ; Save parameter File Name for later use
         'OBSERVED_FILE' : observedFileName=confDir+fileName ; Save observed File Name for later use
-        'TXT_VERSION_DATE' : self.versionDate=varName  ;varName ; save
+        ;'TXT_VERSION_DATE' : self.versionDate=varName  ;varName ; save
         'TXT_PS_CHARSIZE_FACTOR' : self.psCharSizeFactor=float(varName) ; save
-        'TXT_VERSION_CODE' : self.versionCode=varName  ;varName ; save
+        ;'TXT_VERSION_CODE' : self.versionCode=varName  ;varName ; save
         'BROWSER_LOCATION' : self->setBrowserLocation, fileName ; save location of browser application
         'NOTEPAD_LOCATION' : self->setNotePadLocation, fileName ; save location of notepad application
         'DOCUMENTSREADER_LOCATION' : self->setDocReaderLocation, fileName ; Save location of doc reader
         'WORKSHEET_LOCATION' : self->setWorkSheetLocation, fileName ; save location of worksheet reader
         'PDFREADER_LOCATION' : self->setPdfReaderLocation, fileName ; Save location of pdf reader
         'GOOGLEEARTH_LOCATION' : self->setGoogleEarthLocation, filename ; Save location of Google Earth
-        else :begin
-        extraParameterNames=[extraParameterNames, thisPar]
-        extraParameterValues=[extraParameterValues, parameterValue[i]]
-      end
-    endcase
-  endfor
-  ; Now Load Config Resources (may depend from first block)
-  self.parameterList->fillDataFromFile, parameterFileName
-  self.observedList->fillDataFromFile, observedFileName
-  self->fillMainConfigFromFile, confDir, parameterName=extraParameterNames[1:*], parameterValue=extraParameterValues[1:*]
-  self->initViewConfiguration
+      else :begin
+      extraParameterNames=[extraParameterNames, thisPar]
+      extraParameterValues=[extraParameterValues, parameterValue[i]]
+    end
+  endcase
+endfor
+; Now Load Config Resources (may depend from first block)
+self.parameterList->fillDataFromFile, parameterFileName
+self.observedList->fillDataFromFile, observedFileName
+self->fillMainConfigFromFile, confDir, parameterName=extraParameterNames[1:*], parameterValue=extraParameterValues[1:*]
+self->initViewConfiguration
 endif else begin
   a=dialog_message(errorMessage, TITLE=errorTitle, /ERROR, /CENTER)
   message, 'Application could not be started'
@@ -1852,28 +1968,28 @@ END
 PRO FMApplication::modelFrequencyRename, confDir, fileName, frequencyType
 
   self.fileSystemMgr->modelFrequencyRename, confDir, fileName, frequencyType
-
+  
 END
 
 PRO FMApplication::configBenchmark, confDir, fileName, frequencyType
 
   self->modelFrequencyRename, confDir, fileName, frequencyType
   self.benchMarkMenuList->fillDataFromFile, confDir+fileName
-
+  
 END
 
 PRO FMApplication::configElaboration, confDir, fileName, frequencyType
 
   self->modelFrequencyRename, confDir, fileName, frequencyType
   self.benchMarkMenuList->fillDataFromFile, confDir+fileName
-
+  
 END
 
 PRO FMApplication::configDiagram, confDir, fileName, frequencyType
 
   self->modelFrequencyRename, confDir, fileName, frequencyType
   self.diagramList->fillDataFromFile, confDir+fileName
-
+  
 END
 
 PRO FMApplication::initModeDisplay, modeList
@@ -1883,7 +1999,7 @@ PRO FMApplication::initModeDisplay, modeList
   self.modeDisplay->setCodes, codes
   self.modeDisplay->setDescriptions, modeList->getDescriptionList()
   self.modeDisplay->setSelection, 0
-
+  
 END
 
 ;PRO FMApplication::initEntityDisplay, mainConfig, categoryList, modelList, scenarioList, observedList, parameterTypeList, parameterList
@@ -1891,37 +2007,37 @@ PRO FMApplication::initEntityDisplay, entityDisplay, mainConfig, categoryList, m
 
   ;categoryList, modelList, scenarioList, observedList
   runList=mainConfig->getRunList()
-
+  
   entityDisplay->setScenarioNames, scenarioList->getDisplayNames()
   entityDisplay->setScenarioCodes, scenarioList->getCodes()
   entityDisplay->setScenarioDescriptions, scenarioList->getDescriptions()
   entityDisplay->setScenarioSelections, [-1]
-
+  
   entityDisplay->setModelNames, modelList->getDisplayNames()
   entityDisplay->setModelCodes, modelList->getCodes()
   entityDisplay->setModelDescriptions, modelList->getDescriptions()
   entityDisplay->setModelSelections, [-1]
-
+  
   entityDisplay->setRunNames, runList->getDisplayNames()
   entityDisplay->setRunCodes, runList->getCodes()
   entityDisplay->setRunDescriptions, runList->getDescriptions()
   entityDisplay->setRunScenarioCodes, runList->getScenarioCodes()
   entityDisplay->setRunModelCodes, runList->getModelCodes()
   entityDisplay->setRunSelections, [-1]
-
-
+  
+  
   obsCat=mainConfig->getObservedCategoryList()
   categoryValues=obsCat->getValuesByCategory(CATEGORYCODES=CATEGORYCODES)
   allPresetForCategories=intarr(4)
   allPresetForCategories[0:n_elements(CATEGORYCODES)-1]=-1
-
+  
   entityDisplay->setCategoryCodes, CATEGORYCODES
   entityDisplay->setCategoryValues, categoryValues
   entityDisplay->setCategoryTitles, categoryList->getDisplayNames(CODES=CATEGORYCODES)
   entityDisplay->setCategorySelections, allPresetForCategories
   presenceFlagsNo=n_elements(CATEGORYCODES) & presenceFlags=bytarr(4) & presenceFlags[0:presenceFlagsNo-1]=1b
   entityDisplay->setCategoryPresenceFlags, presenceFlags
-
+  
   entityDisplay->setObservedNames, observedList->getDisplayNames()
   entityDisplay->setObservedShortNames, observedList->getShortNames()
   entityDisplay->setObservedLatitudes, observedList->getYGeoLocations()
@@ -1934,35 +2050,35 @@ PRO FMApplication::initEntityDisplay, entityDisplay, mainConfig, categoryList, m
   entityDisplay->setObsCatValues, obsCat->getValues()
   entityDisplay->setObsCatObservedCodes, obsCat->getObservedCodes()
   entityDisplay->setObsCatCategoryCodes, obsCat->getCategoryCodes()
-
+  
   ;if self->IsAdvancedFilter() then entityDisplay->setUseObservedModelFlag, 1 else entityDisplay->setUseObservedModelFlag, 0
   entityDisplay->setUseObservedModelFlag, 0
-
+  
   entityDisplay->setParameterTypeNames, parameterTypeList->getDisplayNames()
   entityDisplay->setParameterTypeCodes, parameterTypeList->getCodes()
   entityDisplay->setParameterTypeDescriptions, parameterTypeList->getDescriptions()
   entityDisplay->setParameterTypeSelections, [0]
-
+  
   entityDisplay->setParameterNames, parameterList->getDisplayNames()
   entityDisplay->setParameterCodes, parameterList->getCodes()
   entityDisplay->setParameterTypes, parameterList->getTypeCodes()
   entityDisplay->setParameterDescriptions, parameterList->getDescriptions()
   entityDisplay->setParameterMeasureUnits, parameterList->getDescriptions()
-
+  
   allParsCodes=parameterList->getCodes()
   allObsCodes=observedList->getCodes()
   allObsPars=observedList->getParameters()
-
+  
   parameterObs=self->buildParametersObsRelationship(allParsCodes, allObsCodes, allObsPars)
-
+  
   entityDisplay->setParameterObservedCodes, parameterObs
-
+  
   allMonGroupStatCodes=monitoringGroupStatList->getCodes()
   firstSelected=allMonGroupStatCodes[0]
   entityDisplay->setObservedGroupStatNames, monitoringGroupStatList->getDisplayNames()
   entityDisplay->setObservedGroupStatCodes, allMonGroupStatCodes
   entityDisplay->setObservedGroupStatCodeSelection, firstSelected
-
+  
 END
 
 ;PRO FMApplication::initElaborationDisplay, mainConfig, diagramList, axisTypeList, groupByStatList, groupByTimeList, seasonList, dayperiodList, parameterTypeList, parameterList
@@ -1971,14 +2087,14 @@ PRO FMApplication::initElaborationDisplay, elabDisplay, mainConfig, diagramList,
   elabList=mainConfig->getElaborationList()
   goalsList=mainConfig->getGoalsCriteriaOCList()
   diagramList=self.diagramList
-
+  
   elabDisplay->setDiagramNames, diagramList->getDisplayNames()
   elabDisplay->setDiagramCodes, diagramList->getCodes()
   elabDisplay->setDiagramMaxMultipleChoice, diagramList->getMaxMultipleChoice()
   elabDisplay->setDiagramDescriptions, diagramList->getDescriptions()
   ;elabDisplay->setDiagramAxisCodes, diagramList->getAxisCodes()
   elabDisplay->setDiagramSelection, [0]
-
+  
   elabDisplay->setElabCodes, elabList->getCodes()
   elabDisplay->setElabNames, elabList->getDisplayNames()
   elabDisplay->setElabDescriptions, elabList->getDescriptions()
@@ -1993,24 +2109,24 @@ PRO FMApplication::initElaborationDisplay, elabDisplay, mainConfig, diagramList,
   elabDisplay->setElabSeasonCodes, elabList->getSeasonCodes()
   elabDisplay->setElabSelection, [0]
   ;elabDisplay->setElabSelection, (elabList->getGoalsCriteriaOCFlags())[0]
-
+  
   ;elabDisplay->setAxisCodes, axisTypeList->getCodes()
   ;elabDisplay->setAxisNames, axisTypeList->getNames()
   ;elabDisplay->setAxisDescriptions, axisTypeList->getDescriptions()
   ;elabDisplay->setAxisSelection, [0]
-
+  
   ;  elabDisplay->setParameterNames, parameterList->getDisplayNames()
   ;  elabDisplay->setParameterCodes, parameterList->getCodes()
   ;  elabDisplay->setParameterDescriptions, parameterList->getDescriptions()
   ;  elabDisplay->setParameterMeasureUnits, parameterList->getDescriptions()
   ;  elabDisplay->setParametersSelection, [0]
-
+  
   elabDisplay->setGroupByTitles, [groupByTimeList->getTitle(), groupByStatList->getTitle()]
   elabDisplay->setGroupByStatNames, groupByStatList->getDisplayNames()
   elabDisplay->setGroupByStatCodes, groupByStatList->getCodes()
   elabDisplay->setGroupByTimeNames, groupByTimeList->getDisplayNames()
   elabDisplay->setGroupByTimeCodes, groupByTimeList->getCodes()
-
+  
   elabDisplay->setPeriodTitles, ['Season', 'Day']
   seasonNames=seasonList->getDisplayNames()
   seasonCodes=seasonList->getCodes()
@@ -2020,7 +2136,7 @@ PRO FMApplication::initElaborationDisplay, elabDisplay, mainConfig, diagramList,
   dayPeriodCodes=dayPeriodList->getCodes()
   elabDisplay->setDayPeriodNames, dayPeriodNames
   elabDisplay->setDayPeriodCodes, dayPeriodCodes
-
+  
 END
 
 PRO FMApplication::initViewConfiguration
@@ -2029,26 +2145,26 @@ PRO FMApplication::initViewConfiguration
   self->initEntityDisplay, self.entityDisplay, self.mainConfig, self.categoryList, self.modelList, self.scenarioList, self.observedList, self.parameterTypeList, self.parameterList, self.monitoringGroupStatList
   ;self->initElaborationDisplay, self.mainConfig, self.diagramList, self.axisTypeList, self.groupByStatList, self.groupByTimeList, self.seasonList, self.dayPeriodList
   self->initElaborationDisplay, self.elaborationDisplay, self.mainConfig, self.diagramList, self.groupByStatList, self.groupByTimeList, self.seasonList, self.dayPeriodList
-
+  
 END
 
 PRO FMApplication::fillMainConfigFromFile, confDir, parameterName=parameterName, parameterValue=parameterValue
 
   self.mainConfig->fillFlexyData, confDir, self.fileSystemMgr, (self->getModelInfo()).frequency, parameterName=parameterName, parameterValue=parameterValue
-
+  
   elabFilterTypeIdx=(where(parameterName eq 'ELAB_FILTER_TYPE'))[0]
   ; Available type: 0: Standard, 1: Advanced, 2: Benchmark
   if elabFilterTypeIdx[0] eq -1 then elabFilterType=0 else elabFilterType=(where(parameterValue[elabFilterTypeIdx] eq self.availableFilterType))[0]
-
+  
   benchmarkManagingEnableIdx=(where(parameterName eq 'BENCHMARK_ENABLE_MGR'))[0]
   ; TRUE or 1 --> Enabling Benchmark related menu voices
   ; not present or other values --> Benchmark related menu voices are disabled
   benchmarkManagingEnable=0
   if benchmarkManagingEnableIdx[0] ne -1 then benchmarkManagingEnable=parameterValue[benchmarkManagingEnableIdx] eq '1' or strupcase(parameterValue[benchmarkManagingEnableIdx]) eq 'TRUE'
-
+  
   self.mainConfig->setElaborationFilterType, elabFilterType
   self.mainConfig->setBenchmarkManagingEnabled, benchmarkManagingEnable
-
+  
 END
 ;****************************************************************************************
 ; get/set
@@ -2056,25 +2172,25 @@ END
 FUNCTION FMApplication::getEntityDisplay
 
   return, self.entityDisplay
-
+  
 END
 
 PRO FMApplication::setEntityDisplay, entity
 
   self.entityDisplay=entity
-
+  
 END
 
 FUNCTION FMApplication::getElaborationDisplay
 
   return, self.elaborationDisplay
-
+  
 END
 
 PRO FMApplication::setElaborationDisplay, elab
 
   self.elaborationDisplay=elab
-
+  
 END
 
 ;****************************************************************************************
@@ -2108,7 +2224,7 @@ FUNCTION FMApplication :: init
   self.benchMarkMenuList=obj_new('MenuInfo')
   self.availableFilterType=["STANDARD", "ADVANCED", "BENCHMARK"]
   return, 1
-
+  
 END
 
 PRO FMApplication :: cleanUp
@@ -2145,7 +2261,7 @@ PRO FMApplication :: cleanUp
   obj_destroy, self.benchmarkView
   self -> Object :: cleanUp
   journal
-
+  
 END
 
 PRO FMApplication__Define
@@ -2193,8 +2309,8 @@ PRO FMApplication__Define
     modelInfo: getFMModelInfoStruct(), $
     ;MM summer 2012 End
     availableFilterType: strarr(3), $
-    versionDate : '', $
-    versionCode : '', $
+    ;versionDate : '', $
+    ;versionCode : '', $
     psCharSizeFactor: 0., $
     browserLocation: '', $
     googleEarthLocation: '', $
@@ -2203,8 +2319,8 @@ PRO FMApplication__Define
     docReaderLocation: '', $
     pdfReaderLocation: '', $
     Inherits Object $
-  }
-
+    }
+    
 END
 
 ;****************************************************************************************

@@ -1953,7 +1953,18 @@ PRO FM_PlotGoogleEarth, plotter, request, result
   GE_path=request->getGoogleEarthLocation()
   
   ;SPAWN, ['"C:\Program Files (x86)\Google\Google Earth\client\googleearth.exe"',PATHDUMP+fname], /NOSHELL, /NOWAIT
-  SPAWN, [GE_path,PATHDUMP+fname], /NOSHELL, /NOWAIT
+  ERROR=0
+  catch, error_status
+
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL
+    errMsg=dialog_message([['Please check path to Google Earth location'], fullString, [' Check existence or read permission'], [' and modify -HOME/resource/init.ini- accordingly.']], /ERROR)
+    return
+  endif
+
+  fullString=[GE_path,PATHDUMP+fname]
+  SPAWN, fullString, /NOSHELL, /NOWAIT
   
   endGE:
 END

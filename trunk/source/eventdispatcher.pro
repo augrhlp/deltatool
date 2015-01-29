@@ -188,6 +188,16 @@ END
 
 PRO fairmode_helpMenuSelection, ev
 
+  ERROR=0
+  catch, error_status
+
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL
+    errMsg=dialog_message([['Please check path to pdf reader location'], fullString, [' Check existence or read permission'], [' and modify -HOME/resource/init.ini- accordingly.']], /ERROR)
+    return
+  endif
+
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
   print, 'fairmode_helpMenuSelection'
@@ -196,12 +206,25 @@ PRO fairmode_helpMenuSelection, ev
   print, 'Pdf reader:',mgr->getPdfReaderLocation()
   print, 'Browser launcher:',mgr->getBrowserLocation()
   fs=mgr->getFileSystemMgr()
-  helpfolder=fs->getHelpDir(withseparator=withseparator)+'\'
-  spawn,[mgr->getpdfReaderLocation(),helpfolder+'DELTA_UserGuide_V4_0.pdf'],/noshell,/nowait
+  helpFile=fs->getHelpFileName(/FULLPATH)
+  fullString=[mgr->getpdfReaderLocation(),helpFile]
+  spawn,fullString,/noshell,/nowait
+  ;helpfolder=fs->getHelpDir(withseparator=withseparator)+'\'
+  ;spawn,[mgr->getpdfReaderLocation(),helpfolder+'DELTA_UserGuide_V4_0.pdf'],/noshell,/nowait
 
 END
 
 PRO fairmode_downloadMenuSelection, ev
+
+  ERROR=0
+  catch, error_status
+  
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL
+    errMsg=dialog_message([['Please check path to browser location'], fullString, [' Check existence or read permission'], [' and modify -HOME/resource/init.ini- accordingly.']], /ERROR)
+    return
+  endif
 
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
@@ -210,7 +233,8 @@ PRO fairmode_downloadMenuSelection, ev
   print, 'Doc reader:', mgr->getDocReaderLocation()
   print, 'Pdf reader:',mgr->getPdfReaderLocation()
   print, 'Browser launcher:',mgr->getBrowserLocation()
-  spawn,[mgr->getBrowserLocation(),'aqm.jrc.ec.europa.eu/DELTA/'],/noshell,/nowait
+  fullString=[mgr->getBrowserLocation(),'aqm.jrc.ec.europa.eu/DELTA/']
+  spawn,fullString,/noshell,/nowait
 
 END
 
@@ -293,6 +317,45 @@ PRO fairmode_disclaimer, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_disclaimer'
   view->showDisclaimer
+
+END
+
+PRO fairmode_configureExecutable, ev
+
+  ;;help, ev, /str
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  ;print, 'fairmode_disclaimer'
+  view->configureExecutable
+
+END
+
+PRO fairmode_license, ev
+
+  ERROR=0
+  catch, error_status
+
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL
+    errMsg=dialog_message([['Please check path to rtf reader location'], fullString, [' Check existence or read permission'], [' and modify -HOME/resource/init.ini- accordingly.']], /ERROR)
+    return
+  endif
+
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  print, 'fairmode_license'
+  mgr=view->getMgr()
+  rtfReaderFile=mgr->getDocReaderLocation()
+  print, 'Doc reader:', rtfReaderFile
+  ;print, 'Pdf reader:',mgr->getPdfReaderLocation()
+  ;print, 'Browser launcher:',mgr->getBrowserLocation()
+  fs=mgr->getFileSystemMgr()
+  licenseFile=fs->getLicenseFileName(/FULLPATH)
+  fullString=[rtfReaderFile,licenseFile]
+  spawn,fullString,/noshell,/nowait
+  ;helpfolder=fs->getHelpDir(withseparator=withseparator)+'\'
+  ;spawn,[mgr->getpdfReaderLocation(),helpfolder+'DELTA_UserGuide_V4_0.pdf'],/noshell,/nowait
 
 END
 
