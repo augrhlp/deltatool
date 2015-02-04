@@ -553,9 +553,9 @@ PRO PROGRESSBAR::Update, percent, text2=theText, text1=text1
   IF N_Elements(theText) NE 0 THEN Widget_Control, self.labelID, Set_Value=theText
   IF N_Elements(text1) NE 0 THEN Widget_Control, self.labelID1, Set_Value=text1
   IF self.fast THEN BEGIN
-    Polyfill, [x1, x1, x2, x2, x1], [y1, y2, y2, y1, y1], /Device, Color=self.colorindex
+    Polyfill, [x1, x1, x2, x2, x1], [y1, y2, y2, y1, y1], /device, Color=self.colorindex
   ENDIF ELSE BEGIN
-    Polyfill, [x1, x1, x2, x2, x1], [y1, y2, y2, y1, y1], /Device, Color=FSC_Color(self.color, !P.Color)
+    Polyfill, [x1, x1, x2, x2, x1], [y1, y2, y2, y1, y1], /device, Color=FSC_Color(self.color, !P.Color)
   ENDELSE
   IF thisWindow GE 0 AND thisWindow NE self.wid THEN WSet, thisWindow
   
@@ -701,7 +701,7 @@ FUNCTION PROGRESSBAR::INIT, $
     Widget_Control, self.tlb, XOFFSET=xoffset, YOFFSET=yoffset
     
   ENDIF ELSE BEGIN
-    Device, Get_Screen_Size=screenSize
+    device, Get_Screen_Size=screenSize
     IF screenSize[0] GT 2000 THEN screenSize[0] = screenSize[0]/2 ; Dual monitors.
     xCenter = screenSize(0) / 2
     yCenter = screenSize(1) / 2
@@ -875,7 +875,7 @@ END
 
 
 ;PRO Progressbar_Example
-;DEVICE,DECOMPOSE=0
+;device,DECOMPOSE=0
 ;LOADCT,39
 ;tlb = Widget_Base(Column=1, Xoffset=200, Yoffset=200)
 ;button = Widget_Button(tlb, Value='Start Loop (Normal)')
@@ -942,13 +942,13 @@ END
 ;       dataColor = FSC_Color("Yellow", !D.Table_Size-4)
 ;       thisDevice = !D.Name
 ;       Set_Plot, 'toWhateverYourDeviceIsGoingToBe', /Copy
-;       Device, .... ; Whatever you need here to set things up properly.
+;       device, .... ; Whatever you need here to set things up properly.
 ;       IF (!D.Flags AND 256) EQ 0 THEN $
 ;         POLYFILL, [0,1,1,0,0], [0,0,1,1,0], /Normal, Color=backColor
 ;       Plot, Findgen(11), Color=axisColor, Background=backColor, /NoData, $
 ;          NoErase= ((!D.Flags AND 256) EQ 0)
 ;       OPlot, Findgen(11), Color=dataColor
-;       Device, .... ; Whatever you need here to wrap things up properly.
+;       device, .... ; Whatever you need here to wrap things up properly.
 ;       Set_Plot, thisDevice
 ;
 ; OPTIONAL INPUT PARAMETERS:
@@ -1295,639 +1295,639 @@ END
 ;  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS           ;
 ;  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                            ;
 ;******************************************************************************************;
-FUNCTION FSC_Color_Count_Rows, filename, MaxRows = maxrows
-
-  ; This utility routine is used to count the number of
-  ; rows in an ASCII data file.
-
-  IF N_Elements(maxrows) EQ 0 THEN maxrows = 500L
-  IF N_Elements(filename) EQ 0 THEN BEGIN
-    filename = Dialog_Pickfile()
-    IF filename EQ "" THEN RETURN, -1
-  ENDIF
-  
-  OpenR, lun, filename, /Get_Lun
-  
-  Catch, theError
-  IF theError NE 0 THEN BEGIN
-    Catch, /Cancel
-    count = count-1
-    Free_Lun, lun
-    RETURN, count
-  ENDIF
-  
-  RESTART:
-  
-  count = 1L
-  line = ''
-  FOR j=count, maxrows DO BEGIN
-    ReadF, lun, line
-    count = count + 1
-    
-    ; Try again if you hit MAXROWS without encountering the
-    ; end of the file. Double the MAXROWS parameter.
-    
-    IF j EQ maxrows THEN BEGIN
-      maxrows = maxrows * 2
-      Point_Lun, lun, 0
-      GOTO, RESTART
-    ENDIF
-    
-  ENDFOR
-  
-  RETURN, -1
-  
-END ;-------------------------------------------------------------------------------
-
-
-
-FUNCTION FSC_Color_Color24, color
-
-  ; This FUNCTION accepts a [red, green, blue] triple that
-  ; describes a particular color and returns a 24-bit long
-  ; integer that is equivalent to (can be decomposed into)
-  ; that color. The triple can be either a row or column
-  ; vector of 3 elements or it can be an N-by-3 array of
-  ; color triples.
-
-  ON_ERROR, 2
-  
-  s = Size(color)
-  
-  IF s[0] EQ 1 THEN BEGIN
-    IF s[1] NE 3 THEN Message, 'Input color parameter must be a 3-element vector.'
-    RETURN, color[0] + (color[1] * 2L^8) + (color[2] * 2L^16)
-  ENDIF ELSE BEGIN
-    IF s[2] GT 3 THEN Message, 'Input color parameter must be an N-by-3 array.'
-    RETURN, color[*,0] + (color[*,1] * 2L^8) + (color[*,2] * 2L^16)
-  ENDELSE
-  
-END ;--------------------------------------------------------------------------------------------
+;FUNCTION FSC_Color_Count_Rows, filename, MaxRows = maxrows
+;
+;  ; This utility routine is used to count the number of
+;  ; rows in an ASCII data file.
+;
+;  IF N_Elements(maxrows) EQ 0 THEN maxrows = 500L
+;  IF N_Elements(filename) EQ 0 THEN BEGIN
+;    filename = Dialog_Pickfile()
+;    IF filename EQ "" THEN RETURN, -1
+;  ENDIF
+;  
+;  OpenR, lun, filename, /Get_Lun
+;  
+;  Catch, theError
+;  IF theError NE 0 THEN BEGIN
+;    Catch, /Cancel
+;    count = count-1
+;    Free_Lun, lun
+;    RETURN, count
+;  ENDIF
+;  
+;  RESTART:
+;  
+;  count = 1L
+;  line = ''
+;  FOR j=count, maxrows DO BEGIN
+;    ReadF, lun, line
+;    count = count + 1
+;    
+;    ; Try again if you hit MAXROWS without encountering the
+;    ; end of the file. Double the MAXROWS parameter.
+;    
+;    IF j EQ maxrows THEN BEGIN
+;      maxrows = maxrows * 2
+;      Point_Lun, lun, 0
+;      GOTO, RESTART
+;    ENDIF
+;    
+;  ENDFOR
+;  
+;  RETURN, -1
+;  
+;END ;-------------------------------------------------------------------------------
 
 
 
-FUNCTION FSC_Color, theColour, colorIndex, $
-    AllColors=allcolors, $
-    Brewer=brewer, $
-    Check_Connection=check_connection, $ ; This keyword is completely ignored.
-    ColorStructure=colorStructure, $
-    Cancel=cancelled, $
-    Decomposed=decomposedState, $
-    _Extra=extra, $
-    Filename=filename, $
-    Names=names, $
-    NColors=ncolors, $
-    NODISPLAY=nodisplay, $ ; This keyword is completely ignored.
-    Row=row, $
-    SelectColor=selectcolor, $
-    Triple=triple
-    
-  ; Return to caller as the default error behavior.
-  On_Error, 2
-  
-  ; Error handling for the rest of the program.
-  Catch, theError
-  IF theError NE 0 THEN BEGIN
-    Catch, /Cancel
-    ok = Error_Message(/Traceback)
-    cancelled = 1
-    RETURN, !P.Color
-  ENDIF
-  
-  ; Set up PostScript device for working with colors.
-  IF !D.Name EQ 'PS' THEN Device, COLOR=1, BITS_PER_PIXEL=8
-  
-  ; I don't want to change the original variable.
-  IF N_Elements(theColour) NE 0 THEN theColor = theColour ELSE $
-    theColor = 'OPPOSITE'
-    
-  ; Make sure the color parameter is a string.
-  varInfo = Size(theColor)
-  IF varInfo[varInfo[0] + 1] NE 7 THEN $
-    Message, 'The color name parameter must be a string.', /NoName
-    
-  ; We don't want underscores in color names. Turn all underscores
-  ; to spaces.
-  FOR j=0,N_Elements(theColor)-1 DO BEGIN
-    theColor[j] = StrJoin( StrSplit(theColor[j], '_', /Extract, $
-      /Preserve_Null), ' ')
-  ENDFOR
-  
-  ; Make sure the color is compressed and uppercase.
-  theColor = StrUpCase(StrCompress(StrTrim(theColor,2), /Remove_All))
-  
-  ; Get the pixel value of the "opposite" color. This is the pixel color
-  ; opposite the pixel color in the upper right corner of the display.
-  IF (!D.Window GE 0) AND ((!D.Flags AND 256) NE 0) THEN BEGIN
-    opixel = TVRead(!D.X_Size-1,  !D.Y_Size-1, 1, 1)
-    IF N_Elements(opixel) NE 3 THEN BEGIN
-      IF (!D.Name NE 'NULL') THEN TVLCT, rrr, ggg, bbb, /Get
-      opixel = [rrr[opixel], ggg[opixel], bbb[opixel]]
-    ENDIF
-  ENDIF ELSE BEGIN
-    IF (!D.Name EQ 'PS') THEN opixel = [255,255,255]
-  ENDELSE
-  IF N_Elements(opixel) EQ 0 THEN opixel = [0,0,0]
-  opixel = 255 - opixel
-  
-  ; Read the first color as bytes. If none of the bytes are less than 48
-  ; or greater than 57, then this is a "number" string and you should
-  ; assume the current color table is being used.
-  bytecheck = Byte(theColor[0])
-  i = Where(bytecheck LT 48, lessthan)
-  i = Where(bytecheck GT 57, greaterthan)
-  IF (lessthan + greaterthan) EQ 0 THEN useCurrentColors = 1 ELSE useCurrentColors = 0
-  
-  ; Get the decomposed state of the IDL session right now.
-  IF N_Elements(decomposedState) EQ 0 THEN BEGIN
-    IF Float(!Version.Release) GE 5.2 THEN BEGIN
-      IF (!D.Name EQ 'X' OR !D.Name EQ 'WIN' OR !D.Name EQ 'MAC') THEN BEGIN
-        Device, Get_Decomposed=decomposedState
-      ENDIF ELSE decomposedState = 0
-    ENDIF ELSE decomposedState = 0
-    IF (Float(!Version.Release) GE 6.4) AND (!D.NAME EQ 'Z') THEN BEGIN
-      Device, Get_Decomposed=decomposedState, Get_Pixel_Depth=theDepth
-      IF theDepth LT 24 THEN decomposedState = 0
-    ENDIF
-  ENDIF ELSE decomposedState = Keyword_Set(decomposedState)
-  
-  ; Get depth of visual display (and decomposed state for PostScript devices).
-  IF (!D.Flags AND 256) NE 0 THEN Device, Get_Visual_Depth=theDepth ELSE theDepth = 8
-  IF (Float(!Version.Release) GE 6.4) AND (!D.NAME EQ 'Z') THEN Device, Get_Pixel_Depth=theDepth
-  IF (!D.NAME EQ 'PS') AND (Float(!Version.Release) GE 7.1) THEN BEGIN
-    decomposedState = DecomposedColor(DEPTH=theDepth)
-  ENDIF
-  
-  ; Need brewer colors?
-  brewer = Keyword_Set(brewer)
-  
-  ; Load the colors.
-  IF N_Elements(filename) NE 0 THEN BEGIN
-  
-    ; Count the number of rows in the file.
-    ncolors = FSC_Color_Count_Rows(filename)
-    
-    ; Read the data.
-    OpenR, lun, filename, /Get_Lun
-    rvalue = BytArr(NCOLORS)
-    gvalue = BytArr(NCOLORS)
-    bvalue = BytArr(NCOLORS)
-    colors = StrArr(NCOLORS)
-    redvalue = 0B
-    greenvalue = 0B
-    bluevalue = 0B
-    colorvalue = ""
-    FOR j=0L, NCOLORS-1 DO BEGIN
-      ReadF, lun, redvalue, greenvalue, bluevalue, colorvalue
-      rvalue[j] = redvalue
-      gvalue[j] = greenvalue
-      bvalue[j] = bluevalue
-      colors[j] = colorvalue
-    ENDFOR
-    Free_Lun, lun
-    
-    ; Trim the colors array of blank characters.
-    colors = StrTrim(colors, 2)
-    
-  ENDIF ELSE BEGIN
-  
-    ; Set up the color vectors.
-    IF Keyword_Set(Brewer) THEN BEGIN
-    
-      ; Set up the color vectors.
-      colors = [ 'WT1', 'WT2', 'WT3', 'WT4', 'WT5', 'WT6', 'WT7', 'WT8']
-      rvalue = [  255,   255,   255,   255,   255,   245,   255,   250 ]
-      gvalue = [  255,   250,   255,   255,   248,   245,   245,   240 ]
-      bvalue = [  255,   250,   240,   224,   220,   220,   238,   230 ]
-      colors = [ colors, 'TAN1', 'TAN2', 'TAN3', 'TAN4', 'TAN5', 'TAN6', 'TAN7', 'TAN8']
-      rvalue = [ rvalue,   250,   255,    255,    255,    255,    245,    222,    210 ]
-      gvalue = [ gvalue,   235,   239,    235,    228,    228,    222,    184,    180 ]
-      bvalue = [ bvalue,   215,   213,    205,    196,    181,    179,    135,    140 ]
-      colors = [ colors, 'BLK1', 'BLK2', 'BLK3', 'BLK4', 'BLK5', 'BLK6', 'BLK7', 'BLK8']
-      rvalue = [ rvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
-      gvalue = [ gvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
-      bvalue = [ bvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
-      colors = [ colors, 'GRN1', 'GRN2', 'GRN3', 'GRN4', 'GRN5', 'GRN6', 'GRN7', 'GRN8']
-      rvalue = [ rvalue,   250,   223,    173,    109,     53,     35,      0,       0 ]
-      gvalue = [ gvalue,   253,   242,    221,    193,    156,     132,    97,      69 ]
-      bvalue = [ bvalue,   202,   167,    142,    115,     83,      67,    52,      41 ]
-      colors = [ colors, 'BLU1', 'BLU2', 'BLU3', 'BLU4', 'BLU5', 'BLU6', 'BLU7', 'BLU8']
-      rvalue = [ rvalue,   232,   202,    158,     99,     53,     33,      8,       8 ]
-      gvalue = [ gvalue,   241,   222,    202,    168,    133,    113,     75,      48 ]
-      bvalue = [ bvalue,   250,   240,    225,    211,    191,    181,    147,     107 ]
-      colors = [ colors, 'ORG1', 'ORG2', 'ORG3', 'ORG4', 'ORG5', 'ORG6', 'ORG7', 'ORG8']
-      rvalue = [ rvalue,   254,    253,    253,    250,    231,    217,    159,    127 ]
-      gvalue = [ gvalue,   236,    212,    174,    134,     92,     72,     51,     39 ]
-      bvalue = [ bvalue,   217,    171,    107,     52,     12,      1,      3,      4 ]
-      colors = [ colors, 'RED1', 'RED2', 'RED3', 'RED4', 'RED5', 'RED6', 'RED7', 'RED8']
-      rvalue = [ rvalue,   254,    252,    252,    248,    225,    203,    154,    103 ]
-      gvalue = [ gvalue,   232,    194,    146,     97,     45,     24,     12,      0 ]
-      bvalue = [ bvalue,   222,    171,    114,     68,     38,     29,     19,     13 ]
-      colors = [ colors, 'PUR1', 'PUR2', 'PUR3', 'PUR4', 'PUR5', 'PUR6', 'PUR7', 'PUR8']
-      rvalue = [ rvalue,   244,    222,    188,    152,    119,    106,     80,     63 ]
-      gvalue = [ gvalue,   242,    221,    189,    148,    108,     82,     32,      0 ]
-      bvalue = [ bvalue,   248,    237,    220,    197,    177,    163,    139,    125 ]
-      colors = [ colors, 'PBG1', 'PBG2', 'PBG3', 'PBG4', 'PBG5', 'PBG6', 'PBG7', 'PBG8']
-      rvalue = [ rvalue,   243,    213,    166,     94,     34,      3,      1,      1 ]
-      gvalue = [ gvalue,   234,    212,    189,    164,    138,    129,    101,     70 ]
-      bvalue = [ bvalue,   244,    232,    219,    204,    171,    139,     82,     54 ]
-      colors = [ colors, 'YGB1', 'YGB2', 'YGB3', 'YGB4', 'YGB5', 'YGB6', 'YGB7', 'YGB8']
-      rvalue = [ rvalue,   244,    206,    127,     58,     30,     33,     32,      8 ]
-      gvalue = [ gvalue,   250,    236,    205,    175,    125,     95,     48,     29 ]
-      bvalue = [ bvalue,   193,    179,    186,    195,    182,    168,    137,     88 ]
-      colors = [ colors, 'RYB1', 'RYB2', 'RYB3', 'RYB4', 'RYB5', 'RYB6', 'RYB7', 'RYB8']
-      rvalue = [ rvalue,   201,    245,    253,    251,    228,    193,    114,     59 ]
-      gvalue = [ gvalue,    35,    121,    206,    253,    244,    228,    171,     85 ]
-      bvalue = [ bvalue,    38,    72,     127,    197,    239,    239,    207,    164 ]
-      colors = [ colors, 'TG1', 'TG2', 'TG3', 'TG4', 'TG5', 'TG6', 'TG7', 'TG8']
-      rvalue = [ rvalue,  84,    163,   197,   220,   105,    51,    13,     0 ]
-      gvalue = [ gvalue,  48,    103,   141,   188,   188,   149,   113,    81 ]
-      bvalue = [ bvalue,   5,     26,    60,   118,   177,   141,   105,    71 ]
-      
-    ENDIF ELSE BEGIN
-    
-      ; Set up the color vectors. Both original and Brewer colors.
-      colors= ['White']
-      rvalue = [ 255]
-      gvalue = [ 255]
-      bvalue = [ 255]
-      colors = [ colors,   'Snow',     'Ivory','Light Yellow', 'Cornsilk',     'Beige',  'Seashell' ]
-      rvalue = [ rvalue,     255,         255,       255,          255,          245,        255 ]
-      gvalue = [ gvalue,     250,         255,       255,          248,          245,        245 ]
-      bvalue = [ bvalue,     250,         240,       224,          220,          220,        238 ]
-      colors = [ colors,   'Linen','Antique White','Papaya',     'Almond',     'Bisque',  'Moccasin' ]
-      rvalue = [ rvalue,     250,        250,        255,          255,          255,          255 ]
-      gvalue = [ gvalue,     240,        235,        239,          235,          228,          228 ]
-      bvalue = [ bvalue,     230,        215,        213,          205,          196,          181 ]
-      colors = [ colors,   'Wheat',  'Burlywood',    'Tan', 'Light Gray',   'Lavender','Medium Gray' ]
-      rvalue = [ rvalue,     245,        222,          210,      230,          230,         210 ]
-      gvalue = [ gvalue,     222,        184,          180,      230,          230,         210 ]
-      bvalue = [ bvalue,     179,        135,          140,      230,          250,         210 ]
-      colors = [ colors,  'Gray', 'Slate Gray',  'Dark Gray',  'Charcoal',   'Black',  'Honeydew', 'Light Cyan' ]
-      rvalue = [ rvalue,      190,      112,          110,          70,         0,         240,          224 ]
-      gvalue = [ gvalue,      190,      128,          110,          70,         0,         255,          255 ]
-      bvalue = [ bvalue,      190,      144,          110,          70,         0,         255,          240 ]
-      colors = [ colors,'Powder Blue',  'Sky Blue', 'Cornflower Blue', 'Cadet Blue', 'Steel Blue','Dodger Blue', 'Royal Blue',  'Blue' ]
-      rvalue = [ rvalue,     176,          135,          100,              95,            70,           30,           65,            0 ]
-      gvalue = [ gvalue,     224,          206,          149,             158,           130,          144,          105,            0 ]
-      bvalue = [ bvalue,     230,          235,          237,             160,           180,          255,          225,          255 ]
-      colors = [ colors,  'Navy', 'Pale Green','Aquamarine','Spring Green',  'Cyan' ]
-      rvalue = [ rvalue,        0,     152,          127,          0,            0 ]
-      gvalue = [ gvalue,        0,     251,          255,        250,          255 ]
-      bvalue = [ bvalue,      128,     152,          212,        154,          255 ]
-      colors = [ colors, 'Turquoise', 'Light Sea Green', 'Sea Green','Forest Green',  'Teal','Green Yellow','Chartreuse', 'Lawn Green' ]
-      rvalue = [ rvalue,      64,          143,               46,          34,             0,      173,           127,         124 ]
-      gvalue = [ gvalue,     224,          188,              139,         139,           128,      255,           255,         252 ]
-      bvalue = [ bvalue,     208,          143,               87,          34,           128,       47,             0,           0 ]
-      colors = [ colors, 'Green', 'Lime Green', 'Olive Drab',  'Olive','Dark Green','Pale Goldenrod']
-      rvalue = [ rvalue,      0,        50,          107,        85,            0,          238 ]
-      gvalue = [ gvalue,    255,       205,          142,       107,          100,          232 ]
-      bvalue = [ bvalue,      0,        50,           35,        47,            0,          170 ]
-      colors = [ colors,     'Khaki', 'Dark Khaki', 'Yellow',  'Gold', 'Goldenrod','Dark Goldenrod']
-      rvalue = [ rvalue,        240,       189,        255,      255,      218,          184 ]
-      gvalue = [ gvalue,        230,       183,        255,      215,      165,          134 ]
-      bvalue = [ bvalue,        140,       107,          0,        0,       32,           11 ]
-      colors = [ colors,'Saddle Brown',  'Rose',   'Pink', 'Rosy Brown','Sandy Brown', 'Peru']
-      rvalue = [ rvalue,     139,          255,      255,        188,        244,        205 ]
-      gvalue = [ gvalue,      69,          228,      192,        143,        164,        133 ]
-      bvalue = [ bvalue,      19,          225,      203,        143,         96,         63 ]
-      colors = [ colors,'Indian Red',  'Chocolate',  'Sienna','Dark Salmon',   'Salmon','Light Salmon' ]
-      rvalue = [ rvalue,    205,          210,          160,        233,          250,       255 ]
-      gvalue = [ gvalue,     92,          105,           82,        150,          128,       160 ]
-      bvalue = [ bvalue,     92,           30,           45,        122,          114,       122 ]
-      colors = [ colors,  'Orange',      'Coral', 'Light Coral',  'Firebrick', 'Dark Red', 'Brown',  'Hot Pink' ]
-      rvalue = [ rvalue,       255,         255,        240,          178,        139,       165,        255 ]
-      gvalue = [ gvalue,       165,         127,        128,           34,          0,        42,        105 ]
-      bvalue = [ bvalue,         0,          80,        128,           34,          0,        42,        180 ]
-      colors = [ colors, 'Deep Pink',    'Magenta',   'Tomato', 'Orange Red',   'Red', 'Crimson', 'Violet Red' ]
-      rvalue = [ rvalue,      255,          255,        255,        255,          255,      220,        208 ]
-      gvalue = [ gvalue,       20,            0,         99,         69,            0,       20,         32 ]
-      bvalue = [ bvalue,      147,          255,         71,          0,            0,       60,        144 ]
-      colors = [ colors,    'Maroon',    'Thistle',       'Plum',     'Violet',    'Orchid','Medium Orchid']
-      rvalue = [ rvalue,       176,          216,          221,          238,         218,        186 ]
-      gvalue = [ gvalue,        48,          191,          160,          130,         112,         85 ]
-      bvalue = [ bvalue,        96,          216,          221,          238,         214,        211 ]
-      colors = [ colors,'Dark Orchid','Blue Violet',  'Purple']
-      rvalue = [ rvalue,      153,          138,       160]
-      gvalue = [ gvalue,       50,           43,        32]
-      bvalue = [ bvalue,      204,          226,       240]
-      colors = [ colors, 'Slate Blue',  'Dark Slate Blue']
-      rvalue = [ rvalue,      106,            72]
-      gvalue = [ gvalue,       90,            61]
-      bvalue = [ bvalue,      205,           139]
-      colors = [ colors, 'WT1', 'WT2', 'WT3', 'WT4', 'WT5', 'WT6', 'WT7', 'WT8']
-      rvalue = [ rvalue,  255,   255,   255,   255,   255,   245,   255,   250 ]
-      gvalue = [ gvalue,  255,   250,   255,   255,   248,   245,   245,   240 ]
-      bvalue = [ bvalue,  255,   250,   240,   224,   220,   220,   238,   230 ]
-      colors = [ colors, 'TAN1', 'TAN2', 'TAN3', 'TAN4', 'TAN5', 'TAN6', 'TAN7', 'TAN8']
-      rvalue = [ rvalue,   250,   255,    255,    255,    255,    245,    222,    210 ]
-      gvalue = [ gvalue,   235,   239,    235,    228,    228,    222,    184,    180 ]
-      bvalue = [ bvalue,   215,   213,    205,    196,    181,    179,    135,    140 ]
-      colors = [ colors, 'BLK1', 'BLK2', 'BLK3', 'BLK4', 'BLK5', 'BLK6', 'BLK7', 'BLK8']
-      rvalue = [ rvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
-      gvalue = [ gvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
-      bvalue = [ bvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
-      colors = [ colors, 'GRN1', 'GRN2', 'GRN3', 'GRN4', 'GRN5', 'GRN6', 'GRN7', 'GRN8']
-      rvalue = [ rvalue,   250,   223,    173,    109,     53,     35,      0,       0 ]
-      gvalue = [ gvalue,   253,   242,    221,    193,    156,     132,    97,      69 ]
-      bvalue = [ bvalue,   202,   167,    142,    115,     83,      67,    52,      41 ]
-      colors = [ colors, 'BLU1', 'BLU2', 'BLU3', 'BLU4', 'BLU5', 'BLU6', 'BLU7', 'BLU8']
-      rvalue = [ rvalue,   232,   202,    158,     99,     53,     33,      8,       8 ]
-      gvalue = [ gvalue,   241,   222,    202,    168,    133,    113,     75,      48 ]
-      bvalue = [ bvalue,   250,   240,    225,    211,    191,    181,    147,     107 ]
-      colors = [ colors, 'ORG1', 'ORG2', 'ORG3', 'ORG4', 'ORG5', 'ORG6', 'ORG7', 'ORG8']
-      rvalue = [ rvalue,   254,    253,    253,    250,    231,    217,    159,    127 ]
-      gvalue = [ gvalue,   236,    212,    174,    134,     92,     72,     51,     39 ]
-      bvalue = [ bvalue,   217,    171,    107,     52,     12,      1,      3,      4 ]
-      colors = [ colors, 'RED1', 'RED2', 'RED3', 'RED4', 'RED5', 'RED6', 'RED7', 'RED8']
-      rvalue = [ rvalue,   254,    252,    252,    248,    225,    203,    154,    103 ]
-      gvalue = [ gvalue,   232,    194,    146,     97,     45,     24,     12,      0 ]
-      bvalue = [ bvalue,   222,    171,    114,     68,     38,     29,     19,     13 ]
-      colors = [ colors, 'PUR1', 'PUR2', 'PUR3', 'PUR4', 'PUR5', 'PUR6', 'PUR7', 'PUR8']
-      rvalue = [ rvalue,   244,    222,    188,    152,    119,    106,     80,     63 ]
-      gvalue = [ gvalue,   242,    221,    189,    148,    108,     82,     32,      0 ]
-      bvalue = [ bvalue,   248,    237,    220,    197,    177,    163,    139,    125 ]
-      colors = [ colors, 'PBG1', 'PBG2', 'PBG3', 'PBG4', 'PBG5', 'PBG6', 'PBG7', 'PBG8']
-      rvalue = [ rvalue,   243,    213,    166,     94,     34,      3,      1,      1 ]
-      gvalue = [ gvalue,   234,    212,    189,    164,    138,    129,    101,     70 ]
-      bvalue = [ bvalue,   244,    232,    219,    204,    171,    139,     82,     54 ]
-      colors = [ colors, 'YGB1', 'YGB2', 'YGB3', 'YGB4', 'YGB5', 'YGB6', 'YGB7', 'YGB8']
-      rvalue = [ rvalue,   244,    206,    127,     58,     30,     33,     32,      8 ]
-      gvalue = [ gvalue,   250,    236,    205,    175,    125,     95,     48,     29 ]
-      bvalue = [ bvalue,   193,    179,    186,    195,    182,    168,    137,     88 ]
-      colors = [ colors, 'RYB1', 'RYB2', 'RYB3', 'RYB4', 'RYB5', 'RYB6', 'RYB7', 'RYB8']
-      rvalue = [ rvalue,   201,    245,    253,    251,    228,    193,    114,     59 ]
-      gvalue = [ gvalue,    35,    121,    206,    253,    244,    228,    171,     85 ]
-      bvalue = [ bvalue,    38,    72,     127,    197,    239,    239,    207,    164 ]
-      colors = [ colors, 'TG1', 'TG2', 'TG3', 'TG4', 'TG5', 'TG6', 'TG7', 'TG8', 'OPPOSITE']
-      rvalue = [ rvalue,  84,    163,   197,   220,   105,    51,    13,     0,   opixel[0]]
-      gvalue = [ gvalue,  48,    103,   141,   188,   188,   149,   113,    81,   opixel[1]]
-      bvalue = [ bvalue,   5,     26,    60,   118,   177,   141,   105,    71,   opixel[2]]
-    ENDELSE
-  ENDELSE
-  
-  
-  ; I have completely removed all access to "system" colors in this code. I'll
-  ; leave the code here for awhile to be sure no one is using system colors, but
-  ; I seriously doubt it will be coming back.
-  
-  ; Add system color names for IDL version 5.6 and higher. We don't want to
-  ; do this we cannot establish a display connection (e.g., we are running
-  ; in a cron job). Check for system variable !FSC_Display_Connection. If not
-  ; defined, check the connection.
-  ;   DefSysV, '!FSC_Display_Connection', EXISTS=sysvarExists
-  ;   IF sysvarExists $
-  ;        THEN haveConnection = !FSC_Display_Connection $
-  ;        ELSE haveConnection = CanConnect()
-  ;
-  ; Handle depreciated NODISPLAY keyword.
-  IF Keyword_Set(nodisplay) THEN haveConnection = 0
-  
-  ;   IF (Float(!Version.Release) GE 5.6) && Keyword_Set(haveConnection) THEN BEGIN
-  ;
-  ;          tlb = Widget_Base()
-  ;          sc = Widget_Info(tlb, /System_Colors)
-  ;          Widget_Control, tlb, /Destroy
-  ;          frame = sc.window_frame
-  ;          text = sc.window_text
-  ;          active = sc.active_border
-  ;          shadow = sc.shadow_3d
-  ;          highlight = sc.light_3d
-  ;          edge = sc.light_edge_3d
-  ;          selected = sc.highlight
-  ;          face = sc.face_3d
-  ;          colors  = [colors,  'Frame',  'Text',  'Active',  'Shadow']
-  ;          rvalue =  [rvalue,   frame[0], text[0], active[0], shadow[0]]
-  ;          gvalue =  [gvalue,   frame[1], text[1], active[1], shadow[1]]
-  ;          bvalue =  [bvalue,   frame[2], text[2], active[2], shadow[2]]
-  ;          colors  = [colors,  'Highlight',  'Edge',  'Selected',  'Face']
-  ;          rvalue =  [rvalue,   highlight[0], edge[0], selected[0], face[0]]
-  ;          gvalue =  [gvalue,   highlight[1], edge[1], selected[1], face[1]]
-  ;          bvalue =  [bvalue,   highlight[2], edge[2], selected[2], face[2]]
-  ;
-  ;    ENDIF
-  
-  ; Load the colors from the current color table, if you need them.
-  IF useCurrentColors THEN BEGIN
-    IF (!D.Name NE 'NULL') THEN TVLCT, rrr, ggg, bbb, /GET
-    IF decomposedState EQ 0 THEN BEGIN
-      colors = SIndgen(256)
-      rvalue = rrr
-      gvalue = ggg
-      bvalue = bbb
-    ENDIF ELSE BEGIN
-      colors = [colors, SIndgen(256)]
-      rvalue = [rvalue, rrr]
-      gvalue = [gvalue, ggg]
-      bvalue = [bvalue, bbb]
-    ENDELSE
-  ENDIF
-  
-  ; Make sure we are looking at compressed, uppercase names.
-  colors = StrUpCase(StrCompress(StrTrim(colors,2), /Remove_All))
-  
-  ; Check synonyms of color names.
-  FOR j=0, N_Elements(theColor)-1 DO BEGIN
-    IF StrUpCase(theColor[j]) EQ 'GREY' THEN theColor[j] = 'GRAY'
-    IF StrUpCase(theColor[j]) EQ 'LIGHTGREY' THEN theColor[j] = 'LIGHTGRAY'
-    IF StrUpCase(theColor[j]) EQ 'MEDIUMGREY' THEN theColor[j] = 'MEDIUMGRAY'
-    IF StrUpCase(theColor[j]) EQ 'SLATEGREY' THEN theColor[j] = 'SLATEGRAY'
-    IF StrUpCase(theColor[j]) EQ 'DARKGREY' THEN theColor[j] = 'DARKGRAY'
-    IF StrUpCase(theColor[j]) EQ 'AQUA' THEN theColor[j] = 'AQUAMARINE'
-    IF StrUpCase(theColor[j]) EQ 'SKY' THEN theColor[j] = 'SKYBLUE'
-    IF StrUpCase(theColor[j]) EQ 'NAVYBLUE' THEN theColor[j] = 'NAVY'
-    IF StrUpCase(theColor[j]) EQ 'CORNFLOWER' THEN theColor[j] = 'CORNFLOWERBLUE'
-    IF StrUpCase(theColor[j]) EQ 'BROWN' THEN theColor[j] = 'SIENNA'
-  ENDFOR
-  
-  ; How many colors do we have?
-  ncolors = N_Elements(colors)
-  
-  ; Check for offset.
-  IF (theDepth EQ 8) OR (decomposedState EQ 0) THEN offset = !D.Table_Size - ncolors - 2 ELSE offset = 0
-  IF (useCurrentColors) AND (decomposedState EQ 0) THEN offset = 0
-  
-  ; Did the user want to select a color name? If so, we set
-  ; the color name and color index, unless the user provided
-  ; them. In the case of a single positional parameter, we treat
-  ; this as the color index number as long as it is not a string.
-  cancelled = 0.0
-  IF Keyword_Set(selectcolor) THEN BEGIN
-  
-    CASE N_Params() OF
-      0: BEGIN
-        theColor = PickColorName(Filename=filename, _Extra=extra, Cancel=cancelled, BREWER=brewer)
-        IF cancelled THEN RETURN, !P.Color
-        IF theDepth GT 8 AND (decomposedState EQ 1) THEN BEGIN
-          colorIndex = Fix(!P.Color < (!D.Table_Size - 1))
-        ENDIF ELSE BEGIN
-          colorIndex = Where(StrUpCase(colors) EQ StrUpCase(StrCompress(theColor, /Remove_All)), count) + offset
-          colorIndex = Fix(colorIndex[0])
-          IF count EQ 0 THEN Message, 'Cannot find color: ' + StrUpCase(theColor), /NoName
-        ENDELSE
-        
-      END
-      1: BEGIN
-        IF Size(theColor, /TName) NE 'STRING' THEN BEGIN
-          colorIndex = Fix(theColor)
-          theColor = brewer ? 'WT1' : 'White'
-        ENDIF ELSE colorIndex = Fix(!P.Color < 255)
-        theColor = PickColorName(theColor, Filename=filename, _Extra=extra, Cancel=cancelled, BREWER=brewer)
-        IF cancelled THEN RETURN, !P.Color
-      END
-      2: BEGIN
-        theColor = PickColorName(theColor, Filename=filename, _Extra=extra, Cancel=cancelled, BREWER=brewer)
-        IF cancelled THEN RETURN, !P.Color
-      END
-    ENDCASE
-  ENDIF
-  
-  ; Make sure you have a color name and color index.
-  CASE N_Elements(theColor) OF
-    0: BEGIN
-      theColor = brewer ? 'WT1' : 'White'
-      IF N_Elements(colorIndex) EQ 0 THEN BEGIN
-        IF theDepth GT 8 THEN BEGIN
-          colorIndex = Fix(!P.Color < (!D.Table_Size - 1))
-        ENDIF ELSE BEGIN
-          colorIndex = Where(colors EQ theColor, count) + offset
-          colorIndex = Fix(colorIndex[0])
-          IF count EQ 0 THEN Message, 'Cannot find color: ' + theColor, /NoName
-        ENDELSE
-      ENDIF ELSE colorIndex = 0S > colorIndex < Fix((!D.Table_Size - 1))
-    ENDCASE
-    
-    1: BEGIN
-      type = Size(theColor, /TNAME)
-      IF type NE 'STRING' THEN Message, 'The color must be expressed as a color name.'
-      theColor = theColor[0] ; Make it a scalar or you run into a WHERE function "feature". :-(
-      IF N_Elements(colorIndex) EQ 0 THEN BEGIN
-        IF (theDepth GT 8) AND (decomposedState EQ 1) THEN BEGIN
-          colorIndex = Fix(!P.Color < (!D.Table_Size - 1))
-        ENDIF ELSE BEGIN
-          colorIndex = Where(colors EQ theColor, count) + offset
-          colorIndex = Fix(colorIndex[0])
-          IF count EQ 0 THEN Message, 'Cannot find color: ' + theColor, /NoName
-        ENDELSE
-      ENDIF ELSE colorIndex = 0S > colorIndex < Fix(!D.Table_Size - 1)
-    ENDCASE
-    
-    ELSE: BEGIN
-      type = Size(theColor, /TNAME)
-      IF type NE 'STRING' THEN Message, 'The colors must be expressed as color names.'
-      ncolors = N_Elements(theColor)
-      CASE N_Elements(colorIndex) OF
-        0: colorIndex = Fix(Indgen(ncolors) + (!D.Table_Size - (ncolors + 1)))
-        1: colorIndex = Fix(Indgen(ncolors) + colorIndex)
-        ELSE: IF N_Elements(colorIndex) NE ncolors THEN $
-          Message, 'Index vector must be the same length as color name vector.'
-      ENDCASE
-      
-      ; Did the user want color triples?
-      
-      IF Keyword_Set(triple) THEN BEGIN
-        colors = LonArr(ncolors, 3)
-        FOR j=0,ncolors-1 DO colors[j,*] = FSC_Color(theColor[j], colorIndex[j], Filename=filename, $
-          Decomposed=decomposedState, /Triple, BREWER=brewer)
-        RETURN, colors
-      ENDIF ELSE BEGIN
-        colors = LonArr(ncolors)
-        FOR j=0,ncolors-1 DO colors[j] = FSC_Color(theColor[j], colorIndex[j], Filename=filename, $
-          Decomposed=decomposedState, BREWER=brewer)
-        RETURN, colors
-      ENDELSE
-    END
-  ENDCASE
-  
-  ; Did the user ask for the color names? If so, return them now.
-  IF Keyword_Set(names) THEN RETURN, Reform(colors, 1, ncolors)
-  
-  ; Process the color names.
-  theNames = StrUpCase( StrCompress(colors, /Remove_All ) )
-  
-  ; Find the asked-for color in the color names array.
-  theIndex = Where(theNames EQ StrUpCase(StrCompress(theColor, /Remove_All)), foundIt)
-  theIndex = theIndex[0]
-  
-  ; If the color can't be found, report it and continue with the color set to "OPPOSITE."
-  IF foundIt EQ 0 THEN BEGIN
-    Message, "Can't find color " + theColor + ". Substituting 'OPPOSITE'.", /Informational
-    theColor = 'OPPOSITE'
-    theIndex = Where(StrUpCase(colors) EQ 'OPPOSITE')
-  ENDIF
-  
-  ; Get the color triple for this color.
-  r = rvalue[theIndex]
-  g = gvalue[theIndex]
-  b = bvalue[theIndex]
-  
-  ; Did the user want a color triple? If so, return it now.
-  IF Keyword_Set(triple) THEN BEGIN
-    IF Keyword_Set(allcolors) THEN BEGIN
-      IF Keyword_Set(row) THEN RETURN, Transpose([[rvalue], [gvalue], [bvalue]]) ELSE RETURN, [[rvalue], [gvalue], [bvalue]]
-    ENDIF ELSE BEGIN
-      IF Keyword_Set(row) THEN RETURN, [r, g, b] ELSE RETURN, [[r], [g], [b]]
-    ENDELSE
-  ENDIF
-  
-  ; Otherwise, we are going to return either an index
-  ; number where the color has been loaded, or a 24-bit
-  ; value that can be decomposed into the proper color.
-  IF decomposedState THEN BEGIN
-  
-    ; Need a color structure?
-    IF Arg_Present(colorStructure) THEN BEGIN
-      theColors = FSC_Color_Color24([[rvalue], [gvalue], [bvalue]])
-      colorStructure = Create_Struct(theNames[0], theColors[0])
-      FOR j=1, ncolors-1 DO colorStructure = Create_Struct(colorStructure, theNames[j], theColors[j])
-    ENDIF
-    
-    IF Keyword_Set(allcolors) THEN BEGIN
-      RETURN, FSC_Color_Color24([[rvalue], [gvalue], [bvalue]])
-    ENDIF ELSE BEGIN
-      RETURN, FSC_Color_Color24([r, g, b])
-    ENDELSE
-    
-  ENDIF ELSE BEGIN
-  
-    IF Keyword_Set(allcolors) THEN BEGIN
-    
-      ; Need a color structure?
-      IF Arg_Present(colorStructure) THEN BEGIN
-        allcolorIndex = !D.Table_Size - ncolors - 2
-        IF allcolorIndex LT 0 THEN $
-          Message, 'Number of colors exceeds available color table values. Returning.', /NoName
-        IF (allcolorIndex + ncolors) GT 255 THEN $
-          Message, 'Number of colors exceeds available color table indices. Returning.', /NoName
-        theColors = IndGen(ncolors) + allcolorIndex
-        colorStructure = Create_Struct(theNames[0],  theColors[0])
-        FOR j=1, ncolors-1 DO colorStructure = Create_Struct(colorStructure, theNames[j], theColors[j])
-      ENDIF
-      
-      IF N_Elements(colorIndex) EQ 0 THEN colorIndex = Fix(!D.Table_Size - ncolors - 2)
-      IF colorIndex LT 0 THEN $
-        Message, 'Number of colors exceeds available color table values. Returning.', /NoName
-      IF (colorIndex + ncolors) GT 255 THEN BEGIN
-        colorIndex = Fix(!D.Table_Size - ncolors - 2)
-      ENDIF
-      IF (!D.Name NE 'PRINTER') AND (!D.Name NE 'NULL') THEN TVLCT, rvalue, gvalue, bvalue, colorIndex
-      RETURN, IndGen(ncolors) + colorIndex
-    ENDIF ELSE BEGIN
-    
-      ; Need a color structure?
-      IF Arg_Present(colorStructure) THEN BEGIN
-        colorStructure = Create_Struct(theColor,  colorIndex)
-      ENDIF
-      
-      IF (!D.Name NE 'PRINTER') AND (!D.Name NE 'NULL') THEN $
-        TVLCT, rvalue[theIndex], gvalue[theIndex], bvalue[theIndex], colorIndex
-      RETURN, Fix(colorIndex)
-    ENDELSE
-    
-    
-  ENDELSE
-  
-END ;-------------------------------------------------------------------------------------------------------
+;FUNCTION FSC_Color_Color24, color
+;
+;  ; This FUNCTION accepts a [red, green, blue] triple that
+;  ; describes a particular color and returns a 24-bit long
+;  ; integer that is equivalent to (can be decomposed into)
+;  ; that color. The triple can be either a row or column
+;  ; vector of 3 elements or it can be an N-by-3 array of
+;  ; color triples.
+;
+;  ON_ERROR, 2
+;  
+;  s = Size(color)
+;  
+;  IF s[0] EQ 1 THEN BEGIN
+;    IF s[1] NE 3 THEN Message, 'Input color parameter must be a 3-element vector.'
+;    RETURN, color[0] + (color[1] * 2L^8) + (color[2] * 2L^16)
+;  ENDIF ELSE BEGIN
+;    IF s[2] GT 3 THEN Message, 'Input color parameter must be an N-by-3 array.'
+;    RETURN, color[*,0] + (color[*,1] * 2L^8) + (color[*,2] * 2L^16)
+;  ENDELSE
+;  
+;END ;--------------------------------------------------------------------------------------------
+
+
+
+;FUNCTION FSC_Color, theColour, colorIndex, $
+;    AllColors=allcolors, $
+;    Brewer=brewer, $
+;    Check_Connection=check_connection, $ ; This keyword is completely ignored.
+;    ColorStructure=colorStructure, $
+;    Cancel=cancelled, $
+;    Decomposed=decomposedState, $
+;    _Extra=extra, $
+;    Filename=filename, $
+;    Names=names, $
+;    NColors=ncolors, $
+;    NODISPLAY=nodisplay, $ ; This keyword is completely ignored.
+;    Row=row, $
+;    SelectColor=selectcolor, $
+;    Triple=triple
+;    
+;  ; Return to caller as the default error behavior.
+;  On_Error, 2
+;  
+;  ; Error handling for the rest of the program.
+;  Catch, theError
+;  IF theError NE 0 THEN BEGIN
+;    Catch, /Cancel
+;    ok = Error_Message(/Traceback)
+;    cancelled = 1
+;    RETURN, !P.Color
+;  ENDIF
+;  
+;  ; Set up PostScript device for working with colors.
+;  IF !D.Name EQ 'PS' THEN device, COLOR=1, BITS_PER_PIXEL=8
+;  
+;  ; I don't want to change the original variable.
+;  IF N_Elements(theColour) NE 0 THEN theColor = theColour ELSE $
+;    theColor = 'OPPOSITE'
+;    
+;  ; Make sure the color parameter is a string.
+;  varInfo = Size(theColor)
+;  IF varInfo[varInfo[0] + 1] NE 7 THEN $
+;    Message, 'The color name parameter must be a string.', /NoName
+;    
+;  ; We don't want underscores in color names. Turn all underscores
+;  ; to spaces.
+;  FOR j=0,N_Elements(theColor)-1 DO BEGIN
+;    theColor[j] = StrJoin( StrSplit(theColor[j], '_', /Extract, $
+;      /Preserve_Null), ' ')
+;  ENDFOR
+;  
+;  ; Make sure the color is compressed and uppercase.
+;  theColor = StrUpCase(StrCompress(StrTrim(theColor,2), /Remove_All))
+;  
+;  ; Get the pixel value of the "opposite" color. This is the pixel color
+;  ; opposite the pixel color in the upper right corner of the display.
+;  IF (!D.Window GE 0) AND ((!D.Flags AND 256) NE 0) THEN BEGIN
+;    opixel = TVRead(!D.X_Size-1,  !D.Y_Size-1, 1, 1)
+;    IF N_Elements(opixel) NE 3 THEN BEGIN
+;      IF (!D.Name NE 'NULL') THEN TVLCT, rrr, ggg, bbb, /Get
+;      opixel = [rrr[opixel], ggg[opixel], bbb[opixel]]
+;    ENDIF
+;  ENDIF ELSE BEGIN
+;    IF (!D.Name EQ 'PS') THEN opixel = [255,255,255]
+;  ENDELSE
+;  IF N_Elements(opixel) EQ 0 THEN opixel = [0,0,0]
+;  opixel = 255 - opixel
+;  
+;  ; Read the first color as bytes. If none of the bytes are less than 48
+;  ; or greater than 57, then this is a "number" string and you should
+;  ; assume the current color table is being used.
+;  bytecheck = Byte(theColor[0])
+;  i = Where(bytecheck LT 48, lessthan)
+;  i = Where(bytecheck GT 57, greaterthan)
+;  IF (lessthan + greaterthan) EQ 0 THEN useCurrentColors = 1 ELSE useCurrentColors = 0
+;  
+;  ; Get the decomposed state of the IDL session right now.
+;  IF N_Elements(decomposedState) EQ 0 THEN BEGIN
+;    IF Float(!Version.Release) GE 5.2 THEN BEGIN
+;      IF (!D.Name EQ 'X' OR !D.Name EQ 'WIN' OR !D.Name EQ 'MAC') THEN BEGIN
+;        device, Get_Decomposed=decomposedState
+;      ENDIF ELSE decomposedState = 0
+;    ENDIF ELSE decomposedState = 0
+;    IF (Float(!Version.Release) GE 6.4) AND (!D.NAME EQ 'Z') THEN BEGIN
+;      device, Get_Decomposed=decomposedState, Get_Pixel_Depth=theDepth
+;      IF theDepth LT 24 THEN decomposedState = 0
+;    ENDIF
+;  ENDIF ELSE decomposedState = Keyword_Set(decomposedState)
+;  
+;  ; Get depth of visual display (and decomposed state for PostScript devices).
+;  IF (!D.Flags AND 256) NE 0 THEN device, Get_Visual_Depth=theDepth ELSE theDepth = 8
+;  IF (Float(!Version.Release) GE 6.4) AND (!D.NAME EQ 'Z') THEN device, Get_Pixel_Depth=theDepth
+;  IF (!D.NAME EQ 'PS') AND (Float(!Version.Release) GE 7.1) THEN BEGIN
+;    decomposedState = DecomposedColor(DEPTH=theDepth)
+;  ENDIF
+;  
+;  ; Need brewer colors?
+;  brewer = Keyword_Set(brewer)
+;  
+;  ; Load the colors.
+;  IF N_Elements(filename) NE 0 THEN BEGIN
+;  
+;    ; Count the number of rows in the file.
+;    ncolors = FSC_Color_Count_Rows(filename)
+;    
+;    ; Read the data.
+;    OpenR, lun, filename, /Get_Lun
+;    rvalue = BytArr(NCOLORS)
+;    gvalue = BytArr(NCOLORS)
+;    bvalue = BytArr(NCOLORS)
+;    colors = StrArr(NCOLORS)
+;    redvalue = 0B
+;    greenvalue = 0B
+;    bluevalue = 0B
+;    colorvalue = ""
+;    FOR j=0L, NCOLORS-1 DO BEGIN
+;      ReadF, lun, redvalue, greenvalue, bluevalue, colorvalue
+;      rvalue[j] = redvalue
+;      gvalue[j] = greenvalue
+;      bvalue[j] = bluevalue
+;      colors[j] = colorvalue
+;    ENDFOR
+;    Free_Lun, lun
+;    
+;    ; Trim the colors array of blank characters.
+;    colors = StrTrim(colors, 2)
+;    
+;  ENDIF ELSE BEGIN
+;  
+;    ; Set up the color vectors.
+;    IF Keyword_Set(Brewer) THEN BEGIN
+;    
+;      ; Set up the color vectors.
+;      colors = [ 'WT1', 'WT2', 'WT3', 'WT4', 'WT5', 'WT6', 'WT7', 'WT8']
+;      rvalue = [  255,   255,   255,   255,   255,   245,   255,   250 ]
+;      gvalue = [  255,   250,   255,   255,   248,   245,   245,   240 ]
+;      bvalue = [  255,   250,   240,   224,   220,   220,   238,   230 ]
+;      colors = [ colors, 'TAN1', 'TAN2', 'TAN3', 'TAN4', 'TAN5', 'TAN6', 'TAN7', 'TAN8']
+;      rvalue = [ rvalue,   250,   255,    255,    255,    255,    245,    222,    210 ]
+;      gvalue = [ gvalue,   235,   239,    235,    228,    228,    222,    184,    180 ]
+;      bvalue = [ bvalue,   215,   213,    205,    196,    181,    179,    135,    140 ]
+;      colors = [ colors, 'BLK1', 'BLK2', 'BLK3', 'BLK4', 'BLK5', 'BLK6', 'BLK7', 'BLK8']
+;      rvalue = [ rvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
+;      gvalue = [ gvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
+;      bvalue = [ bvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
+;      colors = [ colors, 'GRN1', 'GRN2', 'GRN3', 'GRN4', 'GRN5', 'GRN6', 'GRN7', 'GRN8']
+;      rvalue = [ rvalue,   250,   223,    173,    109,     53,     35,      0,       0 ]
+;      gvalue = [ gvalue,   253,   242,    221,    193,    156,     132,    97,      69 ]
+;      bvalue = [ bvalue,   202,   167,    142,    115,     83,      67,    52,      41 ]
+;      colors = [ colors, 'BLU1', 'BLU2', 'BLU3', 'BLU4', 'BLU5', 'BLU6', 'BLU7', 'BLU8']
+;      rvalue = [ rvalue,   232,   202,    158,     99,     53,     33,      8,       8 ]
+;      gvalue = [ gvalue,   241,   222,    202,    168,    133,    113,     75,      48 ]
+;      bvalue = [ bvalue,   250,   240,    225,    211,    191,    181,    147,     107 ]
+;      colors = [ colors, 'ORG1', 'ORG2', 'ORG3', 'ORG4', 'ORG5', 'ORG6', 'ORG7', 'ORG8']
+;      rvalue = [ rvalue,   254,    253,    253,    250,    231,    217,    159,    127 ]
+;      gvalue = [ gvalue,   236,    212,    174,    134,     92,     72,     51,     39 ]
+;      bvalue = [ bvalue,   217,    171,    107,     52,     12,      1,      3,      4 ]
+;      colors = [ colors, 'RED1', 'RED2', 'RED3', 'RED4', 'RED5', 'RED6', 'RED7', 'RED8']
+;      rvalue = [ rvalue,   254,    252,    252,    248,    225,    203,    154,    103 ]
+;      gvalue = [ gvalue,   232,    194,    146,     97,     45,     24,     12,      0 ]
+;      bvalue = [ bvalue,   222,    171,    114,     68,     38,     29,     19,     13 ]
+;      colors = [ colors, 'PUR1', 'PUR2', 'PUR3', 'PUR4', 'PUR5', 'PUR6', 'PUR7', 'PUR8']
+;      rvalue = [ rvalue,   244,    222,    188,    152,    119,    106,     80,     63 ]
+;      gvalue = [ gvalue,   242,    221,    189,    148,    108,     82,     32,      0 ]
+;      bvalue = [ bvalue,   248,    237,    220,    197,    177,    163,    139,    125 ]
+;      colors = [ colors, 'PBG1', 'PBG2', 'PBG3', 'PBG4', 'PBG5', 'PBG6', 'PBG7', 'PBG8']
+;      rvalue = [ rvalue,   243,    213,    166,     94,     34,      3,      1,      1 ]
+;      gvalue = [ gvalue,   234,    212,    189,    164,    138,    129,    101,     70 ]
+;      bvalue = [ bvalue,   244,    232,    219,    204,    171,    139,     82,     54 ]
+;      colors = [ colors, 'YGB1', 'YGB2', 'YGB3', 'YGB4', 'YGB5', 'YGB6', 'YGB7', 'YGB8']
+;      rvalue = [ rvalue,   244,    206,    127,     58,     30,     33,     32,      8 ]
+;      gvalue = [ gvalue,   250,    236,    205,    175,    125,     95,     48,     29 ]
+;      bvalue = [ bvalue,   193,    179,    186,    195,    182,    168,    137,     88 ]
+;      colors = [ colors, 'RYB1', 'RYB2', 'RYB3', 'RYB4', 'RYB5', 'RYB6', 'RYB7', 'RYB8']
+;      rvalue = [ rvalue,   201,    245,    253,    251,    228,    193,    114,     59 ]
+;      gvalue = [ gvalue,    35,    121,    206,    253,    244,    228,    171,     85 ]
+;      bvalue = [ bvalue,    38,    72,     127,    197,    239,    239,    207,    164 ]
+;      colors = [ colors, 'TG1', 'TG2', 'TG3', 'TG4', 'TG5', 'TG6', 'TG7', 'TG8']
+;      rvalue = [ rvalue,  84,    163,   197,   220,   105,    51,    13,     0 ]
+;      gvalue = [ gvalue,  48,    103,   141,   188,   188,   149,   113,    81 ]
+;      bvalue = [ bvalue,   5,     26,    60,   118,   177,   141,   105,    71 ]
+;      
+;    ENDIF ELSE BEGIN
+;    
+;      ; Set up the color vectors. Both original and Brewer colors.
+;      colors= ['White']
+;      rvalue = [ 255]
+;      gvalue = [ 255]
+;      bvalue = [ 255]
+;      colors = [ colors,   'Snow',     'Ivory','Light Yellow', 'Cornsilk',     'Beige',  'Seashell' ]
+;      rvalue = [ rvalue,     255,         255,       255,          255,          245,        255 ]
+;      gvalue = [ gvalue,     250,         255,       255,          248,          245,        245 ]
+;      bvalue = [ bvalue,     250,         240,       224,          220,          220,        238 ]
+;      colors = [ colors,   'Linen','Antique White','Papaya',     'Almond',     'Bisque',  'Moccasin' ]
+;      rvalue = [ rvalue,     250,        250,        255,          255,          255,          255 ]
+;      gvalue = [ gvalue,     240,        235,        239,          235,          228,          228 ]
+;      bvalue = [ bvalue,     230,        215,        213,          205,          196,          181 ]
+;      colors = [ colors,   'Wheat',  'Burlywood',    'Tan', 'Light Gray',   'Lavender','Medium Gray' ]
+;      rvalue = [ rvalue,     245,        222,          210,      230,          230,         210 ]
+;      gvalue = [ gvalue,     222,        184,          180,      230,          230,         210 ]
+;      bvalue = [ bvalue,     179,        135,          140,      230,          250,         210 ]
+;      colors = [ colors,  'Gray', 'Slate Gray',  'Dark Gray',  'Charcoal',   'Black',  'Honeydew', 'Light Cyan' ]
+;      rvalue = [ rvalue,      190,      112,          110,          70,         0,         240,          224 ]
+;      gvalue = [ gvalue,      190,      128,          110,          70,         0,         255,          255 ]
+;      bvalue = [ bvalue,      190,      144,          110,          70,         0,         255,          240 ]
+;      colors = [ colors,'Powder Blue',  'Sky Blue', 'Cornflower Blue', 'Cadet Blue', 'Steel Blue','Dodger Blue', 'Royal Blue',  'Blue' ]
+;      rvalue = [ rvalue,     176,          135,          100,              95,            70,           30,           65,            0 ]
+;      gvalue = [ gvalue,     224,          206,          149,             158,           130,          144,          105,            0 ]
+;      bvalue = [ bvalue,     230,          235,          237,             160,           180,          255,          225,          255 ]
+;      colors = [ colors,  'Navy', 'Pale Green','Aquamarine','Spring Green',  'Cyan' ]
+;      rvalue = [ rvalue,        0,     152,          127,          0,            0 ]
+;      gvalue = [ gvalue,        0,     251,          255,        250,          255 ]
+;      bvalue = [ bvalue,      128,     152,          212,        154,          255 ]
+;      colors = [ colors, 'Turquoise', 'Light Sea Green', 'Sea Green','Forest Green',  'Teal','Green Yellow','Chartreuse', 'Lawn Green' ]
+;      rvalue = [ rvalue,      64,          143,               46,          34,             0,      173,           127,         124 ]
+;      gvalue = [ gvalue,     224,          188,              139,         139,           128,      255,           255,         252 ]
+;      bvalue = [ bvalue,     208,          143,               87,          34,           128,       47,             0,           0 ]
+;      colors = [ colors, 'Green', 'Lime Green', 'Olive Drab',  'Olive','Dark Green','Pale Goldenrod']
+;      rvalue = [ rvalue,      0,        50,          107,        85,            0,          238 ]
+;      gvalue = [ gvalue,    255,       205,          142,       107,          100,          232 ]
+;      bvalue = [ bvalue,      0,        50,           35,        47,            0,          170 ]
+;      colors = [ colors,     'Khaki', 'Dark Khaki', 'Yellow',  'Gold', 'Goldenrod','Dark Goldenrod']
+;      rvalue = [ rvalue,        240,       189,        255,      255,      218,          184 ]
+;      gvalue = [ gvalue,        230,       183,        255,      215,      165,          134 ]
+;      bvalue = [ bvalue,        140,       107,          0,        0,       32,           11 ]
+;      colors = [ colors,'Saddle Brown',  'Rose',   'Pink', 'Rosy Brown','Sandy Brown', 'Peru']
+;      rvalue = [ rvalue,     139,          255,      255,        188,        244,        205 ]
+;      gvalue = [ gvalue,      69,          228,      192,        143,        164,        133 ]
+;      bvalue = [ bvalue,      19,          225,      203,        143,         96,         63 ]
+;      colors = [ colors,'Indian Red',  'Chocolate',  'Sienna','Dark Salmon',   'Salmon','Light Salmon' ]
+;      rvalue = [ rvalue,    205,          210,          160,        233,          250,       255 ]
+;      gvalue = [ gvalue,     92,          105,           82,        150,          128,       160 ]
+;      bvalue = [ bvalue,     92,           30,           45,        122,          114,       122 ]
+;      colors = [ colors,  'Orange',      'Coral', 'Light Coral',  'Firebrick', 'Dark Red', 'Brown',  'Hot Pink' ]
+;      rvalue = [ rvalue,       255,         255,        240,          178,        139,       165,        255 ]
+;      gvalue = [ gvalue,       165,         127,        128,           34,          0,        42,        105 ]
+;      bvalue = [ bvalue,         0,          80,        128,           34,          0,        42,        180 ]
+;      colors = [ colors, 'Deep Pink',    'Magenta',   'Tomato', 'Orange Red',   'Red', 'Crimson', 'Violet Red' ]
+;      rvalue = [ rvalue,      255,          255,        255,        255,          255,      220,        208 ]
+;      gvalue = [ gvalue,       20,            0,         99,         69,            0,       20,         32 ]
+;      bvalue = [ bvalue,      147,          255,         71,          0,            0,       60,        144 ]
+;      colors = [ colors,    'Maroon',    'Thistle',       'Plum',     'Violet',    'Orchid','Medium Orchid']
+;      rvalue = [ rvalue,       176,          216,          221,          238,         218,        186 ]
+;      gvalue = [ gvalue,        48,          191,          160,          130,         112,         85 ]
+;      bvalue = [ bvalue,        96,          216,          221,          238,         214,        211 ]
+;      colors = [ colors,'Dark Orchid','Blue Violet',  'Purple']
+;      rvalue = [ rvalue,      153,          138,       160]
+;      gvalue = [ gvalue,       50,           43,        32]
+;      bvalue = [ bvalue,      204,          226,       240]
+;      colors = [ colors, 'Slate Blue',  'Dark Slate Blue']
+;      rvalue = [ rvalue,      106,            72]
+;      gvalue = [ gvalue,       90,            61]
+;      bvalue = [ bvalue,      205,           139]
+;      colors = [ colors, 'WT1', 'WT2', 'WT3', 'WT4', 'WT5', 'WT6', 'WT7', 'WT8']
+;      rvalue = [ rvalue,  255,   255,   255,   255,   255,   245,   255,   250 ]
+;      gvalue = [ gvalue,  255,   250,   255,   255,   248,   245,   245,   240 ]
+;      bvalue = [ bvalue,  255,   250,   240,   224,   220,   220,   238,   230 ]
+;      colors = [ colors, 'TAN1', 'TAN2', 'TAN3', 'TAN4', 'TAN5', 'TAN6', 'TAN7', 'TAN8']
+;      rvalue = [ rvalue,   250,   255,    255,    255,    255,    245,    222,    210 ]
+;      gvalue = [ gvalue,   235,   239,    235,    228,    228,    222,    184,    180 ]
+;      bvalue = [ bvalue,   215,   213,    205,    196,    181,    179,    135,    140 ]
+;      colors = [ colors, 'BLK1', 'BLK2', 'BLK3', 'BLK4', 'BLK5', 'BLK6', 'BLK7', 'BLK8']
+;      rvalue = [ rvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
+;      gvalue = [ gvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
+;      bvalue = [ bvalue,   250,   230,    210,    190,    128,     110,    70,       0 ]
+;      colors = [ colors, 'GRN1', 'GRN2', 'GRN3', 'GRN4', 'GRN5', 'GRN6', 'GRN7', 'GRN8']
+;      rvalue = [ rvalue,   250,   223,    173,    109,     53,     35,      0,       0 ]
+;      gvalue = [ gvalue,   253,   242,    221,    193,    156,     132,    97,      69 ]
+;      bvalue = [ bvalue,   202,   167,    142,    115,     83,      67,    52,      41 ]
+;      colors = [ colors, 'BLU1', 'BLU2', 'BLU3', 'BLU4', 'BLU5', 'BLU6', 'BLU7', 'BLU8']
+;      rvalue = [ rvalue,   232,   202,    158,     99,     53,     33,      8,       8 ]
+;      gvalue = [ gvalue,   241,   222,    202,    168,    133,    113,     75,      48 ]
+;      bvalue = [ bvalue,   250,   240,    225,    211,    191,    181,    147,     107 ]
+;      colors = [ colors, 'ORG1', 'ORG2', 'ORG3', 'ORG4', 'ORG5', 'ORG6', 'ORG7', 'ORG8']
+;      rvalue = [ rvalue,   254,    253,    253,    250,    231,    217,    159,    127 ]
+;      gvalue = [ gvalue,   236,    212,    174,    134,     92,     72,     51,     39 ]
+;      bvalue = [ bvalue,   217,    171,    107,     52,     12,      1,      3,      4 ]
+;      colors = [ colors, 'RED1', 'RED2', 'RED3', 'RED4', 'RED5', 'RED6', 'RED7', 'RED8']
+;      rvalue = [ rvalue,   254,    252,    252,    248,    225,    203,    154,    103 ]
+;      gvalue = [ gvalue,   232,    194,    146,     97,     45,     24,     12,      0 ]
+;      bvalue = [ bvalue,   222,    171,    114,     68,     38,     29,     19,     13 ]
+;      colors = [ colors, 'PUR1', 'PUR2', 'PUR3', 'PUR4', 'PUR5', 'PUR6', 'PUR7', 'PUR8']
+;      rvalue = [ rvalue,   244,    222,    188,    152,    119,    106,     80,     63 ]
+;      gvalue = [ gvalue,   242,    221,    189,    148,    108,     82,     32,      0 ]
+;      bvalue = [ bvalue,   248,    237,    220,    197,    177,    163,    139,    125 ]
+;      colors = [ colors, 'PBG1', 'PBG2', 'PBG3', 'PBG4', 'PBG5', 'PBG6', 'PBG7', 'PBG8']
+;      rvalue = [ rvalue,   243,    213,    166,     94,     34,      3,      1,      1 ]
+;      gvalue = [ gvalue,   234,    212,    189,    164,    138,    129,    101,     70 ]
+;      bvalue = [ bvalue,   244,    232,    219,    204,    171,    139,     82,     54 ]
+;      colors = [ colors, 'YGB1', 'YGB2', 'YGB3', 'YGB4', 'YGB5', 'YGB6', 'YGB7', 'YGB8']
+;      rvalue = [ rvalue,   244,    206,    127,     58,     30,     33,     32,      8 ]
+;      gvalue = [ gvalue,   250,    236,    205,    175,    125,     95,     48,     29 ]
+;      bvalue = [ bvalue,   193,    179,    186,    195,    182,    168,    137,     88 ]
+;      colors = [ colors, 'RYB1', 'RYB2', 'RYB3', 'RYB4', 'RYB5', 'RYB6', 'RYB7', 'RYB8']
+;      rvalue = [ rvalue,   201,    245,    253,    251,    228,    193,    114,     59 ]
+;      gvalue = [ gvalue,    35,    121,    206,    253,    244,    228,    171,     85 ]
+;      bvalue = [ bvalue,    38,    72,     127,    197,    239,    239,    207,    164 ]
+;      colors = [ colors, 'TG1', 'TG2', 'TG3', 'TG4', 'TG5', 'TG6', 'TG7', 'TG8', 'OPPOSITE']
+;      rvalue = [ rvalue,  84,    163,   197,   220,   105,    51,    13,     0,   opixel[0]]
+;      gvalue = [ gvalue,  48,    103,   141,   188,   188,   149,   113,    81,   opixel[1]]
+;      bvalue = [ bvalue,   5,     26,    60,   118,   177,   141,   105,    71,   opixel[2]]
+;    ENDELSE
+;  ENDELSE
+;  
+;  
+;  ; I have completely removed all access to "system" colors in this code. I'll
+;  ; leave the code here for awhile to be sure no one is using system colors, but
+;  ; I seriously doubt it will be coming back.
+;  
+;  ; Add system color names for IDL version 5.6 and higher. We don't want to
+;  ; do this we cannot establish a display connection (e.g., we are running
+;  ; in a cron job). Check for system variable !FSC_Display_Connection. If not
+;  ; defined, check the connection.
+;  ;   DefSysV, '!FSC_Display_Connection', EXISTS=sysvarExists
+;  ;   IF sysvarExists $
+;  ;        THEN haveConnection = !FSC_Display_Connection $
+;  ;        ELSE haveConnection = CanConnect()
+;  ;
+;  ; Handle depreciated NODISPLAY keyword.
+;  IF Keyword_Set(nodisplay) THEN haveConnection = 0
+;  
+;  ;   IF (Float(!Version.Release) GE 5.6) && Keyword_Set(haveConnection) THEN BEGIN
+;  ;
+;  ;          tlb = Widget_Base()
+;  ;          sc = Widget_Info(tlb, /System_Colors)
+;  ;          Widget_Control, tlb, /Destroy
+;  ;          frame = sc.window_frame
+;  ;          text = sc.window_text
+;  ;          active = sc.active_border
+;  ;          shadow = sc.shadow_3d
+;  ;          highlight = sc.light_3d
+;  ;          edge = sc.light_edge_3d
+;  ;          selected = sc.highlight
+;  ;          face = sc.face_3d
+;  ;          colors  = [colors,  'Frame',  'Text',  'Active',  'Shadow']
+;  ;          rvalue =  [rvalue,   frame[0], text[0], active[0], shadow[0]]
+;  ;          gvalue =  [gvalue,   frame[1], text[1], active[1], shadow[1]]
+;  ;          bvalue =  [bvalue,   frame[2], text[2], active[2], shadow[2]]
+;  ;          colors  = [colors,  'Highlight',  'Edge',  'Selected',  'Face']
+;  ;          rvalue =  [rvalue,   highlight[0], edge[0], selected[0], face[0]]
+;  ;          gvalue =  [gvalue,   highlight[1], edge[1], selected[1], face[1]]
+;  ;          bvalue =  [bvalue,   highlight[2], edge[2], selected[2], face[2]]
+;  ;
+;  ;    ENDIF
+;  
+;  ; Load the colors from the current color table, if you need them.
+;  IF useCurrentColors THEN BEGIN
+;    IF (!D.Name NE 'NULL') THEN TVLCT, rrr, ggg, bbb, /GET
+;    IF decomposedState EQ 0 THEN BEGIN
+;      colors = SIndgen(256)
+;      rvalue = rrr
+;      gvalue = ggg
+;      bvalue = bbb
+;    ENDIF ELSE BEGIN
+;      colors = [colors, SIndgen(256)]
+;      rvalue = [rvalue, rrr]
+;      gvalue = [gvalue, ggg]
+;      bvalue = [bvalue, bbb]
+;    ENDELSE
+;  ENDIF
+;  
+;  ; Make sure we are looking at compressed, uppercase names.
+;  colors = StrUpCase(StrCompress(StrTrim(colors,2), /Remove_All))
+;  
+;  ; Check synonyms of color names.
+;  FOR j=0, N_Elements(theColor)-1 DO BEGIN
+;    IF StrUpCase(theColor[j]) EQ 'GREY' THEN theColor[j] = 'GRAY'
+;    IF StrUpCase(theColor[j]) EQ 'LIGHTGREY' THEN theColor[j] = 'LIGHTGRAY'
+;    IF StrUpCase(theColor[j]) EQ 'MEDIUMGREY' THEN theColor[j] = 'MEDIUMGRAY'
+;    IF StrUpCase(theColor[j]) EQ 'SLATEGREY' THEN theColor[j] = 'SLATEGRAY'
+;    IF StrUpCase(theColor[j]) EQ 'DARKGREY' THEN theColor[j] = 'DARKGRAY'
+;    IF StrUpCase(theColor[j]) EQ 'AQUA' THEN theColor[j] = 'AQUAMARINE'
+;    IF StrUpCase(theColor[j]) EQ 'SKY' THEN theColor[j] = 'SKYBLUE'
+;    IF StrUpCase(theColor[j]) EQ 'NAVYBLUE' THEN theColor[j] = 'NAVY'
+;    IF StrUpCase(theColor[j]) EQ 'CORNFLOWER' THEN theColor[j] = 'CORNFLOWERBLUE'
+;    IF StrUpCase(theColor[j]) EQ 'BROWN' THEN theColor[j] = 'SIENNA'
+;  ENDFOR
+;  
+;  ; How many colors do we have?
+;  ncolors = N_Elements(colors)
+;  
+;  ; Check for offset.
+;  IF (theDepth EQ 8) OR (decomposedState EQ 0) THEN offset = !D.Table_Size - ncolors - 2 ELSE offset = 0
+;  IF (useCurrentColors) AND (decomposedState EQ 0) THEN offset = 0
+;  
+;  ; Did the user want to select a color name? If so, we set
+;  ; the color name and color index, unless the user provided
+;  ; them. In the case of a single positional parameter, we treat
+;  ; this as the color index number as long as it is not a string.
+;  cancelled = 0.0
+;  IF Keyword_Set(selectcolor) THEN BEGIN
+;  
+;    CASE N_Params() OF
+;      0: BEGIN
+;        theColor = PickColorName(Filename=filename, _Extra=extra, Cancel=cancelled, BREWER=brewer)
+;        IF cancelled THEN RETURN, !P.Color
+;        IF theDepth GT 8 AND (decomposedState EQ 1) THEN BEGIN
+;          colorIndex = Fix(!P.Color < (!D.Table_Size - 1))
+;        ENDIF ELSE BEGIN
+;          colorIndex = Where(StrUpCase(colors) EQ StrUpCase(StrCompress(theColor, /Remove_All)), count) + offset
+;          colorIndex = Fix(colorIndex[0])
+;          IF count EQ 0 THEN Message, 'Cannot find color: ' + StrUpCase(theColor), /NoName
+;        ENDELSE
+;        
+;      END
+;      1: BEGIN
+;        IF Size(theColor, /TName) NE 'STRING' THEN BEGIN
+;          colorIndex = Fix(theColor)
+;          theColor = brewer ? 'WT1' : 'White'
+;        ENDIF ELSE colorIndex = Fix(!P.Color < 255)
+;        theColor = PickColorName(theColor, Filename=filename, _Extra=extra, Cancel=cancelled, BREWER=brewer)
+;        IF cancelled THEN RETURN, !P.Color
+;      END
+;      2: BEGIN
+;        theColor = PickColorName(theColor, Filename=filename, _Extra=extra, Cancel=cancelled, BREWER=brewer)
+;        IF cancelled THEN RETURN, !P.Color
+;      END
+;    ENDCASE
+;  ENDIF
+;  
+;  ; Make sure you have a color name and color index.
+;  CASE N_Elements(theColor) OF
+;    0: BEGIN
+;      theColor = brewer ? 'WT1' : 'White'
+;      IF N_Elements(colorIndex) EQ 0 THEN BEGIN
+;        IF theDepth GT 8 THEN BEGIN
+;          colorIndex = Fix(!P.Color < (!D.Table_Size - 1))
+;        ENDIF ELSE BEGIN
+;          colorIndex = Where(colors EQ theColor, count) + offset
+;          colorIndex = Fix(colorIndex[0])
+;          IF count EQ 0 THEN Message, 'Cannot find color: ' + theColor, /NoName
+;        ENDELSE
+;      ENDIF ELSE colorIndex = 0S > colorIndex < Fix((!D.Table_Size - 1))
+;    ENDCASE
+;    
+;    1: BEGIN
+;      type = Size(theColor, /TNAME)
+;      IF type NE 'STRING' THEN Message, 'The color must be expressed as a color name.'
+;      theColor = theColor[0] ; Make it a scalar or you run into a WHERE function "feature". :-(
+;      IF N_Elements(colorIndex) EQ 0 THEN BEGIN
+;        IF (theDepth GT 8) AND (decomposedState EQ 1) THEN BEGIN
+;          colorIndex = Fix(!P.Color < (!D.Table_Size - 1))
+;        ENDIF ELSE BEGIN
+;          colorIndex = Where(colors EQ theColor, count) + offset
+;          colorIndex = Fix(colorIndex[0])
+;          IF count EQ 0 THEN Message, 'Cannot find color: ' + theColor, /NoName
+;        ENDELSE
+;      ENDIF ELSE colorIndex = 0S > colorIndex < Fix(!D.Table_Size - 1)
+;    ENDCASE
+;    
+;    ELSE: BEGIN
+;      type = Size(theColor, /TNAME)
+;      IF type NE 'STRING' THEN Message, 'The colors must be expressed as color names.'
+;      ncolors = N_Elements(theColor)
+;      CASE N_Elements(colorIndex) OF
+;        0: colorIndex = Fix(Indgen(ncolors) + (!D.Table_Size - (ncolors + 1)))
+;        1: colorIndex = Fix(Indgen(ncolors) + colorIndex)
+;        ELSE: IF N_Elements(colorIndex) NE ncolors THEN $
+;          Message, 'Index vector must be the same length as color name vector.'
+;      ENDCASE
+;      
+;      ; Did the user want color triples?
+;      
+;      IF Keyword_Set(triple) THEN BEGIN
+;        colors = LonArr(ncolors, 3)
+;        FOR j=0,ncolors-1 DO colors[j,*] = FSC_Color(theColor[j], colorIndex[j], Filename=filename, $
+;          Decomposed=decomposedState, /Triple, BREWER=brewer)
+;        RETURN, colors
+;      ENDIF ELSE BEGIN
+;        colors = LonArr(ncolors)
+;        FOR j=0,ncolors-1 DO colors[j] = FSC_Color(theColor[j], colorIndex[j], Filename=filename, $
+;          Decomposed=decomposedState, BREWER=brewer)
+;        RETURN, colors
+;      ENDELSE
+;    END
+;  ENDCASE
+;  
+;  ; Did the user ask for the color names? If so, return them now.
+;  IF Keyword_Set(names) THEN RETURN, Reform(colors, 1, ncolors)
+;  
+;  ; Process the color names.
+;  theNames = StrUpCase( StrCompress(colors, /Remove_All ) )
+;  
+;  ; Find the asked-for color in the color names array.
+;  theIndex = Where(theNames EQ StrUpCase(StrCompress(theColor, /Remove_All)), foundIt)
+;  theIndex = theIndex[0]
+;  
+;  ; If the color can't be found, report it and continue with the color set to "OPPOSITE."
+;  IF foundIt EQ 0 THEN BEGIN
+;    Message, "Can't find color " + theColor + ". Substituting 'OPPOSITE'.", /Informational
+;    theColor = 'OPPOSITE'
+;    theIndex = Where(StrUpCase(colors) EQ 'OPPOSITE')
+;  ENDIF
+;  
+;  ; Get the color triple for this color.
+;  r = rvalue[theIndex]
+;  g = gvalue[theIndex]
+;  b = bvalue[theIndex]
+;  
+;  ; Did the user want a color triple? If so, return it now.
+;  IF Keyword_Set(triple) THEN BEGIN
+;    IF Keyword_Set(allcolors) THEN BEGIN
+;      IF Keyword_Set(row) THEN RETURN, Transpose([[rvalue], [gvalue], [bvalue]]) ELSE RETURN, [[rvalue], [gvalue], [bvalue]]
+;    ENDIF ELSE BEGIN
+;      IF Keyword_Set(row) THEN RETURN, [r, g, b] ELSE RETURN, [[r], [g], [b]]
+;    ENDELSE
+;  ENDIF
+;  
+;  ; Otherwise, we are going to return either an index
+;  ; number where the color has been loaded, or a 24-bit
+;  ; value that can be decomposed into the proper color.
+;  IF decomposedState THEN BEGIN
+;  
+;    ; Need a color structure?
+;    IF Arg_Present(colorStructure) THEN BEGIN
+;      theColors = FSC_Color_Color24([[rvalue], [gvalue], [bvalue]])
+;      colorStructure = Create_Struct(theNames[0], theColors[0])
+;      FOR j=1, ncolors-1 DO colorStructure = Create_Struct(colorStructure, theNames[j], theColors[j])
+;    ENDIF
+;    
+;    IF Keyword_Set(allcolors) THEN BEGIN
+;      RETURN, FSC_Color_Color24([[rvalue], [gvalue], [bvalue]])
+;    ENDIF ELSE BEGIN
+;      RETURN, FSC_Color_Color24([r, g, b])
+;    ENDELSE
+;    
+;  ENDIF ELSE BEGIN
+;  
+;    IF Keyword_Set(allcolors) THEN BEGIN
+;    
+;      ; Need a color structure?
+;      IF Arg_Present(colorStructure) THEN BEGIN
+;        allcolorIndex = !D.Table_Size - ncolors - 2
+;        IF allcolorIndex LT 0 THEN $
+;          Message, 'Number of colors exceeds available color table values. Returning.', /NoName
+;        IF (allcolorIndex + ncolors) GT 255 THEN $
+;          Message, 'Number of colors exceeds available color table indices. Returning.', /NoName
+;        theColors = IndGen(ncolors) + allcolorIndex
+;        colorStructure = Create_Struct(theNames[0],  theColors[0])
+;        FOR j=1, ncolors-1 DO colorStructure = Create_Struct(colorStructure, theNames[j], theColors[j])
+;      ENDIF
+;      
+;      IF N_Elements(colorIndex) EQ 0 THEN colorIndex = Fix(!D.Table_Size - ncolors - 2)
+;      IF colorIndex LT 0 THEN $
+;        Message, 'Number of colors exceeds available color table values. Returning.', /NoName
+;      IF (colorIndex + ncolors) GT 255 THEN BEGIN
+;        colorIndex = Fix(!D.Table_Size - ncolors - 2)
+;      ENDIF
+;      IF (!D.Name NE 'PRINTER') AND (!D.Name NE 'NULL') THEN TVLCT, rvalue, gvalue, bvalue, colorIndex
+;      RETURN, IndGen(ncolors) + colorIndex
+;    ENDIF ELSE BEGIN
+;    
+;      ; Need a color structure?
+;      IF Arg_Present(colorStructure) THEN BEGIN
+;        colorStructure = Create_Struct(theColor,  colorIndex)
+;      ENDIF
+;      
+;      IF (!D.Name NE 'PRINTER') AND (!D.Name NE 'NULL') THEN $
+;        TVLCT, rvalue[theIndex], gvalue[theIndex], bvalue[theIndex], colorIndex
+;      RETURN, Fix(colorIndex)
+;    ENDELSE
+;    
+;    
+;  ENDELSE
+;  
+;END ;-------------------------------------------------------------------------------------------------------
 ;+
 ; NAME:
 ;       PICKCOLORNAME
@@ -2116,677 +2116,677 @@ END ;---------------------------------------------------------------------------
 ;******************************************************************************************;
 
 
-PRO PickColorName_CenterTLB, tlb
-
-  ; Center the top-level base widget.
-
-  screenSize = Get_Screen_Size()
-  Device, Get_Screen_Size=screenSize
-  IF screenSize[0] GT 2000 THEN screenSize[0] = screenSize[0]/2
-  xCenter = screenSize(0) / 2
-  yCenter = screenSize(1) / 2
-  
-  geom = Widget_Info(tlb, /Geometry)
-  xHalfSize = geom.Scr_XSize / 2
-  yHalfSize = geom.Scr_YSize / 2
-  
-  Widget_Control, tlb, XOffset = xCenter-xHalfSize, $
-    YOffset = yCenter-yHalfSize
-    
-END ;-------------------------------------------------------------------------------
-
-
-
-FUNCTION PickColorName_RGB_to_24Bit, number
-
-  ; Convert RGB values to 24-bit number values.
-
-  IF Size(number, /N_Dimensions) EQ 1 THEN BEGIN
-    RETURN, number[0] + (number[1] * 2L^8) + (number[2] * 2L^16)
-  ENDIF ELSE BEGIN
-    RETURN, number[*,0] + (number[*,1] * 2L^8) + (number[*,2] * 2L^16)
-  ENDELSE
-END ;-------------------------------------------------------------------------------
+;PRO PickColorName_CenterTLB, tlb
+;
+;  ; Center the top-level base widget.
+;
+;  screenSize = Get_Screen_Size()
+;  device, Get_Screen_Size=screenSize
+;  IF screenSize[0] GT 2000 THEN screenSize[0] = screenSize[0]/2
+;  xCenter = screenSize(0) / 2
+;  yCenter = screenSize(1) / 2
+;  
+;  geom = Widget_Info(tlb, /Geometry)
+;  xHalfSize = geom.Scr_XSize / 2
+;  yHalfSize = geom.Scr_YSize / 2
+;  
+;  Widget_Control, tlb, XOffset = xCenter-xHalfSize, $
+;    YOffset = yCenter-yHalfSize
+;    
+;END ;-------------------------------------------------------------------------------
 
 
 
-FUNCTION PickColorName_Count_Rows, filename, MaxRows = maxrows
-
-  ; This utility routine is used to count the number of
-  ; rows in an ASCII data file.
-
-  IF N_Elements(maxrows) EQ 0 THEN maxrows = 500L
-  IF N_Elements(filename) EQ 0 THEN BEGIN
-    filename = Dialog_Pickfile()
-    IF filename EQ "" THEN RETURN, -1
-  ENDIF
-  
-  OpenR, lun, filename, /Get_Lun
-  
-  Catch, error
-  IF error NE 0 THEN BEGIN
-    count = count-1
-    Free_Lun, lun
-    RETURN, count
-  ENDIF
-  
-  RESTART:
-  
-  count = 1L
-  line = ''
-  FOR j=count, maxrows DO BEGIN
-    ReadF, lun, line
-    count = count + 1
-    
-    ; Try again if you hit MAXROWS without encountering the
-    ; end of the file. Double the MAXROWS parameter.
-    
-    IF j EQ maxrows THEN BEGIN
-      maxrows = maxrows * 2
-      Point_Lun, lun, 0
-      GOTO, RESTART
-    ENDIF
-    
-  ENDFOR
-  
-  RETURN, -1
-END ;-------------------------------------------------------------------------------
+;FUNCTION PickColorName_RGB_to_24Bit, number
+;
+;  ; Convert RGB values to 24-bit number values.
+;
+;  IF Size(number, /N_Dimensions) EQ 1 THEN BEGIN
+;    RETURN, number[0] + (number[1] * 2L^8) + (number[2] * 2L^16)
+;  ENDIF ELSE BEGIN
+;    RETURN, number[*,0] + (number[*,1] * 2L^8) + (number[*,2] * 2L^16)
+;  ENDELSE
+;END ;-------------------------------------------------------------------------------
 
 
 
-PRO PickColorName_Select_Color, event
-
-  ; This event handler permits color selection by clicking on a color window.
-
-  IF event.type NE 0 THEN RETURN
-  
-  Widget_Control, event.top, Get_UValue=info, /No_Copy
-  
-  ; Get the color names from the window you clicked on and set it.
-  
-  Widget_Control, event.id, Get_UValue=thisColorName
-  ;Widget_Control, event.top, Update=0
-  Widget_Control, info.labelID, Set_Value=thisColorName
-  ;Widget_Control, event.top, Update=1
-  
-  ; Get the color value and load it as the current color.
-  
-  WSet, info.mixWID
-  info.theName = thisColorName
-  theIndex = Where(info.colorNames EQ StrUpCase(StrCompress(thisColorName, /Remove_All)))
-  theIndex = theIndex[0]
-  info.nameIndex = theIndex
-  
-  IF info.theDepth GT 8 THEN BEGIN
-    Erase, Color=info.colors24[theIndex]
-    PlotS, [0,0,59,59,0], [0,14,14,0,0], /Device, Color=info.black
-  ENDIF ELSE BEGIN
-    TVLCT, info.red[theIndex], info.green[theIndex], info.blue[theIndex], info.mixcolorIndex
-    Erase, Color=info.mixcolorIndex
-    PlotS, [0,0,59,59,0], [0,14,14,0,0], /Device, Color=info.black
-  ENDELSE
-  
-  Widget_Control, event.top, Set_UValue=info, /No_Copy
-END ;---------------------------------------------------------------------------
-
-
-
-PRO PickColorName_Buttons, event
-
-  ; This event handler responds to CANCEL and ACCEPT buttons.
-
-  Widget_Control, event.top, Get_UValue=info, /No_Copy
-  
-  ; Which button is this?
-  
-  Widget_Control, event.id, Get_Value=buttonValue
-  
-  ; Branch on button value.
-  
-  CASE buttonValue OF
-  
-    'Cancel': BEGIN
-    
-      ; Simply destroy the widget. The pointer info is already
-      ; set up for a CANCEL event.
-    
-      Widget_Control, event.top, /Destroy
-    ENDCASE
-    
-    'Accept': BEGIN
-    
-      ; Get the new color table after the color has been selected.
-    
-      TVLCT, r, g, b, /Get
-      
-      ; Save the new color and name in the pointer.
-      
-      *(info.ptr) = {cancel:0.0, r:info.red[info.nameIndex], g:info.green[info.nameIndex], $
-        b:info.blue[info.nameIndex], name:info.theName}
-        
-      ; Destoy the widget.
-        
-      Widget_Control, event.top, /Destroy
-      
-    ENDCASE
-  ENDCASE
-END ;---------------------------------------------------------------------------
+;FUNCTION PickColorName_Count_Rows, filename, MaxRows = maxrows
+;
+;  ; This utility routine is used to count the number of
+;  ; rows in an ASCII data file.
+;
+;  IF N_Elements(maxrows) EQ 0 THEN maxrows = 500L
+;  IF N_Elements(filename) EQ 0 THEN BEGIN
+;    filename = Dialog_Pickfile()
+;    IF filename EQ "" THEN RETURN, -1
+;  ENDIF
+;  
+;  OpenR, lun, filename, /Get_Lun
+;  
+;  Catch, error
+;  IF error NE 0 THEN BEGIN
+;    count = count-1
+;    Free_Lun, lun
+;    RETURN, count
+;  ENDIF
+;  
+;  RESTART:
+;  
+;  count = 1L
+;  line = ''
+;  FOR j=count, maxrows DO BEGIN
+;    ReadF, lun, line
+;    count = count + 1
+;    
+;    ; Try again if you hit MAXROWS without encountering the
+;    ; end of the file. Double the MAXROWS parameter.
+;    
+;    IF j EQ maxrows THEN BEGIN
+;      maxrows = maxrows * 2
+;      Point_Lun, lun, 0
+;      GOTO, RESTART
+;    ENDIF
+;    
+;  ENDFOR
+;  
+;  RETURN, -1
+;END ;-------------------------------------------------------------------------------
 
 
 
-FUNCTION PickColorName, theName, $         ; The name of the starting color.
-    Brewer=brewer, $                        ; Select brewer colors.
-    Bottom=bottom, $                        ; The index number where the colors should be loaded.
-    Cancel=cancelled, $                     ; An output keyword set to 1 if the user cancelled or an error occurred.
-    Columns = ncols, $                      ; The number of columns to display the colors in.
-    Filename=filename, $                    ; The name of the file which contains color names and values.
-    Group_Leader=group_leader, $            ; The group leader of the TLB. Required for modal operation.
-    Index=index, $                          ; The color index number where the final selected color should be loaded.
-    Title=title                             ; The title of the top-level base widget.
-    
-  ; Error handling for this program module.
-    
-  Catch, theError
-  IF theError NE 0 THEN BEGIN
-    Catch, /Cancel
-    ok = Error_Message(/Traceback)
-    cancel = 1
-    IF N_Elements(theName) NE 0 THEN RETURN, theName ELSE RETURN, 'White'
-  ENDIF
-  
-  ; Get depth of visual display.
-  
-  IF (!D.Flags AND 256) NE 0 THEN Device, Get_Visual_Depth=theDepth ELSE theDepth = 8
-  
-  ; Is there a filename? If so, get colors from there.
-  
-  IF N_Elements(filename) NE 0 THEN BEGIN
-  
-    ; Count the number of rows in the file.
-  
-    NCOLORS = PickColorName_Count_Rows(filename)
-    
-    ; Read the data.
-    
-    OpenR, lun, filename, /Get_Lun
-    red = BytArr(NCOLORS)
-    green = BytArr(NCOLORS)
-    blue = BytArr(NCOLORS)
-    colors = StrArr(NCOLORS)
-    redvalue = 0B
-    greenvalue = 0B
-    bluevalue = 0B
-    namevalue = ""
-    FOR j=0L, NCOLORS-1 DO BEGIN
-      ReadF, lun, redvalue, greenvalue, bluevalue, namevalue
-      colors[j] = namevalue
-      red[j] = redvalue
-      green[j] = greenvalue
-      blue[j] = bluevalue
-    ENDFOR
-    
-    ; Trim the colors array of blank characters.
-    
-    colors = StrTrim(colors, 2)
-    
-    ; Calculate the number of columns to display colors in.
-    
-    IF N_Elements(ncols) EQ 0 THEN ncols = Fix(Sqrt(ncolors))
-    Free_Lun, lun
-  ENDIF ELSE BEGIN
-  
-    IF theDepth GT 8 THEN BEGIN
-    
-      ; The colors with their names.
-    
-      IF N_Elements(ncols) EQ 0 THEN ncols = 12
-      IF Keyword_Set(brewer) THEN BEGIN
-        colors = [ 'WT1', 'WT2', 'WT3', 'WT4', 'WT5', 'WT6', 'WT7', 'WT8']
-        red =   [   255,   255,   255,   255,   255,   245,   255,   250 ]
-        green = [   255,   250,   255,   255,   248,   245,   245,   240 ]
-        blue =  [   255,   250,   240,   224,   220,   220,   238,   230 ]
-        colors = [ colors, 'TAN1', 'TAN2', 'TAN3', 'TAN4', 'TAN5', 'TAN6', 'TAN7', 'TAN8']
-        red =   [ red,      250,   255,    255,    255,    255,    245,    222,    210 ]
-        green = [ green,    235,   239,    235,    228,    228,    222,    184,    180 ]
-        blue =  [ blue,     215,   213,    205,    196,    181,    179,    135,    140 ]
-        colors = [ colors, 'BLK1', 'BLK2', 'BLK3', 'BLK4', 'BLK5', 'BLK6', 'BLK7', 'BLK8']
-        red =   [ red,      250,   230,    210,    190,    112,     110,    70,       0 ]
-        green = [ green,    250,   230,    210,    190,    128,     110,    70,       0 ]
-        blue =  [ blue,     250,   230,    210,    190,    128,     110,    70,       0 ]
-        colors = [ colors, 'GRN1', 'GRN2', 'GRN3', 'GRN4', 'GRN5', 'GRN6', 'GRN7', 'GRN8']
-        red =   [ red,      250,   223,    173,    109,     53,     35,      0,       0 ]
-        green = [ green,    253,   242,    221,    193,    156,     132,    97,      69 ]
-        blue =  [ blue,     202,   167,    142,    115,     83,      67,    52,      41 ]
-        colors = [ colors, 'BLU1', 'BLU2', 'BLU3', 'BLU4', 'BLU5', 'BLU6', 'BLU7', 'BLU8']
-        red =   [ red,      232,   202,    158,     99,     53,     33,      8,       8 ]
-        green = [ green,    241,   222,    202,    168,    133,    113,     75,      48 ]
-        blue =  [ blue,     250,   240,    225,    211,    191,    181,    147,     107 ]
-        colors = [ colors, 'ORG1', 'ORG2', 'ORG3', 'ORG4', 'ORG5', 'ORG6', 'ORG7', 'ORG8']
-        red =   [ red,      254,    253,    253,    250,    231,    217,    159,    127 ]
-        green = [ green,    236,    212,    174,    134,     92,     72,     51,     39 ]
-        blue =  [ blue,     217,    171,    107,     52,     12,      1,      3,      4 ]
-        colors = [ colors, 'RED1', 'RED2', 'RED3', 'RED4', 'RED5', 'RED6', 'RED7', 'RED8']
-        red =   [ red,      254,    252,    252,    248,    225,    203,    154,    103 ]
-        green = [ green,    232,    194,    146,     97,     45,     24,     12,      0 ]
-        blue =  [ blue,     222,    171,    114,     68,     38,     29,     19,     13 ]
-        colors = [ colors, 'PUR1', 'PUR2', 'PUR3', 'PUR4', 'PUR5', 'PUR6', 'PUR7', 'PUR8']
-        red =   [ red,      244,    222,    188,    152,    119,    106,     80,     63 ]
-        green = [ green,    242,    221,    189,    148,    108,     82,     32,      0 ]
-        blue =  [ blue,     248,    237,    220,    197,    177,    163,    139,    125 ]
-        colors = [ colors, 'PBG1', 'PBG2', 'PBG3', 'PBG4', 'PBG5', 'PBG6', 'PBG7', 'PBG8']
-        red =   [ red,      243,    213,    166,     94,     34,      3,      1,      1 ]
-        green = [ green,    234,    212,    189,    164,    138,    129,    101,     70 ]
-        blue =  [ blue,     244,    232,    219,    204,    171,    139,     82,     54 ]
-        colors = [ colors, 'YGB1', 'YGB2', 'YGB3', 'YGB4', 'YGB5', 'YGB6', 'YGB7', 'YGB8']
-        red =   [ red,      244,    206,    127,     58,     30,     33,     32,      8 ]
-        green = [ green,    250,    236,    205,    175,    125,     95,     48,     29 ]
-        blue =  [ blue,     193,    179,    186,    195,    182,    168,    137,     88 ]
-        colors = [ colors, 'RYB1', 'RYB2', 'RYB3', 'RYB4', 'RYB5', 'RYB6', 'RYB7', 'RYB8']
-        red =   [ red,       201,    245,    253,    251,    228,    193,    114,     59 ]
-        green = [ green,      35,    121,    206,    253,    244,    228,    171,     85 ]
-        blue =  [ blue,       38,    72,     127,    197,    239,    239,    207,    164 ]
-        colors = [ colors, 'TG1', 'TG2', 'TG3', 'TG4', 'TG5', 'TG6', 'TG7', 'TG8']
-        red =   [ red,      84,    163,   197,   220,   105,    51,    13,     0 ]
-        green = [ green,    48,    103,   141,   188,   188,   149,   113,    81 ]
-        blue =  [ blue,      5,     26,    60,   118,   177,   141,   105,    71 ]
-      ENDIF ELSE BEGIN
-        colors= ['White']
-        red =   [ 255]
-        green = [ 255]
-        blue =  [ 255]
-        colors= [ colors,      'Snow',     'Ivory','Light Yellow',   'Cornsilk',      'Beige',   'Seashell' ]
-        red =   [ red,            255,          255,          255,          255,          245,          255 ]
-        green = [ green,          250,          255,          255,          248,          245,          245 ]
-        blue =  [ blue,           250,          240,          224,          220,          220,          238 ]
-        colors= [ colors,     'Linen','Antique White',    'Papaya',     'Almond',     'Bisque',  'Moccasin' ]
-        red =   [ red,            250,          250,          255,          255,          255,          255 ]
-        green = [ green,          240,          235,          239,          235,          228,          228 ]
-        blue =  [ blue,           230,          215,          213,          205,          196,          181 ]
-        colors= [ colors,     'Wheat',  'Burlywood',        'Tan', 'Light Gray',   'Lavender','Medium Gray' ]
-        red =   [ red,            245,          222,          210,          230,          230,          210 ]
-        green = [ green,          222,          184,          180,          230,          230,          210 ]
-        blue =  [ blue,           179,          135,          140,          230,          250,          210 ]
-        colors= [ colors,      'Gray', 'Slate Gray',  'Dark Gray',   'Charcoal',      'Black',   'Honeydew', 'Light Cyan' ]
-        red =   [ red,            190,          112,          110,           70,            0,          240,          224 ]
-        green = [ green,          190,          128,          110,           70,            0,          255,          255 ]
-        blue =  [ blue,           190,          144,          110,           70,            0,          255,          240 ]
-        colors= [ colors,'Powder Blue',  'Sky Blue', 'Cornflower Blue', 'Cadet Blue', 'Steel Blue','Dodger Blue', 'Royal Blue',  'Blue' ]
-        red =   [ red,            176,          135,         100,           95,            70,           30,           65,            0 ]
-        green = [ green,          224,          206,         149,          158,           130,          144,          105,            0 ]
-        blue =  [ blue,           230,          235,         237,          160,           180,          255,          225,          255 ]
-        colors= [ colors,      'Navy', 'Pale Green','Aquamarine','Spring Green',       'Cyan' ]
-        red =   [ red,              0,          152,          127,            0,            0 ]
-        green = [ green,            0,          251,          255,          250,          255 ]
-        blue =  [ blue,           128,          152,          212,          154,          255 ]
-        colors= [ colors, 'Turquoise', 'Light Sea Green', 'Sea Green','Forest Green',  'Teal','Green Yellow','Chartreuse', 'Lawn Green' ]
-        red =   [ red,             64,       143,             46,           34,             0,      173,           127,         124 ]
-        green = [ green,          224,       188,            139,          139,           128,      255,           255,         252 ]
-        blue =  [ blue,           208,       143,             87,           34,           128,       47,             0,           0 ]
-        colors= [ colors,     'Green', 'Lime Green', 'Olive Drab',     'Olive','Dark Green','Pale Goldenrod']
-        red =   [ red,              0,           50,          107,           85,            0,          238 ]
-        green = [ green,          255,          205,          142,          107,          100,          232 ]
-        blue =  [ blue,             0,           50,           35,           47,            0,          170 ]
-        colors =[ colors,     'Khaki', 'Dark Khaki',     'Yellow',       'Gold','Goldenrod','Dark Goldenrod']
-        red =   [ red,            240,          189,          255,          255,          218,          184 ]
-        green = [ green,          230,          183,          255,          215,          165,          134 ]
-        blue =  [ blue,           140,          107,            0,            0,           32,           11 ]
-        colors= [ colors,'Saddle Brown',       'Rose',       'Pink', 'Rosy Brown','Sandy Brown',      'Peru']
-        red =   [ red,            139,          255,          255,          188,          244,          205 ]
-        green = [ green,           69,          228,          192,          143,          164,          133 ]
-        blue =  [ blue,            19,          225,          203,          143,           96,           63 ]
-        colors= [ colors,'Indian Red',  'Chocolate',     'Sienna','Dark Salmon',    'Salmon','Light Salmon' ]
-        red =   [ red,            205,          210,          160,          233,          250,          255 ]
-        green = [ green,           92,          105,           82,          150,          128,          160 ]
-        blue =  [ blue,            92,           30,           45,          122,          114,          122 ]
-        colors= [ colors,    'Orange',      'Coral', 'Light Coral',  'Firebrick',   'Dark Red',    'Brown',  'Hot Pink' ]
-        red =   [ red,            255,          255,          240,          178,       139,          165,        255 ]
-        green = [ green,          165,          127,          128,           34,         0,           42,        105 ]
-        blue =  [ blue,             0,           80,          128,           34,         0,           42,        180 ]
-        colors= [ colors, 'Deep Pink',    'Magenta',     'Tomato', 'Orange Red',        'Red', 'Crimson', 'Violet Red' ]
-        red =   [ red,            255,          255,          255,          255,          255,      220,        208 ]
-        green = [ green,           20,            0,           99,           69,            0,       20,         32 ]
-        blue =  [ blue,           147,          255,           71,            0,            0,       60,        144 ]
-        colors= [ colors,    'Maroon',    'Thistle',       'Plum',     'Violet',    'Orchid','Medium Orchid']
-        red =   [ red,            176,          216,          221,          238,          218,          186 ]
-        green = [ green,           48,          191,          160,          130,          112,           85 ]
-        blue =  [ blue,            96,          216,          221,          238,          214,          211 ]
-        colors= [ colors,'Dark Orchid','Blue Violet',     'Purple']
-        red =   [ red,            153,          138,          160]
-        green = [ green,           50,           43,           32]
-        blue =  [ blue,           204,          226,          240]
-        colors= [ colors, 'Slate Blue',  'Dark Slate Blue']
-        red =   [ red,           106,            72]
-        green = [ green,            90,            61]
-        blue =  [ blue,           205,           139]
-        colors = [ colors, 'WT1', 'WT2', 'WT3', 'WT4', 'WT5', 'WT6', 'WT7', 'WT8']
-        red =   [ red,     255,   255,   255,   255,   255,   245,   255,   250 ]
-        green = [ green,   255,   250,   255,   255,   248,   245,   245,   240 ]
-        blue =  [ blue,    255,   250,   240,   224,   220,   220,   238,   230 ]
-        colors = [ colors, 'TAN1', 'TAN2', 'TAN3', 'TAN4', 'TAN5', 'TAN6', 'TAN7', 'TAN8']
-        red =   [ red,      250,   255,    255,    255,    255,    245,    222,    210 ]
-        green = [ green,    235,   239,    235,    228,    228,    222,    184,    180 ]
-        blue =  [ blue,     215,   213,    205,    196,    181,    179,    135,    140 ]
-        colors = [ colors, 'BLK1', 'BLK2', 'BLK3', 'BLK4', 'BLK5', 'BLK6', 'BLK7', 'BLK8']
-        red =   [ red,      250,   230,    210,    190,    112,     110,    70,       0 ]
-        green = [ green,    250,   230,    210,    190,    128,     110,    70,       0 ]
-        blue =  [ blue,     250,   230,    210,    190,    128,     110,    70,       0 ]
-        colors = [ colors, 'GRN1', 'GRN2', 'GRN3', 'GRN4', 'GRN5', 'GRN6', 'GRN7', 'GRN8']
-        red =   [ red,      250,   223,    173,    109,     53,     35,      0,       0 ]
-        green = [ green,    253,   242,    221,    193,    156,     132,    97,      69 ]
-        blue =  [ blue,     202,   167,    142,    115,     83,      67,    52,      41 ]
-        colors = [ colors, 'BLU1', 'BLU2', 'BLU3', 'BLU4', 'BLU5', 'BLU6', 'BLU7', 'BLU8']
-        red =   [ red,      232,   202,    158,     99,     53,     33,      8,       8 ]
-        green = [ green,    241,   222,    202,    168,    133,    113,     75,      48 ]
-        blue =  [ blue,     250,   240,    225,    211,    191,    181,    147,     107 ]
-        colors = [ colors, 'ORG1', 'ORG2', 'ORG3', 'ORG4', 'ORG5', 'ORG6', 'ORG7', 'ORG8']
-        red =   [ red,      254,    253,    253,    250,    231,    217,    159,    127 ]
-        green = [ green,    236,    212,    174,    134,     92,     72,     51,     39 ]
-        blue =  [ blue,     217,    171,    107,     52,     12,      1,      3,      4 ]
-        colors = [ colors, 'RED1', 'RED2', 'RED3', 'RED4', 'RED5', 'RED6', 'RED7', 'RED8']
-        red =   [ red,      254,    252,    252,    248,    225,    203,    154,    103 ]
-        green = [ green,    232,    194,    146,     97,     45,     24,     12,      0 ]
-        blue =  [ blue,     222,    171,    114,     68,     38,     29,     19,     13 ]
-        colors = [ colors, 'PUR1', 'PUR2', 'PUR3', 'PUR4', 'PUR5', 'PUR6', 'PUR7', 'PUR8']
-        red =   [ red,      244,    222,    188,    152,    119,    106,     80,     63 ]
-        green = [ green,    242,    221,    189,    148,    108,     82,     32,      0 ]
-        blue =  [ blue,     248,    237,    220,    197,    177,    163,    139,    125 ]
-        colors = [ colors, 'PBG1', 'PBG2', 'PBG3', 'PBG4', 'PBG5', 'PBG6', 'PBG7', 'PBG8']
-        red =   [ red,      243,    213,    166,     94,     34,      3,      1,      1 ]
-        green = [ green,    234,    212,    189,    164,    138,    129,    101,     70 ]
-        blue =  [ blue,     244,    232,    219,    204,    171,    139,     82,     54 ]
-        colors = [ colors, 'YGB1', 'YGB2', 'YGB3', 'YGB4', 'YGB5', 'YGB6', 'YGB7', 'YGB8']
-        red =   [ red,      244,    206,    127,     58,     30,     33,     32,      8 ]
-        green = [ green,    250,    236,    205,    175,    125,     95,     48,     29 ]
-        blue =  [ blue,     193,    179,    186,    195,    182,    168,    137,     88 ]
-        colors = [ colors, 'RYB1', 'RYB2', 'RYB3', 'RYB4', 'RYB5', 'RYB6', 'RYB7', 'RYB8']
-        red =   [ red,       201,    245,    253,    251,    228,    193,    114,     59 ]
-        green = [ green,      35,    121,    206,    253,    244,    228,    171,     85 ]
-        blue =  [ blue,       38,    72,     127,    197,    239,    239,    207,    164 ]
-        colors = [ colors, 'TG1', 'TG2', 'TG3', 'TG4', 'TG5', 'TG6', 'TG7', 'TG8']
-        red =   [ red,      84,    163,   197,   220,   105,    51,    13,     0 ]
-        green = [ green,    48,    103,   141,   188,   188,   149,   113,    81 ]
-        blue =  [ blue,      5,     26,    60,   118,   177,   141,   105,    71 ]
-      ENDELSE
-    ENDIF ELSE BEGIN
-    
-      IF N_Elements(ncols) EQ 0 THEN ncols = 8
-      colors  = ['Black', 'Magenta', 'Cyan', 'Yellow', 'Green']
-      red =     [  0,        255,       0,      255,       0  ]
-      green =   [  0,          0,     255,      255,     255  ]
-      blue =    [  0,        255,     255,        0,       0  ]
-      colors  = [colors,  'Red', 'Blue', 'Navy', 'Pink', 'Aqua']
-      red =     [red,     255,     0,      0,    255,    112]
-      green =   [green,     0,     0,      0,    127,    219]
-      blue =    [blue,      0,   255,    115,    127,    147]
-      colors  = [colors,  'Orchid', 'Sky', 'Beige', 'Charcoal', 'Gray','White']
-      red =     [red,     219,      0,     245,       80,      135,    255  ]
-      green =   [green,   112,    163,     245,       80,      135,    255  ]
-      blue =    [blue,    219,    255,     220,       80,      135,    255  ]
-      
-    ENDELSE
-  ENDELSE
-  
-  NCOLORS = N_Elements(colors)
-  
-  ;; Add system color names for IDL version 5.6 and higher. We don't want to
-  ;; do this we cannot establish a display connection (e.g., we are running
-  ;; in a cron job). Check for system variable !FSC_Display_Connection. If not
-  ;; defined, check the connection.
-  ;DefSysV, '!FSC_Display_Connection', EXISTS=sysvarExists
-  ;IF sysvarExists $
-  ;     THEN haveConnection = !FSC_Display_Connection $
-  ;     ELSE haveConnection = CanConnect()
-  ;
-  ;IF (Float(!Version.Release) GE 5.6) && Keyword_Set(haveConnection) THEN BEGIN
-  ;
-  ;   tlb = Widget_Base()
-  ;   sc = Widget_Info(tlb, /System_Colors)
-  ;   Widget_Control, tlb, /Destroy
-  ;   frame = sc.window_frame
-  ;   text = sc.window_text
-  ;   active = sc.active_border
-  ;   shadow = sc.shadow_3d
-  ;   highlight = sc.light_3d
-  ;   edge = sc.light_edge_3d
-  ;   selected = sc.highlight
-  ;   face = sc.face_3d
-  ;   colors  = [colors,  'Frame',  'Text',  'Active',  'Shadow']
-  ;   red =     [red,     frame[0], text[0], active[0], shadow[0]]
-  ;   green =   [green,   frame[1], text[1], active[1], shadow[1]]
-  ;   blue =    [blue,    frame[2], text[2], active[2], shadow[2]]
-  ;   colors  = [colors,  'Highlight',  'Edge',  'Selected',  'Face']
-  ;   red =     [red,     highlight[0], edge[0], selected[0], face[0]]
-  ;   green =   [green,   highlight[1], edge[1], selected[1], face[1]]
-  ;   blue =    [blue,    highlight[2], edge[2], selected[2], face[2]]
-  ;
-  ;ENDIF
-  
-  
-  ; Save decomposed state and restore it, if possible.
-  
-  IF Float(!Version.Release) GE 5.2 THEN BEGIN
-    Device, Get_Decomposed=decomposedState
-  ENDIF ELSE decomposedState = 0
-  
-  ; Different color decomposition based on visual depth.
-  
-  IF theDepth GT 8 THEN BEGIN
-    Device, Decomposed=1
-    colors24 = PickColorName_RGB_to_24Bit([[red], [green], [blue]])
-  ENDIF ELSE BEGIN
-    IF NCOLORS GT !D.Table_Size THEN $
-      Message, /NoName, 'Number of colors exceeds color table size. Returning...'
-    Device, Decomposed=0
-    colors24 = -1
-  ENDELSE
-  
-  ; Check argument values. All arguments are optional.
-  
-  IF N_Elements(theName) EQ 0 THEN IF Keyword_Set(brewer) THEN theName = 'WT1' ELSE theName = 'White'
-  IF Size(theName, /TName) NE 'STRING' THEN $
-    Message, 'Color name argument must be STRING type.', /NoName
-  theName = StrCompress(theName, /Remove_All)
-  
-  IF N_Elements(bottom) EQ 0 THEN bottom = 0 > (!D.Table_Size - (NCOLORS + 2))
-  mixcolorIndex = bottom
-  IF N_Elements(title) EQ 0 THEN title='Select a Color'
-  
-  ; We will work with all uppercase names.
-  
-  colorNames = StrUpCase(StrCompress(colors, /Remove_All))
-  
-  ; Get the current color table vectors before we change anything.
-  ; This will allow us to restore the color table when we depart.
-  
-  TVLCT, r_old, g_old, b_old, /Get
-  
-  ; Load the colors if needed. The "bottom" index is reserved as the "mixing color" index.
-  
-  IF theDepth LE 8 THEN TVLCT, red, green, blue, bottom+1
-  
-  ; Can you find the color name in the colors array?
-  
-  nameIndex = WHERE(colorNames EQ StrUpCase(theName), count)
-  IF count EQ 0 THEN BEGIN
-    Message, 'Unable to resolve color name: ' + StrUpCase(theName) + '. Replacing with WHITE.', /Informational
-    theName = 'WT1'
-    nameIndex = WHERE(colorNames EQ StrUpCase(theName), count)
-    IF count EQ 0 THEN Message, /NoName, 'Unable to resolve color name: ' + StrUpCase(theName) + '. Returning...'
-  ENDIF
-  nameIndex = nameIndex[0]
-  
-  ; Who knows how the user spelled the color? Make it look nice.
-  
-  theName = colors[nameIndex]
-  
-  ; Load the mixing color in the mixcolorIndex.
-  
-  IF theDepth LE 8 THEN TVLCT, red[nameIndex], green[nameIndex], blue[nameIndex], mixcolorIndex
-  
-  ; Create the widgets. TLB is MODAL or BLOCKING, depending upon presence of
-  ; Group_Leader variable.
-  
-  IF N_Elements(group_leader) EQ 0 THEN BEGIN
-    tlb = Widget_Base(Title=title, Column=1, /Base_Align_Center)
-  ENDIF ELSE BEGIN
-    tlb = Widget_Base(Title=title, Column=1, /Base_Align_Center, /Modal, $
-      Group_Leader=group_leader)
-  ENDELSE
-  
-  ; Draw widgets for the possible colors. Store the color name in the UVALUE.
-  
-  colorbaseID = Widget_Base(tlb, Column=ncols, Event_Pro='PickColorName_Select_Color')
-  drawID = LonArr(NCOLORS)
-  FOR j=0,NCOLORS-1 DO BEGIN
-    drawID[j] = Widget_Draw(colorbaseID, XSize=20, YSize=15, $
-      UValue=colors[j], Button_Events=1)
-  ENDFOR
-  
-  ; System colors.
-  
-  IF N_Elements(colors) GT NCOLORS THEN BEGIN
-    systemColorbase = Widget_Base(tlb, Column=8, Event_Pro='PickColorName_Select_Color')
-    drawID = [Temporary(drawID), LonArr(8)]
-    FOR j=NCOLORS,N_Elements(colors)-1 DO BEGIN
-      drawID[j] = Widget_Draw(systemColorbase, XSize=20, YSize=15, $
-        UValue=colors[j], Button_Events=1)
-    ENDFOR
-  ENDIF
-  
-  ; Set up the current or mixing color draw widget.
-  
-  currentID = Widget_Base(tlb, Column=1, Base_Align_Center=1)
-  
-  ; Special concerns with LABEL widgets to work around a widget update bug in
-  ; X11 libraries.
-  IF StrUpCase(!Version.OS_Family) EQ 'WINDOWS' $
-    THEN labelID = Widget_Label(currentID, Value=theName, /Dynamic_Resize) $
-  ELSE labelID = Widget_Label(currentID, Value=theName, /Dynamic_Resize, SCR_XSIZE=150)
-  mixColorID = Widget_Draw(currentID, XSize=60, YSize=15)
-  
-  ; CANCEL and ACCEPT buttons.
-  
-  buttonbase = Widget_Base(tlb, ROW=1, Align_Center=1, Event_Pro='PickColorName_Buttons')
-  cancelID = Widget_Button(buttonbase, VALUE='Cancel')
-  acceptID = Widget_Button(buttonbase, VALUE='Accept')
-  
-  ; Center the TLB.
-  
-  PickColorName_CenterTLB, tlb
-  Widget_Control, tlb, /Realize
-  
-  ; Load the drawing colors.
-  
-  wids = IntArr(NCOLORS)
-  IF theDepth GT 8 THEN BEGIN
-    FOR j=0,NCOLORS-1 DO BEGIN
-      Widget_Control, drawID[j], Get_Value=thisWID
-      wids[j] = thisWID
-      WSet, thisWID
-      PolyFill, [1,1,19,19,1], [0,13,13,0,0], /Device, Color=colors24[j]
-    ENDFOR
-    IF (N_Elements(colors) GT NCOLORS) THEN BEGIN
-      wids = [Temporary(wids), Intarr(8)]
-      FOR j=NCOLORS, N_Elements(colors)-1 DO BEGIN
-        Widget_Control, drawID[j], Get_Value=thisWID
-        wids[j] = thisWID
-        WSet, thisWID
-        PolyFill, [1,1,19,19,1], [0,13,13,0,0], /Device, Color=colors24[j]
-      ENDFOR
-    ENDIF
-  ENDIF ELSE BEGIN
-    FOR j=1,NCOLORS DO BEGIN
-      Widget_Control, drawID[j-1], Get_Value=thisWID
-      wids[j-1] = thisWID
-      WSet, thisWID
-      PolyFill, [1,1,19,19,1], [0,13,13,0,0], /Device, Color=bottom + black
-    ENDFOR
-    IF (N_Elements(colors) GT NCOLORS) THEN BEGIN
-      wids = [Temporary(wids), Intarr(8)]
-      FOR j=NCOLORS+1, N_Elements(colors) DO BEGIN
-        Widget_Control, drawID[j-1], Get_Value=thisWID
-        wids[j-1] = thisWID
-        WSet, thisWID
-        PolyFill, [1,1,19,19,1], [0,13,13,0,0], /Device, Color=bottom + j
-      ENDFOR
-    ENDIF
-  ENDELSE
-  
-  ; Load the current or mixing color.
-  
-  Widget_Control, mixColorID, Get_Value=mixWID
-  WSet, mixWID
-  IF theDepth GT 8 THEN BEGIN
-    Erase, Color=colors24[nameIndex]
-    eraseColor = Keyword_Set(brewer) ? 'BLK8' : 'BLACK
-    black = Where(colornames EQ eraseColor)
-    black = black[0]
-    PlotS, [0,0,59,59,0], [0,14,14,0,0], /Device, Color=colors24[black]
-  ENDIF ELSE BEGIN
-    eraseColor = Keyword_Set(brewer) ? 'BLK8' : 'BLACK
-    black = Where(colornames EQ eraseColor)
-    Erase, Color=mixcolorIndex
-    PlotS, [0,0,59,59,0], [0,14,14,0,0], /Device, Color=black
-  ENDELSE
-  
-  ; Pointer to hold the color form information.
-  
-  ptr = Ptr_New({cancel:1.0, r:0B, g:0B, b:0B, name:theName})
-  
-  ; Info structure for program information.
-  
-  info = { ptr:ptr, $                    ; The pointer to the form information.
-    mixColorIndex:mixColorIndex, $
-    colorNames:colorNames, $
-    nameIndex:nameIndex, $
-    red:red, $
-    green:green, $
-    blue:blue, $
-    black:black, $
-    colors24:colors24, $
-    mixWid:mixWid, $
-    theDepth:theDepth, $
-    labelID:labelID, $
-    theName:theName $
-    }
-    
-  ; Store the info structure in the UVALUE of the TLB.
-    
-  Widget_Control, tlb, Set_UValue=info, /No_Copy
-  
-  ; Set up program event loop. This will be blocking widget
-  ; if called from the IDL command line. Program operation
-  ; will stop here until widget interface is destroyed.
-  
-  XManager, 'pickcolor', tlb
-  
-  ; Retrieve the color information from the pointer and free
-  ; the pointer.
-  
-  colorInfo = *ptr
-  Ptr_Free, ptr
-  
-  ; Set the Cancel flag.
-  
-  cancelled = colorInfo.cancel
-  
-  ; Restore color table, taking care to load the color index if required.
-  
-  IF N_Elements(index) NE 0 AND (NOT cancelled) THEN BEGIN
-    r_old[index] = colorInfo.r
-    g_old[index] = colorInfo.g
-    b_old[index] = colorInfo.b
-  ENDIF
-  TVLCT, r_old, g_old, b_old
-  
-  ; Restore decomposed state if possible.
-  
-  IF Float(!Version.Release) GE 5.2 THEN Device, Decomposed=decomposedState
-  
-  ; Return the color name.
-  
-  RETURN, colorInfo.name
-END
+;PRO PickColorName_Select_Color, event
+;
+;  ; This event handler permits color selection by clicking on a color window.
+;
+;  IF event.type NE 0 THEN RETURN
+;  
+;  Widget_Control, event.top, Get_UValue=info, /No_Copy
+;  
+;  ; Get the color names from the window you clicked on and set it.
+;  
+;  Widget_Control, event.id, Get_UValue=thisColorName
+;  ;Widget_Control, event.top, Update=0
+;  Widget_Control, info.labelID, Set_Value=thisColorName
+;  ;Widget_Control, event.top, Update=1
+;  
+;  ; Get the color value and load it as the current color.
+;  
+;  WSet, info.mixWID
+;  info.theName = thisColorName
+;  theIndex = Where(info.colorNames EQ StrUpCase(StrCompress(thisColorName, /Remove_All)))
+;  theIndex = theIndex[0]
+;  info.nameIndex = theIndex
+;  
+;  IF info.theDepth GT 8 THEN BEGIN
+;    Erase, Color=info.colors24[theIndex]
+;    PlotS, [0,0,59,59,0], [0,14,14,0,0], /device, Color=info.black
+;  ENDIF ELSE BEGIN
+;    TVLCT, info.red[theIndex], info.green[theIndex], info.blue[theIndex], info.mixcolorIndex
+;    Erase, Color=info.mixcolorIndex
+;    PlotS, [0,0,59,59,0], [0,14,14,0,0], /device, Color=info.black
+;  ENDELSE
+;  
+;  Widget_Control, event.top, Set_UValue=info, /No_Copy
+;END ;---------------------------------------------------------------------------
+
+
+
+;PRO PickColorName_Buttons, event
+;
+;  ; This event handler responds to CANCEL and ACCEPT buttons.
+;
+;  Widget_Control, event.top, Get_UValue=info, /No_Copy
+;  
+;  ; Which button is this?
+;  
+;  Widget_Control, event.id, Get_Value=buttonValue
+;  
+;  ; Branch on button value.
+;  
+;  CASE buttonValue OF
+;  
+;    'Cancel': BEGIN
+;    
+;      ; Simply destroy the widget. The pointer info is already
+;      ; set up for a CANCEL event.
+;    
+;      Widget_Control, event.top, /Destroy
+;    ENDCASE
+;    
+;    'Accept': BEGIN
+;    
+;      ; Get the new color table after the color has been selected.
+;    
+;      TVLCT, r, g, b, /Get
+;      
+;      ; Save the new color and name in the pointer.
+;      
+;      *(info.ptr) = {cancel:0.0, r:info.red[info.nameIndex], g:info.green[info.nameIndex], $
+;        b:info.blue[info.nameIndex], name:info.theName}
+;        
+;      ; Destoy the widget.
+;        
+;      Widget_Control, event.top, /Destroy
+;      
+;    ENDCASE
+;  ENDCASE
+;END ;---------------------------------------------------------------------------
+
+
+
+;FUNCTION PickColorName, theName, $         ; The name of the starting color.
+;    Brewer=brewer, $                        ; Select brewer colors.
+;    Bottom=bottom, $                        ; The index number where the colors should be loaded.
+;    Cancel=cancelled, $                     ; An output keyword set to 1 if the user cancelled or an error occurred.
+;    Columns = ncols, $                      ; The number of columns to display the colors in.
+;    Filename=filename, $                    ; The name of the file which contains color names and values.
+;    Group_Leader=group_leader, $            ; The group leader of the TLB. Required for modal operation.
+;    Index=index, $                          ; The color index number where the final selected color should be loaded.
+;    Title=title                             ; The title of the top-level base widget.
+;    
+;  ; Error handling for this program module.
+;    
+;  Catch, theError
+;  IF theError NE 0 THEN BEGIN
+;    Catch, /Cancel
+;    ok = Error_Message(/Traceback)
+;    cancel = 1
+;    IF N_Elements(theName) NE 0 THEN RETURN, theName ELSE RETURN, 'White'
+;  ENDIF
+;  
+;  ; Get depth of visual display.
+;  
+;  IF (!D.Flags AND 256) NE 0 THEN device, Get_Visual_Depth=theDepth ELSE theDepth = 8
+;  
+;  ; Is there a filename? If so, get colors from there.
+;  
+;  IF N_Elements(filename) NE 0 THEN BEGIN
+;  
+;    ; Count the number of rows in the file.
+;  
+;    NCOLORS = PickColorName_Count_Rows(filename)
+;    
+;    ; Read the data.
+;    
+;    OpenR, lun, filename, /Get_Lun
+;    red = BytArr(NCOLORS)
+;    green = BytArr(NCOLORS)
+;    blue = BytArr(NCOLORS)
+;    colors = StrArr(NCOLORS)
+;    redvalue = 0B
+;    greenvalue = 0B
+;    bluevalue = 0B
+;    namevalue = ""
+;    FOR j=0L, NCOLORS-1 DO BEGIN
+;      ReadF, lun, redvalue, greenvalue, bluevalue, namevalue
+;      colors[j] = namevalue
+;      red[j] = redvalue
+;      green[j] = greenvalue
+;      blue[j] = bluevalue
+;    ENDFOR
+;    
+;    ; Trim the colors array of blank characters.
+;    
+;    colors = StrTrim(colors, 2)
+;    
+;    ; Calculate the number of columns to display colors in.
+;    
+;    IF N_Elements(ncols) EQ 0 THEN ncols = Fix(Sqrt(ncolors))
+;    Free_Lun, lun
+;  ENDIF ELSE BEGIN
+;  
+;    IF theDepth GT 8 THEN BEGIN
+;    
+;      ; The colors with their names.
+;    
+;      IF N_Elements(ncols) EQ 0 THEN ncols = 12
+;      IF Keyword_Set(brewer) THEN BEGIN
+;        colors = [ 'WT1', 'WT2', 'WT3', 'WT4', 'WT5', 'WT6', 'WT7', 'WT8']
+;        red =   [   255,   255,   255,   255,   255,   245,   255,   250 ]
+;        green = [   255,   250,   255,   255,   248,   245,   245,   240 ]
+;        blue =  [   255,   250,   240,   224,   220,   220,   238,   230 ]
+;        colors = [ colors, 'TAN1', 'TAN2', 'TAN3', 'TAN4', 'TAN5', 'TAN6', 'TAN7', 'TAN8']
+;        red =   [ red,      250,   255,    255,    255,    255,    245,    222,    210 ]
+;        green = [ green,    235,   239,    235,    228,    228,    222,    184,    180 ]
+;        blue =  [ blue,     215,   213,    205,    196,    181,    179,    135,    140 ]
+;        colors = [ colors, 'BLK1', 'BLK2', 'BLK3', 'BLK4', 'BLK5', 'BLK6', 'BLK7', 'BLK8']
+;        red =   [ red,      250,   230,    210,    190,    112,     110,    70,       0 ]
+;        green = [ green,    250,   230,    210,    190,    128,     110,    70,       0 ]
+;        blue =  [ blue,     250,   230,    210,    190,    128,     110,    70,       0 ]
+;        colors = [ colors, 'GRN1', 'GRN2', 'GRN3', 'GRN4', 'GRN5', 'GRN6', 'GRN7', 'GRN8']
+;        red =   [ red,      250,   223,    173,    109,     53,     35,      0,       0 ]
+;        green = [ green,    253,   242,    221,    193,    156,     132,    97,      69 ]
+;        blue =  [ blue,     202,   167,    142,    115,     83,      67,    52,      41 ]
+;        colors = [ colors, 'BLU1', 'BLU2', 'BLU3', 'BLU4', 'BLU5', 'BLU6', 'BLU7', 'BLU8']
+;        red =   [ red,      232,   202,    158,     99,     53,     33,      8,       8 ]
+;        green = [ green,    241,   222,    202,    168,    133,    113,     75,      48 ]
+;        blue =  [ blue,     250,   240,    225,    211,    191,    181,    147,     107 ]
+;        colors = [ colors, 'ORG1', 'ORG2', 'ORG3', 'ORG4', 'ORG5', 'ORG6', 'ORG7', 'ORG8']
+;        red =   [ red,      254,    253,    253,    250,    231,    217,    159,    127 ]
+;        green = [ green,    236,    212,    174,    134,     92,     72,     51,     39 ]
+;        blue =  [ blue,     217,    171,    107,     52,     12,      1,      3,      4 ]
+;        colors = [ colors, 'RED1', 'RED2', 'RED3', 'RED4', 'RED5', 'RED6', 'RED7', 'RED8']
+;        red =   [ red,      254,    252,    252,    248,    225,    203,    154,    103 ]
+;        green = [ green,    232,    194,    146,     97,     45,     24,     12,      0 ]
+;        blue =  [ blue,     222,    171,    114,     68,     38,     29,     19,     13 ]
+;        colors = [ colors, 'PUR1', 'PUR2', 'PUR3', 'PUR4', 'PUR5', 'PUR6', 'PUR7', 'PUR8']
+;        red =   [ red,      244,    222,    188,    152,    119,    106,     80,     63 ]
+;        green = [ green,    242,    221,    189,    148,    108,     82,     32,      0 ]
+;        blue =  [ blue,     248,    237,    220,    197,    177,    163,    139,    125 ]
+;        colors = [ colors, 'PBG1', 'PBG2', 'PBG3', 'PBG4', 'PBG5', 'PBG6', 'PBG7', 'PBG8']
+;        red =   [ red,      243,    213,    166,     94,     34,      3,      1,      1 ]
+;        green = [ green,    234,    212,    189,    164,    138,    129,    101,     70 ]
+;        blue =  [ blue,     244,    232,    219,    204,    171,    139,     82,     54 ]
+;        colors = [ colors, 'YGB1', 'YGB2', 'YGB3', 'YGB4', 'YGB5', 'YGB6', 'YGB7', 'YGB8']
+;        red =   [ red,      244,    206,    127,     58,     30,     33,     32,      8 ]
+;        green = [ green,    250,    236,    205,    175,    125,     95,     48,     29 ]
+;        blue =  [ blue,     193,    179,    186,    195,    182,    168,    137,     88 ]
+;        colors = [ colors, 'RYB1', 'RYB2', 'RYB3', 'RYB4', 'RYB5', 'RYB6', 'RYB7', 'RYB8']
+;        red =   [ red,       201,    245,    253,    251,    228,    193,    114,     59 ]
+;        green = [ green,      35,    121,    206,    253,    244,    228,    171,     85 ]
+;        blue =  [ blue,       38,    72,     127,    197,    239,    239,    207,    164 ]
+;        colors = [ colors, 'TG1', 'TG2', 'TG3', 'TG4', 'TG5', 'TG6', 'TG7', 'TG8']
+;        red =   [ red,      84,    163,   197,   220,   105,    51,    13,     0 ]
+;        green = [ green,    48,    103,   141,   188,   188,   149,   113,    81 ]
+;        blue =  [ blue,      5,     26,    60,   118,   177,   141,   105,    71 ]
+;      ENDIF ELSE BEGIN
+;        colors= ['White']
+;        red =   [ 255]
+;        green = [ 255]
+;        blue =  [ 255]
+;        colors= [ colors,      'Snow',     'Ivory','Light Yellow',   'Cornsilk',      'Beige',   'Seashell' ]
+;        red =   [ red,            255,          255,          255,          255,          245,          255 ]
+;        green = [ green,          250,          255,          255,          248,          245,          245 ]
+;        blue =  [ blue,           250,          240,          224,          220,          220,          238 ]
+;        colors= [ colors,     'Linen','Antique White',    'Papaya',     'Almond',     'Bisque',  'Moccasin' ]
+;        red =   [ red,            250,          250,          255,          255,          255,          255 ]
+;        green = [ green,          240,          235,          239,          235,          228,          228 ]
+;        blue =  [ blue,           230,          215,          213,          205,          196,          181 ]
+;        colors= [ colors,     'Wheat',  'Burlywood',        'Tan', 'Light Gray',   'Lavender','Medium Gray' ]
+;        red =   [ red,            245,          222,          210,          230,          230,          210 ]
+;        green = [ green,          222,          184,          180,          230,          230,          210 ]
+;        blue =  [ blue,           179,          135,          140,          230,          250,          210 ]
+;        colors= [ colors,      'Gray', 'Slate Gray',  'Dark Gray',   'Charcoal',      'Black',   'Honeydew', 'Light Cyan' ]
+;        red =   [ red,            190,          112,          110,           70,            0,          240,          224 ]
+;        green = [ green,          190,          128,          110,           70,            0,          255,          255 ]
+;        blue =  [ blue,           190,          144,          110,           70,            0,          255,          240 ]
+;        colors= [ colors,'Powder Blue',  'Sky Blue', 'Cornflower Blue', 'Cadet Blue', 'Steel Blue','Dodger Blue', 'Royal Blue',  'Blue' ]
+;        red =   [ red,            176,          135,         100,           95,            70,           30,           65,            0 ]
+;        green = [ green,          224,          206,         149,          158,           130,          144,          105,            0 ]
+;        blue =  [ blue,           230,          235,         237,          160,           180,          255,          225,          255 ]
+;        colors= [ colors,      'Navy', 'Pale Green','Aquamarine','Spring Green',       'Cyan' ]
+;        red =   [ red,              0,          152,          127,            0,            0 ]
+;        green = [ green,            0,          251,          255,          250,          255 ]
+;        blue =  [ blue,           128,          152,          212,          154,          255 ]
+;        colors= [ colors, 'Turquoise', 'Light Sea Green', 'Sea Green','Forest Green',  'Teal','Green Yellow','Chartreuse', 'Lawn Green' ]
+;        red =   [ red,             64,       143,             46,           34,             0,      173,           127,         124 ]
+;        green = [ green,          224,       188,            139,          139,           128,      255,           255,         252 ]
+;        blue =  [ blue,           208,       143,             87,           34,           128,       47,             0,           0 ]
+;        colors= [ colors,     'Green', 'Lime Green', 'Olive Drab',     'Olive','Dark Green','Pale Goldenrod']
+;        red =   [ red,              0,           50,          107,           85,            0,          238 ]
+;        green = [ green,          255,          205,          142,          107,          100,          232 ]
+;        blue =  [ blue,             0,           50,           35,           47,            0,          170 ]
+;        colors =[ colors,     'Khaki', 'Dark Khaki',     'Yellow',       'Gold','Goldenrod','Dark Goldenrod']
+;        red =   [ red,            240,          189,          255,          255,          218,          184 ]
+;        green = [ green,          230,          183,          255,          215,          165,          134 ]
+;        blue =  [ blue,           140,          107,            0,            0,           32,           11 ]
+;        colors= [ colors,'Saddle Brown',       'Rose',       'Pink', 'Rosy Brown','Sandy Brown',      'Peru']
+;        red =   [ red,            139,          255,          255,          188,          244,          205 ]
+;        green = [ green,           69,          228,          192,          143,          164,          133 ]
+;        blue =  [ blue,            19,          225,          203,          143,           96,           63 ]
+;        colors= [ colors,'Indian Red',  'Chocolate',     'Sienna','Dark Salmon',    'Salmon','Light Salmon' ]
+;        red =   [ red,            205,          210,          160,          233,          250,          255 ]
+;        green = [ green,           92,          105,           82,          150,          128,          160 ]
+;        blue =  [ blue,            92,           30,           45,          122,          114,          122 ]
+;        colors= [ colors,    'Orange',      'Coral', 'Light Coral',  'Firebrick',   'Dark Red',    'Brown',  'Hot Pink' ]
+;        red =   [ red,            255,          255,          240,          178,       139,          165,        255 ]
+;        green = [ green,          165,          127,          128,           34,         0,           42,        105 ]
+;        blue =  [ blue,             0,           80,          128,           34,         0,           42,        180 ]
+;        colors= [ colors, 'Deep Pink',    'Magenta',     'Tomato', 'Orange Red',        'Red', 'Crimson', 'Violet Red' ]
+;        red =   [ red,            255,          255,          255,          255,          255,      220,        208 ]
+;        green = [ green,           20,            0,           99,           69,            0,       20,         32 ]
+;        blue =  [ blue,           147,          255,           71,            0,            0,       60,        144 ]
+;        colors= [ colors,    'Maroon',    'Thistle',       'Plum',     'Violet',    'Orchid','Medium Orchid']
+;        red =   [ red,            176,          216,          221,          238,          218,          186 ]
+;        green = [ green,           48,          191,          160,          130,          112,           85 ]
+;        blue =  [ blue,            96,          216,          221,          238,          214,          211 ]
+;        colors= [ colors,'Dark Orchid','Blue Violet',     'Purple']
+;        red =   [ red,            153,          138,          160]
+;        green = [ green,           50,           43,           32]
+;        blue =  [ blue,           204,          226,          240]
+;        colors= [ colors, 'Slate Blue',  'Dark Slate Blue']
+;        red =   [ red,           106,            72]
+;        green = [ green,            90,            61]
+;        blue =  [ blue,           205,           139]
+;        colors = [ colors, 'WT1', 'WT2', 'WT3', 'WT4', 'WT5', 'WT6', 'WT7', 'WT8']
+;        red =   [ red,     255,   255,   255,   255,   255,   245,   255,   250 ]
+;        green = [ green,   255,   250,   255,   255,   248,   245,   245,   240 ]
+;        blue =  [ blue,    255,   250,   240,   224,   220,   220,   238,   230 ]
+;        colors = [ colors, 'TAN1', 'TAN2', 'TAN3', 'TAN4', 'TAN5', 'TAN6', 'TAN7', 'TAN8']
+;        red =   [ red,      250,   255,    255,    255,    255,    245,    222,    210 ]
+;        green = [ green,    235,   239,    235,    228,    228,    222,    184,    180 ]
+;        blue =  [ blue,     215,   213,    205,    196,    181,    179,    135,    140 ]
+;        colors = [ colors, 'BLK1', 'BLK2', 'BLK3', 'BLK4', 'BLK5', 'BLK6', 'BLK7', 'BLK8']
+;        red =   [ red,      250,   230,    210,    190,    112,     110,    70,       0 ]
+;        green = [ green,    250,   230,    210,    190,    128,     110,    70,       0 ]
+;        blue =  [ blue,     250,   230,    210,    190,    128,     110,    70,       0 ]
+;        colors = [ colors, 'GRN1', 'GRN2', 'GRN3', 'GRN4', 'GRN5', 'GRN6', 'GRN7', 'GRN8']
+;        red =   [ red,      250,   223,    173,    109,     53,     35,      0,       0 ]
+;        green = [ green,    253,   242,    221,    193,    156,     132,    97,      69 ]
+;        blue =  [ blue,     202,   167,    142,    115,     83,      67,    52,      41 ]
+;        colors = [ colors, 'BLU1', 'BLU2', 'BLU3', 'BLU4', 'BLU5', 'BLU6', 'BLU7', 'BLU8']
+;        red =   [ red,      232,   202,    158,     99,     53,     33,      8,       8 ]
+;        green = [ green,    241,   222,    202,    168,    133,    113,     75,      48 ]
+;        blue =  [ blue,     250,   240,    225,    211,    191,    181,    147,     107 ]
+;        colors = [ colors, 'ORG1', 'ORG2', 'ORG3', 'ORG4', 'ORG5', 'ORG6', 'ORG7', 'ORG8']
+;        red =   [ red,      254,    253,    253,    250,    231,    217,    159,    127 ]
+;        green = [ green,    236,    212,    174,    134,     92,     72,     51,     39 ]
+;        blue =  [ blue,     217,    171,    107,     52,     12,      1,      3,      4 ]
+;        colors = [ colors, 'RED1', 'RED2', 'RED3', 'RED4', 'RED5', 'RED6', 'RED7', 'RED8']
+;        red =   [ red,      254,    252,    252,    248,    225,    203,    154,    103 ]
+;        green = [ green,    232,    194,    146,     97,     45,     24,     12,      0 ]
+;        blue =  [ blue,     222,    171,    114,     68,     38,     29,     19,     13 ]
+;        colors = [ colors, 'PUR1', 'PUR2', 'PUR3', 'PUR4', 'PUR5', 'PUR6', 'PUR7', 'PUR8']
+;        red =   [ red,      244,    222,    188,    152,    119,    106,     80,     63 ]
+;        green = [ green,    242,    221,    189,    148,    108,     82,     32,      0 ]
+;        blue =  [ blue,     248,    237,    220,    197,    177,    163,    139,    125 ]
+;        colors = [ colors, 'PBG1', 'PBG2', 'PBG3', 'PBG4', 'PBG5', 'PBG6', 'PBG7', 'PBG8']
+;        red =   [ red,      243,    213,    166,     94,     34,      3,      1,      1 ]
+;        green = [ green,    234,    212,    189,    164,    138,    129,    101,     70 ]
+;        blue =  [ blue,     244,    232,    219,    204,    171,    139,     82,     54 ]
+;        colors = [ colors, 'YGB1', 'YGB2', 'YGB3', 'YGB4', 'YGB5', 'YGB6', 'YGB7', 'YGB8']
+;        red =   [ red,      244,    206,    127,     58,     30,     33,     32,      8 ]
+;        green = [ green,    250,    236,    205,    175,    125,     95,     48,     29 ]
+;        blue =  [ blue,     193,    179,    186,    195,    182,    168,    137,     88 ]
+;        colors = [ colors, 'RYB1', 'RYB2', 'RYB3', 'RYB4', 'RYB5', 'RYB6', 'RYB7', 'RYB8']
+;        red =   [ red,       201,    245,    253,    251,    228,    193,    114,     59 ]
+;        green = [ green,      35,    121,    206,    253,    244,    228,    171,     85 ]
+;        blue =  [ blue,       38,    72,     127,    197,    239,    239,    207,    164 ]
+;        colors = [ colors, 'TG1', 'TG2', 'TG3', 'TG4', 'TG5', 'TG6', 'TG7', 'TG8']
+;        red =   [ red,      84,    163,   197,   220,   105,    51,    13,     0 ]
+;        green = [ green,    48,    103,   141,   188,   188,   149,   113,    81 ]
+;        blue =  [ blue,      5,     26,    60,   118,   177,   141,   105,    71 ]
+;      ENDELSE
+;    ENDIF ELSE BEGIN
+;    
+;      IF N_Elements(ncols) EQ 0 THEN ncols = 8
+;      colors  = ['Black', 'Magenta', 'Cyan', 'Yellow', 'Green']
+;      red =     [  0,        255,       0,      255,       0  ]
+;      green =   [  0,          0,     255,      255,     255  ]
+;      blue =    [  0,        255,     255,        0,       0  ]
+;      colors  = [colors,  'Red', 'Blue', 'Navy', 'Pink', 'Aqua']
+;      red =     [red,     255,     0,      0,    255,    112]
+;      green =   [green,     0,     0,      0,    127,    219]
+;      blue =    [blue,      0,   255,    115,    127,    147]
+;      colors  = [colors,  'Orchid', 'Sky', 'Beige', 'Charcoal', 'Gray','White']
+;      red =     [red,     219,      0,     245,       80,      135,    255  ]
+;      green =   [green,   112,    163,     245,       80,      135,    255  ]
+;      blue =    [blue,    219,    255,     220,       80,      135,    255  ]
+;      
+;    ENDELSE
+;  ENDELSE
+;  
+;  NCOLORS = N_Elements(colors)
+;  
+;  ;; Add system color names for IDL version 5.6 and higher. We don't want to
+;  ;; do this we cannot establish a display connection (e.g., we are running
+;  ;; in a cron job). Check for system variable !FSC_Display_Connection. If not
+;  ;; defined, check the connection.
+;  ;DefSysV, '!FSC_Display_Connection', EXISTS=sysvarExists
+;  ;IF sysvarExists $
+;  ;     THEN haveConnection = !FSC_Display_Connection $
+;  ;     ELSE haveConnection = CanConnect()
+;  ;
+;  ;IF (Float(!Version.Release) GE 5.6) && Keyword_Set(haveConnection) THEN BEGIN
+;  ;
+;  ;   tlb = Widget_Base()
+;  ;   sc = Widget_Info(tlb, /System_Colors)
+;  ;   Widget_Control, tlb, /Destroy
+;  ;   frame = sc.window_frame
+;  ;   text = sc.window_text
+;  ;   active = sc.active_border
+;  ;   shadow = sc.shadow_3d
+;  ;   highlight = sc.light_3d
+;  ;   edge = sc.light_edge_3d
+;  ;   selected = sc.highlight
+;  ;   face = sc.face_3d
+;  ;   colors  = [colors,  'Frame',  'Text',  'Active',  'Shadow']
+;  ;   red =     [red,     frame[0], text[0], active[0], shadow[0]]
+;  ;   green =   [green,   frame[1], text[1], active[1], shadow[1]]
+;  ;   blue =    [blue,    frame[2], text[2], active[2], shadow[2]]
+;  ;   colors  = [colors,  'Highlight',  'Edge',  'Selected',  'Face']
+;  ;   red =     [red,     highlight[0], edge[0], selected[0], face[0]]
+;  ;   green =   [green,   highlight[1], edge[1], selected[1], face[1]]
+;  ;   blue =    [blue,    highlight[2], edge[2], selected[2], face[2]]
+;  ;
+;  ;ENDIF
+;  
+;  
+;  ; Save decomposed state and restore it, if possible.
+;  
+;  IF Float(!Version.Release) GE 5.2 THEN BEGIN
+;    device, Get_Decomposed=decomposedState
+;  ENDIF ELSE decomposedState = 0
+;  
+;  ; Different color decomposition based on visual depth.
+;  
+;  IF theDepth GT 8 THEN BEGIN
+;    device, Decomposed=1
+;    colors24 = PickColorName_RGB_to_24Bit([[red], [green], [blue]])
+;  ENDIF ELSE BEGIN
+;    IF NCOLORS GT !D.Table_Size THEN $
+;      Message, /NoName, 'Number of colors exceeds color table size. Returning...'
+;    device, Decomposed=0
+;    colors24 = -1
+;  ENDELSE
+;  
+;  ; Check argument values. All arguments are optional.
+;  
+;  IF N_Elements(theName) EQ 0 THEN IF Keyword_Set(brewer) THEN theName = 'WT1' ELSE theName = 'White'
+;  IF Size(theName, /TName) NE 'STRING' THEN $
+;    Message, 'Color name argument must be STRING type.', /NoName
+;  theName = StrCompress(theName, /Remove_All)
+;  
+;  IF N_Elements(bottom) EQ 0 THEN bottom = 0 > (!D.Table_Size - (NCOLORS + 2))
+;  mixcolorIndex = bottom
+;  IF N_Elements(title) EQ 0 THEN title='Select a Color'
+;  
+;  ; We will work with all uppercase names.
+;  
+;  colorNames = StrUpCase(StrCompress(colors, /Remove_All))
+;  
+;  ; Get the current color table vectors before we change anything.
+;  ; This will allow us to restore the color table when we depart.
+;  
+;  TVLCT, r_old, g_old, b_old, /Get
+;  
+;  ; Load the colors if needed. The "bottom" index is reserved as the "mixing color" index.
+;  
+;  IF theDepth LE 8 THEN TVLCT, red, green, blue, bottom+1
+;  
+;  ; Can you find the color name in the colors array?
+;  
+;  nameIndex = WHERE(colorNames EQ StrUpCase(theName), count)
+;  IF count EQ 0 THEN BEGIN
+;    Message, 'Unable to resolve color name: ' + StrUpCase(theName) + '. Replacing with WHITE.', /Informational
+;    theName = 'WT1'
+;    nameIndex = WHERE(colorNames EQ StrUpCase(theName), count)
+;    IF count EQ 0 THEN Message, /NoName, 'Unable to resolve color name: ' + StrUpCase(theName) + '. Returning...'
+;  ENDIF
+;  nameIndex = nameIndex[0]
+;  
+;  ; Who knows how the user spelled the color? Make it look nice.
+;  
+;  theName = colors[nameIndex]
+;  
+;  ; Load the mixing color in the mixcolorIndex.
+;  
+;  IF theDepth LE 8 THEN TVLCT, red[nameIndex], green[nameIndex], blue[nameIndex], mixcolorIndex
+;  
+;  ; Create the widgets. TLB is MODAL or BLOCKING, depending upon presence of
+;  ; Group_Leader variable.
+;  
+;  IF N_Elements(group_leader) EQ 0 THEN BEGIN
+;    tlb = Widget_Base(Title=title, Column=1, /Base_Align_Center)
+;  ENDIF ELSE BEGIN
+;    tlb = Widget_Base(Title=title, Column=1, /Base_Align_Center, /Modal, $
+;      Group_Leader=group_leader)
+;  ENDELSE
+;  
+;  ; Draw widgets for the possible colors. Store the color name in the UVALUE.
+;  
+;  colorbaseID = Widget_Base(tlb, Column=ncols, Event_Pro='PickColorName_Select_Color')
+;  drawID = LonArr(NCOLORS)
+;  FOR j=0,NCOLORS-1 DO BEGIN
+;    drawID[j] = Widget_Draw(colorbaseID, XSize=20, YSize=15, $
+;      UValue=colors[j], Button_Events=1)
+;  ENDFOR
+;  
+;  ; System colors.
+;  
+;  IF N_Elements(colors) GT NCOLORS THEN BEGIN
+;    systemColorbase = Widget_Base(tlb, Column=8, Event_Pro='PickColorName_Select_Color')
+;    drawID = [Temporary(drawID), LonArr(8)]
+;    FOR j=NCOLORS,N_Elements(colors)-1 DO BEGIN
+;      drawID[j] = Widget_Draw(systemColorbase, XSize=20, YSize=15, $
+;        UValue=colors[j], Button_Events=1)
+;    ENDFOR
+;  ENDIF
+;  
+;  ; Set up the current or mixing color draw widget.
+;  
+;  currentID = Widget_Base(tlb, Column=1, Base_Align_Center=1)
+;  
+;  ; Special concerns with LABEL widgets to work around a widget update bug in
+;  ; X11 libraries.
+;  IF StrUpCase(!Version.OS_Family) EQ 'WINDOWS' $
+;    THEN labelID = Widget_Label(currentID, Value=theName, /Dynamic_Resize) $
+;  ELSE labelID = Widget_Label(currentID, Value=theName, /Dynamic_Resize, SCR_XSIZE=150)
+;  mixColorID = Widget_Draw(currentID, XSize=60, YSize=15)
+;  
+;  ; CANCEL and ACCEPT buttons.
+;  
+;  buttonbase = Widget_Base(tlb, ROW=1, Align_Center=1, Event_Pro='PickColorName_Buttons')
+;  cancelID = Widget_Button(buttonbase, VALUE='Cancel')
+;  acceptID = Widget_Button(buttonbase, VALUE='Accept')
+;  
+;  ; Center the TLB.
+;  
+;  PickColorName_CenterTLB, tlb
+;  Widget_Control, tlb, /Realize
+;  
+;  ; Load the drawing colors.
+;  
+;  wids = IntArr(NCOLORS)
+;  IF theDepth GT 8 THEN BEGIN
+;    FOR j=0,NCOLORS-1 DO BEGIN
+;      Widget_Control, drawID[j], Get_Value=thisWID
+;      wids[j] = thisWID
+;      WSet, thisWID
+;      PolyFill, [1,1,19,19,1], [0,13,13,0,0], /device, Color=colors24[j]
+;    ENDFOR
+;    IF (N_Elements(colors) GT NCOLORS) THEN BEGIN
+;      wids = [Temporary(wids), Intarr(8)]
+;      FOR j=NCOLORS, N_Elements(colors)-1 DO BEGIN
+;        Widget_Control, drawID[j], Get_Value=thisWID
+;        wids[j] = thisWID
+;        WSet, thisWID
+;        PolyFill, [1,1,19,19,1], [0,13,13,0,0], /device, Color=colors24[j]
+;      ENDFOR
+;    ENDIF
+;  ENDIF ELSE BEGIN
+;    FOR j=1,NCOLORS DO BEGIN
+;      Widget_Control, drawID[j-1], Get_Value=thisWID
+;      wids[j-1] = thisWID
+;      WSet, thisWID
+;      PolyFill, [1,1,19,19,1], [0,13,13,0,0], /device, Color=bottom + black
+;    ENDFOR
+;    IF (N_Elements(colors) GT NCOLORS) THEN BEGIN
+;      wids = [Temporary(wids), Intarr(8)]
+;      FOR j=NCOLORS+1, N_Elements(colors) DO BEGIN
+;        Widget_Control, drawID[j-1], Get_Value=thisWID
+;        wids[j-1] = thisWID
+;        WSet, thisWID
+;        PolyFill, [1,1,19,19,1], [0,13,13,0,0], /device, Color=bottom + j
+;      ENDFOR
+;    ENDIF
+;  ENDELSE
+;  
+;  ; Load the current or mixing color.
+;  
+;  Widget_Control, mixColorID, Get_Value=mixWID
+;  WSet, mixWID
+;  IF theDepth GT 8 THEN BEGIN
+;    Erase, Color=colors24[nameIndex]
+;    eraseColor = Keyword_Set(brewer) ? 'BLK8' : 'BLACK
+;    black = Where(colornames EQ eraseColor)
+;    black = black[0]
+;    PlotS, [0,0,59,59,0], [0,14,14,0,0], /device, Color=colors24[black]
+;  ENDIF ELSE BEGIN
+;    eraseColor = Keyword_Set(brewer) ? 'BLK8' : 'BLACK
+;    black = Where(colornames EQ eraseColor)
+;    Erase, Color=mixcolorIndex
+;    PlotS, [0,0,59,59,0], [0,14,14,0,0], /device, Color=black
+;  ENDELSE
+;  
+;  ; Pointer to hold the color form information.
+;  
+;  ptr = Ptr_New({cancel:1.0, r:0B, g:0B, b:0B, name:theName})
+;  
+;  ; Info structure for program information.
+;  
+;  info = { ptr:ptr, $                    ; The pointer to the form information.
+;    mixColorIndex:mixColorIndex, $
+;    colorNames:colorNames, $
+;    nameIndex:nameIndex, $
+;    red:red, $
+;    green:green, $
+;    blue:blue, $
+;    black:black, $
+;    colors24:colors24, $
+;    mixWid:mixWid, $
+;    theDepth:theDepth, $
+;    labelID:labelID, $
+;    theName:theName $
+;    }
+;    
+;  ; Store the info structure in the UVALUE of the TLB.
+;    
+;  Widget_Control, tlb, Set_UValue=info, /No_Copy
+;  
+;  ; Set up program event loop. This will be blocking widget
+;  ; if called from the IDL command line. Program operation
+;  ; will stop here until widget interface is destroyed.
+;  
+;  XManager, 'pickcolor', tlb
+;  
+;  ; Retrieve the color information from the pointer and free
+;  ; the pointer.
+;  
+;  colorInfo = *ptr
+;  Ptr_Free, ptr
+;  
+;  ; Set the Cancel flag.
+;  
+;  cancelled = colorInfo.cancel
+;  
+;  ; Restore color table, taking care to load the color index if required.
+;  
+;  IF N_Elements(index) NE 0 AND (NOT cancelled) THEN BEGIN
+;    r_old[index] = colorInfo.r
+;    g_old[index] = colorInfo.g
+;    b_old[index] = colorInfo.b
+;  ENDIF
+;  TVLCT, r_old, g_old, b_old
+;  
+;  ; Restore decomposed state if possible.
+;  
+;  IF Float(!Version.Release) GE 5.2 THEN device, Decomposed=decomposedState
+;  
+;  ; Return the color name.
+;  
+;  RETURN, colorInfo.name
+;END
 ;+
 ; NAME:
 ;    ERROR_MESSAGE
@@ -2929,141 +2929,141 @@ END
 ;  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS           ;
 ;  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                            ;
 ;******************************************************************************************;
-FUNCTION ERROR_MESSAGE, theMessage, Error=error, Informational=information, $
-    Traceback=traceback, NoName=noname, Title=title, Quiet=quiet, _Extra=extra
-    
-  On_Error, 2
-  
-  ; Check for presence and type of message.
-  
-  IF N_Elements(theMessage) EQ 0 THEN theMessage = !Error_State.Msg
-  s = Size(theMessage)
-  messageType = s[s[0]+1]
-  IF messageType NE 7 THEN BEGIN
-    Message, "The message parameter must be a string.", _Extra=extra
-  ENDIF
-  IF N_Elements(traceback) EQ 0 THEN traceback = 1
-  
-  ; Get the call stack and the calling routine's name.
-  Help, Calls=callStack
-  callingRoutine = (StrSplit(StrCompress(callStack[1])," ", /Extract))[0]
-  
-  ; Are widgets supported?
-  IF !D.Name EQ 'PS' OR !D.Name EQ 'Z' THEN BEGIN
-    widgetsSupported = 1
-  ENDIF ELSE BEGIN
-    widgetsSupported = ((!D.Flags AND 65536L) NE 0)
-  ENDELSE
-  
-  ; Is the QUIET keyword set? Then no dialogs.
-  IF Keyword_Set(quiet) THEN widgetsSupported = 0
-  
-  ; It is not enough to know if widgets are supported. In CRON jobs, widgets are
-  ; supported, but there is no X connection and pop-up dialogs are not allowed.
-  ; Here is a quick test to see if we can connect to a windowing system. If not,
-  ; then we are going to assume widgets are not supported.
-  Catch, theError
-  IF theError NE 0 THEN BEGIN
-    Catch, /CANCEL
-    widgetsSupported = 0
-    GOTO, testWidgetSupport
-  ENDIF
-  theWindow = !D.Window
-  IF (!D.Flags AND 256) NE 0 THEN Window, /FREE, XSIZE=5, YSIZE=5, /PIXMAP
-  Catch, /CANCEL
-  
-  testWidgetSupport: ; Come here if you choke on creating a window.
-  IF !D.Window NE theWindow THEN BEGIN
-    WDelete, !D.Window
-    IF theWindow GE 0 THEN WSet, theWindow
-  ENDIF
-  
-  IF widgetsSupported THEN BEGIN
-  
-    ; If this is an error produced with the MESSAGE command, it is a trapped
-    ; error and will have the name "IDL_M_USER_ERR".
-    IF !ERROR_STATE.NAME EQ "IDL_M_USER_ERR" THEN BEGIN
-    
-      IF N_Elements(title) EQ 0 THEN title = 'Trapped Error'
-      
-      ; If the message has the name of the calling routine in it,
-      ; it should be stripped out. Can you find a colon in the string?
-      
-      ; Is the calling routine an object method? If so, special processing
-      ; is required. Object methods will have two colons together.
-      doublecolon = StrPos(theMessage, "::")
-      IF doublecolon NE -1 THEN BEGIN
-      
-        prefix = StrMid(theMessage, 0, doublecolon+2)
-        submessage = StrMid(theMessage, doublecolon+2)
-        colon = StrPos(submessage, ":")
-        IF colon NE -1 THEN BEGIN
-        
-          ; Extract the text up to the colon. Is this the same as
-          ; the callingRoutine? If so, strip it.
-          IF StrMid(theMessage, 0, colon+StrLen(prefix)) EQ callingRoutine THEN $
-            theMessage = StrMid(theMessage, colon+1+StrLen(prefix))
-        ENDIF
-      ENDIF ELSE BEGIN
-      
-        colon = StrPos(theMessage, ":")
-        IF colon NE -1 THEN BEGIN
-        
-          ; Extract the text up to the colon. Is this the same as
-          ; the callingRoutine? If so, strip it.
-          IF StrMid(theMessage, 0, colon) EQ callingRoutine THEN $
-            theMessage = StrMid(theMessage, colon+1)
-        ENDIF
-        
-      ENDELSE
-      
-      
-      ; Add the calling routine's name, unless NONAME is set.
-      IF Keyword_Set(noname) THEN BEGIN
-        answer = Dialog_Message(theMessage, Title=title, _Extra=extra, $
-          Error=error, Information=information)
-      ENDIF ELSE BEGIN
-        answer = Dialog_Message(StrUpCase(callingRoutine) + ": " + $
-          theMessage, Title=title, _Extra=extra, $
-          Error=error, Information=information)
-      ENDELSE
-      
-    ENDIF ELSE BEGIN
-    
-      ; Otherwise, this is an IDL system error.
-      IF N_Elements(title) EQ 0 THEN title = 'System Error'
-      
-      IF StrUpCase(callingRoutine) EQ "$MAIN$" THEN $
-        answer = Dialog_Message(theMessage, _Extra=extra, Title=title, $
-        Error=error, Information=information) ELSE $
-        IF Keyword_Set(noname) THEN BEGIN
-        answer = Dialog_Message(theMessage, _Extra=extra, Title=title, $
-          Error=error, Information=information)
-      ENDIF ELSE BEGIN
-        answer = Dialog_Message(StrUpCase(callingRoutine) + "--> " + $
-          theMessage, _Extra=extra, Title=title, $
-          Error=error, Information=information)
-      ENDELSE
-    ENDELSE
-  ENDIF ELSE BEGIN
-    Message, theMessage, /Continue, /NoPrint, /NoName, /NoPrefix, _Extra=extra
-    IF Keyword_Set(noname) THEN $
-      Print, theMessage ELSE $
-      Print, '%' + callingRoutine + ': ' + theMessage
-    answer = 'OK'
-  ENDELSE
-  
-  ; Provide traceback information if requested and this is NOT an informational message.
-  IF Keyword_Set(traceback) AND ~Keyword_Set(informational)THEN BEGIN
-    Help, /Last_Message, Output=traceback
-    Print,''
-    Print, 'Traceback Report from ' + StrUpCase(callingRoutine) + ':'
-    Print, ''
-    FOR j=0,N_Elements(traceback)-1 DO Print, "     " + traceback[j]
-  ENDIF
-  
-  RETURN, answer
-END ; ----------------------------------------------------------------------------
+;FUNCTION ERROR_MESSAGE, theMessage, Error=error, Informational=information, $
+;    Traceback=traceback, NoName=noname, Title=title, Quiet=quiet, _Extra=extra
+;    
+;  On_Error, 2
+;  
+;  ; Check for presence and type of message.
+;  
+;  IF N_Elements(theMessage) EQ 0 THEN theMessage = !Error_State.Msg
+;  s = Size(theMessage)
+;  messageType = s[s[0]+1]
+;  IF messageType NE 7 THEN BEGIN
+;    Message, "The message parameter must be a string.", _Extra=extra
+;  ENDIF
+;  IF N_Elements(traceback) EQ 0 THEN traceback = 1
+;  
+;  ; Get the call stack and the calling routine's name.
+;  Help, Calls=callStack
+;  callingRoutine = (StrSplit(StrCompress(callStack[1])," ", /Extract))[0]
+;  
+;  ; Are widgets supported?
+;  IF !D.Name EQ 'PS' OR !D.Name EQ 'Z' THEN BEGIN
+;    widgetsSupported = 1
+;  ENDIF ELSE BEGIN
+;    widgetsSupported = ((!D.Flags AND 65536L) NE 0)
+;  ENDELSE
+;  
+;  ; Is the QUIET keyword set? Then no dialogs.
+;  IF Keyword_Set(quiet) THEN widgetsSupported = 0
+;  
+;  ; It is not enough to know if widgets are supported. In CRON jobs, widgets are
+;  ; supported, but there is no X connection and pop-up dialogs are not allowed.
+;  ; Here is a quick test to see if we can connect to a windowing system. If not,
+;  ; then we are going to assume widgets are not supported.
+;  Catch, theError
+;  IF theError NE 0 THEN BEGIN
+;    Catch, /CANCEL
+;    widgetsSupported = 0
+;    GOTO, testWidgetSupport
+;  ENDIF
+;  theWindow = !D.Window
+;  IF (!D.Flags AND 256) NE 0 THEN Window, /FREE, XSIZE=5, YSIZE=5, /PIXMAP
+;  Catch, /CANCEL
+;  
+;  testWidgetSupport: ; Come here if you choke on creating a window.
+;  IF !D.Window NE theWindow THEN BEGIN
+;    WDelete, !D.Window
+;    IF theWindow GE 0 THEN WSet, theWindow
+;  ENDIF
+;  
+;  IF widgetsSupported THEN BEGIN
+;  
+;    ; If this is an error produced with the MESSAGE command, it is a trapped
+;    ; error and will have the name "IDL_M_USER_ERR".
+;    IF !ERROR_STATE.NAME EQ "IDL_M_USER_ERR" THEN BEGIN
+;    
+;      IF N_Elements(title) EQ 0 THEN title = 'Trapped Error'
+;      
+;      ; If the message has the name of the calling routine in it,
+;      ; it should be stripped out. Can you find a colon in the string?
+;      
+;      ; Is the calling routine an object method? If so, special processing
+;      ; is required. Object methods will have two colons together.
+;      doublecolon = StrPos(theMessage, "::")
+;      IF doublecolon NE -1 THEN BEGIN
+;      
+;        prefix = StrMid(theMessage, 0, doublecolon+2)
+;        submessage = StrMid(theMessage, doublecolon+2)
+;        colon = StrPos(submessage, ":")
+;        IF colon NE -1 THEN BEGIN
+;        
+;          ; Extract the text up to the colon. Is this the same as
+;          ; the callingRoutine? If so, strip it.
+;          IF StrMid(theMessage, 0, colon+StrLen(prefix)) EQ callingRoutine THEN $
+;            theMessage = StrMid(theMessage, colon+1+StrLen(prefix))
+;        ENDIF
+;      ENDIF ELSE BEGIN
+;      
+;        colon = StrPos(theMessage, ":")
+;        IF colon NE -1 THEN BEGIN
+;        
+;          ; Extract the text up to the colon. Is this the same as
+;          ; the callingRoutine? If so, strip it.
+;          IF StrMid(theMessage, 0, colon) EQ callingRoutine THEN $
+;            theMessage = StrMid(theMessage, colon+1)
+;        ENDIF
+;        
+;      ENDELSE
+;      
+;      
+;      ; Add the calling routine's name, unless NONAME is set.
+;      IF Keyword_Set(noname) THEN BEGIN
+;        answer = Dialog_Message(theMessage, Title=title, _Extra=extra, $
+;          Error=error, Information=information)
+;      ENDIF ELSE BEGIN
+;        answer = Dialog_Message(StrUpCase(callingRoutine) + ": " + $
+;          theMessage, Title=title, _Extra=extra, $
+;          Error=error, Information=information)
+;      ENDELSE
+;      
+;    ENDIF ELSE BEGIN
+;    
+;      ; Otherwise, this is an IDL system error.
+;      IF N_Elements(title) EQ 0 THEN title = 'System Error'
+;      
+;      IF StrUpCase(callingRoutine) EQ "$MAIN$" THEN $
+;        answer = Dialog_Message(theMessage, _Extra=extra, Title=title, $
+;        Error=error, Information=information) ELSE $
+;        IF Keyword_Set(noname) THEN BEGIN
+;        answer = Dialog_Message(theMessage, _Extra=extra, Title=title, $
+;          Error=error, Information=information)
+;      ENDIF ELSE BEGIN
+;        answer = Dialog_Message(StrUpCase(callingRoutine) + "--> " + $
+;          theMessage, _Extra=extra, Title=title, $
+;          Error=error, Information=information)
+;      ENDELSE
+;    ENDELSE
+;  ENDIF ELSE BEGIN
+;    Message, theMessage, /Continue, /NoPrint, /NoName, /NoPrefix, _Extra=extra
+;    IF Keyword_Set(noname) THEN $
+;      Print, theMessage ELSE $
+;      Print, '%' + callingRoutine + ': ' + theMessage
+;    answer = 'OK'
+;  ENDELSE
+;  
+;  ; Provide traceback information if requested and this is NOT an informational message.
+;  IF Keyword_Set(traceback) AND ~Keyword_Set(informational)THEN BEGIN
+;    Help, /Last_Message, Output=traceback
+;    Print,''
+;    Print, 'Traceback Report from ' + StrUpCase(callingRoutine) + ':'
+;    Print, ''
+;    FOR j=0,N_Elements(traceback)-1 DO Print, "     " + traceback[j]
+;  ENDIF
+;  
+;  RETURN, answer
+;END ; ----------------------------------------------------------------------------
 
 ;+
 ; NAME:
@@ -3207,141 +3207,141 @@ END ; --------------------------------------------------------------------------
 ;  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS           ;
 ;  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                            ;
 ;******************************************************************************************;
-FUNCTION ERROR_MESSAGE, theMessage, Error=error, Informational=information, $
-    Traceback=traceback, NoName=noname, Title=title, Quiet=quiet, _Extra=extra
-    
-  On_Error, 2
-  
-  ; Check for presence and type of message.
-  
-  IF N_Elements(theMessage) EQ 0 THEN theMessage = !Error_State.Msg
-  s = Size(theMessage)
-  messageType = s[s[0]+1]
-  IF messageType NE 7 THEN BEGIN
-    Message, "The message parameter must be a string.", _Extra=extra
-  ENDIF
-  IF N_Elements(traceback) EQ 0 THEN traceback = 1
-  
-  ; Get the call stack and the calling routine's name.
-  Help, Calls=callStack
-  callingRoutine = (StrSplit(StrCompress(callStack[1])," ", /Extract))[0]
-  
-  ; Are widgets supported?
-  IF !D.Name EQ 'PS' OR !D.Name EQ 'Z' THEN BEGIN
-    widgetsSupported = 1
-  ENDIF ELSE BEGIN
-    widgetsSupported = ((!D.Flags AND 65536L) NE 0)
-  ENDELSE
-  
-  ; Is the QUIET keyword set? Then no dialogs.
-  IF Keyword_Set(quiet) THEN widgetsSupported = 0
-  
-  ; It is not enough to know if widgets are supported. In CRON jobs, widgets are
-  ; supported, but there is no X connection and pop-up dialogs are not allowed.
-  ; Here is a quick test to see if we can connect to a windowing system. If not,
-  ; then we are going to assume widgets are not supported.
-  Catch, theError
-  IF theError NE 0 THEN BEGIN
-    Catch, /CANCEL
-    widgetsSupported = 0
-    GOTO, testWidgetSupport
-  ENDIF
-  theWindow = !D.Window
-  IF (!D.Flags AND 256) NE 0 THEN Window, /FREE, XSIZE=5, YSIZE=5, /PIXMAP
-  Catch, /CANCEL
-  
-  testWidgetSupport: ; Come here if you choke on creating a window.
-  IF !D.Window NE theWindow THEN BEGIN
-    WDelete, !D.Window
-    IF theWindow GE 0 THEN WSet, theWindow
-  ENDIF
-  
-  IF widgetsSupported THEN BEGIN
-  
-    ; If this is an error produced with the MESSAGE command, it is a trapped
-    ; error and will have the name "IDL_M_USER_ERR".
-    IF !ERROR_STATE.NAME EQ "IDL_M_USER_ERR" THEN BEGIN
-    
-      IF N_Elements(title) EQ 0 THEN title = 'Trapped Error'
-      
-      ; If the message has the name of the calling routine in it,
-      ; it should be stripped out. Can you find a colon in the string?
-      
-      ; Is the calling routine an object method? If so, special processing
-      ; is required. Object methods will have two colons together.
-      doublecolon = StrPos(theMessage, "::")
-      IF doublecolon NE -1 THEN BEGIN
-      
-        prefix = StrMid(theMessage, 0, doublecolon+2)
-        submessage = StrMid(theMessage, doublecolon+2)
-        colon = StrPos(submessage, ":")
-        IF colon NE -1 THEN BEGIN
-        
-          ; Extract the text up to the colon. Is this the same as
-          ; the callingRoutine? If so, strip it.
-          IF StrMid(theMessage, 0, colon+StrLen(prefix)) EQ callingRoutine THEN $
-            theMessage = StrMid(theMessage, colon+1+StrLen(prefix))
-        ENDIF
-      ENDIF ELSE BEGIN
-      
-        colon = StrPos(theMessage, ":")
-        IF colon NE -1 THEN BEGIN
-        
-          ; Extract the text up to the colon. Is this the same as
-          ; the callingRoutine? If so, strip it.
-          IF StrMid(theMessage, 0, colon) EQ callingRoutine THEN $
-            theMessage = StrMid(theMessage, colon+1)
-        ENDIF
-        
-      ENDELSE
-      
-      
-      ; Add the calling routine's name, unless NONAME is set.
-      IF Keyword_Set(noname) THEN BEGIN
-        answer = Dialog_Message(theMessage, Title=title, _Extra=extra, $
-          Error=error, Information=information)
-      ENDIF ELSE BEGIN
-        answer = Dialog_Message(StrUpCase(callingRoutine) + ": " + $
-          theMessage, Title=title, _Extra=extra, $
-          Error=error, Information=information)
-      ENDELSE
-      
-    ENDIF ELSE BEGIN
-    
-      ; Otherwise, this is an IDL system error.
-      IF N_Elements(title) EQ 0 THEN title = 'System Error'
-      
-      IF StrUpCase(callingRoutine) EQ "$MAIN$" THEN $
-        answer = Dialog_Message(theMessage, _Extra=extra, Title=title, $
-        Error=error, Information=information) ELSE $
-        IF Keyword_Set(noname) THEN BEGIN
-        answer = Dialog_Message(theMessage, _Extra=extra, Title=title, $
-          Error=error, Information=information)
-      ENDIF ELSE BEGIN
-        answer = Dialog_Message(StrUpCase(callingRoutine) + "--> " + $
-          theMessage, _Extra=extra, Title=title, $
-          Error=error, Information=information)
-      ENDELSE
-    ENDELSE
-  ENDIF ELSE BEGIN
-    Message, theMessage, /Continue, /NoPrint, /NoName, /NoPrefix, _Extra=extra
-    IF Keyword_Set(noname) THEN $
-      Print, theMessage ELSE $
-      Print, '%' + callingRoutine + ': ' + theMessage
-    answer = 'OK'
-  ENDELSE
-  
-  ; Provide traceback information if requested and this is NOT an informational message.
-  IF Keyword_Set(traceback) AND ~Keyword_Set(informational)THEN BEGIN
-    Help, /Last_Message, Output=traceback
-    Print,''
-    Print, 'Traceback Report from ' + StrUpCase(callingRoutine) + ':'
-    Print, ''
-    FOR j=0,N_Elements(traceback)-1 DO Print, "     " + traceback[j]
-  ENDIF
-  
-  RETURN, answer
-END ; ----------------------------------------------------------------------------
+;FUNCTION ERROR_MESSAGE, theMessage, Error=error, Informational=information, $
+;    Traceback=traceback, NoName=noname, Title=title, Quiet=quiet, _Extra=extra
+;    
+;  On_Error, 2
+;  
+;  ; Check for presence and type of message.
+;  
+;  IF N_Elements(theMessage) EQ 0 THEN theMessage = !Error_State.Msg
+;  s = Size(theMessage)
+;  messageType = s[s[0]+1]
+;  IF messageType NE 7 THEN BEGIN
+;    Message, "The message parameter must be a string.", _Extra=extra
+;  ENDIF
+;  IF N_Elements(traceback) EQ 0 THEN traceback = 1
+;  
+;  ; Get the call stack and the calling routine's name.
+;  Help, Calls=callStack
+;  callingRoutine = (StrSplit(StrCompress(callStack[1])," ", /Extract))[0]
+;  
+;  ; Are widgets supported?
+;  IF !D.Name EQ 'PS' OR !D.Name EQ 'Z' THEN BEGIN
+;    widgetsSupported = 1
+;  ENDIF ELSE BEGIN
+;    widgetsSupported = ((!D.Flags AND 65536L) NE 0)
+;  ENDELSE
+;  
+;  ; Is the QUIET keyword set? Then no dialogs.
+;  IF Keyword_Set(quiet) THEN widgetsSupported = 0
+;  
+;  ; It is not enough to know if widgets are supported. In CRON jobs, widgets are
+;  ; supported, but there is no X connection and pop-up dialogs are not allowed.
+;  ; Here is a quick test to see if we can connect to a windowing system. If not,
+;  ; then we are going to assume widgets are not supported.
+;  Catch, theError
+;  IF theError NE 0 THEN BEGIN
+;    Catch, /CANCEL
+;    widgetsSupported = 0
+;    GOTO, testWidgetSupport
+;  ENDIF
+;  theWindow = !D.Window
+;  IF (!D.Flags AND 256) NE 0 THEN Window, /FREE, XSIZE=5, YSIZE=5, /PIXMAP
+;  Catch, /CANCEL
+;  
+;  testWidgetSupport: ; Come here if you choke on creating a window.
+;  IF !D.Window NE theWindow THEN BEGIN
+;    WDelete, !D.Window
+;    IF theWindow GE 0 THEN WSet, theWindow
+;  ENDIF
+;  
+;  IF widgetsSupported THEN BEGIN
+;  
+;    ; If this is an error produced with the MESSAGE command, it is a trapped
+;    ; error and will have the name "IDL_M_USER_ERR".
+;    IF !ERROR_STATE.NAME EQ "IDL_M_USER_ERR" THEN BEGIN
+;    
+;      IF N_Elements(title) EQ 0 THEN title = 'Trapped Error'
+;      
+;      ; If the message has the name of the calling routine in it,
+;      ; it should be stripped out. Can you find a colon in the string?
+;      
+;      ; Is the calling routine an object method? If so, special processing
+;      ; is required. Object methods will have two colons together.
+;      doublecolon = StrPos(theMessage, "::")
+;      IF doublecolon NE -1 THEN BEGIN
+;      
+;        prefix = StrMid(theMessage, 0, doublecolon+2)
+;        submessage = StrMid(theMessage, doublecolon+2)
+;        colon = StrPos(submessage, ":")
+;        IF colon NE -1 THEN BEGIN
+;        
+;          ; Extract the text up to the colon. Is this the same as
+;          ; the callingRoutine? If so, strip it.
+;          IF StrMid(theMessage, 0, colon+StrLen(prefix)) EQ callingRoutine THEN $
+;            theMessage = StrMid(theMessage, colon+1+StrLen(prefix))
+;        ENDIF
+;      ENDIF ELSE BEGIN
+;      
+;        colon = StrPos(theMessage, ":")
+;        IF colon NE -1 THEN BEGIN
+;        
+;          ; Extract the text up to the colon. Is this the same as
+;          ; the callingRoutine? If so, strip it.
+;          IF StrMid(theMessage, 0, colon) EQ callingRoutine THEN $
+;            theMessage = StrMid(theMessage, colon+1)
+;        ENDIF
+;        
+;      ENDELSE
+;      
+;      
+;      ; Add the calling routine's name, unless NONAME is set.
+;      IF Keyword_Set(noname) THEN BEGIN
+;        answer = Dialog_Message(theMessage, Title=title, _Extra=extra, $
+;          Error=error, Information=information)
+;      ENDIF ELSE BEGIN
+;        answer = Dialog_Message(StrUpCase(callingRoutine) + ": " + $
+;          theMessage, Title=title, _Extra=extra, $
+;          Error=error, Information=information)
+;      ENDELSE
+;      
+;    ENDIF ELSE BEGIN
+;    
+;      ; Otherwise, this is an IDL system error.
+;      IF N_Elements(title) EQ 0 THEN title = 'System Error'
+;      
+;      IF StrUpCase(callingRoutine) EQ "$MAIN$" THEN $
+;        answer = Dialog_Message(theMessage, _Extra=extra, Title=title, $
+;        Error=error, Information=information) ELSE $
+;        IF Keyword_Set(noname) THEN BEGIN
+;        answer = Dialog_Message(theMessage, _Extra=extra, Title=title, $
+;          Error=error, Information=information)
+;      ENDIF ELSE BEGIN
+;        answer = Dialog_Message(StrUpCase(callingRoutine) + "--> " + $
+;          theMessage, _Extra=extra, Title=title, $
+;          Error=error, Information=information)
+;      ENDELSE
+;    ENDELSE
+;  ENDIF ELSE BEGIN
+;    Message, theMessage, /Continue, /NoPrint, /NoName, /NoPrefix, _Extra=extra
+;    IF Keyword_Set(noname) THEN $
+;      Print, theMessage ELSE $
+;      Print, '%' + callingRoutine + ': ' + theMessage
+;    answer = 'OK'
+;  ENDELSE
+;  
+;  ; Provide traceback information if requested and this is NOT an informational message.
+;  IF Keyword_Set(traceback) AND ~Keyword_Set(informational)THEN BEGIN
+;    Help, /Last_Message, Output=traceback
+;    Print,''
+;    Print, 'Traceback Report from ' + StrUpCase(callingRoutine) + ':'
+;    Print, ''
+;    FOR j=0,N_Elements(traceback)-1 DO Print, "     " + traceback[j]
+;  ENDIF
+;  
+;  RETURN, answer
+;END ; ----------------------------------------------------------------------------
 
 ;+
 ; NAME:
@@ -3432,92 +3432,92 @@ END ; --------------------------------------------------------------------------
 ;  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS           ;
 ;  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                            ;
 ;******************************************************************************************;
-FUNCTION DecomposedColor, device, DEPTH=depth
-
-  ; Return to caller on error.
-  ON_ERROR, 2
-  
-  ; Was a graphics device passed in?
-  IF N_Elements(device) EQ 0 THEN device = !D.NAME
-  
-  ; If the asked for graphics device is not the same as the current device,
-  ; load the one the user asked for.
-  IF StrUpCase(device) NE !D.NAME THEN BEGIN
-    thisDevice = !D.NAME
-    Set_Plot, device
-  ENDIF
-  
-  ; Which graphics device are you interested in?
-  CASE !D.NAME OF
-  
-    'PS': BEGIN ; PostScript
-      CASE 1 OF
-        Float(!Version.Release) EQ 7.1: BEGIN
-          Help, /DEVICE, OUTPUT=outstr
-          psinfo = outstr[4]
-          parts = StrSplit(psinfo, ':', /EXTRACT)
-          IF StrUpCase(StrCompress(parts[1], /REMOVE_ALL)) EQ 'DECOMPOSED' THEN BEGIN
-            decomposed = 1
-            depth = 24
-          ENDIF ELSE BEGIN
-            decomposed = 0
-            depth = 8
-          ENDELSE
-        END
-        Float(!Version.Release) GT 7.1: BEGIN
-          Device, GET_DECOMPOSED=decomposed
-          IF decomposed THEN depth = 24 ELSE depth = 8
-        END
-        ELSE: BEGIN
-          decomposed = 0
-          depth = 8
-        END
-      ENDCASE
-    END
-    
-    'Z': BEGIN ; Z-graphics buffer.
-      IF (Float(!Version.Release) GE 6.4) THEN BEGIN
-        Device, GET_DECOMPOSED=decomposed
-        Device, GET_PIXEL_DEPTH=depth
-      ENDIF ELSE BEGIN
-        decomposed = 0
-        depth = 8
-      ENDELSE
-    END
-    
-    'X': Device, GET_DECOMPOSED=decomposed, GET_VISUAL_DEPTH=depth
-    
-    'WIN': Device, GET_DECOMPOSED=decomposed, GET_VISUAL_DEPTH=depth
-    
-    'MAC': BEGIN
-      IF (Float(!Version.Release) GE 5.2) THEN BEGIN
-        Device, Get_Decomposed=decomposedState, GET_VISUAL_DEPTH=depth
-      ENDIF ELSE BEGIN
-        decomposed = 0
-        depth = 8
-      ENDELSE
-    END
-    
-    'NULL': BEGIN ; Setting up in decomposed mode will make sure
-      ; drawing colors are never loaded, which is not
-      ; allowed for the NULL device.
-      decomposed = 1
-      depth = 24
-    END
-    
-    ELSE: BEGIN ; All other devices are 8-bit oldsters.
-      decomposed = 0
-      depth = 8
-    END
-  ENDCASE
-  
-  ; Need to clean up?
-  IF N_Elements(thisDevice) NE 0 THEN Set_Plot, thisDevice
-  
-  ; Return the result.
-  RETURN, decomposed
-  
-END
+;FUNCTION DecomposedColor, device, DEPTH=depth
+;
+;  ; Return to caller on error.
+;  ON_ERROR, 2
+;  
+;  ; Was a graphics device passed in?
+;  IF N_Elements(device) EQ 0 THEN device = !D.NAME
+;  
+;  ; If the asked for graphics device is not the same as the current device,
+;  ; load the one the user asked for.
+;  IF StrUpCase(device) NE !D.NAME THEN BEGIN
+;    thisDevice = !D.NAME
+;    Set_Plot, device
+;  ENDIF
+;  
+;  ; Which graphics device are you interested in?
+;  CASE !D.NAME OF
+;  
+;    'PS': BEGIN ; PostScript
+;      CASE 1 OF
+;        Float(!Version.Release) EQ 7.1: BEGIN
+;          Help, /device, OUTPUT=outstr
+;          psinfo = outstr[4]
+;          parts = StrSplit(psinfo, ':', /EXTRACT)
+;          IF StrUpCase(StrCompress(parts[1], /REMOVE_ALL)) EQ 'DECOMPOSED' THEN BEGIN
+;            decomposed = 1
+;            depth = 24
+;          ENDIF ELSE BEGIN
+;            decomposed = 0
+;            depth = 8
+;          ENDELSE
+;        END
+;        Float(!Version.Release) GT 7.1: BEGIN
+;          device, GET_DECOMPOSED=decomposed
+;          IF decomposed THEN depth = 24 ELSE depth = 8
+;        END
+;        ELSE: BEGIN
+;          decomposed = 0
+;          depth = 8
+;        END
+;      ENDCASE
+;    END
+;    
+;    'Z': BEGIN ; Z-graphics buffer.
+;      IF (Float(!Version.Release) GE 6.4) THEN BEGIN
+;        device, GET_DECOMPOSED=decomposed
+;        device, GET_PIXEL_DEPTH=depth
+;      ENDIF ELSE BEGIN
+;        decomposed = 0
+;        depth = 8
+;      ENDELSE
+;    END
+;    
+;    'X': device, GET_DECOMPOSED=decomposed, GET_VISUAL_DEPTH=depth
+;    
+;    'WIN': device, GET_DECOMPOSED=decomposed, GET_VISUAL_DEPTH=depth
+;    
+;    'MAC': BEGIN
+;      IF (Float(!Version.Release) GE 5.2) THEN BEGIN
+;        device, Get_Decomposed=decomposedState, GET_VISUAL_DEPTH=depth
+;      ENDIF ELSE BEGIN
+;        decomposed = 0
+;        depth = 8
+;      ENDELSE
+;    END
+;    
+;    'NULL': BEGIN ; Setting up in decomposed mode will make sure
+;      ; drawing colors are never loaded, which is not
+;      ; allowed for the NULL device.
+;      decomposed = 1
+;      depth = 24
+;    END
+;    
+;    ELSE: BEGIN ; All other devices are 8-bit oldsters.
+;      decomposed = 0
+;      depth = 8
+;    END
+;  ENDCASE
+;  
+;  ; Need to clean up?
+;  IF N_Elements(thisDevice) NE 0 THEN Set_Plot, thisDevice
+;  
+;  ; Return the result.
+;  RETURN, decomposed
+;  
+;END
 ;+
 ; NAME:
 ;       TVREAD
@@ -3689,255 +3689,255 @@ END
 ;  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS           ;
 ;  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                            ;
 ;******************************************************************************************;
-FUNCTION TVREAD, xstart, ystart, ncols, nrows, $
-    BMP=bmp, $
-    Cancel=cancel, $
-    Colors=colors, $
-    Cube=cube, $
-    Dither=dither, $
-    _Extra=extra, $
-    Filename=filename, $
-    GIF=gif, $
-    JPEG=jpeg, $
-    NoDialog=nodialog, $
-    Order=order, $
-    Overwrite_Prompt=overwrite_prompt, $
-    PICT=pict, $
-    PNG=png, $
-    TIFF=tiff, $
-    True=true, $
-    TYPE=type, $
-    Quality=quality, $
-    WID=wid
-    
-  ; Error handling.
-    
-  Catch, theError
-  IF theError NE 0 THEN BEGIN
-    Catch, /Cancel
-    ok = Error_Message()
-    IF N_Elements(thisWindow) EQ 0 THEN RETURN, -1
-    IF thisWindow GE 0 THEN WSet, thisWindow
-    RETURN, -1
-  ENDIF
-  
-  cancel = 0
-  
-  ; Check for availability of GIF files.
-  
-  thisVersion = Float(!Version.Release)
-  IF (thisVersion LT 5.3) OR (thisVersion GE 6.1) THEN haveGif = 1 ELSE haveGIF = 0
-  
-  ; Go to correct window.
-  
-  IF N_Elements(wid) EQ 0 THEN wid =!D.Window
-  thisWindow = !D.Window
-  IF (!D.Flags AND 256) NE 0 THEN WSet, wid
-  
-  ; Check keywords and parameters. Define values if necessary.
-  
-  IF N_Elements(xstart) EQ 0 THEN xstart = 0
-  IF N_Elements(ystart) EQ 0 THEN ystart = 0
-  IF N_Elements(ncols) EQ 0 THEN ncols = !D.X_Size - xstart
-  IF N_Elements(nrows) EQ 0 THEN nrows = !D.Y_Size - ystart
-  IF N_Elements(order) EQ 0 THEN order = !Order
-  IF N_Elements(true) EQ 0 THEN true = 1
-  dialog = 1 - Keyword_Set(nodialog)
-  
-  ; Do you want to write an image file instead of
-  ; capturing an image?
-  IF N_Elements(type) NE 0 THEN BEGIN
-    CASE StrUpCase(type) OF
-      'BMP': bmp = 1
-      'GIF': gif = 1
-      'JPEG': jpeg = 1
-      'JPG': jpeg = 1
-      'PICT': pict = 1
-      'PNG': png = 1
-      'TIFF': tiff = 1
-      'TIF': tif = 1
-      ELSE: Message, 'Cannot write a file of type: ' + StrUpCase(type) + '.'
-    ENDCASE
-  ENDIF
-  writeImage = 0
-  fileType = ""
-  extention = ""
-  IF Keyword_Set(bmp)THEN BEGIN
-    writeImage = 1
-    fileType = 'BMP'
-    extension = 'bmp'
-  ENDIF
-  IF Keyword_Set(gif) THEN BEGIN
-    IF havegif THEN BEGIN
-      writeImage = 1
-      fileType = 'GIF'
-      extension = 'gif'
-    ENDIF ELSE BEGIN
-      ok = Dialog_Message('GIF files not supported in this IDL version. Replacing with JPEG.')
-      writeImage = 1
-      fileType = 'JPEG'
-      extension = 'jpg'
-    ENDELSE
-  ENDIF
-  IF Keyword_Set(jpeg) THEN BEGIN
-    writeImage = 1
-    fileType = 'JPEG'
-    extension = 'jpg'
-  ENDIF
-  IF Keyword_Set(PICT) THEN BEGIN
-    writeImage = 1
-    fileType = 'PICT'
-    extension = 'pict'
-  ENDIF
-  IF Keyword_Set(png) THEN BEGIN
-    writeImage = 1
-    fileType = 'PNG'
-    extension = 'png'
-  ENDIF
-  IF Keyword_Set(tiff) THEN BEGIN
-    writeImage = 1
-    fileType = 'TIFF'
-    extension = 'tif'
-  ENDIF
-  
-  IF N_Elements(colors) EQ 0 THEN colors = 256
-  IF N_Elements(quality) EQ 0 THEN quality = 75
-  dither = Keyword_Set(dither)
-  
-  ; On 24-bit displays, make sure color decomposition is ON.
-  
-  IF (!D.Flags AND 256) NE 0 THEN BEGIN
-    Device, Get_Decomposed=theDecomposedState, Get_Visual_Depth=theDepth
-    IF theDepth GT 8 THEN BEGIN
-      Device, Decomposed=1
-      IF theDepth EQ 24 THEN truecolor = true ELSE truecolor = 0
-    ENDIF ELSE truecolor = 0
-    IF thisWindow LT 0 THEN $
-      Message, 'No currently open windows. Returning.', /NoName
-  ENDIF ELSE BEGIN
-    truecolor = 0
-    theDepth = 8
-  ENDELSE
-  
-  ; Fix for 24-bit Z-buffer.
-  IF (Float(!Version.Release) GE 6.4) AND (!D.NAME EQ 'Z') THEN BEGIN
-    Device, Get_Decomposed=theDecomposedState, Get_Pixel_Depth=theDepth
-    IF theDepth EQ 24 THEN truecolor = true ELSE truecolor = 0
-  ENDIF
-  
-  
-  ; Get the screen dump. 2D image on 8-bit displays. 3D image on 24-bit displays.
-  
-  image = TVRD(xstart, ystart, ncols, nrows, True=truecolor, Order=order)
-  
-  ; Need to set color decomposition back?
-  
-  IF theDepth GT 8 THEN Device, Decomposed=theDecomposedState
-  
-  ; If we need to write an image, do it here.
-  
-  IF writeImage THEN BEGIN
-  
-    ; Get the name of the output file.
-  
-    IF N_Elements(filename) EQ 0 THEN BEGIN
-      filename = 'idl.' + StrLowCase(extension)
-    ENDIF ELSE BEGIN
-      filename = filename + "." + StrLowCase(extension)
-    ENDELSE
-    IF dialog THEN filename = Dialog_Pickfile(/Write, File=filename, OVERWRITE_PROMPT=Keyword_Set(overwrite_prompt))
-    
-    IF filename EQ "" THEN BEGIN
-      cancel = 1
-      RETURN, image
-    ENDIF
-    
-    ; Write the file.
-    
-    CASE fileType OF
-    
-      'BMP': BEGIN
-        IF truecolor THEN BEGIN
-          ; BMP files assume blue, green, red planes.
-          temp = image[0,*,*]
-          image[0,*,*] = image[2,*,*]
-          image[2,*,*] = temp
-          Write_BMP, filename, image, _Extra=extra
-        ENDIF ELSE BEGIN
-          TVLCT, r, g, b, /Get
-          Write_BMP, filename, image, r, g, b, _Extra=extra
-        ENDELSE
-      END
-      
-      'GIF': BEGIN
-        IF truecolor THEN BEGIN
-          CASE Keyword_Set(cube) OF
-            0: image2D = Color_Quan(image, 1, r, g, b, Colors=colors, Dither=dither)
-            1: image2D = Color_Quan(image, 1, r, g, b, Cube=2 > cube < 6)
-          ENDCASE
-        ENDIF ELSE BEGIN
-          TVLCT, r, g, b, /Get
-          image2D = image
-        ENDELSE
-        Write_GIF, filename, image2D, r, g, b, _Extra=extra
-      END
-      
-      'JPEG': BEGIN
-        IF truecolor THEN BEGIN
-          image3D = image
-        ENDIF ELSE BEGIN
-          s = Size(image, /Dimensions)
-          image3D = BytArr(3, s[0], s[1])
-          TVLCT, r, g, b, /Get
-          image3D[0,*,*] = r[image]
-          image3D[1,*,*] = g[image]
-          image3D[2,*,*] = b[image]
-        ENDELSE
-        Write_JPEG, filename, image3D, True=1, Quality=quality, _Extra=extra
-      END
-      
-      'PICT': BEGIN
-        IF truecolor THEN BEGIN
-          CASE Keyword_Set(cube) OF
-            0: image2D = Color_Quan(image, 1, r, g, b, Colors=colors, Dither=dither)
-            1: image2D = Color_Quan(image, 1, r, g, b, Cube=2 > cube < 6)
-          ENDCASE
-        ENDIF ELSE BEGIN
-          TVLCT, r, g, b, /Get
-          image2D = image
-        ENDELSE
-        Write_PICT, filename, image2D, r, g, b
-      END
-      
-      'PNG': BEGIN
-        IF truecolor THEN BEGIN
-          Write_PNG, filename, image, _Extra=extra
-        ENDIF ELSE BEGIN
-          TVLCT, r, g, b, /Get
-          image2D = image
-          Write_PNG, filename, image2D, r, g, b, _Extra=extra
-        ENDELSE
-      END
-      
-      'TIFF': BEGIN
-        IF truecolor THEN BEGIN
-          image3D = Reverse(image,3)
-        ENDIF ELSE BEGIN
-          s = Size(image, /Dimensions)
-          image3D = BytArr(3, s[0], s[1])
-          TVLCT, r, g, b, /Get
-          image3D[0,*,*] = r[image]
-          image3D[1,*,*] = g[image]
-          image3D[2,*,*] = b[image]
-          image3D = Reverse(Temporary(image3D), 3)
-        ENDELSE
-        Write_TIFF, filename, image3D, 1, _Extra=extra
-      END
-    ENDCASE
-    RETURN, -1
-  ENDIF
-  
-  ; Return the screen dump image.
-  
-  RETURN, image
-END ;-------------------------------------------------------------------------------
+;FUNCTION TVREAD, xstart, ystart, ncols, nrows, $
+;    BMP=bmp, $
+;    Cancel=cancel, $
+;    Colors=colors, $
+;    Cube=cube, $
+;    Dither=dither, $
+;    _Extra=extra, $
+;    Filename=filename, $
+;    GIF=gif, $
+;    JPEG=jpeg, $
+;    NoDialog=nodialog, $
+;    Order=order, $
+;    Overwrite_Prompt=overwrite_prompt, $
+;    PICT=pict, $
+;    PNG=png, $
+;    TIFF=tiff, $
+;    True=true, $
+;    TYPE=type, $
+;    Quality=quality, $
+;    WID=wid
+;    
+;  ; Error handling.
+;    
+;  Catch, theError
+;  IF theError NE 0 THEN BEGIN
+;    Catch, /Cancel
+;    ok = Error_Message()
+;    IF N_Elements(thisWindow) EQ 0 THEN RETURN, -1
+;    IF thisWindow GE 0 THEN WSet, thisWindow
+;    RETURN, -1
+;  ENDIF
+;  
+;  cancel = 0
+;  
+;  ; Check for availability of GIF files.
+;  
+;  thisVersion = Float(!Version.Release)
+;  IF (thisVersion LT 5.3) OR (thisVersion GE 6.1) THEN haveGif = 1 ELSE haveGIF = 0
+;  
+;  ; Go to correct window.
+;  
+;  IF N_Elements(wid) EQ 0 THEN wid =!D.Window
+;  thisWindow = !D.Window
+;  IF (!D.Flags AND 256) NE 0 THEN WSet, wid
+;  
+;  ; Check keywords and parameters. Define values if necessary.
+;  
+;  IF N_Elements(xstart) EQ 0 THEN xstart = 0
+;  IF N_Elements(ystart) EQ 0 THEN ystart = 0
+;  IF N_Elements(ncols) EQ 0 THEN ncols = !D.X_Size - xstart
+;  IF N_Elements(nrows) EQ 0 THEN nrows = !D.Y_Size - ystart
+;  IF N_Elements(order) EQ 0 THEN order = !Order
+;  IF N_Elements(true) EQ 0 THEN true = 1
+;  dialog = 1 - Keyword_Set(nodialog)
+;  
+;  ; Do you want to write an image file instead of
+;  ; capturing an image?
+;  IF N_Elements(type) NE 0 THEN BEGIN
+;    CASE StrUpCase(type) OF
+;      'BMP': bmp = 1
+;      'GIF': gif = 1
+;      'JPEG': jpeg = 1
+;      'JPG': jpeg = 1
+;      'PICT': pict = 1
+;      'PNG': png = 1
+;      'TIFF': tiff = 1
+;      'TIF': tif = 1
+;      ELSE: Message, 'Cannot write a file of type: ' + StrUpCase(type) + '.'
+;    ENDCASE
+;  ENDIF
+;  writeImage = 0
+;  fileType = ""
+;  extention = ""
+;  IF Keyword_Set(bmp)THEN BEGIN
+;    writeImage = 1
+;    fileType = 'BMP'
+;    extension = 'bmp'
+;  ENDIF
+;  IF Keyword_Set(gif) THEN BEGIN
+;    IF havegif THEN BEGIN
+;      writeImage = 1
+;      fileType = 'GIF'
+;      extension = 'gif'
+;    ENDIF ELSE BEGIN
+;      ok = Dialog_Message('GIF files not supported in this IDL version. Replacing with JPEG.')
+;      writeImage = 1
+;      fileType = 'JPEG'
+;      extension = 'jpg'
+;    ENDELSE
+;  ENDIF
+;  IF Keyword_Set(jpeg) THEN BEGIN
+;    writeImage = 1
+;    fileType = 'JPEG'
+;    extension = 'jpg'
+;  ENDIF
+;  IF Keyword_Set(PICT) THEN BEGIN
+;    writeImage = 1
+;    fileType = 'PICT'
+;    extension = 'pict'
+;  ENDIF
+;  IF Keyword_Set(png) THEN BEGIN
+;    writeImage = 1
+;    fileType = 'PNG'
+;    extension = 'png'
+;  ENDIF
+;  IF Keyword_Set(tiff) THEN BEGIN
+;    writeImage = 1
+;    fileType = 'TIFF'
+;    extension = 'tif'
+;  ENDIF
+;  
+;  IF N_Elements(colors) EQ 0 THEN colors = 256
+;  IF N_Elements(quality) EQ 0 THEN quality = 75
+;  dither = Keyword_Set(dither)
+;  
+;  ; On 24-bit displays, make sure color decomposition is ON.
+;  
+;  IF (!D.Flags AND 256) NE 0 THEN BEGIN
+;    device, Get_Decomposed=theDecomposedState, Get_Visual_Depth=theDepth
+;    IF theDepth GT 8 THEN BEGIN
+;      device, Decomposed=1
+;      IF theDepth EQ 24 THEN truecolor = true ELSE truecolor = 0
+;    ENDIF ELSE truecolor = 0
+;    IF thisWindow LT 0 THEN $
+;      Message, 'No currently open windows. Returning.', /NoName
+;  ENDIF ELSE BEGIN
+;    truecolor = 0
+;    theDepth = 8
+;  ENDELSE
+;  
+;  ; Fix for 24-bit Z-buffer.
+;  IF (Float(!Version.Release) GE 6.4) AND (!D.NAME EQ 'Z') THEN BEGIN
+;    device, Get_Decomposed=theDecomposedState, Get_Pixel_Depth=theDepth
+;    IF theDepth EQ 24 THEN truecolor = true ELSE truecolor = 0
+;  ENDIF
+;  
+;  
+;  ; Get the screen dump. 2D image on 8-bit displays. 3D image on 24-bit displays.
+;  
+;  image = TVRD(xstart, ystart, ncols, nrows, True=truecolor, Order=order)
+;  
+;  ; Need to set color decomposition back?
+;  
+;  IF theDepth GT 8 THEN device, Decomposed=theDecomposedState
+;  
+;  ; If we need to write an image, do it here.
+;  
+;  IF writeImage THEN BEGIN
+;  
+;    ; Get the name of the output file.
+;  
+;    IF N_Elements(filename) EQ 0 THEN BEGIN
+;      filename = 'idl.' + StrLowCase(extension)
+;    ENDIF ELSE BEGIN
+;      filename = filename + "." + StrLowCase(extension)
+;    ENDELSE
+;    IF dialog THEN filename = Dialog_Pickfile(/Write, File=filename, OVERWRITE_PROMPT=Keyword_Set(overwrite_prompt))
+;    
+;    IF filename EQ "" THEN BEGIN
+;      cancel = 1
+;      RETURN, image
+;    ENDIF
+;    
+;    ; Write the file.
+;    
+;    CASE fileType OF
+;    
+;      'BMP': BEGIN
+;        IF truecolor THEN BEGIN
+;          ; BMP files assume blue, green, red planes.
+;          temp = image[0,*,*]
+;          image[0,*,*] = image[2,*,*]
+;          image[2,*,*] = temp
+;          Write_BMP, filename, image, _Extra=extra
+;        ENDIF ELSE BEGIN
+;          TVLCT, r, g, b, /Get
+;          Write_BMP, filename, image, r, g, b, _Extra=extra
+;        ENDELSE
+;      END
+;      
+;      'GIF': BEGIN
+;        IF truecolor THEN BEGIN
+;          CASE Keyword_Set(cube) OF
+;            0: image2D = Color_Quan(image, 1, r, g, b, Colors=colors, Dither=dither)
+;            1: image2D = Color_Quan(image, 1, r, g, b, Cube=2 > cube < 6)
+;          ENDCASE
+;        ENDIF ELSE BEGIN
+;          TVLCT, r, g, b, /Get
+;          image2D = image
+;        ENDELSE
+;        Write_GIF, filename, image2D, r, g, b, _Extra=extra
+;      END
+;      
+;      'JPEG': BEGIN
+;        IF truecolor THEN BEGIN
+;          image3D = image
+;        ENDIF ELSE BEGIN
+;          s = Size(image, /Dimensions)
+;          image3D = BytArr(3, s[0], s[1])
+;          TVLCT, r, g, b, /Get
+;          image3D[0,*,*] = r[image]
+;          image3D[1,*,*] = g[image]
+;          image3D[2,*,*] = b[image]
+;        ENDELSE
+;        Write_JPEG, filename, image3D, True=1, Quality=quality, _Extra=extra
+;      END
+;      
+;      'PICT': BEGIN
+;        IF truecolor THEN BEGIN
+;          CASE Keyword_Set(cube) OF
+;            0: image2D = Color_Quan(image, 1, r, g, b, Colors=colors, Dither=dither)
+;            1: image2D = Color_Quan(image, 1, r, g, b, Cube=2 > cube < 6)
+;          ENDCASE
+;        ENDIF ELSE BEGIN
+;          TVLCT, r, g, b, /Get
+;          image2D = image
+;        ENDELSE
+;        Write_PICT, filename, image2D, r, g, b
+;      END
+;      
+;      'PNG': BEGIN
+;        IF truecolor THEN BEGIN
+;          Write_PNG, filename, image, _Extra=extra
+;        ENDIF ELSE BEGIN
+;          TVLCT, r, g, b, /Get
+;          image2D = image
+;          Write_PNG, filename, image2D, r, g, b, _Extra=extra
+;        ENDELSE
+;      END
+;      
+;      'TIFF': BEGIN
+;        IF truecolor THEN BEGIN
+;          image3D = Reverse(image,3)
+;        ENDIF ELSE BEGIN
+;          s = Size(image, /Dimensions)
+;          image3D = BytArr(3, s[0], s[1])
+;          TVLCT, r, g, b, /Get
+;          image3D[0,*,*] = r[image]
+;          image3D[1,*,*] = g[image]
+;          image3D[2,*,*] = b[image]
+;          image3D = Reverse(Temporary(image3D), 3)
+;        ENDELSE
+;        Write_TIFF, filename, image3D, 1, _Extra=extra
+;      END
+;    ENDCASE
+;    RETURN, -1
+;  ENDIF
+;  
+;  ; Return the screen dump image.
+;  
+;  RETURN, image
+;END ;-------------------------------------------------------------------------------

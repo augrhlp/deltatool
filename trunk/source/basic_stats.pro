@@ -504,109 +504,109 @@ pro obs_run_nan, request,result,obsValues, runValues
 
 end
 ;*******************************
-pro mypsym,number,size_symb
-
-  CASE number OF
-
-    0: begin ; diamond empty
-      X = [-size_symb, 0, size_symb, 0, -size_symb]
-      Y = [0, size_symb, 0, -size_symb, 0]
-      USERSYM, X, Y,thick=2
-    end
-
-    1: begin ;square empty
-      X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*0.75
-      Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*0.75
-      USERSYM, X, Y,thick=2
-    end
-
-    2: begin ;triangle up empty
-      X = [-size_symb,  0,  size_symb, -size_symb]*0.9
-      Y = [-size_symb,  size_symb, -size_symb, -size_symb]*0.9
-      USERSYM, X, Y,thick=2
-    end
-
-    3: begin ; triangle down empty
-      X = [-size_symb,  0,           size_symb, -size_symb]*.9
-      Y = [ size_symb,  -size_symb,  size_symb,  size_symb]*.9
-      USERSYM, X, Y,thick=2
-    end
-
-    4: begin ; diamond full
-      X = [-size_symb, 0, size_symb, 0, -size_symb]
-      Y = [0, size_symb, 0, -size_symb, 0]
-      USERSYM, X, Y,/fill
-    end
-
-    5: begin ; square full
-      X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*0.75
-      Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*0.75
-      USERSYM, X, Y,/fill
-    end
-
-    6: begin ; triangle up full
-      X = [-size_symb,  0,  size_symb, -size_symb]*.9
-      Y = [-size_symb,  size_symb, -size_symb, -size_symb]*.9
-      USERSYM, X, Y,/fill
-    end
-
-    7: begin ; triangle down full
-      X = [-size_symb,  0,           size_symb, -size_symb]*.9
-      Y = [ size_symb,  -size_symb,  size_symb,  size_symb]*.9
-      USERSYM, X, Y,/fill
-    end
-
-    8: begin ; + sign
-      X = [0, 0, 0, size_symb, -size_symb]
-      Y = [size_symb, -size_symb,0, 0,  0]
-      USERSYM, X, Y,thick=2
-    end
-
-    9: begin ; circle full
-      A = FINDGEN(17) * (!PI*2/16.)
-      USERSYM, size_symb*COS(A), size_symb*SIN(A) ,/fill
-    end
-
-    10: begin ; * sign
-      X = [-size_symb, size_symb, 0, -size_symb,  size_symb,0,0, 0, 0, size_symb, -size_symb]
-      Y = [-size_symb, size_symb, 0,  size_symb, -size_symb,0,size_symb, -size_symb,0, 0,  0]
-      USERSYM, X, Y,thick=2
-    end
-
-    11: begin ; X sign
-      X = [-size_symb, size_symb, 0, -size_symb,  size_symb]
-      Y = [-size_symb, size_symb, 0,  size_symb, -size_symb]
-      USERSYM, X, Y,thick=2
-    end
-
-    12: begin ; - sign
-      X = [-size_symb   ,size_symb    ,size_symb     ,-size_symb    ,-size_symb]
-      Y = [size_symb*0.2,size_symb*0.2,-size_symb*0.2,-size_symb*0.2,-size_symb*0.2]
-      USERSYM, X, Y,thick=2
-    end
-    
-; This is not an empty circle ; see 15   
-    13:begin ; circle empty
-    A = FINDGEN(17) * (!PI*2/16.)
-    USERSYM, size_symb*1.7*COS(A), 1.7*SIN(A),thick=2,/fill
-  end
-      
-    14: begin ; square line
-      X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*.75
-      Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*.75
-      USERSYM, X, Y, color=0
-    end
-   
-; KeesC 15FEB2014   was 13 before (new for geomap)
-    15:begin ; circle empty
-    A = FINDGEN(17) * (!PI*2/16.)
-    USERSYM, size_symb*COS(A), size_symb*SIN(A),thick=2
-  end
- 
-      
-endcase
-
-end
+;pro mypsym,number,size_symb
+;
+;  CASE number OF
+;
+;    0: begin ; diamond empty
+;      X = [-size_symb, 0, size_symb, 0, -size_symb]
+;      Y = [0, size_symb, 0, -size_symb, 0]
+;      USERSYM, X, Y,thick=2
+;    end
+;
+;    1: begin ;square empty
+;      X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*0.75
+;      Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*0.75
+;      USERSYM, X, Y,thick=2
+;    end
+;
+;    2: begin ;triangle up empty
+;      X = [-size_symb,  0,  size_symb, -size_symb]*0.9
+;      Y = [-size_symb,  size_symb, -size_symb, -size_symb]*0.9
+;      USERSYM, X, Y,thick=2
+;    end
+;
+;    3: begin ; triangle down empty
+;      X = [-size_symb,  0,           size_symb, -size_symb]*.9
+;      Y = [ size_symb,  -size_symb,  size_symb,  size_symb]*.9
+;      USERSYM, X, Y,thick=2
+;    end
+;
+;    4: begin ; diamond full
+;      X = [-size_symb, 0, size_symb, 0, -size_symb]
+;      Y = [0, size_symb, 0, -size_symb, 0]
+;      USERSYM, X, Y,/fill
+;    end
+;
+;    5: begin ; square full
+;      X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*0.75
+;      Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*0.75
+;      USERSYM, X, Y,/fill
+;    end
+;
+;    6: begin ; triangle up full
+;      X = [-size_symb,  0,  size_symb, -size_symb]*.9
+;      Y = [-size_symb,  size_symb, -size_symb, -size_symb]*.9
+;      USERSYM, X, Y,/fill
+;    end
+;
+;    7: begin ; triangle down full
+;      X = [-size_symb,  0,           size_symb, -size_symb]*.9
+;      Y = [ size_symb,  -size_symb,  size_symb,  size_symb]*.9
+;      USERSYM, X, Y,/fill
+;    end
+;
+;    8: begin ; + sign
+;      X = [0, 0, 0, size_symb, -size_symb]
+;      Y = [size_symb, -size_symb,0, 0,  0]
+;      USERSYM, X, Y,thick=2
+;    end
+;
+;    9: begin ; circle full
+;      A = FINDGEN(17) * (!PI*2/16.)
+;      USERSYM, size_symb*COS(A), size_symb*SIN(A) ,/fill
+;    end
+;
+;    10: begin ; * sign
+;      X = [-size_symb, size_symb, 0, -size_symb,  size_symb,0,0, 0, 0, size_symb, -size_symb]
+;      Y = [-size_symb, size_symb, 0,  size_symb, -size_symb,0,size_symb, -size_symb,0, 0,  0]
+;      USERSYM, X, Y,thick=2
+;    end
+;
+;    11: begin ; X sign
+;      X = [-size_symb, size_symb, 0, -size_symb,  size_symb]
+;      Y = [-size_symb, size_symb, 0,  size_symb, -size_symb]
+;      USERSYM, X, Y,thick=2
+;    end
+;
+;    12: begin ; - sign
+;      X = [-size_symb   ,size_symb    ,size_symb     ,-size_symb    ,-size_symb]
+;      Y = [size_symb*0.2,size_symb*0.2,-size_symb*0.2,-size_symb*0.2,-size_symb*0.2]
+;      USERSYM, X, Y,thick=2
+;    end
+;    
+;; This is not an empty circle ; see 15   
+;    13:begin ; circle empty
+;    A = FINDGEN(17) * (!PI*2/16.)
+;    USERSYM, size_symb*1.7*COS(A), 1.7*SIN(A),thick=2,/fill
+;  end
+;      
+;    14: begin ; square line
+;      X = [-size_symb, -size_symb, size_symb,  size_symb, -size_symb]*.75
+;      Y = [-size_symb,  size_symb, size_symb, -size_symb, -size_symb]*.75
+;      USERSYM, X, Y, color=0
+;    end
+;   
+;; KeesC 15FEB2014   was 13 before (new for geomap)
+;    15:begin ; circle empty
+;    A = FINDGEN(17) * (!PI*2/16.)
+;    USERSYM, size_symb*COS(A), size_symb*SIN(A),thick=2
+;  end
+; 
+;      
+;endcase
+;
+;end
 function getDisclaimerText
 
   disclText=strarr(10)
@@ -683,14 +683,14 @@ obj_destroy, util
 ;  barsh=0
 ;  indhlp=0
 END
-function median, arrValues
-
-  valNum=n_elements(arrValues)
-  arrValues=arrValues(sort(arrvalues))
-  statisticValue=arrValues(fix(valNum/2.))
-  return, statisticValue
-
-end
+;function median, arrValues
+;
+;  valNum=n_elements(arrValues)
+;  arrValues=arrValues(sort(arrvalues))
+;  statisticValue=arrValues(fix(valNum/2.))
+;  return, statisticValue
+;
+;end
 ;***********************
 
 PRO runningAverage, request, result
@@ -788,6 +788,9 @@ pro time_operations, request, result, obsTemp, runTemp
   ; selection of averaging time information
   ;************************************
 
+  ;silentMode=plotter->getSilentMode()
+  FORCELOG=1
+
   modelInfo=request->getModelInfo()
   year=modelInfo.year
   scale=modelInfo.scale
@@ -832,7 +835,14 @@ pro time_operations, request, result, obsTemp, runTemp
     flag_average=fix(flag_average)
     ahlp=fltarr(yrhrs,flag_average)
     bhlp=fltarr(yrhrs,flag_average)
+    obsInfo=size(obsTemp, /STR)
+    runInfo=size(runTemp, /STR)
     for i=0,flag_average-1 do begin
+      if runInfo.n_dimensions ne obsInfo.n_dimensions then begin
+        print, runInfo.n_dimensions ne obsInfo.n_dimensions
+        res=dialogMsg(FORCELOG=FORCELOG, 'run and obs incomaptible',/information)
+        return
+      endif
       ahlp(*,i)=shift(obsTemp,i)
       bhlp(*,i)=shift(runTemp,i)
       if i ge 1 then ahlp(0:i-1,i)=-999

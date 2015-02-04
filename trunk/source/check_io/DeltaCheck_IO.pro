@@ -1,38 +1,49 @@
+@../common/getscreensize
 @DeltaCheck_io_definecommon
+FUNCTION findSlowSelected, slow_steps
+
+  common keesc1
+
+  allSteps=[itgen, itobs, itmod, itobsmod]
+  for i=0, n_elements(allSteps)-1 do if allSteps[i] eq 1 and slow_steps[i] eq 1 then return, 1
+  return, 0
+
+END
+
 PRO updateRunFileName, ev, deltaMgr, model=model, scenario=scenario
 
   fsm=deltaMgr->getFileSystemMgr()
   extension=fsm->getAvailableRunFileExtension()
   suffix=fsm->getRunFileTimeSuffix()
-  
+
   runFileTXT=widget_info(ev.top, FIND_BY_UNAME='RUNFILE_TEXT')
   yearTXT=widget_info(ev.top, FIND_BY_UNAME='YEAR_TEXT')
-  
+
   modelCB=widget_info(ev.top, FIND_BY_UNAME='MODEL_COMBOBOX')
   scenarioCB=widget_info(ev.top, FIND_BY_UNAME='SCENARIO_COMBOBOX')
-  
-  
+
+
   modelText=widget_info(modelCB, /COMBOBOX_GETTEXT)
   modelIndex=widget_info(modelCB, /COMBOBOX_NUMBER)
-  
+
   scenarioText=widget_info(scenarioCB, /COMBOBOX_GETTEXT)
   scenarioIndex=widget_info(scenarioCB, /COMBOBOX_NUMBER)
-  
-;KeesC 21FEB2013: Q to Mirko, Next line: Take extension[.] depending on existence of filename !!   
+
+  ;KeesC 21FEB2013: Q to Mirko, Next line: Take extension[.] depending on existence of filename !!
   filename=scenarioText+'_'+modelText+suffix+extension[0]
   utility=obj_new('FMUtility')
   if n_elements(scenario) then begin
     if utility->IsNumber(scenarioText) then widget_control, yearTXT, set_value=scenarioText
   endif
   obj_destroy, utility
-  
+
   widget_control, runFileTXT, set_value=filename
-  
+
 END
 
 PRO DeltaCheck_IO_event, ev
   common keesc1
-  
+
   Widget_Control, ev.id,  GET_UVALUE=what
   Widget_Control, ev.top,  GET_UVALUE=deltaMgr
   if n_elements(what) eq 2 then begin
@@ -45,6 +56,10 @@ PRO DeltaCheck_IO_event, ev
   endif
   IF TAG_NAMES(ev, /STRUCTURE_NAME) EQ 'WIDGET_KILL_REQUEST' THEN what='DONE'
   CASE what OF
+    'PERFORMCDF':  begin
+      widget_control, ev.id, get_value=val
+      docdfFlag=val
+    end
     'MODEL_COMBOBOX':  begin
       updateRunFileName, ev, deltaMgr, model=name
     end
@@ -129,6 +144,12 @@ Widget_Control, ev.id, GET_VALUE=itobsmod
 end
 'GO': begin
   ;widget_control,/hourglass
+  slow_steps=[0,1,1,1]
+  checkSlow=findSlowSelected(slow_steps)
+  if checkSlow then begin
+    ans=dialog_message(['Check will take a long time, proceed anyway?'], DIALOG_PARENT=ev.top, TITLE=['Check Data Fields'], /CENTER, /QUESTION)
+    if strupcase(ans) ne 'YES' then return
+  endif
   yearTXT=widget_info(ev.top, FIND_BY_UNAME='YEAR_TEXT')
   runFileTXT=widget_info(ev.top, FIND_BY_UNAME='RUNFILE_TEXT')
   widget_control, yearTXT, get_value=yearValue
@@ -148,7 +169,7 @@ end
     txt='STEP 01 STOP! Directory LOG_DIR does not exist: See STARTUP FILE'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
-    txtall=['STOP',txtall]
+    txtall=[['STOP'],[txtall]]
     widget_control,labcom_txt,set_value=txtall
     close,11
     close,12
@@ -177,8 +198,8 @@ end
   txt=['=====================================','DeltaCheck_IO *** '+version]
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
-  
-  All_steps
+
+  All_steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   txt=['DeltaCheck_IO --- DONE','=====================================']
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
@@ -192,13 +213,13 @@ end
   widget_control,/hourglass
   command=deltaMgr->getNotepadLocation()
   spawn,[command, dir_log+logfile],/noshell,/nowait
-;spawn,['notepad.exe', dir_log+logfile],/noshell,/nowait
+  ;spawn,['notepad.exe', dir_log+logfile],/noshell,/nowait
 end
 'SUM': begin
   widget_control,/hourglass
   command=deltaMgr->getNotepadLocation()
   spawn,[command, dir_log+summaryfile],/noshell,/nowait
-;spawn,['notepad.exe', dir_log+summaryfile],/noshell,/nowait
+  ;spawn,['notepad.exe', dir_log+summaryfile],/noshell,/nowait
 end
 'DONE':    BEGIN
   !p.position=0
@@ -206,7 +227,7 @@ end
   close,11
   close,12
   print,'DeltaCheck_IO ---- EXIT'
-  deltaMgr->checkDataIntegrityClose
+  deltaMgr->checkDataIntegrityClose, errorResult=ierror, AUTOCHECK=forceCheck
   return
 END
 ENDCASE
@@ -229,57 +250,63 @@ END
 ;*********************************************
 
 ;pro DeltaCheck_IO
-pro DeltaCheck_IO, DeltaMgr
+pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   common keesc1
-  
+
+  if keyword_set(AUTOCHECK) then forceCheck=1 else forceCheck=0
+  ierror=-1
   orig_P   = !P
   !P.Multi = 0
-  Device, GET_SCREEN_SIZE=scr_size
+  device, GET_SCREEN_SIZE=scr_size
+  dims=getScreenSize()
+  genericWidth=dims[0]/3-dims[0]/10
+
   xw = 1250
   yw = 725
   days=[0,31,28,31,30,31,30,31,31,30,31,30,31]
   go=0
   next=0
-  
+  docdfFlag=1
+
   ; BEGIN USER PART ********************************
-  
+
   ;version='VERSION 2.5'
   ;MM summer 2012
   ;Delta tool integration
   version='VERSION 3.0'
   fileMgr=deltaMgr->getFileSystemMgr()
   dir=fileMgr->getHomeDir()
-;  dir_res=dir+'resource\'  ;fileMgr->getResourceDir()
-;  dir_obs=dir+'data\monitoring\'  ;fileMgr->getObservedDataDir()
-;  dir_mod=dir+'data\modeling\'  ;fileMgr->getRunDataDir()
-;  dir_log=dir+'log\'  ;fileMgr->getLogDir()
+  ;  dir_res=dir+'resource\'  ;fileMgr->getResourceDir()
+  ;  dir_obs=dir+'data\monitoring\'  ;fileMgr->getObservedDataDir()
+  ;  dir_mod=dir+'data\modeling\'  ;fileMgr->getRunDataDir()
+  ;  dir_log=dir+'log\'  ;fileMgr->getLogDir()
   dir_res=fileMgr->getResourceDir()
   dir_obs=fileMgr->getObservedDataDir()
   dir_mod=fileMgr->getRunDataDir()
   dir_log=fileMgr->getLogDir()
-  
+
   modelInfo=deltaMgr->getModelList()
   modelNames=modelInfo->getDisplayNames()
   modelCodes=modelInfo->getCodes()
-  
+
   scenarioInfo=deltaMgr->getScenarioList()
   scenarioNames=scenarioInfo->getDisplayNames()
   scenarioCodes=scenarioInfo->getCodes()
-  
+
   ;model='2009_CHIM07BIL_TIME.cdf'
-  
+
   year='2009'
   txtall=''
   oktxt='          '
   logfile='IO_check.log'
   summaryfile='IO_Summary.log'
   startup=fileMgr->getStartUpFileName()
-  
+
   DeltaPol=['O3','PM10','PM25','NO2','NO','NOx','SO2']
   DeltaPolUnits=['ppb','ug/m3','ugm-3']
   DeltaMet=['WS','WD','TEMP']
   DeltaMetUnits=['m/s','ms-1','m/sec','deg','K','C']
-  
+
   steps=strarr(18+1)
   STEPS(1)= 'STEP 01: Check on existence of directories'
   STEPS(2)= 'STEP 02: Check on existence of STARTUPfile'
@@ -299,25 +326,36 @@ pro DeltaCheck_IO, DeltaMgr
   STEPS(16)= 'STEP 16: Check on MOD NaN/Inf/Extreme values'
   STEPS(17)= 'STEP 17: MOD availability at stations for STARTUP species (%)'
   STEPS(18)= 'STEP 18: Basic Statistics'
-  
+
   ;count=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16']
   nsteps=n_elements(STEPS)
   itgen=1 & itobs=1 & itmod=1 & itobsmod=1
   labok=lonarr(nsteps)
   base = WIDGET_BASE(/ROW,title='DELTACHECK_IO *** '+version, MBAR=WID_MENU, $
-    xsize=xw,ysize=yw,TLB_FRAME_ATTR=1, uvalue=deltaMgr, /TLB_KILL_REQUEST_EVENTS, event_pro='DeltaCheck_IO_event')
-  base1=WIDGET_BASE(base,/row,space=5)
+    TLB_FRAME_ATTR=1, uvalue=deltaMgr, /TLB_KILL_REQUEST_EVENTS, event_pro='DeltaCheck_IO_event', /ROW)
+  base1=WIDGET_BASE(base,/row,space=0)
   base110=widget_base(base1,/column)
-  lab0=widget_label(base110,value='CHECK_STEPS',font='times Roman*18*bold')
-  base11=widget_base(base110,/column,space=7,/frame)
+
+  buttonRadioSelectionBase= Widget_Base(base110, $
+    XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, $
+    TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN $
+    )
+
+  cdfButton=widget_button(buttonRadioSelectionBase, UVALUE='PERFORMCDF', VALUE='Do cdf conversion', UNAME='PERFORMCDF', $
+    sensitive=0)
+  widget_control, cdfButton, set_button=1
+
+
+  lab0=widget_label(base110,value='CHECK_STEPS',font='times Roman*12*bold')
+  base11=widget_base(base110,/column,space=0,/frame)
   labGen=lonarr(5)
   baseG2=lonarr(5)
-  baseG2(0)=widget_base(base11,/row,space=10)
+  baseG2(0)=widget_base(base11,/row,space=0)
   labGen(0)=widget_label(baseG2(0),value=steps(1),/align_left)
   labok(1)=widget_label(baseG2(0),value=oktxt,/align_left)
   butGen=cw_bgroup(base11,/column,/nonexclusive,'READ INFO from STARTUP File',uvalue='STEPG',set_value=[1])
   for i=1,4 do begin
-    baseG2(i)=widget_base(base11,/row,space=10)
+    baseG2(i)=widget_base(base11,/row,space=0)
     labGen(i)=widget_label(baseG2(i),value=steps(i+1),/align_left)
     labok(i+1)=widget_label(baseG2(i),value=oktxt,/align_left)
   endfor
@@ -325,97 +363,106 @@ pro DeltaCheck_IO, DeltaMgr
   labObs=lonarr(7)
   baseO2=lonarr(7)
   for i=0,6 do begin
-    baseO2(i)=widget_base(base11,/row,space=10)
+    baseO2(i)=widget_base(base11,/row,space=0)
     labObs(i)=widget_label(baseO2(i),value=steps(i+6),/align_left)
     labok(i+6)=widget_label(baseO2(i),value=oktxt,/align_left)
   endfor
   butMod=cw_bgroup(base11,/column,/nonexclusive,'MOD',uvalue='STEPM',set_value=[1])
   labMod=lonarr(5)
   baseM2=lonarr(5)
-  labelXsize=120
-  textXsize=230
+  labelXsize=80
+  textXsize=160
   for i=0,3 do begin
-    baseM2(i)=widget_base(base11,/row,space=10)
+    baseM2(i)=widget_base(base11,/row,space=0)
     labMod(i)=widget_label(baseM2(i),value=steps(i+13),/align_left)
     labok(i+13)=widget_label(baseM2(i),value=oktxt,/align_left)
   endfor
-  butOM=cw_bgroup(base11,/column,/nonexclusive,'OBS/MOD',uvalue='STEPOM',set_value=[1])
+  butOM=cw_bgroup(base11,space=0, xpad=0, ypad=0, /column,/nonexclusive,'OBS/MOD',uvalue='STEPOM',set_value=[1], font='times Roman*12*bold')
   labOM=lonarr(2)
   baseOM2=lonarr(3)
   for i=0,1 do begin
-    baseOM2(i)=widget_base(base11,/row,space=10)
+    baseOM2(i)=widget_base(base11,/row,space=0)
     labOM(i)=widget_label(baseOM2(i),value=steps(i+17),/align_left)
     labok(i+17)=widget_label(baseOM2(i),value=oktxt,/align_left)
   endfor
-  base12=widget_base(base1,/column)
-  lab121=widget_label(base12,value='FILE LOCATIONS',font='times Roman*18*bold', /ALIGN_RIGHT)
-  base121=widget_base(base12,/column,/frame)
-  base1211=widget_base(base121,/row)
-  labdir1=widget_label(base1211,scr_XSIZE=labelXsize,value='HOME_DIR =',font='times Roman*14*bold')
+  secondColumn=widget_base(base1,/column)
+  thirdColumn=widget_base(base1,/column)
+
+  lab121=widget_label(secondColumn,value='FILE LOCATIONS',font='times Roman*16*bold', /ALIGN_RIGHT)
+  
+  base1211=widget_base(secondColumn,/row)
+  labdir1=widget_label(base1211,scr_XSIZE=labelXsize,value='HOME_DIR =',font='times Roman*12*bold')
   labdir1_txt=WIDGET_TEXT(base1211,scr_XSIZE=textXsize,ysize=0.3,uvalue='DIR',value=dir,/all_events)
-  base1216=widget_base(base121,/row)
-  labdir6=widget_label(base1216,scr_XSIZE=labelXsize,value='LOG_DIR =',font='times Roman*14*bold')
+  
+  base1216=widget_base(secondColumn,/row)
+  labdir6=widget_label(base1216,scr_XSIZE=labelXsize,value='LOG_DIR =',font='times Roman*12*bold')
   labdir6_txt=WIDGET_TEXT(base1216,scr_XSIZE=textXsize,ysize=0.3,uvalue='DIR_LOG',value=dir_log,/all_events)
-  base1212=widget_base(base121,/row)
-  labdir2=widget_label(base1212,scr_XSIZE=labelXsize,value='RESOURCE_DIR =',font='times Roman*14*bold')
+  
+  base1212=widget_base(secondColumn,/row)
+  labdir2=widget_label(base1212,scr_XSIZE=labelXsize,value='RESOURCE_DIR =',font='times Roman*12*bold')
   labdir2_txt=WIDGET_TEXT(base1212,scr_XSIZE=textXsize,ysize=0.3,uvalue='DIR_RES',value=dir_res,/all_events)
-  base1212a=widget_base(base121,/row)
-  labdir2a=widget_label(base1212a,scr_XSIZE=labelXsize,value='STARTUP FILE =',font='times Roman*14*bold')
+
+  base1212a=widget_base(secondColumn,/row)
+  labdir2a=widget_label(base1212a,scr_XSIZE=labelXsize,value='STARTUP FILE =',font='times Roman*12*bold')
   labdir2a_txt=WIDGET_TEXT(base1212a,scr_XSIZE=textXsize,ysize=0.3,uvalue='STARTUP',value=startup,/all_events)
-  base1213=widget_base(base121,/row)
-  labdir3=widget_label(base1213,scr_XSIZE=labelXsize,value='MONITORING_DIR =',font='times Roman*14*bold')
+
+  base1213=widget_base(secondColumn,/row)
+  labdir3=widget_label(base1213,scr_XSIZE=labelXsize,value='MONITORING_DIR =',font='times Roman*12*bold')
   labdir3_txt=WIDGET_TEXT(base1213,scr_XSIZE=textXsize,ysize=0.3,uvalue='DIR_OBS',value=dir_obs,/all_events)
-  base1214=widget_base(base121,/row)
-  labdir4=widget_label(base1214,scr_XSIZE=labelXsize,value='MODELING_DIR =',font='times Roman*14*bold')
+
+  base1214=widget_base(secondColumn,/row)
+  labdir4=widget_label(base1214,scr_XSIZE=labelXsize,value='MODELING_DIR =',font='times Roman*12*bold')
   labdir4_txt=WIDGET_TEXT(base1214,scr_XSIZE=textXsize,ysize=0.3,uvalue='DIR_MOD',value=dir_mod,/all_events)
   ;MM summer 2012 start
-  modelBase=widget_base(base121,/row)
-  modelLabel=widget_label(modelBase,scr_XSIZE=labelXsize, value='MODEL = ',font='times Roman*14*bold')
+  modelBase=widget_base(secondColumn,/row)
+  modelLabel=widget_label(modelBase,scr_XSIZE=labelXsize, value='MODEL = ',font='times Roman*12*bold')
   modelDropList=widget_combobox(modelBase,scr_XSIZE=textXsize, uname='MODEL_COMBOBOX', value=modelNames, uvalue=[ptr_new(modelNames), ptr_new(modelCodes)],editable=0, $
     event_pro='DeltaCheck_IO_event')
-  scenarioBase=widget_base(base121,/row)
-  scenarioLabel=widget_label(scenarioBase,scr_XSIZE=labelXsize,value='SCENARIO = ',font='times Roman*14*bold')
+
+  scenarioBase=widget_base(secondColumn,/row)
+  scenarioLabel=widget_label(scenarioBase,scr_XSIZE=labelXsize,value='SCENARIO = ',font='times Roman*12*bold')
   scenarioDropList=widget_combobox(scenarioBase, uname='SCENARIO_COMBOBOX', value=scenarioNames, uvalue=[ptr_new(scenarioNames), ptr_new(scenarioCodes)] , $
     event_pro='DeltaCheck_IO_event',scr_XSIZE=textXsize,editable=0)
-  runFileBase=widget_base(base121,/row)
-  runFileLabel=widget_label(runFileBase,scr_XSIZE=labelXsize, value='RUNFILE = ',font='times Roman*14*bold')
+
+  runFileBase=widget_base(secondColumn,/row)
+  runFileLabel=widget_label(runFileBase,scr_XSIZE=labelXsize, value='RUNFILE = ',font='times Roman*12*bold')
   runFileText=widget_text(runFileBase,scr_XSIZE=textXsize,ysize=0.3,uname='RUNFILE_TEXT',uvalue='RUNFILE_TEXT',value='',/editable)
   ;MM summer 2012 end
   ;  base1215=widget_base(base121,/row)
-  ;  labdir5=widget_label(base1215,value='MODEL =                      ',font='times Roman*14*bold')
+  ;  labdir5=widget_label(base1215,value='MODEL =                      ',font='times Roman*12*bold')
   ;  labdir5_txt=WIDGET_TEXT(base1215,XSIZE=30,ysize=0.3,uvalue='MODEL',value=model,/editable,/all_events)
-  base1217=widget_base(base121,/row)
-  labdir7=widget_label(base1217,scr_XSIZE=labelXsize,value='YEAR =',font='times Roman*14*bold')
+  base1217=widget_base(secondColumn,/row)
+  labdir7=widget_label(base1217,scr_XSIZE=labelXsize,value='YEAR =',font='times Roman*12*bold')
   labdir7_txt=WIDGET_TEXT(base1217,scr_XSIZE=textXsize,ysize=0.3,uvalue='YEAR',value='',uname='YEAR_TEXT',/editable,/all_events)
-  lab1x=widget_label(base12,value=' ',ysize=20)
-  basegn=widget_base(base12,/row,space=10)
-  butgo = WIDGET_BUTTON(basegn,VALUE='  Go  ', UVALUE='GO',ysize=50,$
-    font='times Roman*18*bold', event_pro='DeltaCheck_IO_event')
-  lab2x=widget_label(base12,value=' ',ysize=20)
-  base122=widget_base(base12,/row)
-  lab1222=widget_label(base122,value='PROGRESS: ',font='times Roman*14*bold')
-  labprog_txt=WIDGET_TEXT(base122,XSIZE=44,ysize=0.3)
-  widget_control,labprog_txt,set_value='---'
-  lab5x=widget_label(base12,value=' ',ysize=20)
-  baselg=widget_base(base12,/row,space=22)
-  lab55x=widget_label(baselg,value='              ',ysize=20)
-  butlog=WIDGET_BUTTON(baselg,VALUE='Edit LogFile', UVALUE='LOG',ysize=50,$
-    font='times Roman*18*bold', event_pro='DeltaCheck_IO_event')
-  butsum=WIDGET_BUTTON(baselg,VALUE='Edit SummaryFile', UVALUE='SUM',ysize=50,$
-    font='times Roman*18*bold', event_pro='DeltaCheck_IO_event')
-  lab4x=widget_label(base12,value=' ',ysize=20)
-  baseex=widget_base(base12,/row,space=10)
-  WID_EXIT=Widget_Button(baseex, VALUE='Exit',ysize=50,UVALUE='DONE',font='times Roman*18*bold', $
-    event_pro='DeltaCheck_IO_event')
-  base13=widget_base(base1,/column)
-  lab13=widget_label(base13,value='             COMMENTS [See Log/Summary Files]',font='times Roman*18*bold')
-  labcom_txt=WIDGET_TEXT(base13,XSIZE=75,ysize=40,/frame)
-  Widget_Control, base, /REALIZE
+
+  ;lab1x=widget_label(base12,value=' ',ysize=20)
+  ;basegn=widget_base(base12,/row,space=0)
+  operationBase=widget_base(secondColumn, /ROW)
   
+  butgo = WIDGET_BUTTON(operationBase,VALUE='  Go  ', UVALUE='GO',ysize=50,$
+    font='times Roman*16*bold', event_pro='DeltaCheck_IO_event')
+  WID_EXIT=Widget_Button(operationBase, VALUE='Exit',ysize=50,UVALUE='DONE',font='times Roman*16*bold', $
+    event_pro='DeltaCheck_IO_event')
+  butlog=WIDGET_BUTTON(operationBase,VALUE='Edit LogFile', UVALUE='LOG',ysize=50,$
+    font='times Roman*16*bold', event_pro='DeltaCheck_IO_event')
+  butsum=WIDGET_BUTTON(operationBase,VALUE='Edit SummaryFile', UVALUE='SUM',ysize=50,$
+    font='times Roman*16*bold', event_pro='DeltaCheck_IO_event')
+
+  base122=widget_base(secondColumn,/column)
+  lab1222=widget_label(base122,value='PROGRESS: ',font='times Roman*12*bold')
+  labprog_txt=WIDGET_TEXT(base122,SCR_XSIZE=textXsize+labelXsize,ysize=0.3)
+  widget_control,labprog_txt,set_value='---'
+
+  lab13=widget_label(thirdColumn,value='COMMENTS [See Log/Summary Files]',font='times Roman*16*bold')
+  labcom_txt=WIDGET_TEXT(thirdColumn,scr_XSIZE=textXsize,scr_ysize=dims[1]*8/10,/frame, /SCROLL)
+  Widget_Control, base, /REALIZE
+
   fakeEvent={top:base}
   updateRunFileName, fakeEvent, deltaMgr, scenario=scenarioNames[0]
-  
-  XMANAGER, 'DeltaCheck_IO', base, /JUST_REG, /CATCH
+
+  JUST_REG=0
+  if obj_valid(deltaMgr) then JUST_REG=deltaMgr->isRunning()
+  XMANAGER, 'DeltaCheck_IO', base, JUST_REG=JUST_REG;, /CATCH, /NO_BLOCK
   !P = orig_P
-  
+
 end

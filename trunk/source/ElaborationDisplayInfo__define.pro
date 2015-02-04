@@ -1,5 +1,5 @@
 ;********************
-@structure_definition
+@../common/structure_definition
 ;********************
 FUNCTION ElaborationDisplayInfo::buildTextMultiple, flags
 
@@ -11,7 +11,7 @@ FUNCTION ElaborationDisplayInfo::buildTextMultiple, flags
   if flags[2] eq 1 then text=text+'scenarios, '
   if flags[3] eq 1 then text=text+'observations, '
   return, strmid(text, 0, strlen(text)-2)+'.'
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getCurrentElabMultipleChoiceFlagsNumber
@@ -19,7 +19,7 @@ FUNCTION ElaborationDisplayInfo::getCurrentElabMultipleChoiceFlagsNumber
   flags=self->getCurrentElabMultipleChoiceFlags()
   dims=size(*flags, /DIM)
   return, dims[0]
-
+  
 END
 
 PRO ElaborationDisplayInfo::setEndYear
@@ -27,7 +27,7 @@ PRO ElaborationDisplayInfo::setEndYear
   self->setEndHourSelection, 23
   self->setEndDaySelection, 30
   self->setEndMonthSelection, 11
-
+  
 END
 
 PRO ElaborationDisplayInfo::setExclusives, exclValues
@@ -36,31 +36,31 @@ PRO ElaborationDisplayInfo::setExclusives, exclValues
   self.groupByStatSelection=exclValues[1]
   self.seasonSelection=exclValues[2]
   self.dayPeriodSelection=exclValues[3]
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::isDayPeriodSelected
 
   return, self->getDayPeriodSelection() ne -1
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::isSeasonSelected
 
   return, self->getSeasonSelection() ne -1
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::isGroupByStatSelected
 
   return, self->getGroupByStatSelection() ne -1
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::isGroupByTimeSelected
 
   return, self->getGroupByTimeSelection() ne -1
-
+  
 END
 
 PRO ElaborationDisplayInfo::userSetReferenceValues, values, CANCEL=CANCEL
@@ -71,7 +71,7 @@ PRO ElaborationDisplayInfo::userSetReferenceValues, values, CANCEL=CANCEL
     self->setThresholdValues, float(values)
     self->setThresholdFlag, 1
   endelse
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::checkIntegrity, view, NODISPLAYCHECK=NODISPLAYCHECK
@@ -130,7 +130,7 @@ FUNCTION ElaborationDisplayInfo::checkIntegrity, view, NODISPLAYCHECK=NODISPLAYC
     msg=view->dialogMessage('Check start date existence',title='Check your data')
     return, 0
   endif
-
+  
   dateExists=self.dtu->checkDate(year, month=self->getEndMonthSelection()+1, day=self->getEndDaySelection()+1, hour=self->getEndHourSelection(), julnumber=eDate)
   if dateExists ne 1 then begin
     msg=view->dialogMessage('Check end date existence',title='Check your data')
@@ -141,23 +141,23 @@ FUNCTION ElaborationDisplayInfo::checkIntegrity, view, NODISPLAYCHECK=NODISPLAYC
     return, 0
   endif
   return, 1
-
+  
 END
 
 PRO ElaborationDisplayInfo::resetThresholds
 
   self->setThresholdFlag, 0
   ptr_free, self.thresholdValues
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getCurrentDiagramMaxMultipleChoiceNumber
 
   diagramIndex=self->getDiagramSelection()
   mmc=self->getDiagramMaxMultipleChoice()
-
+  
   return, mmc[diagramIndex]
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getCurrentElabMultipleChoiceFlags
@@ -165,11 +165,11 @@ FUNCTION ElaborationDisplayInfo::getCurrentElabMultipleChoiceFlags
   mcFlags=self->getElabMultipleChoiceFlags()
   elabCode=self->getSelectedElabCode()
   allCodes=self->getElabCodes()
-
+  
   idx=(where(elabCode eq allCodes))[0]
-
+  
   return, mcFlags[idx]
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getCurrentGoalsCriteriaFlag
@@ -177,11 +177,11 @@ FUNCTION ElaborationDisplayInfo::getCurrentGoalsCriteriaFlag
   gcocFlags=self->getElabGCOC()
   elabCode=self->getSelectedElabCode()
   allCodes=self->getElabCodes()
-
+  
   idx=(where(elabCode eq allCodes))[0]
-
+  
   return, gcocFlags[idx]
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getNumberReferenceValues
@@ -189,11 +189,11 @@ FUNCTION ElaborationDisplayInfo::getNumberReferenceValues
   refValues=self->getElabNumberRefValues()
   elabCode=self->getSelectedElabCode()
   allCodes=self->getElabCodes()
-
+  
   idx=(where(elabCode eq allCodes))[0]
-
+  
   return, refValues[idx]
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getExclusiveInfo
@@ -202,111 +202,111 @@ FUNCTION ElaborationDisplayInfo::getExclusiveInfo
   gbSC=self->getElabGroupByStatCodes()
   dpCodes=self->getElabDayPeriodCodes()
   sCodes=self->getElabSeasonCodes()
-
+  
   elabCode=self->getSelectedElabCode()
   allCodes=self->getElabCodes()
-
+  
   idx=(where(elabCode eq allCodes))[0]
-
+  
   return, {gbStat: gbSC[idx], gbTime:gbTC[idx], dayPeriod:dpCodes[idx], season:sCodes[idx]}
-
+  
 END
 
 ;diagramMaxMultipleChoice
 FUNCTION ElaborationDisplayInfo::getDiagramMaxMultipleChoice
 
   if ptr_valid(self.diagramMaxMultipleChoice) then return, *self.diagramMaxMultipleChoice else return, ['-1']
-
+  
 END
 
 PRO ElaborationDisplayInfo::setDiagramMaxMultipleChoice, list
 
   ptr_free, self.diagramMaxMultipleChoice
   self.diagramMaxMultipleChoice=ptr_new(list, /NO_COPY)
-
+  
 END
 ;elabMultipleChoiceFlags
 FUNCTION ElaborationDisplayInfo::getElabMultipleChoiceFlags
 
   if ptr_valid(self.elabMultipleChoiceFlags) then return, *self.elabMultipleChoiceFlags else return, ['-1']
-
+  
 END
 
 PRO ElaborationDisplayInfo::setElabMultipleChoiceFlags, list
 
   ptr_free, self.elabMultipleChoiceFlags
   self.elabMultipleChoiceFlags=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabGroupByTimeCodes
 
   if ptr_valid(self.elabGroupByTimeCodes) then return, *self.elabGroupByTimeCodes else return, ['-1']
-
+  
 END
 
 PRO ElaborationDisplayInfo::setElabGroupByTimeCodes, list
 
   ptr_free, self.elabGroupByTimeCodes
   self.elabGroupByTimeCodes=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabGroupByStatCodes
 
   if ptr_valid(self.elabGroupByStatCodes) then return, *self.elabGroupByStatCodes else return, ['-1']
-
+  
 END
 
 PRO ElaborationDisplayInfo::setElabGroupByStatCodes, list
 
   ptr_free, self.elabGroupByStatCodes
   self.elabGroupByStatCodes=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabDayPeriodCodes
 
   if ptr_valid(self.elabDayPeriodCodes) then return, *self.elabDayPeriodCodes else return, ['-1']
-
+  
 END
 
 PRO ElaborationDisplayInfo::setElabDayPeriodCodes, list
 
   ptr_free, self.elabDayPeriodCodes
   self.elabDayPeriodCodes=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabSeasonCodes
 
   if ptr_valid(self.elabSeasonCodes) then return, *self.elabSeasonCodes else return, ['-1']
-
+  
 END
 
 PRO ElaborationDisplayInfo::setElabSeasonCodes, list
 
   ptr_free, self.elabSeasonCodes
   self.elabSeasonCodes=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSelectedDayPeriodCode
 
   codes=*self.dayPeriodCodes
   selIdx=self->getDayPeriodSelection()
-
+  
   return, codes[selIdx]
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSelectedSeasonCode
 
   codes=*self.seasonCodes
   selIdx=self->getSeasonSelection()
-
+  
   return, codes[selIdx]
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSelectedDayPeriodName
@@ -315,9 +315,9 @@ FUNCTION ElaborationDisplayInfo::getSelectedDayPeriodName
   if selIdx eq -1 then return, 'N/A'
   allNames=self->getDayPeriodNames()
   name=allNames[selIdx]
-
+  
   return, name
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSelectedSeasonName
@@ -326,9 +326,9 @@ FUNCTION ElaborationDisplayInfo::getSelectedSeasonName
   if selIdx eq -1 then return, 'N/A'
   allNames=self->getSeasonNames()
   name=allNames[selIdx]
-
+  
   return, name
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSelectedGroupByStatName
@@ -337,9 +337,9 @@ FUNCTION ElaborationDisplayInfo::getSelectedGroupByStatName
   if selIdx eq -1 then return, 'N/A'
   allNames=self->getGroupByStatNames()
   name=allNames[selIdx]
-
+  
   return, name
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSelectedGroupByTimeName
@@ -348,9 +348,9 @@ FUNCTION ElaborationDisplayInfo::getSelectedGroupByTimeName
   if selIdx eq -1 then return, 'N/A'
   allNames=self->getGroupByTimeNames()
   name=allNames[selIdx]
-
+  
   return, name
-
+  
 END
 
 ;FUNCTION ElaborationDisplayInfo::getAxisCodesByDiagram, diagramCode
@@ -396,50 +396,50 @@ FUNCTION ElaborationDisplayInfo::getSelectedElabName
 
   diagramIndex=self->getDiagramSelection()
   elabIndex=self->getElabSelection()
-
+  
   allCodes=self->getElabCodes()
   allNames=self->getElabNames()
   codes=self->getElaborationsCodesByDiagram(diagramIndex)
   thisCode=codes[elabIndex]
   name=allNames[(where(thisCode eq allCodes))[0]]
-
+  
   return, name
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSelectedElabCode
 
   elabIndex=self->getElabSelection()
   diagramIndex=self->getDiagramSelection()
-
+  
   allCodes=self->getElabCodes()
   ;allNames=self->getElabNames()
   codes=self->getElaborationsCodesByDiagram(diagramIndex)
   thisCode=codes[elabIndex]
   return, thisCode
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSelectedDiagramName
 
   diagramIndex=self->getDiagramSelection()
-
+  
   allNames=self->getDiagramNames()
   name=allNames[diagramIndex]
-
+  
   return, name
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSelectedDiagramCode
 
   diagramIndex=self->getDiagramSelection()
-
+  
   allNames=self->getDiagramCodes()
   name=allNames[diagramIndex]
-
+  
   return, name
-
+  
 END
 
 ;FUNCTION ElaborationDisplayInfo::getSelectedAxisCode
@@ -471,13 +471,13 @@ END
 PRO ElaborationDisplayInfo::setStartDateInfo, dateTime
 
   self.startDateInfo=dateTime
-
+  
 END
 
 PRO ElaborationDisplayInfo::setEndDateInfo, dateTime
 
   self.endDateInfo=dateTime
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getStartDateInfo, REAL=REAL
@@ -488,25 +488,25 @@ FUNCTION ElaborationDisplayInfo::getStartDateInfo, REAL=REAL
     sDate.month=sDate.month+1
   endif
   return, sDate
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getStartHourSelection
 
   return, self.startDateInfo.hour
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getStartDaySelection
 
   return, self.startDateInfo.day
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getStartMonthSelection
 
   return, self.startDateInfo.month
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getEndDateInfo, REAL=REAL
@@ -517,76 +517,76 @@ FUNCTION ElaborationDisplayInfo::getEndDateInfo, REAL=REAL
     eDate.month=eDate.month+1
   endif
   return, eDate
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getEndHourSelection
 
   return, self.endDateInfo.hour
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getEndDaySelection
 
   return, self.endDateInfo.day
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getEndMonthSelection
 
   return, self.endDateInfo.month
-
+  
 END
 
 PRO ElaborationDisplayInfo::setStartHourSelection, index
 
   self.startDateInfo.hour=index
-
+  
 END
 
 PRO ElaborationDisplayInfo::setStartDaySelection, index
 
   self.startDateInfo.day=index
-
+  
 END
 
 PRO ElaborationDisplayInfo::setStartMonthSelection, index
 
   self.startDateInfo.month=index
-
+  
 END
 
 PRO ElaborationDisplayInfo::setEndHourSelection, index
 
   self.endDateInfo.hour=index
-
+  
 END
 
 PRO ElaborationDisplayInfo::setEndDaySelection, index
 
   self.endDateInfo.day=index
-
+  
 END
 
 PRO ElaborationDisplayInfo::setEndMonthSelection, index
 
   self.endDateInfo.month=index
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getCurrentElabDescription
 
   elabIndex=self->getElabSelection()
   diagramIndex=self->getDiagramSelection()
-
+  
   allCodes=self->getElabCodes()
   codes=self->getElaborationsCodesByDiagram(diagramIndex)
   thisCode=codes[elabIndex]
   descrs=self->getElabDescriptions()
-
+  
   desc=descrs[(where(thisCode eq allCodes))[0]]
   return, desc
-
+  
 END
 
 FUNCTION  ElaborationDisplayInfo::getElabNamesByDiagramIndex, diagramIndex
@@ -594,7 +594,7 @@ FUNCTION  ElaborationDisplayInfo::getElabNamesByDiagramIndex, diagramIndex
   codes=self->getElaborationsCodesByDiagram(diagramIndex)
   names=self->getElaborationsNamesByCodes(codes)
   return, names
-
+  
 END
 
 FUNCTION  ElaborationDisplayInfo::getElabNamesBySelectedDiagram
@@ -603,7 +603,7 @@ FUNCTION  ElaborationDisplayInfo::getElabNamesBySelectedDiagram
   codes=self->getElaborationsCodesByDiagram(diagramIndex)
   names=self->getElaborationsNamesByCodes(codes)
   return, names
-
+  
 END
 
 ;FUNCTION  ElaborationDisplayInfo::getAxisNamesBySelectedDiagram
@@ -629,7 +629,7 @@ FUNCTION ElaborationDisplayInfo::getElaborationsNamesByCodes, codesList;, ALL=AL
     names=names[1:*]
   endif
   return, names
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElaborationsCodesByDiagram, diagramIndex, CODE=CODES;, ALL=ALL
@@ -640,28 +640,28 @@ FUNCTION ElaborationDisplayInfo::getElaborationsCodesByDiagram, diagramIndex, CO
   thisDiagram=allDiagramCodes[diagramIndex]
   elabIdxs=where(thisDiagram eq elabDiagramList, count)
   if count ne 0 then return, allElabCodes[elabIdxs] else return, [-1]
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabDiagramCodes
 
   if ptr_valid(self.elabDiagramCodes) then return, *self.elabDiagramCodes
   return, -1
-
+  
 END
 
 PRO ElaborationDisplayInfo::setDayPeriodNames, list
 
   ptr_free, self.dayPeriodNames
   self.dayPeriodNames=ptr_new(list, /NO_COPY)
-
+  
 END
 
 PRO ElaborationDisplayInfo::setDayPeriodCodes, list
 
   ptr_free, self.dayPeriodCodes
   self.dayPeriodCodes=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getDayPeriodNames
@@ -670,75 +670,75 @@ FUNCTION ElaborationDisplayInfo::getDayPeriodNames
     return, *self.dayPeriodNames
   endif
   return, -1
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getDayPeriodCodes
 
   if ptr_valid(self.dayPeriodCodes) then return, *self.dayPeriodCodes else return, -1
-
+  
 END
 
 PRO ElaborationDisplayInfo::setSeasonCodes, list
 
   ptr_free, self.seasonCodes
   self.seasonCodes=ptr_new(list, /NO_COPY)
-
+  
 END
 
 PRO ElaborationDisplayInfo::setSeasonNames, list
 
   ptr_free, self.seasonNames
   self.seasonNames=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSeasonNames
 
   if ptr_valid(self.seasonNames) then return, *self.seasonNames else return, -1
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSeasonCodes
 
   if ptr_valid(self.seasonCodes) then return, *self.seasonCodes else return, -1
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getPeriodTitles
 
   return, self.periodTitles
-
+  
 END
 
 PRO ElaborationDisplayInfo::setPeriodTitles, list
 
   self.periodTitles=list
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getDayPeriodSelection
 
   return, self.dayPeriodSelection
-
+  
 END
 
 PRO ElaborationDisplayInfo::setDayPeriodSelection, index, NONE=NONE
 
   if keyword_set(NONE) then self.dayPeriodSelection=-1 else self.dayPeriodSelection=index
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getSeasonSelection
 
   return, self.seasonSelection
-
+  
 END
 
 PRO ElaborationDisplayInfo::setSeasonSelection, index, NONE=NONE
 
   if keyword_set(NONE) then self.seasonSelection=-1 else self.seasonSelection=index
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getGroupNamesByIndex, groupIndex, CODES=CODES
@@ -748,9 +748,9 @@ FUNCTION ElaborationDisplayInfo::getGroupNamesByIndex, groupIndex, CODES=CODES
     2:return, self->getGroupByStatNames(CODES=CODES)
     else:message, 'Group not mapped on DB!!!'
   endcase
-
+  
   return, -1
-
+  
 END
 ;****************************************************************************************
 ; index/code of elaboration plot user selection
@@ -769,13 +769,13 @@ END
 PRO ElaborationDisplayInfo::setDiagramSelection, index
 
   self.diagramSelection=index
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getDiagramSelection
 
   return, self.diagramSelection
-
+  
 END
 
 ; index/code of elaboration user selection
@@ -783,13 +783,13 @@ END
 PRO ElaborationDisplayInfo::setElabSelection, index
 
   self.elabSelection=index
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabSelection
 
   return, self.elabSelection
-
+  
 END
 
 PRO ElaborationDisplayInfo::setElabNumberRefValues, list
@@ -798,26 +798,26 @@ PRO ElaborationDisplayInfo::setElabNumberRefValues, list
   ptr_free, self.elabNumberRefValues
   self.elabNumberRefValues=ptr_new(list, /NO_COPY)
 ;if value gt 0 then self->setThresholdFlag, 1 else self->setThresholdFlag, 0
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabNumberRefValues
 
   if ptr_valid(self.elabNumberRefValues) then return, *self.elabNumberRefValues else return, -1
-
+  
 END
 
 ; boolean true if threshold needed
 PRO ElaborationDisplayInfo::setThresholdFlag, value
 
   self.thresholdFlag=value
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getThresholdFlag
 
   return, self.thresholdFlag
-
+  
 END
 
 ; boolean true if threshold needed
@@ -825,32 +825,32 @@ END
 PRO ElaborationDisplayInfo::setGoalsCriteriaOCFlag, value
 
   self.goalsCriteriaOCFlag=value
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getGoalsCriteriaOCFlag
 
   return, self.goalsCriteriaOCFlag
-
+  
 END
 ; strarr(2) for group by titles time/stat selection (exclusive buttons)
 
 PRO ElaborationDisplayInfo::setGroupByTitles, list
 
   self.groupByTitles=list
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getGroupByTitles
 
   return, self.groupByTitles
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getGroupByNumbers
 
   return, n_elements(self.groupByTitles)
-
+  
 END
 
 ; Index/code of group by time selection (exclusive buttons)
@@ -858,13 +858,13 @@ END
 PRO ElaborationDisplayInfo::setGroupByTimeSelection, index, NONE=NONE
 
   if keyword_set(NONE) then self.groupByTimeSelection=-1 else self.groupByTimeSelection=index
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getGroupByTimeSelection
 
   return, self.groupByTimeSelection
-
+  
 END
 
 ; Index/code of group by stat selection (exclusive buttons)
@@ -872,13 +872,13 @@ END
 PRO ElaborationDisplayInfo::setGroupByStatSelection, index, NONE=NONE
 
   if keyword_set(NONE) then self.groupByStatSelection=-1 else self.groupByStatSelection=index
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getGroupByStatSelection
 
   return, self.groupByStatSelection
-
+  
 END
 
 ; name to be linked to each exclusive button (group by section)
@@ -886,14 +886,14 @@ PRO ElaborationDisplayInfo::setGroupByStatNames, list
 
   ptr_free, self.groupByStatNames
   self.groupByStatNames=ptr_new(list, /NO_COPY)
-
+  
 END
 
 PRO ElaborationDisplayInfo::setGroupByStatCodes, list
 
   ptr_free, self.groupByStatCodes
   self.groupByStatCodes=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getGroupByStatNames, CODES=CODES
@@ -903,7 +903,7 @@ FUNCTION ElaborationDisplayInfo::getGroupByStatNames, CODES=CODES
     return, *self.groupByStatNames
   endif
   return, -1
-
+  
 END
 
 ; name to be linked to each exclusive button (group by time)
@@ -912,14 +912,14 @@ PRO ElaborationDisplayInfo::setGroupByTimeNames, list
 
   ptr_free, self.groupByTimeNames
   self.groupByTimeNames=ptr_new(list, /NO_COPY)
-
+  
 END
 
 PRO ElaborationDisplayInfo::setGroupByTimeCodes, list
 
   ptr_free, self.groupByTimeCodes
   self.groupByTimeCodes=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getGroupByTimeNames, CODES=CODES
@@ -929,7 +929,7 @@ FUNCTION ElaborationDisplayInfo::getGroupByTimeNames, CODES=CODES
     return, *self.groupByTimeNames
   endif
   return, -1
-
+  
 END
 
 ; list of names for elaboration type list
@@ -938,14 +938,14 @@ PRO ElaborationDisplayInfo::setDiagramNames, list
 
   ptr_free, self.diagramNames
   self.diagramNames=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getDiagramNames
 
   if ptr_valid(self.diagramNames) then return, *self.diagramNames
   return, -1
-
+  
 END
 
 ; list of linking codes for elaboration type list
@@ -954,14 +954,14 @@ PRO ElaborationDisplayInfo::setDiagramCodes, list
 
   ptr_free, self.diagramCodes
   self.diagramCodes=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getDiagramCodes
 
   if ptr_valid(self.diagramCodes) then return, *self.diagramCodes
   return, -1
-
+  
 END
 
 ; list of descriptions for elaboration type list
@@ -970,14 +970,14 @@ PRO ElaborationDisplayInfo::setDiagramDescriptions, list
 
   ptr_free, self.diagramDescriptions
   self.diagramDescriptions=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getDiagramDescriptions
 
   if ptr_valid(self.diagramDescriptions) then return, *self.diagramDescriptions
   return, -1
-
+  
 END
 
 ;ptr_free, self.elabSelection
@@ -987,14 +987,14 @@ PRO ElaborationDisplayInfo::setElabGCOC, list
 
   ptr_free, self.elabGCOC
   self.elabGCOC=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabGCOC
 
   if ptr_valid(self.elabGCOC) then return, *self.elabGCOC
   return, -1
-
+  
 END
 ; list of need ref values for elaboration
 
@@ -1002,14 +1002,14 @@ PRO ElaborationDisplayInfo::setElabRefValues, list
 
   ptr_free, self.elabRefValues
   self.elabRefValues=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabRefValues
 
   if ptr_valid(self.elabRefValues) then return, *self.elabRefValues
   return, -1
-
+  
 END
 ; list of user max parameters number for elaboration
 
@@ -1018,14 +1018,14 @@ PRO ElaborationDisplayInfo::setElabUserParameterSelection, list
 
   ptr_free, self.elabUserParameterSelection
   self.elabUserParameterSelection=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabUserParameterSelection
 
   if ptr_valid(self.elabUserParameterSelection) then return, *self.elabUserParameterSelection
   return, -1
-
+  
 END
 ; list of parameters for elaboration
 
@@ -1033,14 +1033,14 @@ PRO ElaborationDisplayInfo::setElabParameters, list
 
   ptr_free, self.elabParameters
   self.elabParameters=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabParameters
 
   if ptr_valid(self.elabParameters) then return, *self.elabParameters
   return, -1
-
+  
 END
 ; list of type for elaboration
 
@@ -1048,7 +1048,7 @@ PRO ElaborationDisplayInfo::setElabDiagramCodes, list
 
   ptr_free, self.elabDiagramCodes
   self.elabDiagramCodes=ptr_new(list, /NO_COPY)
-
+  
 END
 
 ; list of names for elaboration
@@ -1057,14 +1057,14 @@ PRO ElaborationDisplayInfo::setElabNames, list
 
   ptr_free, self.elabNames
   self.elabNames=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabNames
 
   if ptr_valid(self.elabNames) then return, *self.elabNames
   return, -1
-
+  
 END
 
 ; list of codes for elaboration
@@ -1073,14 +1073,14 @@ PRO ElaborationDisplayInfo::setElabCodes, list
 
   ptr_free, self.elabCodes
   self.elabCodes=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabCodes
 
   if ptr_valid(self.elabCodes) then return, *self.elabCodes
   return, -1
-
+  
 END
 
 ; list of descriptions for elaboration list
@@ -1089,14 +1089,14 @@ PRO ElaborationDisplayInfo::setElabDescriptions, list
 
   ptr_free, self.elabDescriptions
   self.elabDescriptions=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getElabDescriptions
 
   if ptr_valid(self.elabDescriptions) then return, *self.elabDescriptions
   return, -1
-
+  
 END
 
 ;;
@@ -1156,20 +1156,26 @@ PRO ElaborationDisplayInfo::setThresholdValues, list
 
   ptr_free, self.thresholdValues
   self.thresholdValues=ptr_new(list, /NO_COPY)
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getThresholdValues
 
   if ptr_valid(self.thresholdValues) then return, *self.thresholdValues
   return, -1
+  
+END
 
+FUNCTION ElaborationDisplayInfo::getCompatibleVersionList
+
+  return, ['2.0']
+  
 END
 
 FUNCTION ElaborationDisplayInfo::getFileFormatVersion
 
   return, '2.0'
-
+  
 END
 
 PRO ElaborationDisplayInfo::saveData, filename
@@ -1178,164 +1184,164 @@ PRO ElaborationDisplayInfo::saveData, filename
   openw, unit, filename, /GET_LUN
   header1='#ElaborationDisplayInfo - Save File - Never change order of contents'
   printf, unit, header1
-
+  
   record=self.utility->buildFileDataStream('Version', self->getFileFormatVersion())
   printf, unit, record
   ; Elaboration section
   ;  data=self->getElabNames()
   ;  record=self.utility->buildFileDataStream('ElabNames', data)
   ;printf, unit, record
-
+  
   ;  data=self->getElabCodes()
   ;  record=self.utility->buildFileDataStream('ElabCodes', data)
   ;printf, unit, record
-
+  
   ;  data=self->getElabDescriptions()
   ;  record=self.utility->buildFileDataStream('ElabDescriptions', data)
   ;printf, unit, record
-
+  
   data=strcompress(self->getElabSelection(), /REMOVE)
   record=self.utility->buildFileDataStream('ElabSelection', data)
   printf, unit, record
-
+  
   ;  data=self->getElabDiagramCodes()
   ;  record=self.utility->buildFileDataStream('ElabDiagramCodes', data)
   ;printf, unit, record
-
+  
   ;  data=self->getElabGroupByTimeCodes()
   ;  record=self.utility->buildFileDataStream('ElabGroupByTimeCodes', data)
   ;printf, unit, record
-
+  
   ;  data=self->getElabGroupByStatCodes()
   ;  record=self.utility->buildFileDataStream('ElabGroupByStatCodes', data)
   ;printf, unit, record
-
+  
   ;  data=self->getElabDayPeriodCodes()
   ;  record=self.utility->buildFileDataStream('ElabDayPeriodCodes', data)
   ;printf, unit, record
-
+  
   ;  data=self->getElabSeasonCodes()
   ;record=self.utility->buildFileDataStream('getElabSeasonCodes', data)
   ;printf, unit, record
-
+  
   ;  data=strcompress(self->getElabNumberRefValues(), /REMOVE)
   ;  record=self.utility->buildFileDataStream('ElabNumberRefValues', data)
   ;  printf, unit, record
   ; Run section
-
+  
   data=strcompress(fix(self->getThresholdFlag()), /REMOVE)
   record=self.utility->buildFileDataStream('ThresholdFlag', data)
   printf, unit, record
-
+  
   ;  data=self->getElabMultipleChoiceFlags()
   ;  record=self.utility->buildFileDataStream('ElabMultipleChoiceFlags', data)
   ;  printf, unit, record
-
+  
   ;  data=self->getElabGCOC()
   ;  record=self.utility->buildFileDataStream('ElabGCOC', data)
   ;  printf, unit, record
-
+  
   ;  data=strcompress(fix(self->getGoalsCriteriaOCFlag()), /REMOVE)
   ;  record=self.utility->buildFileDataStream('GoalsCriteriaOCFlag', data)
   ;  printf, unit, record
-
+  
   data=strcompress(self->getDiagramSelection(), /REMOVE)
   record=self.utility->buildFileDataStream('DiagramSelection', data)
   printf, unit, record
-
+  
   ;  data=self->getDiagramNames()
   ;  record=self.utility->buildFileDataStream('DiagramNames', data)
   ;printf, unit, record
-
+  
   ;  data=self->getDiagramCodes()
   ;  record=self.utility->buildFileDataStream('DiagramCodes', data)
   ;printf, unit, record
   ; Scenario section
-
+  
   data=strcompress(self->getThresholdValues(), /REMOVE)
   record=self.utility->buildFileDataStream('ThresholdValues', data)
   printf, unit, record
-
+  
   ;  data=self->getdiagramDescriptions()
   ;  record=self.utility->buildFileDataStream('diagramDescriptions', data)
   ;  printf, unit, record
-
+  
   ;  data=self->getperiodTitles()
   ;  record=self.utility->buildFileDataStream('periodTitles', data)
   ;printf, unit, record
-
+  
   ;  data=strcompress(self->getdayPeriodNames(), /REMOVE)
   ;  record=self.utility->buildFileDataStream('dayPeriodNames', data)
   ;  printf, unit, record
   ; Model section
-
+  
   ;  data=self->getDiagramMaxMultipleChoice()
   ;  record=self.utility->buildFileDataStream('DiagramMaxMultipleChoice', data)
   ;printf, unit, record
-
+  
   ;  data=self->getSeasonNames()
   ;  record=self.utility->buildFileDataStream('SeasonNames', data)
   ;printf, unit, record
-
+  
   ;  data=self->getDayPeriodCodes()
   ;  record=self.utility->buildFileDataStream('DayPeriodCodes', data)
   ;printf, unit, record
-
+  
   ;  data=strcompress(self->getSeasonCodes(), /REMOVE)
   ;  record=self.utility->buildFileDataStream('SeasonCodes', data)
   ;  printf, unit, record
-
+  
   ; Category section
   data=strcompress(self->getDayPeriodSelection(), /REMOVE)
   record=self.utility->buildFileDataStream('DayPeriodSelection', data)
   printf, unit, record
-
+  
   data=strcompress(self->getSeasonSelection(), /REMOVE)
   record=self.utility->buildFileDataStream('SeasonSelection', data)
   printf, unit, record
-
+  
   ;  data=self->getGroupByTitles()
   ;  record=self.utility->buildFileDataStream('GroupByTitles', data)
   ;printf, unit, record
-
+  
   ;data=self->getGroupByTimeNames()
   ;record=self.utility->buildFileDataStream('GroupByTimeNames', data)
   ;printf, unit, record
-
+  
   ;data=self->getGroupByTimeCodes()
   ;record=self.utility->buildFileDataStream('GroupByTimeCodes', data)
   ;printf, unit, record
-
+  
   data=strcompress(self->getGroupByTimeSelection(), /REMOVE)
   record=self.utility->buildFileDataStream('GroupByTimeSelection', data)
   printf, unit, record
-
+  
   ; Obs section
   ;  data=self->getGroupByStatNames()
   ;  record=self.utility->buildFileDataStream('GroupByStatNames', data)
   ;printf, unit, record
-
+  
   ;  data=self->getGroupByStatCodes()
   ;  record=self.utility->buildFileDataStream('GroupByStatCodes', data)
   ;printf, unit, record
-
+  
   data=strcompress(self->getGroupByStatSelection(), /REMOVE)
   record=self.utility->buildFileDataStream('GroupByStatSelection', data)
   printf, unit, record
-
+  
   data=self->getStartDateInfo()
   dateTime=strcompress([string(data.second),string(data.minute),string(data.hour),string(data.day),string(data.month),string(data.year)], /REMOVE)
   record=self.utility->buildFileDataStream('StartDateInfo(SS*MI*HH*DD*MM*YYYY)', dateTime)
   printf, unit, record
-
+  
   data=self->getEndDateInfo()
   dateTime=strcompress([string(data.second),string(data.minute),string(data.hour),string(data.day),string(data.month),string(data.year)], /REMOVE)
   record=self.utility->buildFileDataStream('EndDateInfo(SS*MI*HH*DD*MM*YYYY)', dateTime)
   printf, unit, record
-
+  
   close, unit
   free_lun, unit
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::restoreData, filename
@@ -1343,90 +1349,95 @@ FUNCTION ElaborationDisplayInfo::restoreData, filename
   ; open file for write
   ERROR=0
   catch, error_status
-
+  
   if error_status NE 0 THEN BEGIN
     ERROR=1
     catch, /CANCEL & close, /ALL
     errMsg=dialog_message('problem with file: <'+fileName+'> check format version, existence or read permission.', /ERROR)
     return, 0
   endif
-
+  
   openr, unit, fileName, /GET_LUN
-
+  
   bufferString=''
-
+  
   readf, unit, bufferString
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, datalist
+  ;if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
+  ;if version ne self->getFileFormatVersion() then message, 'File version not compatible'
+  
   if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
-  if version ne self->getFileFormatVersion() then message, 'File version not compatible'
+  versions=self->getCompatibleVersionList()
+  idx=where((version) eq versions, count)
+  if count eq 0 then message, 'File version not compatible'
 
   ; Parameter section
   ;readf, unit, bufferString
   ;  data=self->getParameterTypeNames()
   ;  record=self.utility->buildFileDataStream('ParameterTypeNames', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getParameterTypeCodes()
   ;  record=self.utility->buildFileDataStream('getParameterTypeCodes', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getParameterTypeDescriptions()
   ;  record=self.utility->buildFileDataStream('getParameterTypeDescriptions', data)
-
+  
   readf, unit, bufferString
   ;record=self.utility->buildFileDataStream('getParameterTypeSelections', data)
   self.utility->convertStreamDataFile, bufferString, dataName, dataList
   self->setElabSelection, fix(dataList)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getParameterNames()
   ;  record=self.utility->buildFileDataStream('getParameterNames', data)
-
+  
   ;  readf, unit, bufferString
   ;  data=self->getParameterCodes()
   ;  record=self.utility->buildFileDataStream('getParameterCodes', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getParameterTypes()
   ;  record=self.utility->buildFileDataStream('getParameterTypes', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getParameterMeasureUnits()
   ;  record=self.utility->buildFileDataStream('getParameterMeasureUnits', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getParameterDescriptions()
   ;  record=self.utility->buildFileDataStream('getParameterDescriptions', data)
-
+  
   ;readf, unit, bufferString
   ;data=self->getParameterObservedCodes()
   ;record=self.utility->buildFileDataStream('getParameterObservedCodes', data)
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, dataList
   tFlag=fix(dataList)
   ;self->setThresholdFlag, fix(dataList)
-
+  
   ; Run section
-
+  
   ;readf, unit, bufferString
   ;  data=self->getrunNames()
   ;  record=self.utility->buildFileDataStream('getrunNames', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getrunCodes()
   ;  record=self.utility->buildFileDataStream('getrunCodes', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getrunDescriptions()
   ;  record=self.utility->buildFileDataStream('getrunDescriptions', data)
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, dataList
   self->setDiagramSelection, fix(dataList)
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, dataList
   ptr_free, self.thresholdValues
@@ -1435,101 +1446,101 @@ FUNCTION ElaborationDisplayInfo::restoreData, filename
   ;readf, unit, bufferString
   ;  data=self->getrunQueryCodes()
   ;  record=self.utility->buildFileDataStream('getrunQueryCodes', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getrunScenarioCodes()
   ;  record=self.utility->buildFileDataStream('getrunScenarioCodes', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getrunModelCodes()
   ;  record=self.utility->buildFileDataStream('getrunModelCodes', data)
   ; Scenario section
-
+  
   ;readf, unit, bufferString
   ;  data=self->getscenarioNames()
   ;  record=self.utility->buildFileDataStream('getscenarioNames', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getscenarioCodes()
   ;  record=self.utility->buildFileDataStream('getscenarioCodes', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getscenarioDescriptions()
   ;  record=self.utility->buildFileDataStream('getscenarioDescriptions', data)
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, dataList
   self->setDayPeriodSelection, fix(dataList)
   ; Model section
-
+  
   ;readf, unit, bufferString
   ;  data=self->getmodelNames()
   ;  record=self.utility->buildFileDataStream('getmodelNames', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getmodelCodes()
   ;  record=self.utility->buildFileDataStream('getmodelCodes', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getmodelDescriptions()
   ;  record=self.utility->buildFileDataStream('getmodelDescriptions', data)
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, dataList
   self->setSeasonSelection, fix(dataList)
   ;record=self.utility->buildFileDataStream('getmodelSelections', data)
-
+  
   ; Category section
   ;readf, unit, bufferString
   ;data=self->getcategoryPresenceFlags()
   ;record=self.utility->buildFileDataStream('getcategoryPresenceFlags', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getcategoryCodes()
   ;  record=self.utility->buildFileDataStream('getcategoryCodes', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getcategoryTitles()
   ;  record=self.utility->buildFileDataStream('getcategoryTitles', data)
-
+  
   ;readf, unit, bufferString
   ;data=self->getcategoryValues()
   ;record=self.utility->buildFileDataStream('getcategoryValues', data)
-
+  
   ;readf, unit, bufferString
   ;data=self->getcategoryWidgetTypes()
   ;record=self.utility->buildFileDataStream('getcategoryWidgetTypes', data)
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, dataList
   self->setGroupByTimeSelection, fix(dataList)
   ;record=self.utility->buildFileDataStream('getcategorySelections', data)
-
+  
   ; Obs section
   ;readf, unit, bufferString
   ;  data=self->getobsCatCategoryCodes()
   ;  record=self.utility->buildFileDataStream('getobsCatCategoryCodes', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getobsCatObservedCodes()
   ;  record=self.utility->buildFileDataStream('getobsCatObservedCodes', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getobsCatValues()
   ;  record=self.utility->buildFileDataStream('getobsCatValues', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getobservedNames()
   ;  record=self.utility->buildFileDataStream('getobservedNames', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getobservedShortNames()
   ;  record=self.utility->buildFileDataStream('getobservedShortNames', data)
-
+  
   ;readf, unit, bufferString
   ;  data=self->getobservedCodes()
   ;  record=self.utility->buildFileDataStream('getobservedCodes', data)
-
+  
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
   ;  ptr_free, self.observedQueryCodesSelections
@@ -1547,36 +1558,36 @@ FUNCTION ElaborationDisplayInfo::restoreData, filename
   ;  ptr_free, self.observedGroupNames
   ;  if dataList[0] ne '-1' then self->setObservedGroupNames, dataList
   ;record=self.utility->buildFileDataStream('getobservedGroupNames', data)
-
+  
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
   ;  ptr_free, self.observedCodesGroupSelections
   ;  if dataList[0] ne '-1' then self->setObservedCodesGroupSelections, dataList
   ;  ;record=self.utility->buildFileDataStream('getobservedCodesGroupSelections', data)
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, dataList
   self->setGroupByStatSelection, fix(dataList)
   ;record=self.utility->buildFileDataStream('getuseObservedModelFlag', data)
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, dataList
   dateTime=getDateTimeStruct()
   dateTime.second=fix(dataList[0]) & dateTime.minute=fix(dataList[1]) & dateTime.hour=fix(dataList[2])
   dateTime.day=fix(dataList[3]) & dateTime.month=fix(dataList[4]) & dateTime.year=fix(dataList[5])
   self->setStartDateInfo, dateTime
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, dataList
   dateTime=getDateTimeStruct()
   dateTime.second=fix(dataList[0]) & dateTime.minute=fix(dataList[1]) & dateTime.hour=fix(dataList[2])
   dateTime.day=fix(dataList[3]) & dateTime.month=fix(dataList[4]) & dateTime.year=fix(dataList[5])
   self->setEndDateInfo, dateTime
-
+  
   close, unit
   free_lun, unit
   return, 1
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::clone, DEEP=DEEP
@@ -1595,7 +1606,7 @@ FUNCTION ElaborationDisplayInfo::clone, DEEP=DEEP
       list=*self.elabNames
       clone.elabNames=ptr_new(list, /NO_COPY)
     endif
-
+    
     if ptr_valid(self.elabDiagramCodes) then begin
       list=*self.elabDiagramCodes
       clone.elabDiagramCodes=ptr_new(list, /NO_COPY)
@@ -1781,7 +1792,7 @@ FUNCTION ElaborationDisplayInfo::clone, DEEP=DEEP
   clone.startDateInfo=self.startDateInfo
   clone.endDateInfo=self.endDateInfo
   return, clone
-
+  
 END
 
 FUNCTION ElaborationDisplayInfo::init
@@ -1791,18 +1802,18 @@ FUNCTION ElaborationDisplayInfo::init
   self.dtu=obj_new('DateTimeUtility')
   self->setEndYear
   return , 1
-
+  
 END
 
 PRO ElaborationDisplayInfo::cleanUp
 
   obj_destroy, self.utility
   obj_destroy, self.dtu
-
+  
   ptr_free, self.elabNames
   ptr_free, self.elabCodes
   ptr_free, self.elabDescriptions
-
+  
   ptr_free, self.elabDiagramCodes
   ptr_free, self.elabNumberRefValues
   ptr_free, self.elabGCOC
@@ -1811,21 +1822,21 @@ PRO ElaborationDisplayInfo::cleanUp
   ptr_free, self.elabDayPeriodCodes
   ptr_free, self.elabSeasonCodes
   ptr_free, self.elabMultipleChoiceFlags
-
+  
   ptr_free, self.diagramNames
   ptr_free, self.diagramCodes
   ptr_free, self.diagramDescriptions
   ptr_free, self.diagramMaxMultipleChoice
-
+  
   ptr_free, self.groupByTimeNames
   ptr_free, self.groupByStatNames
-
+  
   ptr_free, self.dayPeriodNames
   ptr_free, self.seasonNames
   ptr_free, self.dayPeriodCodes
   ptr_free, self.seasonCodes
   self -> Object::cleanUp
-
+  
 END
 
 ;****************************************************************************************
@@ -1873,7 +1884,7 @@ PRO ElaborationDisplayInfo__Define
     dtu: obj_new('DateTimeUtility'), $
     Inherits Object $t
   }
-
+  
 END
 
 ;****************************************************************************************

@@ -102,106 +102,106 @@
 ;  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                            ;
 ;******************************************************************************************;
 FUNCTION FSC_Base_Filename, filename, $
-   Directory=directory, $
-   Extension=extension, $
-   Path_Separator=pathsep
-
-   On_Error, 2
-
-   ; Default values.
-   directory = ""
-   extension = ""
-   file = ""
-
-   ; If there is no filename, return NULL.
-   IF (N_Elements(filename) EQ 0) OR (filename EQ "") THEN RETURN, file
-
-   ; Is a path separator specified?
-   IF N_Elements(pathsep) EQ 0 THEN pathsep = Path_Sep()
-
-   ; If the last element of filename is a path separator, then separation is easy.
-   IF StrMid(filename, StrLen(filename)-1, 1) EQ pathsep THEN BEGIN
-      directory = filename
-      RETURN, file
-   ENDIF
-
-   ; Split the file by the path separator and extract into parts.
-   parts = StrSplit(filename, pathsep, /Extract)
-   IF StrMid(filename, 0, 1) EQ pathsep AND N_Elements(parts) GT 1 THEN parts[0] = pathsep + parts[0]
-   numParts = N_Elements(parts)
-
-   ; Put the parts back together after identifying them.
-   CASE numParts OF
-      1: BEGIN
-            subparts = StrSplit(filename, ".", /Extract)
-            numsubParts = N_Elements(subparts)
-            CASE numsubParts OF
-               1: file = subparts[0]
-               2: BEGIN
-                     file = subparts[0]
-                     extension = subparts[1]
-                  END
-               ELSE: BEGIN
-                     file = StrJoin(subparts[0:numsubParts-2],'.')
-                     extension = subparts[numsubParts-1]
-                  END
-            ENDCASE
-         END
-
-      2: BEGIN
-            file = parts[1]
-            directory = parts[0] + pathsep
-            subparts = StrSplit(file, ".", /Extract)
-            numsubParts = N_Elements(subparts)
-            CASE numsubParts OF
-               1: file = subparts[0]
-               2: BEGIN
-                     file = subparts[0]
-                     extension = subparts[1]
-                  END
-               ELSE: BEGIN
-                     file = StrJoin(subparts[0:numsubParts-2],'.')
-                     extension = subparts[numsubParts-1]
-                  END
-            ENDCASE
-         END
-
-      ELSE: BEGIN
-
-            file = parts[numParts-1]
-            subparts = StrSplit(file, ".", /Extract)
-            numsubParts = N_Elements(subparts)
-            CASE numsubParts OF
-               1: file = subparts[0]
-               2: BEGIN
-                     file = subparts[0]
-                     extension = subparts[1]
-                  END
-               ELSE: BEGIN
-                     file = StrJoin(subparts[0:numsubParts-2],'.')
-                     extension = subparts[numsubParts-1]
-                  END
-            ENDCASE
-            directory = parts[0]
-            FOR j=1,numParts-2 DO BEGIN
-               directory = directory + pathsep + parts[j]
-            ENDFOR
-            directory = directory + pathsep
-         END
-
-   ENDCASE
-   
-   ; If the directory is a null string. Make it the current directory.
-   IF directory EQ "" THEN CD, CURRENT=directory
-   
-   ; Does the directory need a final path separator.
-   IF (directory NE "") THEN BEGIN
-      lastChar = StrMid(directory, 0, 1, /REVERSE_OFFSET)
-      IF lastChar NE pathsep THEN directory = directory + pathsep
-   ENDIF
-
-   RETURN, file
-
+    Directory=directory, $
+    Extension=extension, $
+    Path_Separator=pathsep
+    
+  On_Error, 2
+  
+  ; Default values.
+  directory = ""
+  extension = ""
+  file = ""
+  
+  ; If there is no filename, return NULL.
+  IF (N_Elements(filename) EQ 0) OR (filename EQ "") THEN RETURN, file
+  
+  ; Is a path separator specified?
+  IF N_Elements(pathsep) EQ 0 THEN pathsep = Path_Sep()
+  
+  ; If the last element of filename is a path separator, then separation is easy.
+  IF StrMid(filename, StrLen(filename)-1, 1) EQ pathsep THEN BEGIN
+    directory = filename
+    RETURN, file
+  ENDIF
+  
+  ; Split the file by the path separator and extract into parts.
+  parts = StrSplit(filename, pathsep, /Extract)
+  IF StrMid(filename, 0, 1) EQ pathsep AND N_Elements(parts) GT 1 THEN parts[0] = pathsep + parts[0]
+  numParts = N_Elements(parts)
+  
+  ; Put the parts back together after identifying them.
+  CASE numParts OF
+    1: BEGIN
+      subparts = StrSplit(filename, ".", /Extract)
+      numsubParts = N_Elements(subparts)
+      CASE numsubParts OF
+        1: file = subparts[0]
+        2: BEGIN
+          file = subparts[0]
+          extension = subparts[1]
+        END
+        ELSE: BEGIN
+          file = StrJoin(subparts[0:numsubParts-2],'.')
+          extension = subparts[numsubParts-1]
+        END
+      ENDCASE
+    END
+    
+    2: BEGIN
+      file = parts[1]
+      directory = parts[0] + pathsep
+      subparts = StrSplit(file, ".", /Extract)
+      numsubParts = N_Elements(subparts)
+      CASE numsubParts OF
+        1: file = subparts[0]
+        2: BEGIN
+          file = subparts[0]
+          extension = subparts[1]
+        END
+        ELSE: BEGIN
+          file = StrJoin(subparts[0:numsubParts-2],'.')
+          extension = subparts[numsubParts-1]
+        END
+      ENDCASE
+    END
+    
+    ELSE: BEGIN
+    
+      file = parts[numParts-1]
+      subparts = StrSplit(file, ".", /Extract)
+      numsubParts = N_Elements(subparts)
+      CASE numsubParts OF
+        1: file = subparts[0]
+        2: BEGIN
+          file = subparts[0]
+          extension = subparts[1]
+        END
+        ELSE: BEGIN
+          file = StrJoin(subparts[0:numsubParts-2],'.')
+          extension = subparts[numsubParts-1]
+        END
+      ENDCASE
+      directory = parts[0]
+      FOR j=1,numParts-2 DO BEGIN
+        directory = directory + pathsep + parts[j]
+      ENDFOR
+      directory = directory + pathsep
+    END
+    
+  ENDCASE
+  
+  ; If the directory is a null string. Make it the current directory.
+  IF directory EQ "" THEN CD, CURRENT=directory
+  
+  ; Does the directory need a final path separator.
+  IF (directory NE "") THEN BEGIN
+    lastChar = StrMid(directory, 0, 1, /REVERSE_OFFSET)
+    IF lastChar NE pathsep THEN directory = directory + pathsep
+  ENDIF
+  
+  RETURN, file
+  
 END
 
 ;+
@@ -512,15 +512,30 @@ PRO FIXPS, in_filename, out_filename, $
   
 END
 
+FUNCTION Plotter::getSilentMode
+
+ return, self.silent
+
+END
+
+PRO Plotter::setSilentMode, value
+
+  self.silent=value
+
+END
+
 FUNCTION Plotter::getPSCharSizeFactor
 
- if self->currentDeviceIsPostscript() then return, self.mainView->getPSCharSizeFactor() else return, 1.
-
+  if self->currentDeviceIsPostscript() then return, self.mainView->getPSCharSizeFactor() else return, 1.
+  
 END
 
 PRO Plotter::postScriptFixing
 
-  FIXPS, self->getLastPostScriptFileName(), /A4
+  fName=self->getLastPostScriptFileName()
+  fInfo=file_info(fName)
+  if fInfo.exists and fInfo.size gt 0 then FIXPS, fName, /A4 else print, fName, ' :no ps to fix...', 'Check plot/elaboration routines'
+  
   
 END
 
@@ -582,19 +597,41 @@ FUNCTION Plotter::sizeCorrection, recArrays, X=X, Y=Y, SYMBOL=SYMBOL
         (*thisRec)[2:3,0]=xCenter+maxDiff/2
       endif
     endif else begin
-        polygon=fltarr(4,2)
-        polygon[*,0]=[0.,0.,0.,0.]
-        polygon[*,1]=[0.,0.,0.,0.]
-        recArrays[i]=ptr_new(polygon, /NO_COPY)
+      polygon=fltarr(4,2)
+      polygon[*,0]=[0.,0.,0.,0.]
+      polygon[*,1]=[0.,0.,0.,0.]
+      recArrays[i]=ptr_new(polygon, /NO_COPY)
     endelse
   endfor
   return, recArrays
   
 END
 
-PRO Plotter::setCurrentDevice, deviceName
+FUNCTION Plotter::getImageType
 
-  self.currentDeviceName=deviceName
+ return, self.imageType
+
+END
+
+FUNCTION Plotter::setImageType, value
+
+  self.imageType=value
+
+END
+
+PRO Plotter::setCurrentdevice, deviceName
+
+  devName=deviceName
+  starPos=strpos(deviceName, '+')
+  if starPos ne -1 then begin
+    imageType=strmid(deviceName, starPos+1, strlen(deviceName))
+    devName=strmid(deviceName, 0, starPos)
+    self.imageType=imageType
+  endif else begin
+    devName=deviceName
+  end
+  self.currentDeviceName=devName
+  if devName ne 'PS' then set_plot, self.mainDeviceName else set_plot, self.currentDeviceName
   
 END
 
@@ -695,7 +732,7 @@ FUNCTION Plotter::plotNormalize, coords
   
 END
 
-PRO Plotter::openDevice, deviceName, fileName, orientation, pageBreak, location
+PRO Plotter::opendevice, deviceName, fileName, orientation, pageBreak, location, WORKINGDIR=WORKINGDIR, BATCH=BATCH
 
   if deviceName eq 'PS' then begin
     ;self.previousPMulti=!P.MULTI[0:2]
@@ -704,33 +741,37 @@ PRO Plotter::openDevice, deviceName, fileName, orientation, pageBreak, location
   
     if ~self.deviceIsOpen then begin
       self.previousDeviceName=!D.NAME
-      set_plot, deviceName
-      self->setCurrentDevice, deviceName
+      ;set_plot, deviceName
+      self->setCurrentdevice, deviceName
       self.deviceIsOpen=1
       self.orientation=orientation
       fsm=obj_new('FMFileSystemManager')
       psExtension=fsm->getPSExtension()
-      saveDir=fsm->getSaveDir(/WITH)
+      if n_elements(WORKINGDIR) eq 0 then saveDir=fsm->getSaveDir(/WITH) else saveDir=WORKINGDIR
       if orientation eq 'LANDSCAPE' then begin
-          device, /LANDSCAPE
+        device, /LANDSCAPE
       endif else begin
-          device, /PORTRAIT
-          ;check right definition of A4 size...
-          DEVICE,/INCHES,XSIZE=8.3,SCALE_FACTOR=1. 
-          DEVICE,/INCHES,YSIZE=11.7,SCALE_FACTOR=1. 
+        device, /PORTRAIT
+        ;check right definition of A4 size...
+        device,/INCHES,XSIZE=8.3,SCALE_FACTOR=1.
+        device,/INCHES,YSIZE=11.7,SCALE_FACTOR=1.
       endelse
       if fileName ne '' then fileName=fsm->setExtension(fileName, psExtension)
-      repeat begin
-        filter=['*'+psExtension]
-        fix_filter='*'+psExtension
-        fullFileName=dialog_pickfile(DEFAULT_EXTENSION=psExtension, $
-          DIALOG_PARENT=self.mainView->getTopBase(), $
-          FILTER=filter, FIX_FILTER=fix_filter, $
-          GET_PATH=path, PATH=saveDir, $
-          file=fileName, $
-          TITLE='Postscript selection', /OVERWRITE_PROMPT, /WRITE)
-      endrep until fullFileName ne ''
-      fullFileName=fsm->setExtension(fullFileName, psExtension)
+      if not(keyword_set(BATCH)) then begin
+        repeat begin
+          filter=['*'+psExtension]
+          fix_filter='*'+psExtension
+          fullFileName=dialog_pickfile(DEFAULT_EXTENSION=psExtension, $
+            DIALOG_PARENT=self.mainView->getTopBase(), $
+            FILTER=filter, FIX_FILTER=fix_filter, $
+            GET_PATH=path, PATH=saveDir, $
+            file=fileName, $
+            TITLE='Postscript selection', /OVERWRITE_PROMPT, /WRITE)
+        endrep until fullFileName ne ''
+        fullFileName=fsm->setExtension(fullFileName, psExtension)
+      endif else begin
+        fullFileName=saveDir+fileName
+      endelse
       ;fullFileName=dir+fileName
       self->setLastPostScriptFileName, fullFileName
       device, /ENCAPSULATED, BITS_PER_PIXEL=24, file=fullFileName, /COLOR
@@ -745,7 +786,7 @@ PRO Plotter::openDevice, deviceName, fileName, orientation, pageBreak, location
   if deviceName ne 'PS' then begin
     self.deviceIsOpen=1
     self.previousDeviceName=!D.NAME
-    self->setCurrentDevice, deviceName
+    self->setCurrentdevice, deviceName
     print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
     print, !D.NAME, self.currentDeviceName, self.previousDeviceName
     return
@@ -753,7 +794,7 @@ PRO Plotter::openDevice, deviceName, fileName, orientation, pageBreak, location
   
 END
 
-PRO Plotter::closeDevice, pageBreak, fileName, printOrientation
+PRO Plotter::closedevice, pageBreak, fileName, printOrientation, WORKINGDIR=WORKINGDIR
 
   ;!p.position=[0.,0.,0.,0.]
   if self->currentDeviceIsPostscript() then begin
@@ -762,11 +803,11 @@ PRO Plotter::closeDevice, pageBreak, fileName, printOrientation
     if pageBreak eq 'CLOSE' then begin
       device, /CLOSE_FILE
       self.deviceIsOpen=0
-      set_plot, self.previousDeviceName
-      self->setCurrentDevice, self.previousDeviceName
+      ;set_plot, self.previousDeviceName
+      self->setCurrentdevice, self.previousDeviceName
       print, 'printOrientation: ', printOrientation
       self->postScriptFixing
-      ;if printOrientation eq 'LANDSCAPE' then self->postScriptFixing
+    ;if printOrientation eq 'LANDSCAPE' then self->postScriptFixing
     endif
     print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
     print, !D.NAME, self.currentDeviceName, self.previousDeviceName
@@ -774,12 +815,11 @@ PRO Plotter::closeDevice, pageBreak, fileName, printOrientation
   endif
   
   if self.currentDeviceName eq 'IMAGE' then begin
-    if pageBreak eq 'TRUE' then self.mainView->saveImage
-    if pageBreak eq 'CLOSE' then begin
-      self.mainView->saveImage, fileName
+    if pageBreak eq 'CLOSE' or pageBreak eq 'TRUE' then begin
+      self.mainView->saveImage, fileName, self.imageType, /NO_CONFIRM, WORKINGDIR=WORKINGDIR
       self.deviceIsOpen=0
-      set_plot, self.previousDeviceName
-      self->setCurrentDevice, self.previousDeviceName
+      ;set_plot, self.previousDeviceName
+      self->setCurrentdevice, self.previousDeviceName
     endif
     print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
     print, !D.NAME, self.currentDeviceName, self.previousDeviceName
@@ -787,8 +827,8 @@ PRO Plotter::closeDevice, pageBreak, fileName, printOrientation
   endif
   
   if ~self->currentDeviceIsPostscript() then begin
-    set_plot, self.previousDeviceName
-    self->setCurrentDevice, self.previousDeviceName
+    ;set_plot, self.previousDeviceName
+    self->setCurrentdevice, self.previousDeviceName
     self.deviceIsOpen=0
     print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
     print, !D.NAME, self.currentDeviceName, self.previousDeviceName
@@ -799,7 +839,7 @@ END
 
 PRO Plotter::saveImage
 
-  self.mainView->saveImage
+  self.mainView->saveImage, self.imageType
   
 END
 
@@ -812,7 +852,7 @@ END
 PRO Plotter::wsetMainDataDraw
 
   if ~self->currentDeviceIsPostscript() then self.mainView->wsetMainDataDraw
-  DEVICE, /DECOMPOSE
+  device, /DECOMPOSE
   
 END
 
@@ -860,23 +900,23 @@ PRO Plotter::plotAll, request, result
   
 END
 
-PRO Plotter::plotStandardLegend, request, result
-
-  self.mainView->wsetInfoDataDraw
-  
-END
+;PRO Plotter::plotStandardLegend, request, result
+;
+;  self.mainView->wsetInfoDataDraw
+;  
+;END
 
 PRO Plotter::setInfoDataDrawArea
 
   if ~self->currentDeviceIsPostscript() then self.mainView->wsetInfoDataDraw
-  DEVICE,/DECOMPOSE
+  device,/DECOMPOSE
   
 END
 
 PRO Plotter::setMainDataDrawArea
 
   if ~self->currentDeviceIsPostscript() then self.mainView->wsetMainDataDraw
-  DEVICE,/DECOMPOSE
+  device,/DECOMPOSE
   
 END
 
@@ -889,7 +929,7 @@ PRO Plotter::plotBarsLegend, request, result
   blackL=black->AsLongTrueColor()
   obj_destroy, white
   obj_destroy, black
-  DEVICE, DECOMPOSED=1
+  device, DECOMPOSED=1
   self->erase, whiteL
   ;  if ~self->currentDeviceIsPostscript() then begin
   ;    erase, whiteL
@@ -1157,10 +1197,10 @@ PRO Plotter::plotBars, request, result
   if elabcode eq 30 then statistics='RPE'
   if elabcode eq 54 then statistics='MFS'
   if total(where(elabCode eq [2,7,8,23,28,30,54])) ge 0 then begin
-; KeesC 30MAR2012: undefined obsTemp  
-;    CheckCriteria, request, result, statistics, criteria, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
-; changed into dummy
-  adummy=fltarr(10) & adummy(*)=1.
+    ; KeesC 30MAR2012: undefined obsTemp
+    ;    CheckCriteria, request, result, statistics, criteria, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
+    ; changed into dummy
+    adummy=fltarr(10) & adummy(*)=1.
     CheckCriteria, request, result, statistics, criteria, adummy,alpha,criteriaOrig,LV
   endif else begin
     criteria=0
@@ -1201,8 +1241,8 @@ PRO Plotter::plotBars, request, result
   whiteL=white->AsLongTrueColor()
   obj_destroy, white
   ;self.mainView->wsetMainDataDraw
-  DEVICE, DECOMPOSED=1
-  ;    DEVICE,DECOMPOSE=0
+  device, DECOMPOSED=1
+  ;    device,DECOMPOSE=0
   LOADCT,39
   ; use "tek" color table...
   ;    mytek_color;, 0, 32
@@ -1241,7 +1281,7 @@ PRO Plotter::plotBars, request, result
     if elabcode eq 2 or elabcode eq 7 then polyfill,[0,0,1,1,0],[criteria,min([1,valuesRange(1)]),min([1,valuesRange(1)]),criteria,criteria],/data,color=symbolColorsTest(1)
     if elabcode eq 8 or elabcode eq 30 or elabcode eq 28 then polyfill,[0,0,1,1,0],[0,min([criteria,abs(valuesRange(1))]),min([criteria,abs(valuesRange(1))]),0,0],/data,color=symbolColorsTest(1)
     if elabcode eq 23 or elabcode eq 54 then polyfill,[0,0,1,1,0],[-min([criteria,abs(valuesRange(0))]),$
-       min([criteria,abs(valuesRange(1))]),min([criteria,abs(valuesRange(1))]),-min([criteria,abs(valuesRange(0))]),$
+      min([criteria,abs(valuesRange(1))]),min([criteria,abs(valuesRange(1))]),-min([criteria,abs(valuesRange(0))]),$
       -min([criteria,abs(valuesRange(0))])],/data,color=symbolColorsTest(1)
   endif
   
@@ -1313,7 +1353,8 @@ END
 
 PRO Plotter::plotTimeSeriesLegend, request, result
 
-  self.mainView->wsetInfoDataDraw
+  ;self.mainView->wsetInfoDataDraw
+  self->wsetInfoDataDraw
   white=obj_new('Color', 200, 200, 200)
   black=obj_new('Color', 0, 0, 0)
   whiteL=white->AsLongTrueColor()
@@ -1321,7 +1362,7 @@ PRO Plotter::plotTimeSeriesLegend, request, result
   obj_destroy, white
   obj_destroy, black
   ;self.mainView->wsetMainDataDraw
-  DEVICE, DECOMPOSED=1
+  device, DECOMPOSED=1
   ;Make axes black:
   ;!P.COLOR=0
   self->erase, whiteL
@@ -1388,7 +1429,8 @@ END
 
 PRO Plotter::plotTimeSeries, request, result
 
-  self.mainView->wsetMainDataDraw
+  ;self.mainView->wsetMainDataDraw
+  self->wsetMainDataDraw
   device, decomposed=1
   white=obj_new('Color', 200, 200, 200)
   black=obj_new('Color', 0, 0, 0)
@@ -1407,12 +1449,12 @@ PRO Plotter::plotTimeSeries, request, result
   plotInfo=result->getPlotInfo()
   
   if isSingleSelection then begin
-  singleRawData=result->getSingleRawData()
-  singleRDMatrix=result->getSingleRawDataCheckMatrix(sMonitIndexes, sRunIndexes)
+    singleRawData=result->getSingleRawData()
+    singleRDMatrix=result->getSingleRawDataCheckMatrix(sMonitIndexes, sRunIndexes)
   endif
   if isGroupSelection then begin
-  groupRawData=result->getGroupRawData()
-  groupRDMatrix=result->getGroupRawDataCheckMatrix(gMonitIndexes, gRunIndexes)
+    groupRawData=result->getGroupRawData()
+    groupRDMatrix=result->getGroupRawDataCheckMatrix(gMonitIndexes, gRunIndexes)
   endif
   
   psym=[2,1,4,5,6,7]
@@ -1471,7 +1513,8 @@ END
 PRO Plotter::plotScatterLegend, request, result
 
   self->plotStandardLegend, request, result
-  self.mainView->wsetInfoDataDraw
+  ;self.mainView->wsetInfoDataDraw
+  self->wsetInfoDataDraw
   
 END
 
@@ -1690,8 +1733,8 @@ PRO Plotter::fillDataFromFile, fileName
     ; void string string is discarded
     ; [ header is discarded
     if (check1+check2+check3) gt 0 or null then begin
-;      print, 'Discard row', i
-;      print, bufferString
+    ;      print, 'Discard row', i
+    ;      print, bufferString
     endif else begin
       info=strsplit(bufferString, ';', /EXTRACT)
       if n_elements(info) eq 5 then begin
@@ -1724,6 +1767,11 @@ FUNCTION Plotter::init, mainView
   self.mainView=mainView
   self.legendSpaceYNorm=0.25
   self->configureColor
+  
+  os=strupcase(!version.os_family)
+  ;if os eq 'X' then
+  self.mainDeviceName='X'
+  if os eq 'WINDOWS' then self.mainDeviceName='WIN'
   return , 1
   
 END
@@ -1732,6 +1780,8 @@ PRO Plotter__Define
 
   Struct = { Plotter , $
     mainView: obj_new(), $
+    mainDeviceName: '', $
+    silent: 0, $
     lastPostScriptFileName: '', $
     startIndex: 0l, $
     endIndex: 0l, $
@@ -1745,6 +1795,7 @@ PRO Plotter__Define
     legoColors: lonarr(15), $
     symbolColorsIndex: 0, $
     legoColorsIndex: 0, $
+    imageType: '', $
     Inherits Object $
     }
     

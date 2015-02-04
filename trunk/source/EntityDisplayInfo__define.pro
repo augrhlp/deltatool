@@ -504,12 +504,12 @@ FUNCTION EntityDisplayInfo::getObservationCategoryList, categoryGroupName=catego
   
 END
 
-PRO EntityDisplayInfo::setParameterObservedCodes, list
-
-  ptr_free, self.parameterObservedCodes
-  self.parameterObservedCodes=ptr_new(list, /NO_COPY)
-  
-END
+;PRO EntityDisplayInfo::setParameterObservedCodes, list
+;
+;  ptr_free, self.parameterObservedCodes
+;  self.parameterObservedCodes=ptr_new(list, /NO_COPY)
+;
+;END
 
 PRO EntityDisplayInfo::setParameterObservedCodes, list
 
@@ -895,7 +895,7 @@ FUNCTION EntityDisplayInfo::checkIntegrity, view
           return, 0
         endif
         answer=view->dialogMessage(['Not all selected stations contain selected parameter.','Press "Yes" to auto correction, "No" to abort selection'], title=['Check your selections'], /QUESTION)
-        if answer eq "Yes" then self->setObservedCodesSelections, validCodes else return, 0
+        if strupcase(answer) eq "YES" then self->setObservedCodesSelections, validCodes else return, 0
       endif
       obsCheck=1
     endif
@@ -912,7 +912,7 @@ FUNCTION EntityDisplayInfo::checkIntegrity, view
             return, 0
           endif
           if answer eq "Boh" then answer=view->dialogMessage(['Not all selected stations contain selected parameter.','Press "Yes" to auto correction, "No" to abort selection'], title=['Check your selections'], /QUESTION)
-          if answer ne "Yes" then return, 0
+          if strupcase(answer) ne "YES" then return, 0
           a=ptr_new(NOMATCH, /NO_COPY)
         endif
         newPtrToCodes[i]=ptr_new(validCodes, /NO_COPY)
@@ -1510,7 +1510,9 @@ END
 
 FUNCTION EntityDisplayInfo::buildRunList, scenarioIndexes, modelIndexes, RUNINDEXES=RUNINDEXES
 
-  scenCodes=(*self.scenarioCodes)[scenarioIndexes]
+  ;scenCodes=(*self.scenarioCodes)[scenarioIndexes]
+  scenCodes=self->getScenarioCodes()
+  scenCodes=scenCodes[scenarioIndexes]
   modelCodes=(*self.modelCodes)[modelIndexes]
   runScenarioCodes=(*self.runScenarioCodes)
   runModelCodes=(*self.runModelCodes)
@@ -1534,7 +1536,9 @@ FUNCTION EntityDisplayInfo::getSelectedRunCodes
 
   scenarioIndexes=self->getScenarioSelections()
   modelIndexes=self->getModelSelections()
-  scenCodes=(*self.scenarioCodes)[scenarioIndexes]
+  ;scenCodes=(*self.scenarioCodes)[scenarioIndexes]
+  scenCodes=self->getScenarioCodes()
+  scenCodes=scenCodes[scenarioIndexes]
   modelCodes=(*self.modelCodes)[modelIndexes]
   runScenarioCodes=(*self.runScenarioCodes)
   runModelCodes=(*self.runModelCodes)
@@ -1561,8 +1565,53 @@ END
 
 FUNCTION EntityDisplayInfo::getScenarioNames
 
-  if ptr_valid(self.scenarioNames) then return, *self.scenarioNames
+  ; insert here filter by base or not...
+  if ptr_valid(self.scenarioNames) then begin
+    scenNames=*self.scenarioNames
+    idxs=self->getFilterScenarioIndexes(NULL=NULL)
+    ;if idxs[0] eq -1 or keyword_set(null) then return, -1 else return, scenNames[idxs].displayName
+    if idxs[0] eq -1 or keyword_set(null) then return, -1 else return, scenNames[idxs]
+  endif
   return, -1
+  
+END
+
+FUNCTION EntityDisplayInfo::getFilterScenarioIndexes, NULL=NULL
+
+  NULL=1
+  if ptr_valid(self.scenarioNames) then begin
+    scenNames=*self.scenarioNames
+    ;bases=strpos(strlowcase(scenNames.code), 'base')
+    bases=strpos(strlowcase(scenNames), 'base')
+    if n_elements(scenNames) eq 1 then bases=0 
+    basesIdx=where(bases ne -1, count)
+    if not(self.allAvailableScenarioFlag) then begin
+      idxs=basesIdx
+    endif else begin
+      idxs=indgen(n_elements(scenNames))
+    endelse
+    NULL=0
+    return, idxs
+  endif
+  return, -1
+  
+END
+
+FUNCTION EntityDisplayInfo::getScenarioIsBases
+
+  ; insert here filter by base or not...
+  if ptr_valid(self.scenarioIsBases) then begin
+    scenIsBases=*self.scenarioIsBases
+    return, scenIsBases
+  endif
+  return, -1
+  
+END
+
+PRO EntityDisplayInfo::setScenarioIsBases, list
+
+  ptr_free, self.scenarioIsBases
+  self.scenarioIsBases=ptr_new(list, /NO_COPY)
   
 END
 
@@ -1575,7 +1624,10 @@ END
 
 FUNCTION EntityDisplayInfo::getScenarioCodes
 
-  if ptr_valid(self.scenarioCodes) then return, *self.scenarioCodes
+  if ptr_valid(self.scenarioCodes) then begin
+    idxs=self->getFilterScenarioIndexes(NULL=NULL)
+    if idxs[0] eq -1 or keyword_set(null) then return, -1 else return, (*self.scenarioCodes)[idxs]
+  endif
   return, -1
   
 END
@@ -1589,7 +1641,10 @@ END
 
 FUNCTION EntityDisplayInfo::getScenarioDescriptions
 
-  if ptr_valid(self.scenarioDescriptions) then return, *self.scenarioDescriptions
+  if ptr_valid(self.scenarioDescriptions) then begin
+    idxs=self->getFilterScenarioIndexes(NULL=NULL)
+    if idxs[0] eq -1 or keyword_set(null) then return, -1 else return, *self.scenarioDescriptions[idxs]
+  endif
   return, -1
   
 END
@@ -1608,6 +1663,8 @@ PRO EntityDisplayInfo::setScenarioSelections, list, FILEMODE=FILEMODE
 END
 
 FUNCTION EntityDisplayInfo::getScenarioSelections, FILEMODE=FILEMODE
+
+  ; insert here filter by base or not...
 
   if keyword_set(FILEMODE) then begin
     if (self.allScenariosFlag) then data="ALL" else data=strcompress(self->getScenarioSelections(), /REMOVE)
@@ -1768,13 +1825,13 @@ FUNCTION EntityDisplayInfo::getCategoryValues, code
   
 END
 
-PRO EntityDisplayInfo::setParameterObservedCodes, list
-
-  ptr_free, self.parameterObservedCodes
-  ; ptr_free for each elements... 'cause is a pointer of pointers
-  self.parameterObservedCodes=ptr_new(list, /NO_COPY)
-  
-END
+;PRO EntityDisplayInfo::setParameterObservedCodes, list
+;
+;  ptr_free, self.parameterObservedCodes
+;  ; ptr_free for each elements... 'cause is a pointer of pointers
+;  self.parameterObservedCodes=ptr_new(list, /NO_COPY)
+;
+;END
 
 PRO EntityDisplayInfo::setObservedNames, list
 
@@ -2031,6 +2088,29 @@ PRO EntityDisplayInfo::setUseObservedModelFlag, flag, FILEMODE=FILEMODE
   
 END
 
+PRO EntityDisplayInfo::setAllAvailableScenarioFlag, flag, FILEMODE=FILEMODE
+
+  if keyword_set(FILEMODE) then begin
+    self.utility->convertStreamDataFile, flag, dataName, dataList
+    if dataName ne "AllAvailableScenarioFlag" then message, "File corrupted"
+    self->setAllAvailableScenarioFlag, fix(dataList)
+    return
+  endif
+  self.allAvailableScenarioFlag=flag
+  
+END
+
+FUNCTION EntityDisplayInfo::getAllAvailableScenarioFlag, FILEMODE=FILEMODE
+
+  if keyword_set(FILEMODE) then begin
+    data=strcompress(fix(self->getAllAvailableScenarioFlag()), /REMOVE)
+    record=self.utility->buildFileDataStream('AllAvailableScenarioFlag', data)
+    return, record
+  endif
+  return, self.allAvailableScenarioFlag
+  
+END
+
 FUNCTION EntityDisplayInfo::getUseObservedModelFlag, FILEMODE=FILEMODE
 
   if keyword_set(FILEMODE) then begin
@@ -2042,13 +2122,267 @@ FUNCTION EntityDisplayInfo::getUseObservedModelFlag, FILEMODE=FILEMODE
   
 END
 
+FUNCTION EntityDisplayInfo::getCompatibleVersionList
+
+  return, ['3.2', '3.1']
+
+END
+
 FUNCTION EntityDisplayInfo::getFileFormatVersion
 
-  return, '3.1'
+  return, '3.2'
   
 END
 
 PRO EntityDisplayInfo::saveData, filename
+
+  ; open file for write
+  openw, unit, filename, /GET_LUN
+  header1='#EntityDisplayInfo - Save File - Never change order of contents'
+  printf, unit, header1
+  
+  record=self.utility->buildFileDataStream('Version', self->getFileFormatVersion())
+  printf, unit, record
+  
+  ; Added Oct/November 2011 MM
+  printf, unit, self->getAllModelsFlag(/FILEMODE)
+  ; MM end
+  
+  ; Addeed Oct/November 2011 MM
+  printf, unit, self->getAllObservationsFlag(/FILEMODE)
+  ; MM end
+  
+  ; Replaced Oct/November 2011 MM
+  printf, unit, self->getAllScenariosFlag(/FILEMODE)
+  ; MM end
+  
+  ; Parameter section
+  ;  data=self->getParameterTypeNames()
+  ;  record=self.utility->buildFileDataStream('ParameterTypeNames', data)
+  ;printf, unit, record
+  
+  ;  data=self->getParameterTypeCodes()
+  ;  record=self.utility->buildFileDataStream('getParameterTypeCodes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getParameterTypeDescriptions()
+  ;  record=self.utility->buildFileDataStream('getParameterTypeDescriptions', data)
+  ;printf, unit, record
+  
+  ;  data=strcompress(self->getParameterTypeSelections(), /REMOVE)
+  ;  record=self.utility->buildFileDataStream('ParameterTypeSelections', data)
+  ;  printf, unit, record
+  ; Replaced 2 Oct 2011 MM
+  printf, unit, self->getParameterTypeSelections(/FILEMODE)
+  ; MM end
+  ;  data=self->getParameterNames()
+  ;  record=self.utility->buildFileDataStream('getParameterNames', data)
+  ;printf, unit, record
+  
+  ;  data=self->getParameterCodes()
+  ;  record=self.utility->buildFileDataStream('getParameterCodes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getParameterTypes()
+  ;  record=self.utility->buildFileDataStream('getParameterTypes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getParameterMeasureUnits()
+  ;  record=self.utility->buildFileDataStream('getParameterMeasureUnits', data)
+  ;printf, unit, record
+  
+  ;  data=self->getParameterDescriptions()
+  ;  record=self.utility->buildFileDataStream('getParameterDescriptions', data)
+  ;printf, unit, record
+  
+  ;  data=self->getParameterObservedCodes()
+  ;record=self.utility->buildFileDataStream('getParameterObservedCodes', data)
+  ;printf, unit, record
+  
+  ;  data=strcompress(self->getParameterSelections(), /REMOVE)
+  ;  record=self.utility->buildFileDataStream('ParameterSelections', data)
+  ;  printf, unit, record
+  ; Replaced 2 Oct 2011 MM
+  ; Replaced 10 Mar 2012 MM (Now Version is 3.1)
+  ;printf, unit, self->getParameterSelections(/FILEMODE)
+  printf, unit, self->getParameterCodeSelections(/FILEMODE)
+  ; MM end
+  ; MM end
+  ; Run section
+  
+  ;  data=self->getrunNames()
+  ;  record=self.utility->buildFileDataStream('getrunNames', data)
+  ;printf, unit, record
+  
+  ;  data=self->getrunCodes()
+  ;  record=self.utility->buildFileDataStream('getrunCodes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getrunDescriptions()
+  ;  record=self.utility->buildFileDataStream('getrunDescriptions', data)
+  ;printf, unit, record
+  
+  ;  data=strcompress(self->getRunSelections(), /REMOVE)
+  ;  record=self.utility->buildFileDataStream('RunSelections', data)
+  ;  printf, unit, record
+  ; Replaced 2 Oct 2011 MM
+  printf, unit, self->getRunSelections(/FILEMODE)
+  ; MM end
+  
+  ;  data=self->getrunQueryCodes()
+  ;  record=self.utility->buildFileDataStream('getrunQueryCodes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getrunScenarioCodes()
+  ;  record=self.utility->buildFileDataStream('getrunScenarioCodes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getrunModelCodes()
+  ;  record=self.utility->buildFileDataStream('getrunModelCodes', data)
+  ;printf, unit, record
+  ; Scenario section
+  
+  ;  data=self->getscenarioNames()
+  ;  record=self.utility->buildFileDataStream('getscenarioNames', data)
+  ;printf, unit, record
+  
+  ;  data=self->getscenarioCodes()
+  ;  record=self.utility->buildFileDataStream('getscenarioCodes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getscenarioDescriptions()
+  ;  record=self.utility->buildFileDataStream('getscenarioDescriptions', data)
+  ;printf, unit, record
+  
+  ;  data=strcompress(self->getScenarioSelections(), /REMOVE)
+  ;  record=self.utility->buildFileDataStream('ScenarioSelections', data)
+  ;  printf, unit, record
+  ; Replaced 2 Oct 2011 MM
+  printf, unit, self->getScenarioSelections(/FILEMODE)
+  ; MM end
+  ; Model section
+  
+  ;  data=self->getmodelNames()
+  ;  record=self.utility->buildFileDataStream('getmodelNames', data)
+  ;printf, unit, record
+  
+  ;  data=self->getmodelCodes()
+  ;  record=self.utility->buildFileDataStream('getmodelCodes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getmodelDescriptions()
+  ;  record=self.utility->buildFileDataStream('getmodelDescriptions', data)
+  ;printf, unit, record
+  
+  ;  data=strcompress(self->getModelSelections(), /REMOVE)
+  ;  record=self.utility->buildFileDataStream('ModelSelections', data)
+  ;  printf, unit, record
+  ; Replaced 2 Oct 2011 MM
+  printf, unit, self->getModelSelections(/FILEMODE)
+  ; MM end
+  
+  ; Category section
+  ;data=self->getcategoryPresenceFlags()
+  ;record=self.utility->buildFileDataStream('getcategoryPresenceFlags', data)
+  ;printf, unit, record
+  
+  ;  data=self->getcategoryCodes()
+  ;  record=self.utility->buildFileDataStream('getcategoryCodes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getcategoryTitles()
+  ;  record=self.utility->buildFileDataStream('getcategoryTitles', data)
+  ;printf, unit, record
+  
+  ;data=self->getcategoryValues()
+  ;record=self.utility->buildFileDataStream('getcategoryValues', data)
+  ;printf, unit, record
+  
+  ;data=self->getcategoryWidgetTypes()
+  ;record=self.utility->buildFileDataStream('getcategoryWidgetTypes', data)
+  ;printf, unit, record
+  
+  ;  data=strcompress(self->getCategorySelections(), /REMOVE)
+  ;  record=self.utility->buildFileDataStream('CategorySelections', data)
+  ;  printf, unit, record
+  ; Replaced 2 Oct 2011 MM
+  printf, unit, self->getCategorySelections(/FILEMODE)
+  ; MM end
+  
+  ; Obs section
+  ;  data=self->getobsCatCategoryCodes()
+  ;  record=self.utility->buildFileDataStream('getobsCatCategoryCodes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getobsCatObservedCodes()
+  ;  record=self.utility->buildFileDataStream('getobsCatObservedCodes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getobsCatValues()
+  ;  record=self.utility->buildFileDataStream('getobsCatValues', data)
+  ;printf, unit, record
+  
+  ;  data=self->getobservedNames()
+  ;  record=self.utility->buildFileDataStream('getobservedNames', data)
+  ;printf, unit, record
+  
+  ;  data=self->getobservedShortNames()
+  ;  record=self.utility->buildFileDataStream('getobservedShortNames', data)
+  ;printf, unit, record
+  
+  ;  data=self->getobservedCodes()
+  ;  record=self.utility->buildFileDataStream('getobservedCodes', data)
+  ;printf, unit, record
+  
+  ;  data=self->getObservedQueryCodesSelections()
+  ;  record=self.utility->buildFileDataStream('ObservedQueryCodesSelections', data)
+  ;  printf, unit, record
+  ; Replaced 2 Oct 2011 MM
+  printf, unit, self->getObservedQueryCodesSelections(/FILEMODE)
+  ; MM end
+  
+  ;  data=self->getObservedCodesSelections()
+  ;  record=self.utility->buildFileDataStream('ObservedCodesSelections', data)
+  ;  printf, unit, record
+  ; Replaced 2 Oct 2011 MM
+  printf, unit, self->getObservedCodesSelections(/FILEMODE)
+  ; MM end
+  
+  ;  data=strcompress(self->getObservedGroupNames(), /REMOVE)
+  ;  record=self.utility->buildFileDataStream('ObservedGroupNames', data)
+  ;  printf, unit, record
+  ; Replaced 2 Oct 2011 MM
+  printf, unit, self->getObservedGroupTitles(/FILEMODE)
+  ; MM end
+  
+  ;  data=strcompress(self->getObservedCodesGroupSelections(), /REMOVE)
+  ;  record=self.utility->buildFileDataStream('ObservedCodesGroupSelections', data)
+  ;  printf, unit, record
+  ; Replaced 2 Oct 2011 MM
+  printf, unit, self->getObservedCodesGroupSelections(/FILEMODE)
+  ; MM end
+  
+  ; Replaced 2 Oct 2011 MM
+  printf, unit, self->getUseObservedModelFlag(/FILEMODE)
+  ; MM end
+
+  ; Added Jan 2015 MM
+  printf, unit, self->getAllAvailableScenarioFlag(/FILEMODE)
+  ; MM end
+  
+  ;  data=strcompress(self->getMonitoringGroupStatSelection(), /REMOVE)
+  ;  record=self.utility->buildFileDataStream('MonitoringGroupStatSelection', data)
+  ;  printf, unit, record
+  ; Replaced 2 Oct 2011 MM
+  printf, unit, self->getObservedGroupStatCodeSelection(/FILEMODE)
+  ; MM end
+  
+  close, unit
+  free_lun, unit
+  
+END
+
+PRO EntityDisplayInfo::saveDataVerThreeDotOne, filename
 
   ; open file for write
   openw, unit, filename, /GET_LUN
@@ -2549,8 +2883,314 @@ FUNCTION EntityDisplayInfo::restoreData, filename
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, datalist
   if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
-  if version ne self->getFileFormatVersion() then message, 'File version not compatible'
+  versions=self->getCompatibleVersionList()
+  idx=where(version eq versions, count)
+  if count eq 0 then message, 'File version not compatible'
   
+  ; Parameter section
+  ;readf, unit, bufferString
+  ;  data=self->getParameterTypeNames()
+  ;  record=self.utility->buildFileDataStream('ParameterTypeNames', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getParameterTypeCodes()
+  ;  record=self.utility->buildFileDataStream('getParameterTypeCodes', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getParameterTypeDescriptions()
+  ;  record=self.utility->buildFileDataStream('getParameterTypeDescriptions', data)
+  
+  ;  readf, unit, bufferString
+  ;  ;record=self.utility->buildFileDataStream('getParameterTypeSelections', data)
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  self->setParameterTypeSelections, long(dataList)
+  
+  ; Added Oct/November 2011 MM
+  readf, unit, bufferString
+  self->setAllModelsFlag, bufferString, /FILEMODE
+  ; MM end
+  
+  ; Added Oct/November 2011 MM
+  readf, unit, bufferString
+  self->setAllObservationsFlag, bufferString, /FILEMODE
+  ; MM end
+  
+  ; Added Oct/November 2011 MM
+  readf, unit, bufferString
+  self->setAllScenariosFlag, bufferString, /FILEMODE
+  ; MM end
+  
+  ; Replaced 2 Oct 2011 MM
+  readf, unit, bufferString
+  self->setParameterTypeSelections, bufferString, /FILEMODE
+  ; MM end
+  
+  ;readf, unit, bufferString
+  ;  data=self->getParameterNames()
+  ;  record=self.utility->buildFileDataStream('getParameterNames', data)
+  
+  ;  readf, unit, bufferString
+  ;  data=self->getParameterCodes()
+  ;  record=self.utility->buildFileDataStream('getParameterCodes', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getParameterTypes()
+  ;  record=self.utility->buildFileDataStream('getParameterTypes', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getParameterMeasureUnits()
+  ;  record=self.utility->buildFileDataStream('getParameterMeasureUnits', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getParameterDescriptions()
+  ;  record=self.utility->buildFileDataStream('getParameterDescriptions', data)
+  
+  ;readf, unit, bufferString
+  ;data=self->getParameterObservedCodes()
+  ;record=self.utility->buildFileDataStream('getParameterObservedCodes', data)
+  
+  ;  readf, unit, bufferString
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  self->setParameterSelections, long(dataList)
+  ;
+  ; Replaced 2 Oct 2011 MM
+  ; Replaced 10 Mar 2012 MM (Now Version is 3.1)
+  readf, unit, bufferString
+  self->setParameterCodeSelections, bufferString, /FILEMODE
+  ; MM end
+  ; MM end
+  
+  ;readf, unit, bufferString
+  ;  data=self->getrunNames()
+  ;  record=self.utility->buildFileDataStream('getrunNames', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getrunCodes()
+  ;  record=self.utility->buildFileDataStream('getrunCodes', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getrunDescriptions()
+  ;  record=self.utility->buildFileDataStream('getrunDescriptions', data)
+  
+  ;  readf, unit, bufferString
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  ptr_free, self.runSelections
+  ;  if dataList[0] ne '-1' then self->setRunSelections, long(dataList)
+  ;  ;record=self.utility->buildFileDataStream('getrunSelections', data)
+  ; Replaced 2 Oct 2011 MM
+  readf, unit, bufferString
+  self->setRunSelections, bufferString, /FILEMODE
+  ; MM end
+  
+  ;readf, unit, bufferString
+  ;  data=self->getrunQueryCodes()
+  ;  record=self.utility->buildFileDataStream('getrunQueryCodes', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getrunScenarioCodes()
+  ;  record=self.utility->buildFileDataStream('getrunScenarioCodes', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getrunModelCodes()
+  ;  record=self.utility->buildFileDataStream('getrunModelCodes', data)
+  ; Scenario section
+  
+  ;readf, unit, bufferString
+  ;  data=self->getscenarioNames()
+  ;  record=self.utility->buildFileDataStream('getscenarioNames', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getscenarioCodes()
+  ;  record=self.utility->buildFileDataStream('getscenarioCodes', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getscenarioDescriptions()
+  ;  record=self.utility->buildFileDataStream('getscenarioDescriptions', data)
+  
+  ;  readf, unit, bufferString
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  self->setScenarioSelections, long(dataList)
+  ;  ;record=self.utility->buildFileDataStream('getscenarioSelections', data)
+  ; Model section
+  ; Replaced 2 Oct 2011 MM
+  readf, unit, bufferString
+  self->setScenarioSelections, bufferString, /FILEMODE
+  ; MM end
+  
+  ;readf, unit, bufferString
+  ;  data=self->getmodelNames()
+  ;  record=self.utility->buildFileDataStream('getmodelNames', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getmodelCodes()
+  ;  record=self.utility->buildFileDataStream('getmodelCodes', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getmodelDescriptions()
+  ;  record=self.utility->buildFileDataStream('getmodelDescriptions', data)
+  
+  ;  readf, unit, bufferString
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  self->setModelSelections, long(dataList)
+  ;  ;record=self.utility->buildFileDataStream('getmodelSelections', data)
+  ; Replaced 2 Oct 2011 MM
+  readf, unit, bufferString
+  self->setModelSelections, bufferString, /FILEMODE
+  ; MM end
+  
+  ; Category section
+  ;readf, unit, bufferString
+  ;data=self->getcategoryPresenceFlags()
+  ;record=self.utility->buildFileDataStream('getcategoryPresenceFlags', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getcategoryCodes()
+  ;  record=self.utility->buildFileDataStream('getcategoryCodes', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getcategoryTitles()
+  ;  record=self.utility->buildFileDataStream('getcategoryTitles', data)
+  
+  ;readf, unit, bufferString
+  ;data=self->getcategoryValues()
+  ;record=self.utility->buildFileDataStream('getcategoryValues', data)
+  
+  ;readf, unit, bufferString
+  ;data=self->getcategoryWidgetTypes()
+  ;record=self.utility->buildFileDataStream('getcategoryWidgetTypes', data)
+  
+  ;  readf, unit, bufferString
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  self->setCategorySelections, long(dataList)
+  ;  ;record=self.utility->buildFileDataStream('getcategorySelections', data)
+  ; Replaced 2 Oct 2011 MM
+  readf, unit, bufferString
+  self->setCategorySelections, bufferString, /FILEMODE
+  ; MM end
+  
+  ; Obs section
+  ;readf, unit, bufferString
+  ;  data=self->getobsCatCategoryCodes()
+  ;  record=self.utility->buildFileDataStream('getobsCatCategoryCodes', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getobsCatObservedCodes()
+  ;  record=self.utility->buildFileDataStream('getobsCatObservedCodes', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getobsCatValues()
+  ;  record=self.utility->buildFileDataStream('getobsCatValues', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getobservedNames()
+  ;  record=self.utility->buildFileDataStream('getobservedNames', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getobservedShortNames()
+  ;  record=self.utility->buildFileDataStream('getobservedShortNames', data)
+  
+  ;readf, unit, bufferString
+  ;  data=self->getobservedCodes()
+  ;  record=self.utility->buildFileDataStream('getobservedCodes', data)
+  
+  ;  readf, unit, bufferString
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  ptr_free, self.observedQueryCodesSelections
+  ;  if dataList[0] ne '-1' then self->setObservedQueryCodesSelections, dataList
+  ;  ;record=self.utility->buildFileDataStream('getobservedQueryCodesSelections', data)
+  ; Replaced 2 Oct 2011 MM
+  readf, unit, bufferString
+  self->setObservedQueryCodesSelections, bufferString, /FILEMODE
+  ; MM end
+  
+  ;  readf, unit, bufferString
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  ptr_free, self.observedCodesSelections
+  ;  if dataList[0] ne '-1' then self->setObservedCodesSelections, dataList
+  ;  ;record=self.utility->buildFileDataStream('getobservedCodesSelections', data)
+  ; Replaced 2 Oct 2011 MM
+  readf, unit, bufferString
+  self->setObservedCodesSelections, bufferString, /FILEMODE
+  ; MM end
+  
+  ;  readf, unit, bufferString
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  if dataList[0] ne '-1' then self->setObservedGroupNames, dataList
+  ;  ;record=self.utility->buildFileDataStream('getobservedGroupNames', data)
+  ; Replaced 2 Oct 2011 MM
+  readf, unit, bufferString
+  self->setObservedGroupTitles, bufferString, /FILEMODE
+  ; MM end
+  
+  ;  readf, unit, bufferString
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  if dataList[0] ne '-1' then self->setObservedCodesGroupSelections, dataList
+  ;  ;record=self.utility->buildFileDataStream('getobservedCodesGroupSelections', data)
+  ; Replaced 2 Oct 2011 MM
+  readf, unit, bufferString
+  ;ptr_free, self.observedCodesGroupSelections
+  self->setObservedCodesGroupSelections, bufferString, /FILEMODE
+  ; MM end
+  
+  ;  readf, unit, bufferString
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  self->setUseObservedModelFlag, fix(dataList)
+  ;  ;record=self.utility->buildFileDataStream('getuseObservedModelFlag', data)
+  ; Replaced 2 Oct 2011 MM
+  readf, unit, bufferString
+  self->setUseObservedModelFlag, bufferString, /FILEMODE
+  ; MM end
+  
+  ; Added 12 Dec 2015 MM
+  if float(version) gt float('3.1') then begin
+    readf, unit, bufferString
+    self->setAllAvailableScenarioFlag, bufferString, /FILEMODE
+  endif
+  ; MM end
+  
+  ;  readf, unit, bufferString
+  ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
+  ;  self->setMonitoringGroupStatSelection, fix(dataList)
+  ; Replaced 2 Oct 2011 MM
+  readf, unit, bufferString
+  self->setObservedGroupStatCodeSelection, bufferString, /FILEMODE
+  ; MM end
+  
+  close, unit
+  free_lun, unit
+  return, 1
+  
+END
+
+FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
+
+  ; open file for read
+  ERROR=0
+  catch, error_status
+  
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL & close, /ALL
+    errMsg=dialog_message('problem with file: <'+fileName+'> check format version, existence or read permission.', /ERROR)
+    return, 0
+  endif
+  
+  openr, unit, fileName, /GET_LUN
+  
+  bufferString=''
+  
+  readf, unit, bufferString
+  
+  readf, unit, bufferString
+  self.utility->convertStreamDataFile, bufferString, dataName, datalist
+  ;if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
+  ;if version ne self->getFileFormatVersion() then message, 'File version not compatible'
+  
+  if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
+  versions=self->getCompatibleVersionList()
+  idx=where(version eq versions, count)
+  if count eq 0 then message, 'File version not compatible'
+
   ; Parameter section
   ;readf, unit, bufferString
   ;  data=self->getParameterTypeNames()
@@ -3155,6 +3795,10 @@ FUNCTION EntityDisplayInfo::clone, super, DEEP=DEEP
       list=*self.scenarioNames
       clone.scenarioNames=ptr_new(list, /NO_COPY)
     endif
+    ;if ptr_valid (self.scenarioIsBases) then begin
+    ;  list=*self.scenarioIsBases
+    ;  clone.scenarioIsBases=ptr_new(list, /NO_COPY)
+    ;endif
     if ptr_valid (self.scenarioCodes) then begin
       list=*self.scenarioCodes
       clone.scenarioCodes=ptr_new(list, /NO_COPY)
@@ -3307,6 +3951,7 @@ FUNCTION EntityDisplayInfo::clone, super, DEEP=DEEP
     clone.parameterTypes=self.parameterTypes
     clone.parameterObservedCodes=self.parameterObservedCodes
     clone.scenarioNames=self.scenarioNames
+    clone.scenarioIsBases=self.scenarioIsBases
     clone.scenarioCodes=self.scenarioCodes
     clone.scenarioDescriptions=self.scenarioDescrs
     clone.scenarioSelections=self.scenarioSelections
@@ -3348,6 +3993,7 @@ FUNCTION EntityDisplayInfo::clone, super, DEEP=DEEP
   clone.categoryTitles=self.categoryTitles
   clone.categoryWidgetTypes=self.categoryWidgetTypes
   clone.useObservedModelFlag=self.useObservedModelFlag
+  clone.allAvailableScenarioFlag=self.allAvailableScenarioFlag
   clone.observedGroupStatCodeSelection=self.observedGroupStatCodeSelection
   clone.categoryPresenceFlags=self.categoryPresenceFlags
   clone.categorySelections=self.categorySelections
@@ -3360,6 +4006,7 @@ FUNCTION EntityDisplayInfo::init
   if not self -> Object :: init() then return , 0
   self.utility=obj_new("FMUtility")
   self.dtu=obj_new("DateTimeUtility")
+  self.allAvailableScenarioFlag=0
   return, 1
   
 END
@@ -3379,6 +4026,7 @@ PRO EntityDisplayInfo::cleanUp
   ptr_free, self.parameterCodeSelections
   ptr_free, self.parameterObservedCodes
   ptr_free, self.scenarioNames
+  ptr_free, self.scenarioIsBases
   ptr_free, self.scenarioCodes
   ptr_free, self.scenarioDescriptions
   ptr_free, self.scenarioSelections
@@ -3438,6 +4086,7 @@ PRO EntityDisplayInfo__Define
     runScenarioCodes: ptr_new(), $
     runModelCodes: ptr_new(), $
     scenarioNames: ptr_new(), $
+    scenarioIsBases: ptr_new(), $
     scenarioCodes: ptr_new(), $
     scenarioDescriptions: ptr_new(), $
     scenarioSelections: ptr_new(), $
@@ -3475,6 +4124,7 @@ PRO EntityDisplayInfo__Define
     utility: obj_new(), $
     dtu: obj_new(), $
     useObservedModelFlag: 0b, $
+    allAvailableScenarioFlag: 0b, $
     Inherits Object $
     }
     

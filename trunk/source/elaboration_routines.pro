@@ -49,6 +49,7 @@ PRO FM_Generic, request, result
     mChoice2runS=singleRawData[sRunIndexes].modelCode
     mChoice3runS=singleRawData[sRunIndexes].scenarioCode
     mChoice4runS=singleRawData[sRunIndexes].observedCode
+    ;*****core
   endif
   ngroup=0
   nobsG=0
@@ -371,7 +372,7 @@ PRO SG_Computing, $
           choiceIdx1=(where(mChoice1run eq test1[i1] and mChoice2run eq test2[i2] and $
             mChoice3run eq test3[i3] and mChoice4run eq test4[i4]))[0]
           if choiceIdx1 eq -1 then begin
-            rsult=dialog_message(['INCONSISTENT DATA:',$
+            rsult=dialogMsg(FORCELOG=FORCELOG, ['INCONSISTENT DATA:',$
               'Check availability of Parameter '+test1(i1)+' at Station '+test4(i4),$
               'in model '+test2[i2]+' for scenario '+test3(i3)],/error)
             stop
@@ -380,7 +381,7 @@ PRO SG_Computing, $
           if iUseObserveModel eq 0 then begin
             choiceIdx1=(where(mChoice1run eq test1(i1) and mChoice4run eq test4(i4)))[0]
             if choiceIdx1 eq -1 then begin
-              rsult=dialog_message(['INCONSISTENT DATA:',$
+              rsult=dialogMsg(FORCELOG=FORCELOG, ['INCONSISTENT DATA:',$
                 'Check availability of OBS-'+test1(i1)+' at Station '+test4(i4)],/error)
               stop
             endif
@@ -700,6 +701,7 @@ PRO SG_Computing, $
             limitValue=extraVal(0)
             uncertainty=extraVal(1)/100.
             runOU=runTemp
+            ;obshlp = obsTemp(sort(obsTemp))
             for ii=0,n_elements(obsTemp) -1 do begin
               if runtemp(ii) lt obsTemp(ii) then runOU(ii)=min([runTemp(ii)*(1+uncertainty),obsTemp(ii)])
               if runtemp(ii) ge obsTemp(ii) then runOU(ii)=max([runTemp(ii)*(1-uncertainty),obsTemp(ii)])
@@ -807,6 +809,10 @@ PRO SG_Computing, $
                 endif
                 if elabCode eq 14 then begin
                   if ncurrNames ge 2 then begin
+;                  if ncurrNames ge 2 and $
+;                    n_elements(obsGroupStatResult) ge 2 and $
+;                  n_elements(runGroupStatResult) ge 2 $
+;                    then begin
                     spatCorr=correlate(obsGroupStatResult,runGroupStatResult)
                     regres=regress(obsGroupStatResult,runGroupStatResult,const=regcnst,correlation=spatCorr)
                     regres=regres[0]
@@ -1563,6 +1569,9 @@ if isSingleSelection then begin
     runTempSort=runTemp(sort(runTemp))
     percentileThreshold=0.95
     if strupcase(parCodes) eq 'NO2' then percentileThreshold=0.998
+;    if strupcase(parCodes) eq 'O3' then percentileThreshold=0.904
+;    if strupcase(parCodes) eq 'PM10' then percentileThreshold=0.931
+;    if strupcase(parCodes) eq 'PM25' then percentileThreshold=0.931
     if strupcase(parCodes) eq 'O3' then percentileThreshold=0.929
     if strupcase(parCodes) eq 'PM10' then percentileThreshold=0.901
     if strupcase(parCodes) eq 'PM25' then percentileThreshold=0.901
@@ -1765,7 +1774,7 @@ end
 
 ;****************************************************************************************************
 
-PRO FM_GoogleEarth, request, result
+PRO FM_GoogleEarth, request, result, plotter
 
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
   startIndex=request->getStartIndex()
@@ -1812,7 +1821,7 @@ PRO FM_GoogleEarth, request, result
   endif
   Sing=1
   if isGroupSelection eq 1 then begin
-    rsult=dialog_message(['GoogleEarth not available for current choice',$
+    rsult=dialogMsg(FORCELOG=FORCELOG, ['GoogleEarth not available for current choice',$
       'GoogleEarth not available for groups',$
       'GoogleEarth only for individual stations',' ',$
       'CONTINUE for individual stations ?'],/question)
@@ -1821,7 +1830,7 @@ PRO FM_GoogleEarth, request, result
       goto,endGE
     endif
     if isSingleSelection eq 0 then begin
-      rsult=dialog_message(['GoogleEarth not available for current choice',$
+      rsult=dialogMsg(FORCELOG=FORCELOG, ['GoogleEarth not available for current choice',$
         'No individual stations selected'],/error)
       Sing=0
       goto,endGE
@@ -2152,6 +2161,10 @@ PRO FM_ConditionScatter, request, result
       statSymbols=intarr(2)
       statSymbols(*)=9
     end
+    else:begin
+     a=dialogMsg('Selected multiple combination is not allowed. Check batch selection', FORCELOG=1)
+     return
+    end
   endcase
 endif else begin
   if ((whichAreMultiple[0] eq 0) and (whichAreMultiple[1] eq 3)) or $
@@ -2188,6 +2201,10 @@ if multipleChoicesNo eq 1 then begin
   
   ; only one choice
   varCond=fix(extraval(0))
+  if varCond gt 1 then begin
+    varCond=0
+    aa=dialogMsg('Changing extra value from:'+string(extraval(0))+'to :'+string(varCond)+'... in order to execute this elab.', FORCELOG=1)
+  endif
   if varCond eq 0 then Varmain=1
   if varCond eq 1 then Varmain=0
   choiceCond=(where(mChoice1run eq test1[varCond]))[0]
@@ -2252,6 +2269,10 @@ if multipleChoicesNo ne 1 then begin
   for i=0, extLastIndex do begin
   
     varCond=fix(extraval(0))
+    if varCond gt 1 then begin
+      varCond=0
+      aa=dialogMsg('Changing extra value from:'+string(extraval(0))+'to :'+string(varCond)+'... in order to execute this elab.', FORCELOG=1)
+    endif
     if varCond eq 0 then Varmain=1
     if varCond eq 1 then Varmain=0
     
@@ -2364,7 +2385,8 @@ PRO FM_MultiParModScatter, request, result
     allGroupStations=request->buildAllGroupNames()
     groupTitlesNumber=request->getGroupTitlesNumber()
     groupTitles=request->getGroupTitles()
-    groupStatToApply=request->getGroupStatToApply()
+    groupStatToApplyCode=request->getGroupStatToApplyCode()
+    groupStatToApplyName=request->getGroupStatToApplyName()
     groupCodes=request->getGroupCodes()
     groupNames=request->getGroupNames()
     for i=0, groupTitlesNumber-1 do begin
@@ -2382,6 +2404,10 @@ PRO FM_MultiParModScatter, request, result
   regNamesAll=strarr(nobs)
   
   ;for i=0, nobs-1 do print, obsCodes[i],'**', obsNames[i],'**', request->getRegionofObs(obsCodes[i]);regionCode=request->getRegionofObs(obsCodes[i])
+  if n_elements(obsCodes) eq 0 then begin
+    aa=dialogMsg('elaboration not available without single obs selection', FORCELOG=1)
+    return
+  endif
   for i=0, nobs-1 do regNamesAll[i]=request->getRegionofObs(obsCodes[i]);regionCode=request->getRegionofObs(obsCodes[i])
   regNames = regNamesAll[UNIQ(regNamesAll, SORT(regNamesAll))]
   
@@ -2462,6 +2488,10 @@ if multipleChoicesNo eq 1 then begin
   statColors(0:range-1)=0
   statColors(range:2*range-1)=1
   
+  if n_elements(test1) ne 2 then begin
+    aa=dialogMsg('Check (batch) selections (multiple mandatory for this elab)', FORCELOG=1)
+    return
+  endif
   choiceMain=(where(mChoice1run eq test1[0]))[0]
   choiceCond=(where(mChoice1run eq test1[1]))[0]
   ; get original data (obs & run)

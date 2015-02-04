@@ -160,7 +160,7 @@ END
 ; gui check/conf/fill/update...
 PRO FMBatchEntitySelectionGUI::configure
 
-  self -> FMEntitySelectionGUI::configure
+  self->FMEntitySelectionGUI::configure
   self->setAllScenariosFlag, self.info->getAllScenariosFlag()
   self->setAllModelsFlag, self.info->getAllModelsFlag()
   previousSilentMode=self.silentMode
@@ -229,11 +229,17 @@ PRO FMBatchEntitySelectionGUI::buildModelSection, base
   obsModelBase = widget_base(extraFlagBase, $
     XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
-; KeesC 20NOV2014    
   self.observedModelFlagButton = widget_button(obsModelBase, $
     XOFFSET=0 ,YOFFSET=0, VALUE='MOD without OBS', event_pro=self.eventPrefix+'useObsModButton', $
-    SCR_YSIZE=self->getLabelYSize(), sensitive=1)  ;self.mgr->isAdvancedFilter())
+    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedFilter())
     
+  scenSelectionBase = widget_base(extraFlagBase, $
+    XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, $
+    TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
+  self.allAvailableScenarioFlagButton = widget_button(obsModelBase, $
+    XOFFSET=0 ,YOFFSET=0, VALUE='All available scenario(s)', event_pro=self.eventPrefix+'allAvailableScenarioButton', $
+    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedFilter())
+
 END
 
 PRO FMBatchEntitySelectionGUI::buildParameterSection, base

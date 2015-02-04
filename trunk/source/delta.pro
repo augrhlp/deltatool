@@ -9,8 +9,9 @@ PRO delta
  !P.COLOR=0
  fairModeApp=obj_new("FMApplication")
  fairModeApp->startUp
+ ;startUpMask, fairModeApp 
  fairModeApp->display
- ;xmanager, CATCH=0, /NO_BLOCK
+ xmanager, CATCH=0, /NO_BLOCK
 
 END
 

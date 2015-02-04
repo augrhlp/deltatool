@@ -387,7 +387,7 @@ FUNCTION DecomposedColor, device, DEPTH=depth
     'PS': BEGIN ; PostScript
       CASE 1 OF
         Float(!Version.Release) EQ 7.1: BEGIN
-          Help, /DEVICE, OUTPUT=outstr
+          Help, /device, OUTPUT=outstr
           psinfo = outstr[4]
           parts = StrSplit(psinfo, ':', /EXTRACT)
           IF StrUpCase(StrCompress(parts[1], /REMOVE_ALL)) EQ 'DECOMPOSED' THEN BEGIN
@@ -399,7 +399,7 @@ FUNCTION DecomposedColor, device, DEPTH=depth
           ENDELSE
         END
         Float(!Version.Release) GT 7.1: BEGIN
-          Device, GET_DECOMPOSED=decomposed
+          device, GET_DECOMPOSED=decomposed
           IF decomposed THEN depth = 24 ELSE depth = 8
         END
         ELSE: BEGIN
@@ -411,21 +411,21 @@ FUNCTION DecomposedColor, device, DEPTH=depth
     
     'Z': BEGIN ; Z-graphics buffer.
       IF (Float(!Version.Release) GE 6.4) THEN BEGIN
-        Device, GET_DECOMPOSED=decomposed
-        Device, GET_PIXEL_DEPTH=depth
+        device, GET_DECOMPOSED=decomposed
+        device, GET_PIXEL_DEPTH=depth
       ENDIF ELSE BEGIN
         decomposed = 0
         depth = 8
       ENDELSE
     END
     
-    'X': Device, GET_DECOMPOSED=decomposed, GET_VISUAL_DEPTH=depth
+    'X': device, GET_DECOMPOSED=decomposed, GET_VISUAL_DEPTH=depth
     
-    'WIN': Device, GET_DECOMPOSED=decomposed, GET_VISUAL_DEPTH=depth
+    'WIN': device, GET_DECOMPOSED=decomposed, GET_VISUAL_DEPTH=depth
     
     'MAC': BEGIN
       IF (Float(!Version.Release) GE 5.2) THEN BEGIN
-        Device, Get_Decomposed=decomposedState, GET_VISUAL_DEPTH=depth
+        device, Get_Decomposed=decomposedState, GET_VISUAL_DEPTH=depth
       ENDIF ELSE BEGIN
         decomposed = 0
         depth = 8
@@ -474,7 +474,7 @@ FUNCTION PickColorName, theName, $         ; The name of the starting color.
   
   ; Get depth of visual display.
   
-  IF (!D.Flags AND 256) NE 0 THEN Device, Get_Visual_Depth=theDepth ELSE theDepth = 8
+  IF (!D.Flags AND 256) NE 0 THEN device, Get_Visual_Depth=theDepth ELSE theDepth = 8
   
   ; Is there a filename? If so, get colors from there.
   
@@ -743,18 +743,18 @@ FUNCTION PickColorName, theName, $         ; The name of the starting color.
   ; Save decomposed state and restore it, if possible.
   
   IF Float(!Version.Release) GE 5.2 THEN BEGIN
-    Device, Get_Decomposed=decomposedState
+    device, Get_Decomposed=decomposedState
   ENDIF ELSE decomposedState = 0
   
   ; Different color decomposition based on visual depth.
   
   IF theDepth GT 8 THEN BEGIN
-    Device, Decomposed=1
+    device, Decomposed=1
     colors24 = PickColorName_RGB_to_24Bit([[red], [green], [blue]])
   ENDIF ELSE BEGIN
     IF NCOLORS GT !D.Table_Size THEN $
       Message, /NoName, 'Number of colors exceeds color table size. Returning...'
-    Device, Decomposed=0
+    device, Decomposed=0
     colors24 = -1
   ENDELSE
   
@@ -861,7 +861,7 @@ FUNCTION PickColorName, theName, $         ; The name of the starting color.
       Widget_Control, drawID[j], Get_Value=thisWID
       wids[j] = thisWID
       WSet, thisWID
-      PolyFill, [1,1,19,19,1], [0,13,13,0,0], /Device, Color=colors24[j]
+      PolyFill, [1,1,19,19,1], [0,13,13,0,0], /device, Color=colors24[j]
     ENDFOR
     IF (N_Elements(colors) GT NCOLORS) THEN BEGIN
       wids = [Temporary(wids), Intarr(8)]
@@ -869,7 +869,7 @@ FUNCTION PickColorName, theName, $         ; The name of the starting color.
         Widget_Control, drawID[j], Get_Value=thisWID
         wids[j] = thisWID
         WSet, thisWID
-        PolyFill, [1,1,19,19,1], [0,13,13,0,0], /Device, Color=colors24[j]
+        PolyFill, [1,1,19,19,1], [0,13,13,0,0], /device, Color=colors24[j]
       ENDFOR
     ENDIF
   ENDIF ELSE BEGIN
@@ -877,7 +877,7 @@ FUNCTION PickColorName, theName, $         ; The name of the starting color.
       Widget_Control, drawID[j-1], Get_Value=thisWID
       wids[j-1] = thisWID
       WSet, thisWID
-      PolyFill, [1,1,19,19,1], [0,13,13,0,0], /Device, Color=bottom + black
+      PolyFill, [1,1,19,19,1], [0,13,13,0,0], /device, Color=bottom + black
     ENDFOR
     IF (N_Elements(colors) GT NCOLORS) THEN BEGIN
       wids = [Temporary(wids), Intarr(8)]
@@ -885,7 +885,7 @@ FUNCTION PickColorName, theName, $         ; The name of the starting color.
         Widget_Control, drawID[j-1], Get_Value=thisWID
         wids[j-1] = thisWID
         WSet, thisWID
-        PolyFill, [1,1,19,19,1], [0,13,13,0,0], /Device, Color=bottom + j
+        PolyFill, [1,1,19,19,1], [0,13,13,0,0], /device, Color=bottom + j
       ENDFOR
     ENDIF
   ENDELSE
@@ -899,12 +899,12 @@ FUNCTION PickColorName, theName, $         ; The name of the starting color.
     eraseColor = Keyword_Set(brewer) ? 'BLK8' : 'BLACK
     black = Where(colornames EQ eraseColor)
     black = black[0]
-    PlotS, [0,0,59,59,0], [0,14,14,0,0], /Device, Color=colors24[black]
+    PlotS, [0,0,59,59,0], [0,14,14,0,0], /device, Color=colors24[black]
   ENDIF ELSE BEGIN
     eraseColor = Keyword_Set(brewer) ? 'BLK8' : 'BLACK
     black = Where(colornames EQ eraseColor)
     Erase, Color=mixcolorIndex
-    PlotS, [0,0,59,59,0], [0,14,14,0,0], /Device, Color=black
+    PlotS, [0,0,59,59,0], [0,14,14,0,0], /device, Color=black
   ENDELSE
   
   ; Pointer to hold the color form information.
@@ -959,7 +959,7 @@ FUNCTION PickColorName, theName, $         ; The name of the starting color.
   
   ; Restore decomposed state if possible.
   
-  IF Float(!Version.Release) GE 5.2 THEN Device, Decomposed=decomposedState
+  IF Float(!Version.Release) GE 5.2 THEN device, Decomposed=decomposedState
   
   ; Return the color name.
   
@@ -994,7 +994,7 @@ FUNCTION FSC_Color, theColour, colorIndex, $
   ENDIF
   
   ; Set up PostScript device for working with colors.
-  IF !D.Name EQ 'PS' THEN Device, COLOR=1, BITS_PER_PIXEL=8
+  IF !D.Name EQ 'PS' THEN device, COLOR=1, BITS_PER_PIXEL=8
   
   ; I don't want to change the original variable.
   IF N_Elements(theColour) NE 0 THEN theColor = theColour ELSE $
@@ -1041,18 +1041,18 @@ FUNCTION FSC_Color, theColour, colorIndex, $
   IF N_Elements(decomposedState) EQ 0 THEN BEGIN
     IF Float(!Version.Release) GE 5.2 THEN BEGIN
       IF (!D.Name EQ 'X' OR !D.Name EQ 'WIN' OR !D.Name EQ 'MAC') THEN BEGIN
-        Device, Get_Decomposed=decomposedState
+        device, Get_Decomposed=decomposedState
       ENDIF ELSE decomposedState = 0
     ENDIF ELSE decomposedState = 0
     IF (Float(!Version.Release) GE 6.4) AND (!D.NAME EQ 'Z') THEN BEGIN
-      Device, Get_Decomposed=decomposedState, Get_Pixel_Depth=theDepth
+      device, Get_Decomposed=decomposedState, Get_Pixel_Depth=theDepth
       IF theDepth LT 24 THEN decomposedState = 0
     ENDIF
   ENDIF ELSE decomposedState = Keyword_Set(decomposedState)
   
   ; Get depth of visual display (and decomposed state for PostScript devices).
-  IF (!D.Flags AND 256) NE 0 THEN Device, Get_Visual_Depth=theDepth ELSE theDepth = 8
-  IF (Float(!Version.Release) GE 6.4) AND (!D.NAME EQ 'Z') THEN Device, Get_Pixel_Depth=theDepth
+  IF (!D.Flags AND 256) NE 0 THEN device, Get_Visual_Depth=theDepth ELSE theDepth = 8
+  IF (Float(!Version.Release) GE 6.4) AND (!D.NAME EQ 'Z') THEN device, Get_Pixel_Depth=theDepth
   IF (!D.NAME EQ 'PS') AND (Float(!Version.Release) GE 7.1) THEN BEGIN
     decomposedState = DecomposedColor(DEPTH=theDepth)
   ENDIF
@@ -2594,9 +2594,9 @@ PRO PROGRESSBARBTT::Update, percent, text2=theText, text1=text1
     IF N_Elements(theText) NE 0 THEN Widget_Control, self.labelID, Set_Value=theText
     IF N_Elements(text1) NE 0 THEN Widget_Control, self.labelID1, Set_Value=text1
     IF self.fast THEN BEGIN
-      Polyfill, [x1, x1, x2, x2, x1], [y1, y2, y2, y1, y1], /Device, Color=self.colorindex
+      Polyfill, [x1, x1, x2, x2, x1], [y1, y2, y2, y1, y1], /device, Color=self.colorindex
     ENDIF ELSE BEGIN
-      Polyfill, [x1, x1, x2, x2, x1], [y1, y2, y2, y1, y1], /Device, Color=FSC_Color(self.color, !P.Color)
+      Polyfill, [x1, x1, x2, x2, x1], [y1, y2, y2, y1, y1], /device, Color=FSC_Color(self.color, !P.Color)
     ENDELSE
     IF thisWindow GE 0 AND thisWindow NE self.wid THEN WSet, thisWindow
   ;endif
@@ -2783,7 +2783,7 @@ FUNCTION PROGRESSBARBTT::INIT, $
     Widget_Control, self.tlb, XOFFSET=xoffset, YOFFSET=yoffset
     
   ENDIF ELSE BEGIN
-    ;Device, Get_Screen_Size=screenSize
+    ;device, Get_Screen_Size=screenSize
     IF screenSize[0] GT 2000 THEN screenSize[0] = screenSize[0]/2 ; Dual monitors.
     xCenter = screenSize(0) / 2
     yCenter = screenSize(1) / 2
@@ -2965,7 +2965,7 @@ END
 
 
 PRO PROGRESSBARBTT_Example
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   tlb = Widget_Base(Column=1, Xoffset=200, Yoffset=200)
   button = Widget_Button(tlb, Value='Start Loop (Normal)')
@@ -3032,13 +3032,13 @@ END
 ;       dataColor = FSC_Color("Yellow", !D.Table_Size-4)
 ;       thisDevice = !D.Name
 ;       Set_Plot, 'toWhateverYourDeviceIsGoingToBe', /Copy
-;       Device, .... ; Whatever you need here to set things up properly.
+;       device, .... ; Whatever you need here to set things up properly.
 ;       IF (!D.Flags AND 256) EQ 0 THEN $
 ;         POLYFILL, [0,1,1,0,0], [0,0,1,1,0], /Normal, Color=backColor
 ;       Plot, Findgen(11), Color=axisColor, Background=backColor, /NoData, $
 ;          NoErase= ((!D.Flags AND 256) EQ 0)
 ;       OPlot, Findgen(11), Color=dataColor
-;       Device, .... ; Whatever you need here to wrap things up properly.
+;       device, .... ; Whatever you need here to wrap things up properly.
 ;       Set_Plot, thisDevice
 ;
 ; OPTIONAL INPUT PARAMETERS:
@@ -3649,7 +3649,7 @@ PRO PickColorName_CenterTLB, tlb
   ; Center the top-level base widget.
 
   screenSize = Get_Screen_Size()
-  Device, Get_Screen_Size=screenSize
+  device, Get_Screen_Size=screenSize
   IF screenSize[0] GT 2000 THEN screenSize[0] = screenSize[0]/2
   xCenter = screenSize(0) / 2
   yCenter = screenSize(1) / 2
@@ -3747,11 +3747,11 @@ PRO PickColorName_Select_Color, event
   
   IF info.theDepth GT 8 THEN BEGIN
     Erase, Color=info.colors24[theIndex]
-    PlotS, [0,0,59,59,0], [0,14,14,0,0], /Device, Color=info.black
+    PlotS, [0,0,59,59,0], [0,14,14,0,0], /device, Color=info.black
   ENDIF ELSE BEGIN
     TVLCT, info.red[theIndex], info.green[theIndex], info.blue[theIndex], info.mixcolorIndex
     Erase, Color=info.mixcolorIndex
-    PlotS, [0,0,59,59,0], [0,14,14,0,0], /Device, Color=info.black
+    PlotS, [0,0,59,59,0], [0,14,14,0,0], /device, Color=info.black
   ENDELSE
   
   Widget_Control, event.top, Set_UValue=info, /No_Copy
@@ -4092,9 +4092,9 @@ FUNCTION TVREAD, xstart, ystart, ncols, nrows, $
   ; On 24-bit displays, make sure color decomposition is ON.
   
   IF (!D.Flags AND 256) NE 0 THEN BEGIN
-    Device, Get_Decomposed=theDecomposedState, Get_Visual_Depth=theDepth
+    device, Get_Decomposed=theDecomposedState, Get_Visual_Depth=theDepth
     IF theDepth GT 8 THEN BEGIN
-      Device, Decomposed=1
+      device, Decomposed=1
       IF theDepth EQ 24 THEN truecolor = true ELSE truecolor = 0
     ENDIF ELSE truecolor = 0
     IF thisWindow LT 0 THEN $
@@ -4106,7 +4106,7 @@ FUNCTION TVREAD, xstart, ystart, ncols, nrows, $
   
   ; Fix for 24-bit Z-buffer.
   IF (Float(!Version.Release) GE 6.4) AND (!D.NAME EQ 'Z') THEN BEGIN
-    Device, Get_Decomposed=theDecomposedState, Get_Pixel_Depth=theDepth
+    device, Get_Decomposed=theDecomposedState, Get_Pixel_Depth=theDepth
     IF theDepth EQ 24 THEN truecolor = true ELSE truecolor = 0
   ENDIF
   
@@ -4117,7 +4117,7 @@ FUNCTION TVREAD, xstart, ystart, ncols, nrows, $
   
   ; Need to set color decomposition back?
   
-  IF theDepth GT 8 THEN Device, Decomposed=theDecomposedState
+  IF theDepth GT 8 THEN device, Decomposed=theDecomposedState
   
   ; If we need to write an image, do it here.
   
