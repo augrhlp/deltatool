@@ -1,6 +1,20 @@
+FUNCTION FMMainGUI::dialogMessage, textMessage, title=title, INFORMATION=INFORMATION, error=error, question=question, WARNING=WARNING, CENTER=CENER
+
+  if self.mgr->getTestMode() then return, self.mgr->logDialog(textMessage, title=title, INFORMATION=INFORMATION, error=error, question=question, WARNING=WARNING)
+  return, self->GUI::dialogMessage(textMessage, title=title, INFORMATION=INFORMATION, error=error, question=question, WARNING=WARNING, CENTER=CENTER)
+  
+END
+
 PRO FMMainGUI::checkDataIntegrity
 
   self.mgr->checkDataIntegrity
+; DeltaCheck_IO
+  
+END
+
+PRO FMMainGUI::dataFormatConversionUtility
+
+  self.mgr->dataFormatConversionUtility
 ; DeltaCheck_IO
   
 END
@@ -109,29 +123,42 @@ FUNCTION FMMainGUI::getImageToSave, BACKGROUNDCOLOR=BACKGROUNDCOLOR
   
 END
 
-PRO FMMainGUI::saveImage, filename
+PRO FMMainGUI::saveImage, filename, format, NO_CONFIRM=NO_CONFIRM, WORKINGDIR=WORKINGDIR
 
   if n_elements(filename) eq 1 then imageFileName=filename else imageFileName='image.ext'
   res=query_image(filename, SUPPORTED_WRITE=SUPPLIST)
+  SUPPLIST=strlowcase(SUPPLIST)
+  count=0
+  if n_elements(format) ne 0 then idx=where(strlowcase(format) eq strlowcase(SUPPLIST), count)
+  if count eq 1 then predefFormat=SUPPLIST[idx] else predefFormat=suppList[0]
+  ;if n_elements(format) eq 0 then predefFormat=strlowcase(suppList[0]) else predefFormat=strlowcase(format)
   fsm=obj_new('FMFileSystemManager')
   imageFileNamePos=strpos(imageFileName, '.', /REVERSE_SEARCH)
   imageFileNameRes=strarr(2)
   imageFileNameRes[0]=strmid(imageFileName, 0, imageFileNamePos)
   imageFileNameRes[1]=strmid(imageFileName, imageFileNamePos, strlen(imageFileName)-imageFileNamePos)
-  imageFileName=imageFileNameRes[0]+'.'+strlowcase(suppList[0])
+  imageFileName=imageFileNameRes[0]+'.'+strlowcase(predefFormat)
   ;  imageFileName=strsplit(imageFileName, '.', /EXTRACT)
   ;  imageFileName=imageFileName[0]+'.'+strlowcase(suppList[0])
   ;imageToSave=self.mgr->getImageToSave(BACKGROUND=0)
   imageToSave=self->getImageToSave()
   ;
-  ;MM 16/02/2011 Here save an image
-  result=Dialog_Write_Image(imageToSave, title=['Save image'], PATH=self.fsm->getSaveDir(), filename=imageFileName, options=info, $
-    type=suppList[0])
-  if result eq 1 then begin
-    filename=info.filename
-    print, 'Image saved, filename:<', info.filename, '>', 'type:', info.type
-    msg=self->dialogMessage(['Image saved in:', '<'+filename+'> file.', 'format = '+info.type], title=['Image'], /INFORMATION)
-  endif
+  ;MM 16/02/2011 Here save an image (asking or batch mode)
+  if ~keyword_set(NO_CONFIRM) then begin
+    result=Dialog_Write_Image(imageToSave, title=['Save image'], PATH=self.fsm->getSaveDir(), filename=imageFileName, options=info, $
+      type=predefFormat)
+    if result eq 1 then begin
+      filename=info.filename
+      print, 'Image saved, filename:<', info.filename, '>', 'type:', info.type
+      msg=self->dialogMessage(['Image saved in:', '<'+filename+'> file.', 'format = '+info.type], title=['Image'], /INFORMATION)
+    endif
+  endif else begin
+    fsm=obj_new('FMFileSystemManager')
+    onlyFileName=fsm->getFileName(imageFileName)
+    obj_destroy, fsm 
+    if keyword_set(WORKINGDIR) then fullFileName=WORKINGDIR+onlyFileName else fullFileName=imageFileName
+    WRITE_IMAGE, fullFileName, predefFormat, imageToSave
+  endelse
   
 END
 
@@ -187,9 +214,8 @@ END
 ;;  self.disclaimerGUI->realize
 ;;  self.disclaimerGUI->moveToCenterScreen
 ;;  self.disclaimerGUI->show
-;  
+;
 ;END
-
 PRO FMMainGUI::switchRecognize
 
   if self.recognizerVisibleStatus then self.recognizerGUI->hide else self.recognizerGUI->show
@@ -248,9 +274,21 @@ FUNCTION FMMainGUI::saveBatch, splitBatchInfo
   
 END
 
-PRO FMMainGUI::startBenchMark, fileName
+PRO FMMainGUI::convertObsFromCSVtoCDF
 
-  self->restoreBatch, fileName
+  self.mgr->convertObsFromCSVtoCDF
+  
+END
+
+PRO FMMainGUI::testPlotQuality
+
+  self.mgr->testPlotQuality
+  
+END
+
+PRO FMMainGUI::startBenchMark, fileName, WORKINGDIR=WORKINGDIR, BATCH=BATCH, SAMEFILENAME=SAMEFILENAME
+
+  self->restoreBatch, fileName, WORKINGDIR=WORKINGDIR, BATCH=BATCH, SAMEFILENAME=SAMEFILENAME
   self.mgr->restoreElabFilterType
   
 END
@@ -272,7 +310,7 @@ END
 ;
 ;END
 
-PRO FMMainGUI::restoreBatch, fileName
+PRO FMMainGUI::restoreBatch, fileName, WORKINGDIR=WORKINGDIR, BATCH=BATCH, SAMEFILENAME=SAMEFILENAME
 
   if n_elements(fileName) ne 1 then begin
     filter=['*'+self.fsm->getBatchExtension()]
@@ -283,7 +321,7 @@ PRO FMMainGUI::restoreBatch, fileName
       GET_PATH=path, /MUST_EXIST, PATH=self.fsm->getSaveDir(), $
       TITLE='Restore a previous saved entity'  )
   endif else begin
-    path=self.fsm->getSaveDir(/WITH)
+    if n_elements(WORKINGDIR) ne 1 then path=self.fsm->getSaveDir(/WITH) else path=WORKINGDIR
     batchFileName=path+fileName
   endelse
   if batchFileName ne '' then begin
@@ -292,7 +330,8 @@ PRO FMMainGUI::restoreBatch, fileName
       requests=resRequests
       for i=0, n_elements(requests)-1 do begin
         ;self.mgr->restoreBatch, batchFileName
-        if ~self.mgr->restoreRequest(requests[i]->getFileName(), path) then continue
+        if keyword_set(SAMEFILENAME) then outFileName=fileName else outFileName=requests[i]->getFileName()
+        if ~self.mgr->restoreRequest(requests[i]->getFileName(), WORKINGDIR=path, BATCH=BATCH, outFileName=outFileName) then continue
       ;self.entityElaboration->restore
       ;self.mgr->buildRequest()
       ;self->updateInfo
@@ -395,7 +434,7 @@ PRO FMMainGUI::wsetMainDataDraw, topBase
   MainDataDraw=widget_info(self->getTopBase(), FIND='MAINDRAW')
   widget_control, MainDataDraw, get_value=wsetId
   wset, wsetId
-  DEVICE, /DECOMPOSE
+  device, /DECOMPOSE
 ;  if ptr_valid(mainRefStruct.controlWindow) then begin
 ;    controlWindow=*(mainRefStruct.controlWindow)
 ;    !P=controlWindow.systemP[0] & !X=controlWindow.systemX[0]
@@ -409,7 +448,7 @@ PRO FMMainGUI::wsetInfoDataDraw, topBase
   InfoDraw=widget_info(self->getTopBase(), FIND='GRAPHDRAW')
   widget_control, InfoDraw, get_value=wsetId
   wset, wsetId
-  DEVICE, /DECOMPOSE
+  device, /DECOMPOSE
 ;  if ptr_valid(mainRefStruct.controlWindow) then begin
 ;    controlWindow=*(mainRefStruct.controlWindow)
 ;    !P=controlWindow.systemP[1] & !X=controlWindow.systemX[1]
@@ -423,7 +462,7 @@ PRO FMMainGUI::wsetLogoDraw, topBase
   logoDraw=widget_info(self->getTopBase(), FIND='LOGODRAW')
   widget_control, logoDraw, get_value=wsetId
   wset, wsetId
-  DEVICE,/DECOMPOSE
+  device,/DECOMPOSE
 ;  if ptr_valid(mainRefStruct.controlWindow) then begin
 ;    controlWindow=*(mainRefStruct.controlWindow)
 ;    !P=controlWindow.systemP[1] & !X=controlWindow.systemX[1]
@@ -514,6 +553,12 @@ END
 PRO FMMainGUI::userObsModSelection, selection
 
   self.mgr->changeObsModSelection, selection
+  
+END
+
+PRO FMMainGUI::userAllAvailableScenarioSelection, selection
+
+  self.mgr->changeAllAvailableScenarioSelection, selection
   
 END
 
@@ -626,6 +671,7 @@ PRO FMMainGUI::build
   elaborationMenu=widget_button(fmMenuBar, value='Analysis', UNAME='DISPLAYMENU', /MENU)
   helpMenu=Widget_Button(fmMenuBar, VALUE='Help', UNAME='HELPMENU', UVALUE='HELPMENU', /MENU)
   
+  checkIntegrityBtt=widget_Button(fileMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
   saveAsImageButton=widget_button(fileMenu, value='Save image', UNAME='SAVEIMG', event_pro=self.eventprefix+'saveImage')
   saveAsImageBlackBackGroundButton=widget_button(fileMenu, value='Save as image (Black Back)', UNAME='SAVEIMGBLK', event_pro=self.eventprefix+'saveImageBlack', sensitive=0)
   saveAsImageWhiteBackGroundButton=widget_button(fileMenu, value='Save as image (White Back)', UNAME='SAVEIMGWHT', event_pro=self.eventprefix+'saveImageWhite', sensitive=0)
@@ -646,13 +692,20 @@ PRO FMMainGUI::build
   elaborationRestoreButton=widget_button(elaborationMenu, UVALUE=0, value='Restore Analysis', UNAME='ELABORATIONLOAD_BTT', event_pro=self.eventprefix+'restoreElaboration')
   
   helpDescBtt=widget_Button(helpMenu, VALUE='Help file', UNAME='HELPBTT', UVALUE='OPENHELP_BTT', event_pro=self.eventPrefix+'helpMenuSelection')
-  checkIntegrityBtt=widget_Button(helpMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
+  
+  interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR)
+  ;autoFormatConversionBtt=widget_Button(helpMenu, VALUE='Convert observation (csv to cdf)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runBatchMenuSelection')
+  
+  if self.mgr->IsAdvancedFilter() then begin
+    testPlotIntegrityBtt=widget_Button(helpMenu, VALUE='Plot quality test integrity tool', UNAME='TESTPLOTQUALITYINTEGRITY', UVALUE='TESTQUALITYINTEGRITY_BTT', event_pro=self.eventPrefix+'testQualityMenuSelection', /SEPARATOR)
+    checkIntegrityBtt=widget_Button(helpMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
+  endif
+  
   wwwPageBtt=widget_Button(helpMenu, VALUE='DELTA WWW', UNAME='Download site...', UVALUE='OPENWWW_BTT', event_pro=self.eventPrefix+'downloadMenuSelection')
   aboutBtt=widget_Button(helpMenu, VALUE='About...', UNAME='About', UVALUE='DISPMAP', event_pro=self.eventprefix+'aboutSplash')
   ;disclaimerBtt=widget_Button(helpMenu, VALUE='Disclaimer...', UNAME='Disclaimer', UVALUE='DISPMAP', event_pro=self.eventprefix+'disclaimer')
   foundExeBtt=widget_Button(helpMenu, VALUE='Find external applications paths...', UNAME='UpdateExe', UVALUE='DISPMAP', event_pro=self.eventprefix+'configureExecutable')
   licenseBtt=widget_Button(helpMenu, VALUE='Licence...', UNAME='License', UVALUE='DISPMAP', event_pro=self.eventprefix+'license')
-  
   mBase=WIDGET_BASE(mainbase,xpad=0, ypad=0,space=0,/COLUMN)
   logoBase= WIDGET_BASE(mBase,xpad=0, ypad=0,space=0,/ROW, /ALIGN_CENTER)
   subBase1 = WIDGET_BASE(mBase,xpad=0, ypad=0,space=0,/ROW)
@@ -716,7 +769,7 @@ END
 
 FUNCTION FMMainGUI::getValueYDim
 
-  return, 20
+  return, self->getLabelPixHeight(20)
   
 END
 
@@ -773,7 +826,7 @@ END
 FUNCTION FMMainGUI::getResourceDir, WITHSEPARATOR=WITHSEPARATOR
 
   return, self.mgr->getResourceDir(WITHSEPARATOR=WITHSEPARATOR)
-
+  
 END
 
 FUNCTION FMMainGUI::getHomeDir, WITHSEPARATOR=WITHSEPARATOR
@@ -846,7 +899,7 @@ PRO FMMainGUI::buildGraphInfoSection, base, dims
   graphDraw = WIDGET_DRAW(graphDrawBase,RETAIN=2,SCR_XSIZE=self->xInfoGraphSize(),SCR_YSIZE=self->yInfoGraphSize()/2, $
     UNAME='GRAPHDRAW')
     
-;KeesC 30JAN2014    
+  ;KeesC 30JAN2014
   fileStr='startup.ini'
   dirResource=self->getResourceDir(/WITH)
   openr,unit,dirResource+'MyDeltaInput.dat',/get_lun,error=err
@@ -866,7 +919,7 @@ PRO FMMainGUI::buildGraphInfoSection, base, dims
     fileMod=strcompress(txt,/remove_all)
     close,unit
     free_lun, unit
-  endif 
+  endif
   fileMon='monitoring'
   openr,unit,dirResource+'MyDeltaInput.dat',/get_lun,error=err
   if err eq 0 then begin
@@ -877,8 +930,8 @@ PRO FMMainGUI::buildGraphInfoSection, base, dims
     fileMon=strcompress(txt,/remove_all)
     close,unit
     free_lun, unit
-  endif 
-
+  endif
+  
   infoSMM='['+fileStr+'   \\'+fileMod+'   \\'+fileMon+']'
   titleLabel = Widget_Label(graphDrawBase, UNAME='STATUSBARGRAPH', $
     XOFFSET=0 ,YOFFSET=0 ,SCR_XSIZE=self->xInfoGraphSize() ,SCR_YSIZE=self->getTitleYDim() ,/ALIGN_LEFT, $
@@ -934,59 +987,73 @@ PRO FMMainGUI::buildModelSection, base
     SCR_XSIZE=self->xSummarySize() ,SCR_YSIZE=labelY ,/ALIGN_CENTER, $
     VALUE='Run (Model/Scenario) Info', FONT=self.titleFont)
     
-  baseFor4 = Widget_Base(base, UNAME='WID_BASE_2', $
+  baseFor5 = Widget_Base(base, UNAME='WID_BASE_2', $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=1, /COLUMN)
     
-  base1of4 = Widget_Base(baseFor4, UNAME='WID_BASE_3' ,XOFFSET=7, $
+  base1of5 = Widget_Base(baseFor5, UNAME='WID_BASE_3' ,XOFFSET=7, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /ROW)
     
     
-  WID_LABEL_1 = Widget_Label(base1of4, UNAME='', $
+  WID_LABEL_1 = Widget_Label(base1of5, UNAME='', $
     SCR_XSIZE=self->getSubTitleXDim() ,SCR_YSIZE=smallTextY ,/ALIGN_RIGHT, $
     VALUE='Models:', font=self.labelFont)
     
-  modelsText = Widget_Text(base1of4, UNAME='MODELTXT' ,XOFFSET=29, $
+  modelsText = Widget_Text(base1of5, UNAME='MODELTXT' ,XOFFSET=29, $
     SCR_XSIZE=self->getValueXDim() ,SCR_YSIZE=self->getValueYDim() ,SENSITIVE=1 ,/ALL_EV $
     , font=self.textFont, /SCROLL, /WRAP)
     
-  base2of4 = Widget_Base(baseFor4, UNAME='WID_BASE_3' ,XOFFSET=7, $
+  base2of5 = Widget_Base(baseFor5, UNAME='WID_BASE_3' ,XOFFSET=7, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /ROW)
     
     
-  WID_LABEL_1 = Widget_Label(base2of4, UNAME='', $
+  WID_LABEL_1 = Widget_Label(base2of5, UNAME='', $
     SCR_XSIZE=self->getSubTitleXDim() ,SCR_YSIZE=smallTextY ,/ALIGN_RIGHT, $
     VALUE='Scenarios:', font=self.labelFont)
     
-  scenariosText = Widget_Text(base2of4, UNAME='SCENARIOTXT' ,XOFFSET=29, $
+  scenariosText = Widget_Text(base2of5, UNAME='SCENARIOTXT' ,XOFFSET=29, $
     SCR_XSIZE=self->getValueXDim() ,SCR_YSIZE=self->getValueYDim() ,SENSITIVE=1 ,/ALL_EV $
     , font=self.textFont, /SCROLL, /WRAP)
     
-  base3of4 = Widget_Base(baseFor4, UNAME='WID_BASE_3' ,XOFFSET=7, $
+  base3of5 = Widget_Base(baseFor5, UNAME='WID_BASE_3' ,XOFFSET=7, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /ROW)
     
-  WID_LABEL_1 = Widget_Label(base3of4, UNAME='', $
+  WID_LABEL_1 = Widget_Label(base3of5, UNAME='', $
     SCR_XSIZE=self->getSubTitleXDim() ,SCR_YSIZE=self->getSubTitleYDim()*2 ,/ALIGN_RIGHT, $
     VALUE='Runs:', font=self.labelFont)
     
-  runsText = Widget_Text(base3of4, UNAME='RUNTXT' ,XOFFSET=29, $
+  runsText = Widget_Text(base3of5, UNAME='RUNTXT' ,XOFFSET=29, $
     SCR_XSIZE=self->getValueXDim() ,SCR_YSIZE=self->getValueYDim()*2 ,SENSITIVE=1 ,/ALL_EV $
     , font=self.textFont, /SCROLL, /WRAP)
     
-  base4of4 = Widget_Base(baseFor4, UNAME='WID_BASE_4', $
+  base4of5 = Widget_Base(baseFor5, UNAME='WID_BASE_4', $
     XOFFSET=0 ,YOFFSET=0, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /ROW)
     
-  observedModelFlagBase = Widget_Base(base4of4, UNAME='WID_BASE_4', $
+  observedModelFlagBase = Widget_Base(base4of5, UNAME='WID_BASE_4', $
     XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, event_pro=self.eventprefix+'obsModMainBtt', $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /ROW)
-
-; KeesC 20NOV2014    
+    
   observedModelFlagButton= widget_button(observedModelFlagBase, $
     XOFFSET=0 ,YOFFSET=0, VALUE='MOD without OBS', UNAME='USEOBSMODBTT', event_pro=self.eventprefix+'obsModMainBtt', $$
-    SCR_XSIZE=self->xSummarySize()-20 ,SCR_YSIZE=self->getSubTitleYDim(), sensitive=1)    ;self.mgr->isAdvancedFilter())
+    SCR_XSIZE=self->xSummarySize()-20 ,SCR_YSIZE=self->getSubTitleYDim(), sensitive=self.mgr->isAdvancedFilter())
+    
   ;widget_control, observedModelFlagButton, set_button=self.mgr->isAdvancedFilter()
   widget_control, observedModelFlagButton, set_button=0
+  
+  base5of5 = Widget_Base(baseFor5, UNAME='WID_BASE_5', $
+    XOFFSET=0 ,YOFFSET=0, $
+    TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /ROW)
     
+  scenarioBasicFlagBase = Widget_Base(base5of5, UNAME='WID_BASE_5', $
+    XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, event_pro=self.eventprefix+'obsModMainBtt', $
+    TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /ROW)
+    
+  scenarioBasicFlagButton= widget_button(scenarioBasicFlagBase, $
+    XOFFSET=0 ,YOFFSET=0, VALUE='All available scenario(s)', UNAME='SHOWBASESCENBTT', event_pro=self.eventprefix+'allAvailableScenarioButton', $$
+    SCR_XSIZE=self->xSummarySize()-20 ,SCR_YSIZE=self->getSubTitleYDim(), sensitive=self.mgr->isAdvancedFilter())
+    
+  widget_control, scenarioBasicFlagButton, set_button=0
+  
 END
 
 PRO FMMainGUI::buildObservedSection, base
@@ -1387,8 +1454,8 @@ END
 PRO FMMainGUI::updateModelSection
 
   entityDisp=self.mgr->getEntityDisplay()
-  widgets=lonarr(4)
-  unames=['MODELTXT', 'SCENARIOTXT', 'RUNTXT', 'USEOBSMODBTT']
+  unames=['MODELTXT', 'SCENARIOTXT', 'RUNTXT', 'USEOBSMODBTT', 'SHOWBASESCENBTT']
+  widgets=lonarr(n_elements(unames))
   for i=0, n_elements(widgets) -1 do widgets[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=unames[i])
   
   modelNames=entityDisp->getSelectedModelNames()
@@ -1408,6 +1475,7 @@ PRO FMMainGUI::updateModelSection
   
   ;if entityDisp->getUseObservedModelFlag() then widget_control, widgets[3], /set_button else widget_control, widgets[3], set_button=0
   widget_control, widgets[3], set_button=entityDisp->getUseObservedModelFlag()
+  widget_control, widgets[4], set_button=entityDisp->getAllAvailableScenarioFlag()
   
 END
 

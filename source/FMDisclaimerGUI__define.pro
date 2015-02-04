@@ -19,8 +19,8 @@ PRO FMDisclaimerGUI::showAboutSplash
   logo=self->getLogo()
   self->wsetLogoDraw
   tv, logo, true=self.true+1
-  xyouts, 410, 25, self.versionDate, /DEVICE, CHARSIZE=1.5, CHARTHICK=1.5
-  xyouts, 410, 85, self.versionCode, /DEVICE,  CHARSIZE=1.5, CHARTHICK=1.5
+  xyouts, 410, 25, self.versionDate, /device, CHARSIZE=1.5, CHARTHICK=1.5
+  xyouts, 410, 85, self.versionCode, /device,  CHARSIZE=1.5, CHARTHICK=1.5
   
 END
 
@@ -29,7 +29,7 @@ PRO FMDisclaimerGUI::wsetLogoDraw, topBase
   logoDraw=widget_info(self->getTopBase(), FIND='LOGODRAW')
   widget_control, logoDraw, get_value=wsetId
   wset, wsetId
-  DEVICE,/DECOMPOSE
+  device,/DECOMPOSE
   
 END
 

@@ -1,5 +1,7 @@
 ;********************
 @structure_definition
+@dialogmsg
+@mypsym
 ;********************
 ;  ;MM summer 2012 Start
 ;  ;for Goals & Criteria now you can use (inside elaboration.dat)
@@ -7,6 +9,16 @@
 ;  OCTimeAvgName=request->getElaborationOCTimeAvgName()
 ;  OCStat=request->getElaborationOCStat()
 ;  ;MM summer 2012 End
+FUNCTION checkDataNan, data
+
+  dataInfo=size(data, /STR)
+  if dataInfo.type eq 7 then if strupcase(data[0]) eq strupcase('AllNaN') then return, 1
+  nanCheck=where(finite(data), finiteCount)
+  if finiteCount eq 0 then return, 1
+  return, 0
+  
+END
+
 FUNCTION CIRCLE, xcenter, ycenter, radius
 
   points = (2 * !PI / 99.0) * FINDGEN(100)
@@ -18,9 +30,11 @@ END
 PRO FM_PlotBars, plotter, request, result
 
   plotter->wsetMainDataDraw
+  silentMode=plotter->getSilentMode()
+  FORCELOG=silentMode
   plotInfo=result->getPlotInfo()
   targetInfo=result->getGenericPlotInfo()
-  DEVICE,decomposed=0
+  device,decomposed=0
   LOADCT,39
   mytek_color;, 0, 32
   !p.color=0
@@ -29,10 +43,13 @@ PRO FM_PlotBars, plotter, request, result
   ;  !p.thick=1.5
   ;KeesC 09DEC2013
   !p.font=0
-  device,set_font='Arial*18*bold'
+  setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
   allDataXY=targetInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then begin
-    res=dialog_message(['No validated stations - all MOD/OBS NaN',' '],/information)
+  checkNan=checkDataNan(allDataXY)
+  if checkNan then begin
+    message=['No validated stations - all MOD/OBS NaN',' ']
+    res=dialogMsg(FORCELOG=FORCELOG, message,/information)
     goto,noplot
   endif
   dims=size(allDataXY,/dimensions)
@@ -68,13 +85,11 @@ PRO FM_PlotBars, plotter, request, result
     endif
   endif
   if strmid(ifree,2,1) eq '1' then begin
-;KeesC 23DEC2014    
-;    allDataXY(*,*,*,*,0)=0.
-;    obsbar=0
+    allDataXY(*,*,*,*,0)=0.
+    obsbar=0
   endif
   if ifree eq '1011' or ifree eq '0111' then begin
-;KeesC 23DEC2014    
-;    allDataXY(*,*,*,*,0)=(!y.range(1)-!y.range(0))/50.
+    allDataXY(*,*,*,*,0)=(!y.range(1)-!y.range(0))/50.
     obsbar=1
   endif
   
@@ -424,17 +439,19 @@ PRO FM_PlotBars, plotter, request, result
   noplot:
   
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+  ;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
   !y.charsize=0
 END
 
 PRO FM_PlotBarsLegend, plotter, request, result
 
   !p.font=0
-  device,set_font='Arial*12*bold'
+  setDeviceFont,fontName='Arial', fontSize='12', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='12', fontType='bold', /FINE), /TT_FONT
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then goto,jumpend
+  if checkDataNan(allDataXY) then goto,jumpend
   diagramCode=request->getDiagramCode()
   ;  plotter->plotBarsLegend, request, result
   if diagramCode eq 0 then begin
@@ -445,19 +462,21 @@ PRO FM_PlotBarsLegend, plotter, request, result
   legendInfo,request,result,plotter
   jumpend:
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
 END
 PRO FM_PlotDynamicEvaluation, plotter,request,result
   ;PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymbol
-  !y.range=0
-  ;KeesC 07FEB2014
-  !p.font=0
-  device,set_font='Arial*18*bold'
-  plotter->wsetMainDataDraw
-  
   tpInfo=result->getGenericPlotInfo()
   
   allDataXY=tpInfo->getXYS()
+  if checkDataNan(allDataXY) then return
+  !y.range=0
+  ;KeesC 07FEB2014
+  !p.font=0
+  setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
+  plotter->wsetMainDataDraw
   allDataSymbol=tpInfo->getSymbols()
   allDataColor=tpInfo->getColors()
   elabName=request->getelaborationName()
@@ -482,7 +501,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   
   npoints=n_elements(allDataXY(*,0))
   
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   mytek_color;, 0, 32
   
@@ -506,6 +525,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   minxAxis=min([minxAxis,0])
   if finite(minxAxis) eq 0 then minxAxis=-100
   
+  if checkDataNan(allDataXY) then return
   maxyAxis=max(allDataXY(*,1),/nan)*1.1
   maxyAxis=max([maxyAxis,0])
   if finite(maxyAxis) eq 0 then maxyAxis=100
@@ -579,12 +599,13 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   plotInfo->setRecognizeInfo, rInfo
   ; KeesC 07FEB2014
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
 END
 PRO FM_PLOTDYNAMICEVALUATIONLEGEND, plotter, request, result
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then goto,jumpend
+  if checkDataNan(allDataXY) then goto,jumpend
   legendGenericBuild,request,result,plotter
   legendInfo,request,result,plotter
   jumpend:
@@ -594,7 +615,7 @@ PRO FM_PlotCategory, plotter, request, result
   plotter->wsetMainDataDraw
   plotInfo=result->getPlotInfo()
   targetInfo=result->getGenericPlotInfo()
-  DEVICE,decomposed=0
+  device,decomposed=0
   LOADCT,39
   mytek_color;, 0, 32
   !p.color=0
@@ -602,7 +623,7 @@ PRO FM_PlotCategory, plotter, request, result
   ;  resPoscript=plotter->currentDeviceIsPostscript()
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then begin
+  if checkDataNan(allDataXY) then begin
     plot,indgen(10),/nodata ,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
     goto,jumpend
@@ -781,7 +802,7 @@ PRO FM_PlotCategoryLegend, plotter, request, result
   blackL=black->AsLongTrueColor()
   obj_destroy, white
   obj_destroy, black
-  DEVICE, DECOMPOSED=1
+  device, DECOMPOSED=1
   plotter->erase, whiteL
   
 END
@@ -809,14 +830,15 @@ PRO FM_PlotTimeSeries, plotter, request, result, allDataXY, allDataColor, allDat
   allDataSymbol=tpInfo->getSymbols()
   allDataColor=tpInfo->getColors()
   
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   !p.charsize=1.5
   ; use "tek" color table...
   tek_color;, 0, 32
   ;KeesC 17JAN2013
   !p.font=0
-  ;device,set_font='Arial*18*bold'
+  ;setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
   
   yrange=[min(alldataXY,/nan),max(alldataXY,/nan)]
   
@@ -833,14 +855,19 @@ PRO FM_PlotTimeSeries, plotter, request, result, allDataXY, allDataColor, allDat
   xyouts,.025,.675,mus,/normal,color=0
   ;KeesC 17JAN2013
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
 END
 
 PRO FM_PlotTimeSeriesLegend, plotter, request, result
 
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then goto,jumpend
+  if checkDataNan(allDataXY) then  begin
+    plot,indgen(10),/nodata ,color=255,background=255
+    xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
+    goto,jumpend
+  endif
   plotter->wsetInfoDataDraw
   white=obj_new('Color', 200, 200, 200)
   black=obj_new('Color', 0, 0, 0)
@@ -848,14 +875,15 @@ PRO FM_PlotTimeSeriesLegend, plotter, request, result
   blackL=black->AsLongTrueColor()
   obj_destroy, white
   obj_destroy, black
-  DEVICE, DECOMPOSED=1
+  device, DECOMPOSED=1
   plotter->erase, whiteL
   ;erase, whiteL
   ;KeesC 17JAN2013
   !p.font=0
-  ; device,set_font='Arial*12*bold'
+  ;setDeviceFont, fontName='Arial', fontSize='12', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='12', fontType='bold', /FINE), /TT_FONT
   
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   ; use "tek" color table...
   tek_color;, 0, 32
@@ -896,20 +924,24 @@ PRO FM_PlotTimeSeriesLegend, plotter, request, result
   jumpend:
   ;KeesC 17JAN2014
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
 END
 
 PRO FM_PlotScatter, plotter, request, result
   !y.range=0
+  silentMode=plotter->getSilentMode()
+  FORCELOG=silentMode
   plotter->wsetMainDataDraw
   resPoscript=plotter->currentDeviceIsPostscript()
   ;KeesC 17JAN2014
   if resPoscript eq 0 then begin
     !p.font=0
-    device,set_font='Arial*18*bold'
+    setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
   endif
   plotInfo=result->getPlotInfo()
-  DEVICE,decomposed=0
+  device,decomposed=0
   LOADCT,38
   ; use "tek" color table...
   mytek_color;, 0, 32
@@ -918,7 +950,7 @@ PRO FM_PlotScatter, plotter, request, result
   allDataXY=targetInfo->getXYS()
   modelInfo=request->getModelInfo()
   frequency=modelInfo.frequency  ; hour year
-  if string(allDataXY[0]) eq 'AllNaN' then begin
+  if checkDataNan(allDataXY) then  begin
     plot,indgen(10),/nodata ,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
     goto,jumpend
@@ -930,6 +962,7 @@ PRO FM_PlotScatter, plotter, request, result
 ; KeesC 02OCT2014
   totalStationNb=nobs
   mus=request->getParameterMeasureUnits()
+  
   groupTitles=request->getGroupTitles()
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
@@ -943,6 +976,7 @@ PRO FM_PlotScatter, plotter, request, result
   dims=size(allDataXY,/dimensions)
   nobs=dims(0)/npar/nmod/nsce
 ; KeesC 02OCT2014
+
   nmulti=npar*nsce*nmod*nobs
   if elabCode ne 50 then begin
     maxAxis=max([0,max(allDataXY,/nan)])*1.2
@@ -954,6 +988,12 @@ PRO FM_PlotScatter, plotter, request, result
   endif
   if maxAxis eq 0 and minAxis eq 0 then maxAxis=1.
   recognizeRange=(maxAxis-minAxis)*0.01
+  infoSize=size(allDataXy, /STRUCT)
+  if infoSize.n_dimensions ne 2 then begin
+    a=dialogMsg('Not enough models for this elaboration', FORCELOG=FORCELOG)
+    return
+  endif
+  
   cc=where(finite(allDataXy(*,0)) eq 1 and finite(allDataXy(*,1)) eq 1,validStationNb)
   validStationNb=validStationNb/npar/nmod/nsce
   isGroupSelection=request->isGroupObsPresent()
@@ -991,6 +1031,10 @@ PRO FM_PlotScatter, plotter, request, result
     ytitle='MOD/mg.m-2/'+cumulstr
   endif
   if elabCode eq 50 then begin
+    if n_elements(modelCodes) ne 2 then begin
+      a=dialogMsg('Not enough models for this elaboration', FORCELOG=FORCELOG)
+      return
+    endif
     xtitle=modelCodes(0)+'/'+mus[0]
     ytitle=modelCodes(1)+'/'+'EmisUnits'
   endif
@@ -1124,12 +1168,14 @@ PRO FM_PlotScatter, plotter, request, result
             ;            xyouts,0.16,0.87,'Stations within Crit (T=1): ',$
             ;              color=0,/normal,charthick=2,charsize=1.5*psFact
             !p.font=-1
-            device,set_font='System'
+            setDeviceFont, fontName='System', /STANDARD
+            ;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
             xyouts,0.16,0.86,strtrim(percentageCrit,2)+'%',$
               color=colorPerc,/normal,charthick=4,charsize=3*psFact
             if resPoscript eq 0 then begin
               !p.font=0
-              device,set_font='Arial*18*bold'
+              setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+            ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
             endif
           endif
           if strupcase(frequency) eq 'HOUR' then begin
@@ -1190,14 +1236,28 @@ PRO FM_PlotScatter, plotter, request, result
   
   jumpend:
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
   
 END
 
 PRO FM_PlotScatterLegend, plotter, request, result
+
+  silentMode=plotter->getSilentMode()
+  FORCELOG=silentMode
+  infoSize=size(allDataXy, /STRUCT)
+  if infoSize.n_dimensions ne 2 then begin
+    a=dialogMsg('Not enough models for this elaboration', FORCELOG=FORCELOG)
+    return
+  endif
+  
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then goto,jumpend
+  if checkDataNan(allDataXY) then  begin
+    plot,indgen(10),/nodata ,color=255,background=255
+    xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
+    goto,jumpend
+  endif
   legendGenericBuild,request,result,plotter
   legendInfo,request,result,plotter
   jumpend:
@@ -1213,7 +1273,7 @@ PRO FM_PlotGeoMap, plotter, request, result
   legNames=targetInfo->getLegendNames()
   allDataXY=targetInfo->getXYS()
   ;KeesC 14SEP2014
-  if string(allDataXY[0]) eq 'AllNaN' then begin
+  if checkDataNan(allDataXY) then  begin
     plot,indgen(10),/nodata ,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
     goto,jumpend
@@ -1236,7 +1296,7 @@ PRO FM_PlotGeoMap, plotter, request, result
   
   rangeValLegend=[0,1]
   
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   
   latmin=min(obsLatitudes)  ;resScale(3)
@@ -1364,13 +1424,14 @@ PRO FM_PlotGeoMapLegend, plotter, request, result
   blackL=black->AsLongTrueColor()
   obj_destroy, white
   obj_destroy, black
-  DEVICE, DECOMPOSED=1
+  device, DECOMPOSED=1
   erase, whiteL
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   ;KeesC 17JAN2013
   !p.font=0
-  ;device,set_font='Arial*12*bold'
+  ;setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
   modelInfo=request->getModelInfo()
   frequency=modelInfo.frequency  ; hour year
   if strupcase(frequency) eq 'HOUR' then begin
@@ -1402,18 +1463,29 @@ PRO FM_PlotGeoMapLegend, plotter, request, result
   endif
   legendInfo,request,result,plotter
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
 END
 
 PRO FM_PlotGoogleEarth, plotter, request, result
 
   print,'Start FM_PlotGoogleEarth'
   
+  silentMode=plotter->getSilentMode()
+  FORCELOG=silentMode
+  if keyword_set(silentMode) then begin
+    rsult=dialogMsg(FORCELOG=FORCELOG, ['GoogleEarth not available for current mode'])
+    return
+  endif
   plotter->wsetMainDataDraw
   tpInfo=result->getGenericPlotInfo()
   
   allDataXY=tpInfo->getXYS()           ; eliminatie nog niet gedaan
-  if string(allDataXY[0]) eq 'AllNaN' then goto, EndGE   ; nstat+1,npar+1,nmod+1,5
+  if checkDataNan(allDataXY) then  begin
+    plot,indgen(10),/nodata ,color=255,background=255
+    xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
+    goto, EndGE   ; nstat+1,npar+1,nmod+1,5
+  endif
   
   allDataXYdim=size(allDataXY,/dimensions)
   nobs=allDataXYdim(0)-1 & npar=allDataXYdim(1)-1 & nmod=allDataXYdim(2)-1
@@ -1430,7 +1502,7 @@ PRO FM_PlotGoogleEarth, plotter, request, result
   statValidate=where(statcheck ne -1,nstat)
   statValidatePlus=[statValidate,nobs]
   if nstat eq 0 then begin
-    rsult=dialog_message(['GoogleEarth not available for current choice',' ',$
+    rsult=dialogMsg(FORCELOG=FORCELOG, ['GoogleEarth not available for current choice',' ',$
       'No Validated stations selected'])
     goto,endGE
   endif
@@ -1556,7 +1628,7 @@ PRO FM_PlotGoogleEarth, plotter, request, result
   if npar eq 1 then begin
     if finite(min(obsValues(0:nstat-1,0,0),/nan)) eq 0 or finite(max(obsValues(0:nstat-1,0,0),/nan)) eq 0 or $
       finite(min(modValues(0:nstat-1,0,0),/nan)) eq 0 or finite(max(modValues(0:nstat-1,0,0),/nan)) eq 0 then begin
-      res=dialog_message(['No validated stations - all NaN',' '],/information)
+      res=dialogMsg(FORCELOG=FORCELOG, ['No validated stations - all NaN',' '],/information)
       goto,endGE
     endif
     if total(elabCode eq [58,59,62,65,66]) eq 1 then begin
@@ -1601,7 +1673,7 @@ PRO FM_PlotGoogleEarth, plotter, request, result
       startIndex=startIndex-24
     endif
   endif
-  ;  DEVICE,DECOMPOSE=0
+  ;  device,DECOMPOSE=0
   LOADCT,39
   tek_color;, 0, 32
   
@@ -1980,10 +2052,11 @@ PRO FM_PlotTaylor, plotter, request, result
   !y.range=0
   ;KeesC 17JAN2014
   !p.font=0
-  device,set_font='Arial*18*bold'
+  setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
   xmarg0_sav=!x.margin[0]
   plotter->wsetMainDataDraw
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   ; use "tek" color table...
   mytek_color;, 0, 32
@@ -1998,8 +2071,8 @@ PRO FM_PlotTaylor, plotter, request, result
   obsNames=request->getSingleObsNames()
   elabcode=request->getElaborationCode()
   allDataXY=tpInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then begin
-    plot,indgen(10),/nodata,color=255,background=255
+  if checkDataNan(allDataXY) then  begin
+    plot,indgen(10),/nodata ,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
     goto,notay
   endif
@@ -2189,13 +2262,18 @@ PRO FM_PlotTaylor, plotter, request, result
   notay:
   !x.margin(0)=xmarg0_sav
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
 END
 
 PRO FM_PlotTaylorLegend, plotter, request, result
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then goto,jumpend
+  if checkDataNan(allDataXY) then  begin
+    plot,indgen(10),/nodata ,color=255,background=255
+    xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
+    goto,jumpend
+  endif
   legendGenericBuild,request,result,plotter
   legendInfo,request,result,plotter
   jumpend:
@@ -2254,16 +2332,17 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   ;KeesC 17JAN2014
   if resPoscript eq 0 then begin
     !p.font=0
-    device,set_font='Arial*18*bold'
+    setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
   endif
   
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,38
   mytek_color;, 0, 32
   tpInfo=result->getGenericPlotInfo()
   allDataXY=tpInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then begin
-    plot,indgen(10),/nodata,color=255,background=255
+  if checkDataNan(allDataXY) then  begin
+    plot,indgen(10),/nodata ,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
     goto,jumpend
   endif
@@ -2303,7 +2382,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
    cc=where(far ge 0.8,count)
    if count gt 0 then allDataColor(cc)=7-2
   endif
-  
+
   npoints=n_elements(allDataXY(*,0))
   
   cc=where(finite(allDataXY(*,0)) eq 1,countValidStations)
@@ -2466,18 +2545,25 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       ;      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=210  ;16   ;orange
       if percentageCrit lt 90 then colorPerc=2   ;red
       !p.font=-1
-      device,set_font='System'
+      setDeviceFont, fontName='System', /STANDARD
+      ;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
       xyouts,0.18,0.88,strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,$
         charthick=4,charsize=3*psFact
       if resPoscript eq 0 then begin
         !p.font=0
-        device,set_font='Arial*18*bold'
+        setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+      ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
       endif
     endif
   endif
   
+  if n_elements(criteriaOrig) eq 5 then begin
+  
   ;KeesC 11SEP2014
+  ; Check deeply MM february 2015
   if criteria gt 0. and elabcode ne 74 then begin
+
+
     ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
     astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
     rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
@@ -2493,24 +2579,29 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     xyouts,.83,.92,'LV = '+ustr,/normal,color=0
     xyouts,.83,.89,'OU = '+astr+' %',/normal,color=0
   endif
+  endif else begin
+    print, 'Warning: Set right criteria for this elaboration...'
+    return
+  endelse
   rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
   plotInfo->setRecognizeInfo, rInfo
   
   jumpend:
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
 END
 
 PRO FM_PlotSoccer, plotter, request, result, allDataXY, allDataColor, allDataSymbol
   !y.range=0
   plotter->wsetMainDataDraw
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   ; use "tek" color table...
   mytek_color;, 0, 32
   tpInfo=result->getGenericPlotInfo()
   allDataXY=tpInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then begin
+  if checkDataNan(allDataXY) then begin
     plot,indgen(10),/nodata,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
     goto,jumpend
@@ -2654,21 +2745,25 @@ PRO FM_PlotTable2, plotter, request, result
   ;KeesC 17JAN2014
   if resPoscript eq 0 then begin
     !p.font=0
-    device,set_font='Arial*18*bold'
+    setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
   endif
   modelInfo=request->getModelInfo()
   frequency=modelInfo.frequency
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   mytek_color;, 0, 32
   !p.background=255
   ;;KeesC 17JAN2014
   ;  !p.font=0
-  ;  device,set_font='Arial*18*bold'
+  ; setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+  ; device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
   tpInfo=result->getGenericPlotInfo()
   plotInfo=result->getPlotInfo()
   allDataXY=tpInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then begin
+  ;NaNCheck=checkDataNan(allDataXY)
+  ;nanCheck=where(finite(allDataXY), nanCount)
+  if checkDataNan(allDataXY) then begin
     plot,indgen(10),/nodata,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
     goto,jumpend
@@ -3131,13 +3226,16 @@ PRO FM_PlotTable2, plotter, request, result
   
   jumpend:
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
 END
 
 PRO FM_PlotTargetLegend, plotter, request, result
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then goto,jumpend
+  if checkDataNan(allDataXY) then begin
+    goto,jumpend
+  endif
   legendGenericBuild,request,result,plotter
   legendInfo,request,result,plotter
   jumpend:
@@ -3158,15 +3256,16 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   resPoscript=plotter->currentDeviceIsPostscript()
   if resPoscript eq 0 then begin
     !p.font=0
-    device,set_font='Arial*18*bold'
+    setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
   endif
   
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   mytek_color;, 0, 32
   tpInfo=result->getGenericPlotInfo()
   allDataXY=tpInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then begin
+  if checkDataNan(allDataXY) then begin
     plot,indgen(10),/nodata,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
     goto,jumpend
@@ -3328,6 +3427,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
 ;    if percentageCrit ge 90 then colorPerc=7   ;green
 ;    if percentageCrit lt 90 then colorPerc=2   ;red
 ;    !p.font=-1
+
 ;    device,set_font='System'
 ;    xyouts,0.1,0.88,strtrim(percentageCrit,2)+'% ',color=colorPerc,/normal,$
 ;      charthick=4,charsize=3*psFact
@@ -3343,7 +3443,9 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   plotInfo->setRecognizeInfo, rInfo
   
   jumpend:
-;KeesC 22SEP2014
+  ;KeesC 22SEP2014
+  if n_elements(criteria) ne 0 then begin
+  
   if criteria gt 0. then begin
     ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
     astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
@@ -3354,18 +3456,21 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
     if strupcase(frequency) eq 'YEAR' then begin
       xyouts,.81,.81,'Np = '+npstr,/normal,color=0
       xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0
+
+    endif
     endif
   endif
   
   ;KeesC 14SEP2014
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
 END
 
 PRO FM_PlotBugleLegend, plotter, request, result
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then goto,jumpend
+    if checkDataNan(allDataXY) then goto,jumpend
   legendGenericBuild,request,result,plotter
   legendInfo,request,result,plotter
   jumpend:
@@ -3375,7 +3480,7 @@ PRO FM_PlotQQ, plotter, request, result
   !y.range=0
   plotter->wsetMainDataDraw
   plotInfo=result->getPlotInfo()
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   ; use "tek" color table...
   tek_color;, 0, 32
@@ -3384,7 +3489,7 @@ PRO FM_PlotQQ, plotter, request, result
   targetInfo=result->getGenericPlotInfo()
   legNames=targetInfo->getLegendNames()  ;long name
   allDataXY=tpInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then begin
+    if checkDataNan(allDataXY) then begin
     plot,indgen(10),/nodata,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
     goto,jumpend
@@ -3465,7 +3570,9 @@ PRO FM_PlotQQLegend, plotter, request, result
 
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then goto,jumpend
+  if checkDataNan(allDataXY) then begin
+ goto,jumpend
+ endif
   plotter->wsetInfoDataDraw
   white=obj_new('Color', 200, 200, 200)
   black=obj_new('Color', 0, 0, 0)
@@ -3473,10 +3580,10 @@ PRO FM_PlotQQLegend, plotter, request, result
   blackL=black->AsLongTrueColor()
   obj_destroy, white
   obj_destroy, black
-  DEVICE, DECOMPOSED=1
+  device, DECOMPOSED=1
   plotter->erase, whiteL
   
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   ; use "tek" color table...
   tek_color;, 0, 32
@@ -3553,16 +3660,17 @@ PRO FM_PlotTable2legend, plotter, request, result
   blackL=black->AsLongTrueColor()
   obj_destroy, white
   obj_destroy, black
-  DEVICE, DECOMPOSED=1
+  device, DECOMPOSED=1
   plotter->erase, whiteL
   ;KeesC 18SEP2014
   resPoscript=plotter->currentDeviceIsPostscript()
   if resPoscript eq 0 then begin
     !p.font=0
-    device,set_font='Arial*16'
+    setDeviceFont, fontName='Arial', fontSize='16', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='16', fontType='bold', /FINE), /TT_FONT
   endif
   
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   ; use "tek" color table...
   mytek_color;, 0, 32
@@ -3573,7 +3681,9 @@ PRO FM_PlotTable2legend, plotter, request, result
   
   targetInfo=Result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
-  if string(allDataXY[0]) eq 'AllNaN' then goto,jumpend
+  if checkDataNan(allDataXY) then begin
+ goto,jumpend
+ endif
   
   ;KeesC 18SEP2014
   thisStartX=startX+legoWidth+.02
@@ -3636,7 +3746,8 @@ PRO LEGENDINFO,request,result,plotter
   ;KeesC 17JAN2014
   if resPoscript eq 0 then begin
     !p.font=0
-    device,set_font='Arial*12*bold'
+    setDeviceFont, fontName='Arial', fontSize='12', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='12', fontType='bold', /FINE), /TT_FONT
   endif
   
   coord1=[0.75,0]
@@ -3767,7 +3878,8 @@ PRO LEGENDINFO,request,result,plotter
   xyouts,coords[0],coords[1],'Daily stats: '+ statTypeChoice,/normal,charsize=facSize*psFact,color=0
   
   !p.font=-1
-  device,set_font='System'
+  setDeviceFont, fontName='System', /STANDARD
+;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
   
 END
 pro tvellipse, rmax, rmin, xc, yc, pos_ang, color, DATA = data, $
@@ -3783,12 +3895,12 @@ pro tvellipse, rmax, rmin, xc, yc, pos_ang, color, DATA = data, $
   endif
   
   if N_params() lt 4 then $
-    cursor, xc, yc, /DEVICE, /NOWAIT      ;Get unroamed,unzoomed coordinates
+    cursor, xc, yc, /device, /NOWAIT      ;Get unroamed,unzoomed coordinates
     
   if ( (xc LT 0) or (yc LT 0)) and not(keyword_set(data)) then begin
     message,'Position cursor in window ' + strtrim(!D.WINDOW,2) + $
       ' -- then hit mouse button',/INF
-    cursor, xc, yc, /DEVICE, /WAIT
+    cursor, xc, yc, /device, /WAIT
     message,'Ellipse is centered at (' + strtrim(xc,2) + ',' + $
       strtrim(yc,2) + ')',/INF
   endif
@@ -3813,7 +3925,7 @@ pro tvellipse, rmax, rmin, xc, yc, pos_ang, color, DATA = data, $
   
   if keyword_set(data) then $
     plots, xprime, yprime, /DATA, COLOR=color,thick=3, _STRICT_Extra = _extra else $
-    plots, round(xprime), round(yprime),  COLOR=color, /DEVICE,  $
+    plots, round(xprime), round(yprime),  COLOR=color, /device,  $
     _STRICT_Extra = _extra
     
   if keyword_set(major) then begin
@@ -3822,7 +3934,7 @@ pro tvellipse, rmax, rmin, xc, yc, pos_ang, color, DATA = data, $
     if keyword_set(data) then $
       plots, xmaj, ymaj, /DATA, COLOR=color, _STRICT_Extra=_extra  $
     else   plots, round(xmaj), round(ymaj), $
-    /DEVICE, COLOR=color, _STRICT_Extra=_extra
+    /device, COLOR=color, _STRICT_Extra=_extra
 endif
 
 if keyword_set(minor) then begin
@@ -3831,7 +3943,7 @@ if keyword_set(minor) then begin
   if keyword_set(data) then $
     plots, xmin, ymin, /DATA, COLOR=color, _STRICT_Extra=_extra  $
   else   plots, round(xmin), round(ymin), $
-  /DEVICE, COLOR=color, _STRICT_Extra=_extra
+  /device, COLOR=color, _STRICT_Extra=_extra
 endif
 
 return
@@ -4118,7 +4230,8 @@ pro legendGenericBuild,request,result,plotter
   ;KeesC 17JAN2014
   if resPoscript eq 0 then begin
     !p.font=0
-    device,set_font='Arial*12*bold'
+    setDeviceFont, fontName='Arial', fontSize='12', fontType='bold', /FINE
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='12', fontType='bold', /FINE), /TT_FONT
   endif
   psFact=plotter->getPSCharSizeFactor()
   resPoscript=plotter->currentDeviceIsPostscript()
@@ -4128,10 +4241,10 @@ pro legendGenericBuild,request,result,plotter
   blackL=black->AsLongTrueColor()
   obj_destroy, white
   obj_destroy, black
-  DEVICE, DECOMPOSED=1
+  device, DECOMPOSED=1
   plotter->erase, whiteL
   
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   ; use "tek" color table...
   mytek_color;, 0, 32
@@ -4230,9 +4343,9 @@ pro legendGenericBuildDiag0,request,result,plotter
   blackL=black->AsLongTrueColor()
   obj_destroy, white
   obj_destroy, black
-  DEVICE, DECOMPOSED=1
+  device, DECOMPOSED=1
   plotter->erase, whiteL
-  DEVICE,DECOMPOSE=0
+  device,DECOMPOSE=0
   LOADCT,39
   ; use "tek" color table...
   mytek_color;, 0, 32

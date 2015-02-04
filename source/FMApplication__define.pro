@@ -1,6 +1,6 @@
 ;********************
-@structure_definition
-@/check_io/checkcriteria
+@../common/structure_definition
+@../check_io/checkcriteria
 ;********************
 PRO FMApplication::configureExecutable
 
@@ -45,11 +45,10 @@ PRO FMApplication::configureExecutable
           widget_control, /HOURGLASS
           if strupcase(!VERSION.OS_FAMILY) eq 'WINDOWS' then begin
             ;deep search
-      ;rootPaths=['C:\']
+            ;rootPaths=['C:\']
             ;fast search
             rootPaths=['C:\Program Files (x86)', 'C:\Program Files', 'C:\Windows']
           endif else begin
-            ;deep search
             rootPaths='/'
           endelse
           for j=0, n_elements(rootPaths)-1 do begin
@@ -57,11 +56,12 @@ PRO FMApplication::configureExecutable
             widget_control, HOURGLASS=0
             if count gt 0 then begin
               lines=[lines, 'replacing '+exeList[i]+'with :'+result[0]]
+              print, ' found '+'replacing '+exeList[i]+'with :'+result[0]
               exeList[i]=result[0]
               break
             endif else begin
-              lines=[lines, exeList[i]+' not found (root :'+rootPaths[j]+')']
-              print, exeList[i], 'not found (root :'+rootPaths[j]+')'
+              lines=[lines, exeList[i]+' not found (root '+rootPaths[j]+')']
+              print, exeList[i], ' not found (root '+rootPaths[j]+')'
             endelse
           endfor
         endelse
@@ -75,7 +75,7 @@ PRO FMApplication::configureExecutable
       for i=0, n_elements(parList)-1 do begin
         info=strsplit(fileContents[j], '=', /EXTRACT)
         if strupcase(parList[i]) eq strupcase(info[0]) then begin
-          print, 'replace:', parList[i], 'with:', exeList[i]
+          print, 'replace: ', parList[i], ' with:', exeList[i]
           lines=[lines, fileContents[j]]
           fileContents[j]=parList[i]+'='+exeList[i]
           self->setExecutableLocationKey, parList[i], exeList[i]
@@ -95,7 +95,6 @@ PRO FMApplication::configureExecutable
     title='Find external applications'
     info=dialog_Message(textMessage, title=title, /info)
   endelse
-  
 END
 
 PRO FMApplication::setExecutableLocationKey, keyName, value
@@ -111,6 +110,219 @@ PRO FMApplication::setExecutableLocationKey, keyName, value
   if keyName eq 'PDFREADER_LOCATION' then self.pdfReaderLocation= value
   
   if keyName eq 'BROWSER_LOCATION' then self.browserLocation= value
+  
+END
+
+PRO FMApplication::changeAllAvailableScenarioSelection, selection
+
+  self.entityDisplay->setAllAvailableScenarioFlag, selection
+  
+END
+
+PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir
+
+  self.lastElabFilterType=self.mainConfig->getElaborationFilterType()
+  fm=self->getFileSystemMgr()
+  testElab=fm->getElaborationTemplateFileName()
+  testEnt=fm->getEntityTemplateFileName()
+  testRequest=fm->getRequestTemplateFileName()
+  testBatch=fm->getBatchTemplateFileName()
+  
+  ;reqs=strarr(1)
+  reqs=strarr(2)
+  postScriptRequest=fm->getRequestTemplateFileName(/POSTSCRIPT)
+  rasterRequest=fm->getRequestTemplateFileName(/RASTER)
+  
+  reqs[0]=postScriptRequest & reqs[1]=rasterRequest
+  ;reqs[0]=rasterRequest
+  
+  ;copy elabFile to templateElab
+  ;rename entityFile to templateEntity
+  for i=0, n_elements(reqs)-1 do begin
+    print, '********start**********'
+    print, '***********'+batchFile+'**************'
+    print, 'elaboration: ', wDir+elabFile
+    print, 'entity: ', wDir+entFile
+    fm->fileCopy, wDir+reqs[i], wDir+testRequest, /OVERWRITE
+    fm->fileCopy, wDir+elabFile, wDir+testElab, /OVERWRITE
+    fm->fileCopy, wDir+entFile, wDir+testEnt, /OVERWRITE
+    fm->fileCopy, wDir+testBatch, wDir+batchFile, /OVERWRITE
+    ;self.mainView->startBenchMark, wDir+testBatch, WORKINGDIR=wDir, /BATCH
+    self.mainView->startBenchMark, batchFile, WORKINGDIR=wDir, /BATCH, /SAMEFILENAME
+    print, '********end***********'
+    print, '***********************'
+  ;execute batch (auto output naming)
+  endfor
+  self.logMode=1
+  self->restoreElabFilterType
+  
+END
+;  self.lastElabFilterType=self.mainConfig->getElaborationFilterType()
+;  self->restoreElabFilterType
+
+PRO FMApplication::convertObsFromCSVtoCDF
+
+  fm=self->getFileSystemMgr()
+  
+  startUpFile=fm->getStartUpFileName()
+  year=self.modelInfo.year
+  startHOur=0
+  endHour=8759
+  inputDir=fm->getObservedDataDir()
+  outputDir=fm->getObservedDataDir()
+  prefixId=''
+  modelName=''
+  ;fulloutFileName=strcompress(year, /REMOVE)+'OBS_TIME.cdf'
+  fulloutFileName=outputDir+path_sep()+'OBS_TIME.cdf'
+  stringStartHour=strcompress(year, /REMOVE)+'0101'
+  stringEndHour=strcompress(year, /REMOVE)+'1231'
+  
+  csv2cdf, startUpFile, $
+    startHour, endHour, inputDir, outputDir, $
+    prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, logWin=logWin, /PROGRESSBAR
+  textMessage=[fulloutFileName+' created', 'please move csv files away']
+  titel='Conversion done'
+  a=self->dialogMessage(textMessage, title=title, /INFORMATION)
+  
+END
+
+FUNCTION FMApplication::getMagicElaborationList
+
+  fm=self->getFileSystemMgr()
+  return, fm->getMagicElaborationList()
+  
+END
+
+FUNCTION FMApplication::getMagicEntityList
+
+  fm=self->getFileSystemMgr()
+  return, fm->getMagicEntityList()
+  
+END
+
+PRO FMApplication::logging, file=file, QUIET=QUIET, ON=ON, OFF=OFF
+
+  fm=self->getFileSystemMgr()
+  if keyword_set(OFF) then begin
+    logMode=0
+    textMessage=['***************','end logging on'+systime(), 'file: '+self.logFile,'***************']
+    title='Log info'
+  endif else begin
+    logMode=1
+    self.logFile=file
+    textMessage=['***************','start logging on'+systime(), 'file: '+self.logFile,'***************']
+    title='Log info'
+  endelse
+  if n_elements(file) ne 0 then logFile=file else logFile=self.logFile
+  if file_test(logFile) eq 0 then APPEND=1 else APPEND=0
+  fm->writePlainTextFile, logFile, [title,textMessage], APPEND=APPEND
+  if keyword_set(QUIET) then self.logMode=0
+  a=self->dialogMessage(textMessage, title=title, /INFORMATION)
+  self.logMode=logMode
+  
+END
+
+PRO FMApplication::setLogMode, value
+
+  self.logMode=value
+  
+END
+
+FUNCTION FMApplication::getLogMode, value
+
+  return, self.logMode
+  
+END
+
+PRO FMApplication::setLogFile, value
+
+  self.logFile=value
+  
+END
+
+FUNCTION FMApplication::getLogFile, value
+
+  return, self.logFile
+  
+END
+
+FUNCTION FMApplication::dialogMessage, textMessage, dialog_parent=dialog_parent, title=title, INFORMATION=INFORMATION, error=error, question=question, WARNING=WARNING, CENTER=CENTER, FORCELOG=FORCELOG
+
+  if not(self.logMode) then return, dialog_message(textMessage, dialog_parent=dialog_parent, title=title, INFORMATION=INFORMATION, ERROR=ERROR, QUESTION=QUESTION, CENTER=CENTER)
+  fm=self->getFileSystemMgr()
+  ans=self->logDialog(textMessage, title=title, INFORMATION=INFORMATION, error=error, question=question, WARNING=WARNING, logText=logText)
+  if file_test(self.logFile) then fm->writePlainTextFile, self.logFile, logText, /APPEND else print, logText
+  return, ans
+  
+END
+
+FUNCTION FMApplication::isRunning
+
+  return, obj_valid(self.mainView)
+  
+END
+
+FUNCTION FMApplication::getLittleLogoSize
+
+  return, [101, 62]
+  
+END
+
+FUNCTION FMApplication::getMediumLogoSize
+
+  return, [170, 127]
+  
+END
+
+FUNCTION FMApplication::logDialog, textMessage, title=title, INFORMATION=INFORMATION, error=error, question=question, WARNING=WARNING, logTEXT=logTExt
+
+  logText='WARNING: ' ; The default
+  ans=''
+  titleLines=n_elements(title)
+  if keyword_set(INFORMATION) then logText='INFORMATION: '
+  ;if keyword_set(WARNING) then logText='WARNING: '
+  if keyword_set(error) then logText='ERROR: '
+  if keyword_set(question) then begin
+    logText='QUESTION (YES): '
+    ans='YES'
+  endif
+  if n_elements(titleLines) ne 0 then for i=0, titleLines-1 do logText=[logText, title[i]]
+  logText=[logText, textMessage]
+  ;for i=0, n_elements(logText)-1 do self->doLog, logText[i]
+  for i=0, n_elements(logText)-1 do print, logText[i]
+  return, ans
+  
+END
+
+PRO FMApplication::setTestMode, value
+
+  self.testMode=value
+  
+END
+
+FUNCTION FMApplication::getTestMode
+
+  return, self.testMode
+  
+END
+
+FUNCTION FMApplication::isNewDataSet
+
+  return, self.doDataCheck
+  
+END
+
+FUNCTION FMApplication::isAutoCheckEnabled
+
+  return, self.fileSystemMgr->isAutoCheckEnabled()
+  
+END
+
+FUNCTION FMApplication::getLastStartUpFileTime
+
+  return, self.fileSystemMgr->getStartUpFileTime()
+  
+  
   
 END
 
@@ -171,16 +383,58 @@ FUNCTION FMApplication::getResourceDir, WITHSEPARATOR=WITHSEPARATOR
 END
 
 
-PRO FMApplication::checkDataIntegrityClose
+PRO FMApplication::checkDataIntegrityClose, errorResult=errorResult, AUTOCHECK=AUTOCHECK
+
+  if obj_valid(self.mainView) then begin
+    self->enable
+    if errorResult eq 1 then begin
+      errorMessage=['Uhhmmm... You are working with an invalid data set.', 'Check detailed information in Check Integrity Tool log', 'You can ALWAYS run this tool under Help menu.']
+      errorTitle='Wrong Data Set'
+      a=self->dialogMessage(errorMessage, TITLE=errorTitle, /CENTER, /ERROR)
+      self->closeApplication
+    ; close Delta!!!
+    endif
+    if errorResult eq -1 and keyword_set(AUTOCHECK) then begin
+      warnMessage=['Ah-ah']
+      warnTitle='Please, please, checked Data Set'
+      a=self->dialogMessage(warnMessage, TITLE=warnTitle, /CENTER, /ERROR)
+      self->checkDataIntegrity, /AUTOCHECK
+    endif
+    if errorResult eq 0 then begin
+      infoMessage=['Test Passed']
+      infoTitle='Test Passed'
+      a=self->dialogMessage(infoMessage, TITLE=infoTitle, /CENTER, /INFO)
+      ;if strupcase(sel) eq 'YES' then begin
+      ;self.autoCheckEnabled=0b
+      self->updateVersionFile, fileTime=self.fileSystemMgr->getstartUpFileTime()
+      self->enable
+    ;endif
+    endif
+  endif
+  
+END
+
+PRO FMApplication::dataConversionClose, errorResult=errorResult, AUTOCHECK=AUTOCHECK
 
   self->enable
   
 END
 
-PRO FMApplication::checkDataIntegrity
+PRO FMApplication::checkDataIntegrity, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
 
-  self->disable
-  DeltaCheck_IO, self
+  if not(keyword_set(NOVIEW)) then self->disable
+  ;state is undefined for compatibility
+  DeltaCheck_IO, state, self, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
+  
+END
+
+PRO FMApplication::dataFormatConversionUtility, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
+
+  if not(keyword_set(NOVIEW)) then self->disable
+  conversion, state, self, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
+  
+  
+  
   
 END
 
@@ -202,6 +456,48 @@ END
 FUNCTION FMApplication::getGoogleEarthLocation
   return, self.googleEarthLocation
 END
+
+PRO FMApplication::testPlotQuality
+
+  fm=self->getFileSystemMgr()
+  elabList=fm->readPlainTextFile(self->getMagicElaborationList())
+  entList=fm->readPlainTextFile(self->getMagicEntityList())
+  amount=n_elements(elabList)*n_elements(entList)
+  
+  a=self->dialogMessage('Expected about '+strcompress(amount)+' files...', /WARN)
+  self->setTestMode, 1
+  self->setLogMode, 1
+  
+  wDir=self->getTestDir(/WITH)
+  
+  k=0
+  for i=0, n_elements(entList)-1 do begin
+    for j=0, n_elements(elabList)-1 do begin
+      entId=(strsplit(entList[i], '_', /EXTRACT))[0]
+      elabId=(strsplit(elabList[j], '_', /EXTRACT))[0]
+      ;if k ge 335 then begin
+      ;  print, '*****'
+      ;  print, k
+      ;  print, '*****'
+      ;  a=0
+      ;endif
+      k++
+      batchName=strcompress(k, /REMOVE)+'_ent_'+entId+'elab_'+elabId+fm->getBatchExtension()
+      self->doTestBatch, batchName, entList[i], elabList[j], wDir
+    endfor
+  endfor
+  self->setTestMode, 0
+  self->setLogMode, 0
+  a=self->dialogMessage('Test done', /INFO)
+  
+END
+
+FUNCTION FMApplication::getTestDir, WITHSEPARATOR=WITHSEPARATOR
+
+  return, self.fileSystemMgr->getTestDir(WITHSEPARATOR=WITHSEPARATOR)
+  
+END
+
 PRO FMApplication::setGoogleEarthLocation, value
   self.googleEarthLocation=value
 END
@@ -550,11 +846,9 @@ FUNCTION FMApplication::setPSCharSizeFactor, value
   
 END
 
-; MM jan 2015 start
 FUNCTION FMApplication::getVersionDate
 
-  ;return, self.versionDate
-  return, self.fileSystemMgr->getReleaseDate()
+  return, self.versionDate
   
 END
 
@@ -562,9 +856,8 @@ FUNCTION FMApplication::getVersionCode
 
   return, self.fileSystemMgr->getVersion()
   
+  
 END
-; MM jan 2015 end
-
 PRO FMApplication::streamPrint
 
   print, '***********************'
@@ -604,12 +897,15 @@ PRO FMApplication::setMainView, view
 
   self.mainView=view
   
-END
-FUNCTION FMApplication::dialogMessage, textMessage, title=title, info=info, error=error, question=question
-
-  return, self.mainView->dialogMessage(textMessage, title=title, INFO=INFO, ERROR=ERROR, QUESTION=QUESTION)
+  
+  
   
 END
+;FUNCTION FMApplication::dialogMessage, textMessage, title=title, info=info, error=error, question=question, CENTER=CENTER
+;
+;  return, self.mainView->dialogMessage(textMessage, title=title, INFO=INFO, ERROR=ERROR, QUESTION=QUESTION, CENTER=CENTER)
+;
+;END
 
 PRO FMApplication::show
 
@@ -619,13 +915,13 @@ END
 
 PRO FMApplication::enable
 
-  self.mainView->enable
+  if self->isRunning() then self.mainView->enable
   
 END
 
 PRO FMApplication::disable
 
-  self.mainView->disable
+  if self->isRunning() then self.mainView->disable
   
 END
 
@@ -635,23 +931,40 @@ PRO FMApplication::display
   self.mainView=obj_new('FMMainGUI', self)
   self.mainView->realize
   self.plotter=obj_new('Plotter', self.mainView)
+  if self->isSuggestedDataIntegrity() then begin
+    self->checkDataIntegrity, /AUTOCHECK
+  endif
 ;self->displayModeSelectionGUI
   
 END
+
 ; *****************************************************
 ; child views related methods
 ; *****************************************************
-; get from views (data and analysis) multiple choice info related
-;FUNCTION FMApplication::getMultipleChoiceInfo
-PRO FMApplication::updateRecognizeData, request, result
+; check here if there is a new data set or a new version of software
+FUNCTION FMApplication::isSuggestedDataIntegrity
 
-  if request->getPlotDeviceName() ne 'PS' then begin
+  if self->isNewDataSet() then begin
+    warningMessage=['Uhhmmm... You seem to have a new version of FairMode...', 'To prevent problems, it is strongly raccomended to run Check Integrity Tool.', 'You can ALWAYS run this tool under Help menu.']
+    warningTitle='New FairMode Version'
+    a=self->dialogMessage(warningMessage, TITLE=warningTitle, /CENTER)
+    return, 1
+  endif
+  return, 0
+  
+END
+
+PRO FMApplication::updateRecognizeData, request, result, SILENT=SILENT
+
+  if request->getPlotDeviceName() ne 'PS' and not(keyword_set(SILENT)) then begin
     obj_destroy, self.recognizeInfo
     pInfo = result->getPlotInfo()
     originalRecInfo=pInfo->getRecognizeInfo()
+    ;temp...
     if obj_valid(originalRecInfo) then rInfo = originalRecInfo->Clone(/DEEP) else rInfo=originalRecInfo
     self.recognizeInfo=rInfo
     self.mainView->updateRecognizeStatus
+  ;temp...
   endif
   
 END
@@ -664,8 +977,8 @@ PRO FMApplication::Recognize, coord
   rEdges=rInfo->getRegionEdges()
   rNames=rInfo->getNames()
   rValues=rInfo->getValues()
-  foundName=""
-  foundValue=""
+  foundName=''
+  foundValue=''
   for i=n_elements(rEdges)-1, 0, -1 do begin
     thisRegion=*rEdges[i]
     print, 'thisRegion:', thisRegion
@@ -679,11 +992,14 @@ PRO FMApplication::Recognize, coord
       (coord[1] ge thisRegion[0,1]) and $
       (coord[1] le thisRegion[1,1]) then begin
       print, "found", i
-      foundName=rNames[i]
-      foundValue=rValues[i]
-      break
+      ; MM fall 2014
+      foundName=foundName+rNames[i]+'**'
+      foundValue=foundValue+rValues[i]+'**'
+    ;break
     endif
   endfor
+  foundName=strmid(foundName, 0, strlen(foundName)-2)
+  foundValue=strmid(foundValue, 0, strlen(foundValue)-2)
   self.mainView->updateRecognizer, foundName, foundValue
   
 END
@@ -703,7 +1019,7 @@ END
 PRO FMApplication::doRecognize, x, y
 
   ; if (self.executeOk[0] eq 1 and self.executeOk[1] eq 1) then begin
-  destCoord=convert_coord(x, y, /DEVICE, /TO_NORMAL)
+  destCoord=convert_coord(x, y, /device, /TO_NORMAL)
   self->recognize, destCoord
 ;endif
   
@@ -1249,7 +1565,7 @@ PRO FMApplication::displayCompositeBatchGUI
     self.lastView->show
   endif else begin
     ;self.benchMarkView=obj_new('FMBenchMarkCreationGUI', self.benchMarkDisplay->Clone(/DEEP), self)
-    lastElabFilterType=self.mainConfig->getElaborationFilterType()
+    self.lastElabFilterType=self.mainConfig->getElaborationFilterType()
     self.mainConfig->setElaborationFilterType, 2
     bEntityDI=obj_new('EntityDisplayInfo')
     self->initEntityDisplay, bEntityDI, self.mainConfig, self.categoryList, self.modelList, self.scenarioList, self.observedList, self.parameterTypeList, self.parameterList, self.monitoringGroupStatList
@@ -1619,7 +1935,7 @@ FUNCTION FMApplication::buildRequest, multipleUserChoices, location, entityDispl
   
 END
 
-PRO FMApplication::doElaboration, request, multipleUserChoices
+PRO FMApplication::doElaboration, request, multipleUserChoices, BATCH=BATCH, WORKINGDIR=WORKINGDIR, outFileName=outFileName
 
   ;request->setGoogleEarthLocation,self.fileSystemMgr->getGoogleEarthLocation()
   ;get data (fill result)
@@ -1635,7 +1951,7 @@ PRO FMApplication::doElaboration, request, multipleUserChoices
 
   widget_control, /HOURGLASS
   startTime=systime(/SECONDS)
-  self.dataMinerMgr->readAllData, request, result, screensize=self.mainView->getScreenSize(), ONLYMODEL=request->getUseObservedModel()
+  self.dataMinerMgr->readAllData, request, result, screensize=self.mainView->getScreenSize(), ONLYMODEL=request->getUseObservedModel(), SILENT=BATCH
   endTime=systime(/SECONDS)
   ;print, '-->', endTime-startTime
   widget_control, HOURGLASS=0
@@ -1645,11 +1961,13 @@ PRO FMApplication::doElaboration, request, multipleUserChoices
   
   targetInfo=result->getGenericPlotInfo()
   checkXY=targetInfo->getXYS()
-  self.plotter->openDevice, request->getPlotDeviceName(), request->getFileName(), $
-    request->getPrintOrient(),request->getPageBreak(), request->getLocation()
+  if ~keyword_set(outFileName) then outFileName=request->getFileName()
+  self.plotter->setSilentMode, keyword_set(BATCH)
+  self.plotter->opendevice, request->getPlotDeviceName(), outFileName, $
+    request->getPrintOrient(),request->getPageBreak(), request->getLocation(), BATCH=BATCH, WORKINGDIR=WORKINGDIR
   self.plotter->plotAll, request, result
-  self.plotter->closeDevice, request->getPageBreak(), request->getFileName(), request->getPrintOrient()
-  self->updateRecognizeData, request, result
+  self.plotter->closedevice, request->getPageBreak(), outFileName, request->getPrintOrient(), WORKINGDIR=WORKINGDIR
+  self->updateRecognizeData, request, result, SILENT=BATCH
   ;  endif
   
   obj_destroy, request
@@ -1657,11 +1975,10 @@ PRO FMApplication::doElaboration, request, multipleUserChoices
   
 END
 
-
-FUNCTION FMApplication::restoreEntity, fileName
+FUNCTION FMApplication::restoreEntity, fileName, WORKINGDIR=WORKINGDIR
 
   ;phil batch 18/03
-  benchMarkDir=self.fileSystemMgr->getSaveDir(/WITH)
+  if n_elements(WORKINGDIR) ne 1 then benchMarkDir=self.fileSystemMgr->getSaveDir(/WITH) else benchMarkDir=WORKINGDIR
   fileName=benchMarkDir+fileName
   ;end phil batch
   entityD=self->getEntityDisplay()
@@ -1682,10 +1999,11 @@ PRO FMApplication::updateViewAppearence, updateElements
   
 END
 
-FUNCTION FMApplication::restoreElaboration, fileName
+FUNCTION FMApplication::restoreElaboration, fileName, WORKINGDIR=WORKINGDIR
 
   ;phil batch 18/03
-  benchMarkDir=self.fileSystemMgr->getSaveDir(/WITH)
+  if n_elements(WORKINGDIR) ne 1 then benchMarkDir=self.fileSystemMgr->getSaveDir(/WITH) else benchMarkDir=WORKINGDIR
+  ;benchMarkDir=self.fileSystemMgr->getSaveDir(/WITH)
   fileName=benchMarkDir+fileName
   ;end phil batch
   elabD=self->getElaborationDisplay()
@@ -1704,24 +2022,25 @@ END
 ;  print, 'Benchmarking...'
 ;
 ;END
-FUNCTION FMApplication::restoreRequest, fileName, path
+FUNCTION FMApplication::restoreRequest, fileName, WORKINGDIR=WORKINGDIR, BATCH=BATCH, outFileName=outFileName
 
   request=obj_new('Request')
   ;print, self.lastElabFilterType
-  lastElabFilterType=self.mainConfig->getElaborationFilterType()
+  self.lastElabFilterType=self.mainConfig->getElaborationFilterType()
+  print, self.lastElabFilterType
   self.mainConfig->setElaborationFilterType
   if (request->restoreData(fileName)) then begin
     ; MM summer 2012 Start
     ;request->setScaleInfo, self->getScaleInfo()
     request->setModelInfo, self->getModelInfo()
     ;MM summer 2012 End
-    if ~self->restoreEntity(request->getEntityFileName()) then return, 0
-    if ~self->restoreElaboration(request->getElaborationFileName()) then return, 0
+    if ~self->restoreEntity(request->getEntityFileName(), WORKINGDIR=WORKINGDIR) then return, 0
+    if ~self->restoreElaboration(request->getElaborationFileName(), WORKINGDIR=WORKINGDIR) then return, 0
     ;msg=self.mainView->dialogMessage(['Batch restored from:', '<'+fileName+'> file.'], title=['Request'], /INFORMATION)
-    self->execRequest, request
+    self->execRequest, request, WORKINGDIR=WORKINGDIR, BATCH=BATCH, outFileName=outFileName
     self->updateViewAppearence, [0,1]
   endif else begin
-    msg=self.mainView->dialogMessage(['Batch restored failed from:', '<'+fileName+'> file.'], title=['Request'], /INFORMATION)
+    msg=self->dialogMessage(['Batch restored failed from:', '<'+fileName+'> file.'], title=['Request'], /INFORMATION)
   endelse
   self.mainConfig->setElaborationFilterType, lastElabFilterType
   
@@ -1748,7 +2067,7 @@ END
 ;
 ;END
 
-PRO FMApplication::execRequest, passedRequest, NODISPLAYCHECK=NODISPLAYCHECK
+PRO FMApplication::execRequest, passedRequest, BATCH=BATCH, WORKINGDIR=WORKINGDIR, NODISPLAYCHECK=NODISPLAYCHECK, outFileName=outFileName
 
   if self->checkRequest(multipleUserChoices=multipleUserChoices, /NODISPLAYCHECK) then begin
     mUC=multipleUserChoices
@@ -1785,7 +2104,7 @@ PRO FMApplication::execRequest, passedRequest, NODISPLAYCHECK=NODISPLAYCHECK
       request->setPrintOrient, passedRequest->getPrintOrient()
       request->setPageBreak, passedRequest->getPageBreak()
     endif
-    self->doElaboration, request, mUC
+    self->doElaboration, request, mUC, WORKINGDIR=WORKINGDIR, BATCH=BATCH, outFileName=outFileName
   endif else begin
     print, 'Bad request'
   ;aa=self.view->dialogMessage(['Check the request!'], title=['Request'], /error)
@@ -1836,9 +2155,15 @@ END
 ;****************************************************************************************
 ; start up methods
 ;****************************************************************************************
-PRO FMApplication::loadInitFileData, parameterNames=parameterNames, parameterValues=parameterValues
+PRO FMApplication::loadUpdateStatusFileData, parameterNames=parameterNames, parameterValues=parameterValues
 
-  self.fileSystemMgr->loadInitFileData, parameterNames=parameterNames, parameterValues=parameterValues
+  self.fileSystemMgr->loadUpdateStatusFileData, parameterNames=parameterNames, parameterValues=parameterValues
+  
+END
+
+PRO FMApplication::loadInitFileData, parameterNames=parameterNames, parameterValues=parameterValues, parsToBeRemoved=parsToBeRemoved
+
+  self.fileSystemMgr->loadInitFileData, parameterNames=parameterNames, parameterValues=parameterValues, parsToBeRemoved=parsToBeRemoved
   
 END
 
@@ -1903,14 +2228,39 @@ FUNCTION FMApplication::checkApplicationIntegrity, errorTitle, errorMessage
   
 END
 
+PRO FMApplication::updateVersionFile, fileTime=fileTime
+
+  fm=self->getFileSystemMgr()
+  parNames=['FORCE_CHECK_DATA', 'LAST_STARTUPFILE_TIME']
+  parValues=strarr(n_elements(parNames))
+  if self->isAutoCheckEnabled() then parValues[0]='TRUE' else parValues[0]='FALSE'
+  if n_elements(fileTime) eq 0 then $
+    parValues[1]=strcompress(self->getLastStartUpFileTime()-10, /REMOVE) $
+  else $
+    parValues[1]=strcompress(fileTime, /REMOVE)
+  ;parValues[4]=fm->getConversionDir()
+  ;parValues[5]=fm->getPlanningDir()
+  ;parValues[6]=fm->getNonLinearDir()
+  self.fileSystemMgr->setUpdateStatusInfoText, parNames, parValues
+  self.fileSystemMgr->buildUpdateStatusFileData, /FORCE
+  
+END
+
+PRO FMApplication::addVersionInfo, varName, varValue
+
+  self.fileSystemMgr->addVersionInfo, varName, varValue
+  
+END
+
 PRO FMApplication::startUp
 
+  versionParCodes=*self.versionInfoCodes
   if self->checkApplicationIntegrity(errorTitle, errorMessage) then begin
     self->startJournaling
     confDir=self.fileSystemMgr->getConfigurationDir(/WITH)
-    ;self.fileSystemMgr->fileCopy, self.fileSystemMgr->getInitFileName(), self.fileSystemMgr->getInitFileName()+'_', /OVERWRITE
-    self->loadInitFileData, parameterName=parameterName, parameterValue=parameterValue
-    
+    self->loadInitFileData, parameterName=parameterName, parameterValue=parameterValue, $
+      parsToBeRemoved=versionParCodes
+      
     lookUpIdx=(where(parameterName eq 'STARTUP_LOOKUP'))[0]
     if lookUpIdx[0] eq -1 then doLookUp=1 else doLookUp=fix(parameterValue[lookUpIdx])
     if doLookUp then self.fileSystemMgr->lookUpSystemData, modelInfo=modelInfo
@@ -1920,6 +2270,12 @@ PRO FMApplication::startUp
     for i=0, n_elements(parameterName)-1 do begin
       thisPar=strupCase(parameterName[i])
       if strmid(thisPar, 0, 4) eq 'TXT_' then varname=parameterValue[i] else fileName=parameterValue[i]
+      verParCheck=(where(versionParCodes eq thisPar))[0]
+      if verParCheck ne -1 then begin
+        self->addVersionInfo, thisPar, parameterValue[i]
+        addVersionDefaultParameter=1
+        continue
+      endif
       case strupCase(thisPar) of
         'STARTUP_LOOKUP' : ;do nothing
         ;'ELABORATION_FILE' : self->configElaboration, confDir, fileName, (self->getModelInfo()).frequency
@@ -1938,21 +2294,66 @@ PRO FMApplication::startUp
         'DAYPERIOD_FILE' : self.dayPeriodList->fillDataFromFile, confDir+fileName
         'PARAMETER_FILE' : parameterFileName=confDir+fileName ; Save parameter File Name for later use
         'OBSERVED_FILE' : observedFileName=confDir+fileName ; Save observed File Name for later use
-        ;'TXT_VERSION_DATE' : self.versionDate=varName  ;varName ; save
         'TXT_PS_CHARSIZE_FACTOR' : self.psCharSizeFactor=float(varName) ; save
-        ;'TXT_VERSION_CODE' : self.versionCode=varName  ;varName ; save
+        ;'TXT_VERSION_DATE' : self->addVersionInfo, 'TXT_VERSION_DATE', varName  ;varName ; save
+        ;'TXT_VERSION_CODE' : self->addVersionInfo, 'TXT_VERSION_CODE', varName  ;varName ; save
         'BROWSER_LOCATION' : self->setBrowserLocation, fileName ; save location of browser application
         'NOTEPAD_LOCATION' : self->setNotePadLocation, fileName ; save location of notepad application
         'DOCUMENTSREADER_LOCATION' : self->setDocReaderLocation, fileName ; Save location of doc reader
         'WORKSHEET_LOCATION' : self->setWorkSheetLocation, fileName ; save location of worksheet reader
         'PDFREADER_LOCATION' : self->setPdfReaderLocation, fileName ; Save location of pdf reader
         'GOOGLEEARTH_LOCATION' : self->setGoogleEarthLocation, filename ; Save location of Google Earth
+        'CONVERSION_DIR' : begin
+          ;self->addVersionInfo, 'CONVERSION_DIR', filename
+          self.fileSystemMgr->setConversionDir, filename ; Save location of Conversion Stuff
+        end
+        'PLANNING_DIR' : begin
+          ;self->addVersionInfo, 'PLANNING_DIR', filename
+          self.fileSystemMgr->setPlanningDir, filename ; Save location of Conversion Stuff
+        end
+        'NON_LINEAR_DIR' : begin
+          ;self->addVersionInfo, 'NON_LINEAR_DIR', filename
+          self.fileSystemMgr->setNonLinearDir, filename ; Save location of Conversion Stuff
+        end
+      ;'PLOTINTEGRITY_FILETESTLIST' : self->setPlotIntegrityFileList, filename ; Save location of Google Earth
       else :begin
       extraParameterNames=[extraParameterNames, thisPar]
       extraParameterValues=[extraParameterValues, parameterValue[i]]
+      setenv, thisPar+'='+parameterValue[i]
+      print, 'setting...'+thisPar+'='+parameterValue[i]
+      print, 'getting...'+getenv(thisPar)
     end
   endcase
 endfor
+self->loadUpdateStatusFileData, parameterName=parameterName, parameterValue=parameterValue
+forceCheckData=self.fileSystemMgr->isAutoCheckEnabled()
+for i=0, n_elements(parameterName)-1 do begin
+  thisPar=strupCase(parameterName[i])
+  ;if strmid(thisPar, 0, 4) eq 'TXT_' then varname=parameterValue[i] else fileName=parameterValue[i]
+  varname=parameterValue[i]
+  case strupCase(thisPar) of
+    ;'CONVERSION_DIR' : self.fileSystemMgr->setConversionDir, filename ; Save location of Conversion Stuff
+    ;'NON_LINEAR_DIR' : self.fileSystemMgr->setNonLinearDir, filename ; Save location of Conversion Stuff
+    ;'PLANNING_DIR' : self.fileSystemMgr->setPlanningDir, filename ; Save location of Conversion Stuff
+    ;'TXT_VERSION_DATE' : self.versionDate=varName
+    ;'TXT_VERSION_CODE' : self.versionCode=varName
+    'FORCE_CHECK_DATA' : begin
+      firstVersion=0
+      varName=strupcase(varName)
+      forceCheckData=varName eq '1' or varName eq 'TRUE' or varName eq 'YES'
+    end
+    'LAST_STARTUPFILE_TIME' : begin
+      firstVersion=0
+      varName=strupcase(varName)
+      storedCheckTime=long(varName)
+    end
+  else :begin
+;    do nothing
+end
+endcase
+endfor
+self.doDataCheck=forceCheckData and not(self.fileSystemMgr->isStartUpFileVerified(storedCheckTime)) and self.fileSystemMgr->isRecentlyUpdated()
+self->updateVersionFile, fileTime=storedCheckTime
 ; Now Load Config Resources (may depend from first block)
 self.parameterList->fillDataFromFile, parameterFileName
 self.observedList->fillDataFromFile, observedFileName
@@ -1962,6 +2363,7 @@ endif else begin
   a=dialog_message(errorMessage, TITLE=errorTitle, /ERROR, /CENTER)
   message, 'Application could not be started'
 endelse
+;fairmode_checkDataIntegrityMenuSelection
 
 END
 
@@ -2010,6 +2412,7 @@ PRO FMApplication::initEntityDisplay, entityDisplay, mainConfig, categoryList, m
   
   entityDisplay->setScenarioNames, scenarioList->getDisplayNames()
   entityDisplay->setScenarioCodes, scenarioList->getCodes()
+  ;entityDisplay->setScenarioIsBases, scenarioList->getIsBases()
   entityDisplay->setScenarioDescriptions, scenarioList->getDescriptions()
   entityDisplay->setScenarioSelections, [-1]
   
@@ -2223,6 +2626,10 @@ FUNCTION FMApplication :: init
   self.dataMinerMgr=obj_new('DataMiner')
   self.benchMarkMenuList=obj_new('MenuInfo')
   self.availableFilterType=["STANDARD", "ADVANCED", "BENCHMARK"]
+  self.versionInfoCodes=ptr_new(['TXT_VERSION_DATE', 'TXT_VERSION_CODE'], /NO_COPY);, 'CONVERSION_DIR', 'PLANNING_DIR', 'NON_LINEAR_DIR']
+  self.testMode=0
+  self.logMode=0
+  ;self.magicFile='magic'
   return, 1
   
 END
@@ -2259,6 +2666,7 @@ PRO FMApplication :: cleanUp
   obj_destroy, self.benchMarkMenuList
   obj_destroy, self.recognizeInfo
   obj_destroy, self.benchmarkView
+  ptr_free, self.versionInfoCodes
   self -> Object :: cleanUp
   journal
   
@@ -2304,6 +2712,10 @@ PRO FMApplication__Define
     dataMinerMgr: obj_new(), $
     benchMarkMenuList: obj_new(), $
     recognizeInfo: obj_new(), $
+    ;MM fall 2014 Start
+    versionInfoCodes: ptr_new(), $
+    doDataCheck: 0b, $
+    ;MM fall 2014 End
     ;MM summer 2012 Start
     ;scaleInfo: '', $
     modelInfo: getFMModelInfoStruct(), $
@@ -2318,6 +2730,9 @@ PRO FMApplication__Define
     notepadLocation: '', $
     docReaderLocation: '', $
     pdfReaderLocation: '', $
+    testMode: 0, $
+    logMode: 0, $
+    logFile: '', $
     Inherits Object $
     }
     

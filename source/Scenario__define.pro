@@ -1,6 +1,13 @@
 ;********************
 @structure_definition
 ;********************
+FUNCTION Scenario::getIsBases
+
+ thisList=*self.list
+ return, thisList
+
+END
+
 FUNCTION Scenario::getDisplayNames
 
  thisList=*self.list

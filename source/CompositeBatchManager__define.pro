@@ -1,4 +1,10 @@
 @/check_io/checkcriteria
+; MM jan 2015 start
+FUNCTION CompositeBatchManager::dialogMessage, textMessage, title=title, INFORMATION=INFORMATION, error=error, question=question, WARNING=WARNING, CENTER=CENTER
+
+ return, self.mainMgr->dialogMessage(textMessage, title=title, INFORMATION=INFORMATION, error=error, question=question, WARNING=WARNING, CENTER=CENTER)
+
+END
 ; MM summer 2012 start
 FUNCTION CompositeBatchManager::selectionIsFilled
 
@@ -148,11 +154,11 @@ PRO CompositeBatchManager::setBenchMarkTreeElementName, value
   
 END
 
-FUNCTION CompositeBatchManager::getBenchMarkTreeElementName
-
-  return, self.benchMarkTreeElementName
-  
-END
+;FUNCTION CompositeBatchManager::getBenchMarkTreeElementName
+;
+;  return, self.benchMarkTreeElementName
+;  
+;END
 
 PRO CompositeBatchManager::setBenchMarkSaveMode, value
 
@@ -160,11 +166,11 @@ PRO CompositeBatchManager::setBenchMarkSaveMode, value
   
 END
 
-FUNCTION CompositeBatchManager::getBenchMarkSaveMode
-
-  return, self.benchMarkSaveMode
-  
-END
+;FUNCTION CompositeBatchManager::getBenchMarkSaveMode
+;
+;  return, self.benchMarkSaveMode
+;  
+;END
 
 PRO CompositeBatchManager::setPageModeSelection, value
 

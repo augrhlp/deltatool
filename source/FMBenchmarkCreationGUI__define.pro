@@ -238,7 +238,7 @@ END
 
 PRO FMBenchMarkCreationGUI::splitMouseClick, x, y
 
-  destCoord=convert_coord(x, y, /DEVICE, /TO_NORMAL)
+  destCoord=convert_coord(x, y, /device, /TO_NORMAL)
   self->recognizeSplitSection, destCoord
   
 END
@@ -667,11 +667,11 @@ FUNCTION FMBenchMarkCreationGUI::getAllPrintOrientCodes
   
 END
 
-FUNCTION FMBenchMarkCreationGUI::getAllPrintOrientNames
-
-  return, self.mgr->getAllPrintOrientNames()
-  
-END
+;FUNCTION FMBenchMarkCreationGUI::getAllPrintOrientNames
+;
+;  return, self.mgr->getAllPrintOrientNames()
+;  
+;END
 
 FUNCTION FMBenchMarkCreationGUI::getAllBenchMarkSaveModeCodes
 

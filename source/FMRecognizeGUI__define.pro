@@ -57,17 +57,17 @@ PRO FMRecognizeGUI::buildInfoSection, base
     font=self.labelFont, VALUE=self.nameTitle)
 
   self.nameTxt = widget_text(dataNameBase, $
-    SCR_XSIZE=self.dimensions[0]/3*2-15 ,SCR_YSIZE=self.dimensions[1]/3,SENSITIVE=1,$
-    /ALL_EV, font=self.textFont, VALUE="")
+    SCR_XSIZE=self.dimensions[0]/3*2-5 ,SCR_YSIZE=self->getLabelPixHeight(self.dimensions[1]/3),SENSITIVE=1,$
+    /ALL_EV, font=self.textFont, VALUE="", /SCROLL, /WRAP)
 ;    /ALL_EV, font=self.textFont, /SCROLL, /WRAP, VALUE="")
     
   valueLabel = widget_label(dataValueBase, $
-    SCR_XSIZE=self.dimensions[0]/3*1,SCR_YSIZE=self.dimensions[1]/3,SENSITIVE=1,$
+    SCR_XSIZE=self.dimensions[0]/3*1,SCR_YSIZE=self->getLabelPixHeight(self.dimensions[1]/3),SENSITIVE=1,$
     font=self.labelFont, VALUE=self.valueTitle)
 
   self.valueTxt = widget_text(dataValueBase, $
-    SCR_XSIZE=self.dimensions[0]/3*2-15 ,SCR_YSIZE=self.dimensions[1]/3,SENSITIVE=1,$
-    /ALL_EV, font=self.textFont, VALUE="")
+    SCR_XSIZE=self.dimensions[0]/3*2-5 ,SCR_YSIZE=self->getLabelPixHeight(self.dimensions[1]/3),SENSITIVE=1,$
+    /ALL_EV, font=self.textFont, VALUE="", /SCROLL, /WRAP)
 ;    /ALL_EV, font=self.textFont, /SCROLL, /WRAP, VALUE="")
 
   hideBtt=widget_button(bttBase, UNAME='RECOGNIZEOK_BTT', SCR_YSIZE=self.dimensions[1]/3, $
@@ -107,7 +107,7 @@ END
 FUNCTION FMRecognizeGUI::init, mgr, nameTitle, valueTitle, dims, fonts=fonts
 
   if n_elements(dims) eq 2 then begin
-    xSize=dims[0]
+    xSize=dims[0]*2
     ySize=dims[1]
   endif else begin
     xSize=100

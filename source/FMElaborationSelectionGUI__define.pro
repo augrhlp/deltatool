@@ -1,16 +1,36 @@
 ;getExtraFlagsLongLabelXSize+ getExtraFlagsLongLabelXSize+getExtraFlagsShortLabelXSize
 ; external
 
+PRO FMElaborationSelectionGUI::setFakeThresholds, values
+
+  val=''
+  for i=0, n_elements(values)-1 do val=strcompress(values, /REMOVE)+'#'
+  widget_control, self.thresholdText, set_value=val
+  
+END
+
+PRO FMElaborationSelectionGUI::buildOKButton, base
+
+  subBase=base
+  okBtt=widget_button(subBase, value='OK', UNAME='DISPLAYOK', $
+    event_pro=self.eventprefix+'OKRequest', SCR_XSIZE=70, SCR_YSIZE=35, /ALIGN_CENTER)
+  if self.mgr->IsAdvancedFilter() then magicBtt=widget_button(subBase, value='Magic', UNAME='MAGIC', $
+    event_pro=self.eventprefix+'magicElab', SCR_XSIZE=70, SCR_YSIZE=35, /ALIGN_CENTER)
+;okButton = widget_button(mainButtonBase, Value='OK', UNAME='APPLY', $
+; XSIZE=70, YSIZE=35, event_pro=self.eventPrefix+'okModeBtt', /ALIGN_CENTER)
+    
+END
+
 FUNCTION FMElaborationSelectionGUI::getMainMgr
 
- return, self->getMgr()
-
+  return, self->getMgr()
+  
 END
 
 FUNCTION FMElaborationSelectionGUI::checkIntegrity
 
- return, self.info->checkIntegrity(self)
-
+  return, self.info->checkIntegrity(self)
+  
 END
 
 PRO FMElaborationSelectionGUI::updateToCaller
@@ -31,9 +51,59 @@ PRO FMElaborationSelectionGUI::OKRequest
     obj_destroy, self
   endif else begin
     print, 'Bad elaboration'
-    ;exitMessage=['Something wrong in your selection', 'Check data']
-    ;dlgResult=dialog_message(exitMessage, dialog_parent=self->getTopBase(), Title='Warning')
+  ;exitMessage=['Something wrong in your selection', 'Check data']
+  ;dlgResult=dialog_message(exitMessage, dialog_parent=self->getTopBase(), Title='Warning')
   endelse
+  
+END
+
+PRO FMElaborationSelectionGUI::buildAllAvailableCombination
+
+  prevSilentMode=self.silentMode
+  self.silentMode=1
+  logFile=self.mgr->getTestDir(/WITH)+'elab.log'
+  self.mgr->logging, file=logFile
+  
+  allDiagrams=self->getAllDiagramNames()
+  diagramNo=n_elements(allDiagrams)
+  elabFileList=''
+  k=0
+  fm=self.mgr->getFileSystemMgr()
+  util=obj_new('FMUtility')
+  ext=fm->getElaborationExtension()
+  for i=0, diagramNo-1 do begin
+    self->userDiagramSelection, i
+    elabs=self.info->getElabNamesByDiagramIndex(i)
+    elabNo=n_elements(elabs)
+    for j=0, elabNo-1 do begin
+      self->userElabSelection, j
+      k++
+      dName=util->removeSpecialChars(string(k)+'_'+string(i)+'_diagram_'+self->getCurrentDiagramName(), /SPACETOO)
+      eName=util->removeSpecialChars(string(j)+'_elab_'+self->getCurrentName(), /SPACETOO)
+      fileName=dName+'_'+eName+ext
+      thresholdsAreGood=0
+      thrs=[10,20,30,40]
+      m=0
+      while not(thresholdsAreGood) do begin
+        thresholdsAreGood=self->checkIntegrity()
+        if not(thresholdsAreGood) then begin
+          testThrs=thrs[0:m]
+          self->setFakeThresholds, testThrs
+          a=self->dialogMessage(['Check thresholds parameter on file : '+fileName, 'before launch the test'], TITLE='WATCH OUT - TEST THRESHOLD VALUES', /WARNING)
+          m++
+        endif
+      endwhile
+      self.info->saveData, $
+        self.mgr->getTestDir(/WITH)+fileName
+      elabFileList=[elabFileList, fileName]
+    endfor
+  endfor
+  textFile=self.mgr->getMagicElaborationList()
+  fm->writePlainTextFile, textFile, elabFileList[0:k-1]
+  self.silentMode=prevSilentMode
+  self.mgr->logging, /OFF
+  a=self.mgr->dialogMessage(['Magic done!','Look at '+textFile,'for details'], title='ELAB MAGIC DONE', /INFORMATION )
+  obj_destroy, util
   
 END
 
@@ -94,13 +164,13 @@ END
 PRO FMElaborationSelectionGUI::userGroupByTimeSelection, buttonIndex, NONE=NONE
 
   if not(keyword_set(NONE)) then begin
-  nameToSearch=self->buildGroupUName(undef, buttonIndex, /TIME)
-  wid=widget_info(self->getTopBase(), FIND_BY_UNAME=nameToSearch)
-  widget_control, wid, /SET_BUTTON
-  self.info->setGroupByTimeSelection, buttonIndex
+    nameToSearch=self->buildGroupUName(undef, buttonIndex, /TIME)
+    wid=widget_info(self->getTopBase(), FIND_BY_UNAME=nameToSearch)
+    widget_control, wid, /SET_BUTTON
+    self.info->setGroupByTimeSelection, buttonIndex
   endif; else begin
   ;self.info->setGroupByTimeSelection, buttonIndex, NONE=NONE
-  ;endelse 
+  ;endelse
   if n_elements(buttonIndex) ne 0 then self.radioSelections[0]=buttonIndex
   
 END
@@ -108,10 +178,10 @@ END
 PRO FMElaborationSelectionGUI::userGroupByStatSelection, buttonIndex, NONE=NONE
 
   if not(keyword_set(NONE)) then begin
-  nameToSearch=self->buildGroupUName(undef, buttonIndex, /STAT)
-  wid=widget_info(self->getTopBase(), FIND_BY_UNAME=nameToSearch)
-  widget_control, wid, /SET_BUTTON
-  self.info->setGroupByStatSelection, buttonIndex
+    nameToSearch=self->buildGroupUName(undef, buttonIndex, /STAT)
+    wid=widget_info(self->getTopBase(), FIND_BY_UNAME=nameToSearch)
+    widget_control, wid, /SET_BUTTON
+    self.info->setGroupByStatSelection, buttonIndex
   endif; else begin
   ;self.info->setGroupByStatSelection, buttonIndex, NONE=NONE
   ;endelse
@@ -122,29 +192,29 @@ END
 PRO FMElaborationSelectionGUI::userSeasonSelection, buttonIndex, NONE=NONE
 
   if not(keyword_set(NONE)) then begin
-  nameToSearch=self->buildPeriodUName(undef, buttonIndex, /SEASON)
-  wid=widget_info(self->getTopBase(), FIND_BY_UNAME=nameToSearch)
-  widget_control, wid, /SET_BUTTON
-  self.info->setSeasonSelection, buttonIndex
+    nameToSearch=self->buildPeriodUName(undef, buttonIndex, /SEASON)
+    wid=widget_info(self->getTopBase(), FIND_BY_UNAME=nameToSearch)
+    widget_control, wid, /SET_BUTTON
+    self.info->setSeasonSelection, buttonIndex
   endif; else begin
   ;self.info->setSeasonSelection, buttonIndex, NONE=NONE
-  ;endelse 
- if n_elements(buttonIndex) ne 0 then self.radioSelections[2]=buttonIndex
-   
+  ;endelse
+  if n_elements(buttonIndex) ne 0 then self.radioSelections[2]=buttonIndex
+  
 END
 
 PRO FMElaborationSelectionGUI::userDayPeriodSelection, buttonIndex, NONE=NONE
 
   if not(keyword_set(NONE)) then begin
-  nameToSearch=self->buildPeriodUName(undef, buttonIndex, /DAY)
-  wid=widget_info(self->getTopBase(), FIND_BY_UNAME=nameToSearch)
-  widget_control, wid, /SET_BUTTON
-  self.info->setDayPeriodSelection, buttonIndex
+    nameToSearch=self->buildPeriodUName(undef, buttonIndex, /DAY)
+    wid=widget_info(self->getTopBase(), FIND_BY_UNAME=nameToSearch)
+    widget_control, wid, /SET_BUTTON
+    self.info->setDayPeriodSelection, buttonIndex
   endif; else begin
   ;self.info->setDayPeriodSelection, buttonIndex, NONE=NONE
-  ;endelse 
- if n_elements(buttonIndex) ne 0 then self.radioSelections[3]=buttonIndex
-   
+  ;endelse
+  if n_elements(buttonIndex) ne 0 then self.radioSelections[3]=buttonIndex
+  
 END
 
 PRO FMElaborationSelectionGUI::userDiagramSelection, diagramIndex
@@ -152,7 +222,7 @@ PRO FMElaborationSelectionGUI::userDiagramSelection, diagramIndex
   prev=self.info->getDiagramSelection()
   elabNames=self.info->getElabNamesByDiagramIndex(diagramIndex)
   if elabNames[0] eq "" then begin
-    a=dialog_message('No elabs for this diagram')
+    if ~self.silentMode then a=self->dialogMessage('No elabs for this diagram') else print, 'No elabs for this diagram'
     all=self->getAllDiagramNames()
     for i=0, n_elements(all)-1 do begin
       elabNames=self.info->getElabNamesByDiagramIndex(i)
@@ -174,18 +244,18 @@ END
 ;  self.info->setAxisSelection, axisIndex
 ;;ToDo: description area is a mix info text... (diagram, elab, axis, parameter... thresholds...)
 ;;widget_control, self.plotDescriptionText, set_value=self->getCurrentDescription()
-;  
+;
 ;END
 FUNCTION FMElaborationSelectionGUI::getCurrentElabMultipleChoiceFlags
 
- return, sel.info->getCurrentElabMultipleChoiceFlags()
-
+  return, sel.info->getCurrentElabMultipleChoiceFlags()
+  
 END
 
 FUNCTION FMElaborationSelectionGUI::getCurrentElabMultipleChoiceFlagsNumber
 
- return, sel.info->getCurrentElabMultipleChoiceFlagsNumber()
-
+  return, sel.info->getCurrentElabMultipleChoiceFlagsNumber()
+  
 END
 
 PRO FMElaborationSelectionGUI::fillMultipleInfoText
@@ -201,7 +271,7 @@ PRO FMElaborationSelectionGUI::fillMultipleInfoText
   descText[1]=''
   descText[2]='For selected statistic you may select ('+strcompress(elabMultipleInfoNum, /REMOVE)+'): '
   widget_control, self.multipleInfoText, set_value=descText
-
+  
 END
 
 PRO FMElaborationSelectionGUI::userElabSelection, elabIndex
@@ -210,14 +280,14 @@ PRO FMElaborationSelectionGUI::userElabSelection, elabIndex
   self.info->setElabSelection, elabIndex
   widget_control, self.elaborationDescriptionText, set_value=self->getCurrentDescription()
   ;self->fillParameterList
-;  self->fillAxisList
+  ;  self->fillAxisList
   self->fillMultipleInfoText
   self->configureExclusiveListStatus
   self->configureReferenceValuesStatus
   self->configureGCOCStatus
   ; New!! to be tested
   self->configureExclusiveSelection
-  ; End
+; End
   
 END
 
@@ -229,10 +299,10 @@ END
 ;    return
 ;  endif
 ;  widget_control, self.parameterList, SET_LIST_SELECT=[-1]
-;  
+;
 ;;widget_control, self.descriptionLabel, set_value=self->getCurrentDescription()
 ;;self->fillParameterList
-;  
+;
 ;END
 
 PRO FMElaborationSelectionGUI::useThresholdsButton
@@ -241,8 +311,8 @@ END
 
 FUNCTION FMElaborationSelectionGUI::getGoalsCriteriaOCFlag
 
- return, self.info->getGoalsCriteriaOCFlag()
-
+  return, self.info->getGoalsCriteriaOCFlag()
+  
 END
 ; gui check/conf...
 PRO FMElaborationSelectionGUI::configureExclusiveSelection
@@ -251,39 +321,39 @@ PRO FMElaborationSelectionGUI::configureExclusiveSelection
   self.radioSelections[1]=self.info->getGroupByStatSelection()
   self.radioSelections[2]=self.info->getSeasonSelection()
   self.radioSelections[3]=self.info->getDayPeriodSelection()
-
+  
   groupExclInfo=self.info->getExclusiveInfo()
-
+  
   if groupExclInfo.gbTime eq 'FREE' then begin
     self->userGroupByTimeSelection, self.radioSelections[0]>0
   ;    self.radioSelections[0]=usergbts>0
   endif
-
+  
   if groupExclInfo.gbStat eq 'FREE' then begin
     self->userGroupByStatSelection, self.radioSelections[1]>0
   ;    self.radioSelections[1]=usergbss>0
   endif
-
-  if groupExclInfo.season eq 'FREE' then begin 
-  self->userSeasonSelection, self.radioSelections[2]>0
+  
+  if groupExclInfo.season eq 'FREE' then begin
+    self->userSeasonSelection, self.radioSelections[2]>0
   ;      self.radioSelections[3]=userss>0
   endif
-
+  
   if groupExclInfo.dayPeriod eq 'FREE'then begin
-  self->userDayPeriodSelection, self.radioSelections[3]>0
+    self->userDayPeriodSelection, self.radioSelections[3]>0
   ;      self.radioSelections[2]=userdps>0
   endif
   
-
+  
 END
 
-PRO FMElaborationSelectionGUI::Configure
+PRO FMElaborationSelectionGUI::configure
 
   ; Realize and MoveToCenter is done by superclass
   ; Here only fill & set internal widget
   diagramIndex=self.info->getDiagramSelection()
   elabIndex=self.info->getElabSelection()
-;  axisIndex=self.info->getAxisSelection()
+  ;  axisIndex=self.info->getAxisSelection()
   ;parametersIndexes=self.info->getParametersSelection()
   self->userStartHourSelection, self.info->getStartHourSelection()
   self->userStartDaySelection, self.info->getStartDaySelection()
@@ -294,18 +364,18 @@ PRO FMElaborationSelectionGUI::Configure
   self->fillDiagramList
   self->userDiagramSelection, diagramIndex
   self->userElabSelection, elabIndex
-;  self->userAxisSelection, axisIndex
+  ;  self->userAxisSelection, axisIndex
   ;self->userParameterSelections, parametersIndexes
   self->cancelThresholdsData
   ;ToDo: Add parameter pre-selection!
   if self.info->getThresholdFlag() then self->fillReferencesValuesText, self.info->getThresholdValues()
   self->configureExclusiveSelection
-  ;groupExclInfo=self.info->getExclusiveInfo()
-
-  ;if groupExclInfo.gbTime eq 'FREE' then self->userGroupByTimeSelection, usergbts>0
-  ;if groupExclInfo.gbStat eq 'FREE' then self->userGroupByStatSelection, usergbss>0
-  ;if groupExclInfo.dayPeriod eq 'FREE'then self->userDayPeriodSelection, userdps>0
-  ;if groupExclInfo.season eq 'FREE' then self->userSeasonSelection, userss>0
+;groupExclInfo=self.info->getExclusiveInfo()
+  
+;if groupExclInfo.gbTime eq 'FREE' then self->userGroupByTimeSelection, usergbts>0
+;if groupExclInfo.gbStat eq 'FREE' then self->userGroupByStatSelection, usergbss>0
+;if groupExclInfo.dayPeriod eq 'FREE'then self->userDayPeriodSelection, userdps>0
+;if groupExclInfo.season eq 'FREE' then self->userSeasonSelection, userss>0
   
 END
 
@@ -328,7 +398,7 @@ END
 PRO FMElaborationSelectionGUI::configureGCOCStatus
 
   gcocFlag=self.info->getCurrentGoalsCriteriaFlag()
-
+  
   if gcocFlag eq 1 then begin
     widget_control, self.criteriaButton, sensitive=0, /set_button
   endif else begin
@@ -341,7 +411,7 @@ END
 PRO FMElaborationSelectionGUI::configureReferenceValuesStatus
 
   numberRefValues=self.info->getNumberReferenceValues()
-
+  
   if numberRefValues ge 1 then begin
     widget_control, self.thresholdButton, sensitive=0, /set_button
     widget_control, self.thresholdText, /EDITABLE, sensitive=1, set_value=self->buildDemoReferenceText(numberRefValues)
@@ -467,13 +537,14 @@ END
 ;;widget_control, self.parameterList, SET_LIST_SELECT=names
 ;;parameterNames=self.info->getParameterNamesBySelectedElab()
 ;;names=self.info->getParameterNames()
-;  
+;
 ;END
 
 PRO FMElaborationSelectionGUI::fillElaborationList
 
   elabNames=self.info->getElabNamesBySelectedDiagram()
-  if elabNames[0] eq "" then a=dialog_message('No elabs for this diagram')
+  if elabNames[0] eq '' then if ~self.silentMode then a=dialog_message('No elabs for this diagram') else print, 'No elabs for this diagram' 
+  if elabNames[0] eq '' then if ~self.silentMode then a=dialog_message('No elabs for this diagram') else print, 'No elabs for this diagram'
   widget_control, self.elaborationList, set_value=elabNames
   
   self->userElabSelection, 0
@@ -491,9 +562,9 @@ END
 ;
 ;  axisNames=self.info->getAxisNamesBySelectedDiagram()
 ;  widget_control, self.axisList, set_value=axisNames
-;  
+;
 ;  self->userAxisSelection, 0
-;  
+;
 ;END
 
 ; gui building
@@ -518,7 +589,7 @@ PRO FMElaborationSelectionGUI::build
   self->buildOKButton, subBase12
   
   self->SetTopBase, base
-  xmanager, 'fairmode', base, /JUST_REG, /CATCH
+  xmanager, 'fairmode', base, /JUST_REG
   
 END
 
@@ -538,7 +609,7 @@ END
 ;FUNCTION FMElaborationSelectionGUI::getParameterAndGroupSectionXSize
 ;
 ;  return, self->getVisibleXSize()*.40
-;  
+;
 ;END
 
 FUNCTION FMElaborationSelectionGUI::getGroupSectionXSize
@@ -556,7 +627,7 @@ END
 ;FUNCTION FMElaborationSelectionGUI::getParameterAndGroupSectionYSize
 ;
 ;  return, self->getVisibleYSize()*.70
-;  
+;
 ;END
 
 FUNCTION FMElaborationSelectionGUI::getGroupSectionYSize
@@ -574,7 +645,7 @@ END
 ;FUNCTION FMElaborationSelectionGUI::getParameterListBoxXSize
 ;
 ;  return, self->getElaborationSectionXSize()*.50
-;  
+;
 ;END
 
 FUNCTION FMElaborationSelectionGUI::getElaborationDescrXSize
@@ -598,7 +669,7 @@ END
 ;FUNCTION FMElaborationSelectionGUI::getParameterAndGroupListBoxXSize
 ;
 ;  return, self->getParameterAndGroupSectionXSize()*.40
-;  
+;
 ;END
 
 FUNCTION FMElaborationSelectionGUI::getGroupListBoxXSize
@@ -610,7 +681,7 @@ END
 ;FUNCTION FMElaborationSelectionGUI::getParameterAndGroupListBoxYSize
 ;
 ;  return, self->getParameterAndGroupSectionYSize()*.40
-;  
+;
 ;END
 
 FUNCTION FMElaborationSelectionGUI::getGroupListBoxYSize
@@ -622,13 +693,13 @@ END
 ;FUNCTION FMElaborationSelectionGUI::getParameterAndGroupDescrXSize
 ;
 ;  return, self->getParameterAndGroupSectionXSize()-self->getParameterAndGroupListBoxXSize()
-;  
+;
 ;END
 
 ;FUNCTION FMElaborationSelectionGUI::getParameterAndGroupDescrYSize
 ;
 ;  return, self->getParameterAndGroupSectionYSize()*.25
-;  
+;
 ;END
 
 FUNCTION FMElaborationSelectionGUI::getElaborationDescrYSize
@@ -676,7 +747,7 @@ END
 ;FUNCTION FMElaborationSelectionGUI::getParameterBoxYSize
 ;
 ;  return, self->getElaborationSectionYSize()*.30
-;  
+;
 ;END
 
 FUNCTION FMElaborationSelectionGUI::getMultipleInfoTextYSize
@@ -694,19 +765,19 @@ PRO FMElaborationSelectionGUI::buildElaborationSection, base
   descrListBase=widget_base(base, xpad=0, ypad=0, space=0, /ROW)
   extraFlagBase=widget_base(base, xpad=0, ypad=0, space=0, /COLUMN)
   
-;  parameterTitle=widget_label(base, value='Variable', $
-;    scr_ysize=self->getLabelYSize(), /ALIGN_LEFT)
-;    
-;  parameterBase=widget_base(base, xpad=0, ypad=0, space=0, /ROW)
+  ;  parameterTitle=widget_label(base, value='Variable', $
+  ;    scr_ysize=self->getLabelYSize(), /ALIGN_LEFT)
+  ;
+  ;  parameterBase=widget_base(base, xpad=0, ypad=0, space=0, /ROW)
   
   multipleInfoTitle=widget_label(base, value='Multiple choice info', $
     scr_ysize=self->getLabelYSize(), font=self.titleFont, /ALIGN_LEFT)
     
   multipleInfoBase=widget_base(base, xpad=0, ypad=0, space=0, /ROW)
-
+  
   diagramBase=widget_base(tripleListBase, xpad=0, ypad=0, space=0, /COLUMN)
   elaborationBase=widget_base(tripleListBase, xpad=0, ypad=0, space=0, /COLUMN)
-;  axisBase=widget_base(tripleListBase, xpad=0, ypad=0, space=0, /COLUMN)
+  ;  axisBase=widget_base(tripleListBase, xpad=0, ypad=0, space=0, /COLUMN)
   
   diagramTitle=widget_label(diagramBase, value='Diagram', scr_ysize=self->getLabelYSize(), font=self.titleFont, /ALIGN_LEFT)
   self.diagramList=widget_list(diagramBase, value=self->getAllDiagramNames(), $
@@ -718,12 +789,12 @@ PRO FMElaborationSelectionGUI::buildElaborationSection, base
     SCR_XSIZE=self->getElaborationListBoxXSize(), SCR_YSIZE=self->getElaborationListBoxYSize(), $
     event_pro=self.eventPrefix+'elabNameListSelection')
     
-;  axisTitle=widget_label(axisBase, value='Axis', scr_ysize=self->getLabelYSize(), /ALIGN_LEFT)
-;  self.axisList=widget_list(axisBase, value=self->getAllAxisNames(), $ ;select by type!!!
-;    SCR_XSIZE=self->getElaborationListBoxXSize(), SCR_YSIZE=self->getElaborationListBoxYSize(), $
-;    event_pro=self.eventPrefix+'elabAxisListSelection')
+  ;  axisTitle=widget_label(axisBase, value='Axis', scr_ysize=self->getLabelYSize(), /ALIGN_LEFT)
+  ;  self.axisList=widget_list(axisBase, value=self->getAllAxisNames(), $ ;select by type!!!
+  ;    SCR_XSIZE=self->getElaborationListBoxXSize(), SCR_YSIZE=self->getElaborationListBoxYSize(), $
+  ;    event_pro=self.eventPrefix+'elabAxisListSelection')
   ; getExtraFlagsLongLabelXSize+ getExtraFlagsLongLabelXSize+getExtraFlagsShortLabelXSize
-  
+    
   thresholdsBase=widget_base(extraFlagBase, xpad=0, ypad=0, space=0, /ROW)
   criteriaBase=widget_base(extraFlagBase, xpad=0, ypad=0, space=0, /ROW)
   
@@ -755,17 +826,17 @@ PRO FMElaborationSelectionGUI::buildElaborationSection, base
     SCR_XSIZE=self->getMultipleInfoTextXSize() ,SCR_YSIZE=self->getElaborationDescrYSize() ,SENSITIVE=1, $
     font=self.textFont, /WRAP, /SCROLL)
     
-;  self.parameterList=widget_list(parameterBase, value=[''], $
-;    SCR_XSIZE=self->getParameterListBoxXSize(), SCR_YSIZE=self->getParameterBoxYSize(), $
-;    event_pro=self.eventPrefix+'parameterListSelection', /MULTIPLE)
-;    
-;  self.parameterDescriptionText= widget_text(parameterBase, UNAME='parameterDESCTXT', XOFFSET=0, SENSITIVE=1 ,/ALL_EV, $
-;    SCR_XSIZE=self->getParameterListBoxXSize(), SCR_YSIZE=self->getParameterBoxYSize(), $
-;    font=self.textFont, /ALIGN_LEFT)
+  ;  self.parameterList=widget_list(parameterBase, value=[''], $
+  ;    SCR_XSIZE=self->getParameterListBoxXSize(), SCR_YSIZE=self->getParameterBoxYSize(), $
+  ;    event_pro=self.eventPrefix+'parameterListSelection', /MULTIPLE)
+  ;
+  ;  self.parameterDescriptionText= widget_text(parameterBase, UNAME='parameterDESCTXT', XOFFSET=0, SENSITIVE=1 ,/ALL_EV, $
+  ;    SCR_XSIZE=self->getParameterListBoxXSize(), SCR_YSIZE=self->getParameterBoxYSize(), $
+  ;    font=self.textFont, /ALIGN_LEFT)
   self.multipleInfoText= widget_text(multipleInfoBase, UNAME='MULTIPLEDESCTXT', XOFFSET=0, $
     SCR_XSIZE=self->getMultipleInfoTextXSize(), SCR_YSIZE=self->getMultipleInfoTextYSize(), $
     font=self.textFont, /ALIGN_LEFT, /WRAP, /SCROLL, /SENSITIVE, EDIT=0)
-
+    
     
 END
 
@@ -1004,7 +1075,7 @@ END
 ;
 ;  descrs=self.info->getAxisNames()
 ;  return, descrs
-;  
+;
 ;END
 
 FUNCTION FMElaborationSelectionGUI::getAllDiagramDescriptions
@@ -1119,27 +1190,27 @@ END
 ;
 ;  names=self.info->getParameterNames()
 ;  return, names
-;  
+;
 ;END
 ;
 ;FUNCTION FMElaborationSelectionGUI::getAllParameterCodes
 ;
 ;  codes=self.info->getParameterCodes()
 ;  return, codes
-;  
+;
 ;END
 ;
 ;FUNCTION FMElaborationSelectionGUI::getParameterMeasureUnitAtIndex, index
 ;
 ;  names=self.info->getParameterMeasureUnits()
 ;  return, names[index]
-;  
+;
 ;END
 ;
 ;FUNCTION FMElaborationSelectionGUI::getCurrentParameterSelections
 ;
 ;  return, self->getParameterMeasureUnitAtIndex(self.info->getParametersSelection())
-;  
+;
 ;END
 
 FUNCTION FMElaborationSelectionGUI::getThresholdString

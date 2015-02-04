@@ -1,24 +1,19 @@
 @DeltaCheck_io_definecommon
-function discardComments, unit
-  atxt=''
-  readf,unit,atxt
-  firstChar=strmid(atxt, 0, 1)
-  while firstChar eq ';' or firstChar eq '#' do begin
-  readf,unit,atxt
-  firstChar=strmid(atxt, 0, 1)
-endwhile
-return, atxt
-end
-
-pro All_Steps
+pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   common keesc1
+  
+  conversionStruct={startUpFile:'', $
+    startHour:0, endHour:0, inputDir:'', outputDir:'', $
+    prefixId:'', modelName:'', fulloutFileName:'', stringStartHour:'', stringEndHour:'', $
+    logWin:0l, PROGRESSBAR:0b}
+  csv2cdfInfo=replicate(conversionStruct, 1)
   
   ;STEP 01: Check on existence of directories
   ;STEP 02: Check on existence of STARTUPfile
   ;STEP 03: MODEL/PARAMETERS/MONITORING sections in STARTUPfile
   ;STEP 04: Read Species from PARAMETERS section in STARTUPfile
   ;STEP 05: Read Stations from MONITORING section in STARTUPfile
-;KeesC 18JAN2015 1 line
+  ;KeesC 18JAN2015 1 line
   ;STEP 06: Check redundant station-Codes/Names/Abbr in STARTUPfile
   ;STEP 07: Check Nb of stations in STARTUPfile and MONITORING_DIR
   ;STEP 08: Consistency of statnames and OBSfiles
@@ -47,7 +42,7 @@ pro All_Steps
   types=strarr(100)
   units=strarr(100)
   statnames=strarr(6000)
-;KeesC 18JAN2015  2 lines  
+  ;KeesC 18JAN2015  2 lines
   statcodes=strarr(6000)
   statabbr=strarr(6000)
   staterror=strarr(6000)
@@ -118,6 +113,8 @@ pro All_Steps
       ierror=1
       return
     endif else begin
+      csv2cdfInfo.inputDir=dir_obs
+      csv2cdfInfo.outputDir=dir_obs
       printf,11,'STEP 01 OK: MONITORING_DIR exists'
       txt='STEP 01 OK: MONITORING_DIR exists'
       txtall=[txt,txtall]
@@ -175,6 +172,7 @@ pro All_Steps
       return
     endif else begin
       printf,11,'STEP 02 OK: STARTUPfile file exists in RESOURCE_DIR'
+      csv2cdfInfo.startUpFile=startup
       txt='STEP 02 OK: STARTUPfile file exists in RESOURCE_DIR'
       txtall=[txt,txtall]
       widget_control,labcom_txt,set_value=txtall
@@ -470,7 +468,7 @@ if itobs eq 1 then begin
   ReadStatSpec
   
   widget_control,labprog_txt,set_value='STEP 06'
-;KeesC 18JAN2015 12 lines  
+  ;KeesC 18JAN2015 12 lines
   Nres0=sort(strupcase(statnames))
   Nres1=strupcase(statnames(Nres0))
   Nres=uniq(Nres1)
@@ -487,14 +485,14 @@ if itobs eq 1 then begin
   printf,11,'***         STEP 06                                         *'
   printf,11,'*** Check redundant station-Codes/Names/Abbr in STARTUPfile        *'
   printf,11,'*************************************************************'
-; KeesC 18JAN2015 5 lines  
+  ; KeesC 18JAN2015 5 lines
   printf,11,'See SummaryFile'
   printf,12,'*************************************************************'
   printf,12,'***         STEP 06                                         *'
   printf,12,'*** Check redundant station-Codes/Names/Abbr in STARTUPfile        *'
   printf,12,'*************************************************************'
   print,'STEP 06'
-; KeesC 18JAN2015 1 line  
+  ; KeesC 18JAN2015 1 line
   if n_elements(Nres) eq n_elements(statnames) and n_elements(Cres) eq n_elements(statcodes) and $
     n_elements(Ares) eq n_elements(statabbr) then begin
     printf,11,'STEP 06 OK: No redundant filenames in STARTUPfile'
@@ -502,25 +500,25 @@ if itobs eq 1 then begin
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endif else begin
-;KeesC 18JAN2015 18 lines
+    ;KeesC 18JAN2015 18 lines
     if n_elements(Nres) ne n_elements(statnames) then begin
       txt='STEP 06: STOP! Redundancy in STARTUPfile: '+Nres1(n_elements(Ncc))+' station to be checked '
-    txtall=[txt,txtall]
-    widget_control,labcom_txt,set_value=txtall
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
       printf,12,'Redundancy in STARTUPfile: '+Nres1(n_elements(Ncc))+' station to be checked '
-    endif  
+    endif
     if n_elements(Cres) ne n_elements(statcodes) then begin
       txt='STEP 06: STOP! Redundancy in STARTUPfile: '+Cres1(n_elements(Ccc))+' station to be checked '
       txtall=[txt,txtall]
       widget_control,labcom_txt,set_value=txtall
-       printf,12,'Redundancy in STARTUPfile: '+Cres1(n_elements(Ccc))+' station to be checked '
-    endif  
+      printf,12,'Redundancy in STARTUPfile: '+Cres1(n_elements(Ccc))+' station to be checked '
+    endif
     if n_elements(Ares) ne n_elements(statabbr) then begin
       txt='STEP 06: STOP! Redundancy in STARTUPfile: '+Ares1(n_elements(Acc))+' station to be checked '
       txtall=[txt,txtall]
       widget_control,labcom_txt,set_value=txtall
       printf,12,'Redundancy in STARTUPfile: '+Ares1(n_elements(Acc))+' station to be checked '
-    endif  
+    endif
     txtall=['STOP',txtall]
     widget_control,labcom_txt,set_value=txtall
     close,11
@@ -529,7 +527,7 @@ if itobs eq 1 then begin
     return
   endelse
   printf,11,' '
-;KeesC 18JAN2015 1 line  
+  ;KeesC 18JAN2015 1 line
   printf,12,' '
   widget_control,labok(6),set_value=' *OK* '
   
@@ -541,9 +539,9 @@ if itobs eq 1 then begin
   printf,11,'*** Check Nb of stations in STARTUPfile and MONITORING_DIR    *'
   printf,11,'***************************************************************'
   print,'STEP 07'
-  ;dir_obs=dir_obs+'\'
-  filenames=file_search(dir_obs+'\*.csv',count=count_filenames)
-  filenames=strmid(filenames,strlen(dir_obs)+1,100)
+  dir_obs=dir_obs+path_sep()
+  filenames=file_search(dir_obs+'*.csv',count=count_filenames)
+  filenames=strmid(filenames,strlen(dir_obs),100)
   for i=0,count_filenames-1 do begin
     res=strsplit(filenames(i),'.',/extract)
     filenames(i)=res(0)
@@ -620,7 +618,7 @@ if itobs eq 1 then begin
   printf,11,'**************************************************************'
   print,'STEP 09'
   iprob=0
-  for i=0,n_elements(statnames)-1 do begin  
+  for i=0,n_elements(statnames)-1 do begin
     widget_control,labprog_txt,set_value='STEP 09: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
       fn=file_search(dir_obs+statnames[i]+'.csv',count=count)
@@ -643,6 +641,7 @@ if itobs eq 1 then begin
           nb_specstat=n_elements(res)-4
           spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
         endelse
+        ;if statnames[i] eq '42R801BORGERHOUT' then stop
         for is=0,n_elements(speclist)-1 do begin
           cc=where(speclist(is) eq spec_station,count)
           if count eq 0 then begin
@@ -685,8 +684,8 @@ if itobs eq 1 then begin
   iprob=0
   for i=0,n_elements(statnames)-1 do begin
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
-      fn=dir_obs+'\'+statnames[i]+'.csv'
-      fns=strmid(fn,strlen(dir_obs)+1,100)
+      fn=dir_obs+statnames[i]+'.csv'
+      fns=strmid(fn,strlen(dir_obs),100)
       widget_control,labprog_txt,set_value='STEP 10: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
       nlines=file_lines(fn)
       close,1 & openr,1,fn
@@ -743,6 +742,15 @@ if itobs eq 1 then begin
     return
   endif
   if iprob eq 0 then begin
+    csv2cdfInfo.inputDir=dir_obs
+    csv2cdfInfo.startHour=0
+    csv2cdfInfo.endHour=8760
+    csv2cdfInfo.prefixId=''
+    csv2cdfInfo.modelName=''
+    csv2cdfInfo.fulloutFileName=dir_obs+'OBS_TIME.cdf'
+    csv2cdfInfo.stringStartHour=strcompress(year, /REMOVE)+'0101'
+    csv2cdfInfo.stringEndHour=strcompress(year, /REMOVE)+'1231'
+    csv2cdfInfo.PROGRESSBAR=0
     printf,11,'STEP 10 OK: Number of TimeLines OBSfiles (in STARTUPfile) and Date format OK'
     txt='STEP 10 OK: Number of TimeLines OBSfiles  and Date format(in STARTUPfile) OK'
     txtall=[txt,txtall]
@@ -751,6 +759,14 @@ if itobs eq 1 then begin
   printf,11,' '
   widget_control,labok(10),set_value=' *OK* '
   
+  if getenv('DO_OBS_CDF_CONVERSION') eq '1' then begin
+    a=dialog_message('Now convert to cdf format the observations...', title='CDF conversion')
+    csv2cdf, csv2cdfInfo.startUpFile, $
+      csv2cdfInfo.startHour, csv2cdfInfo.endHour, csv2cdfInfo.inputDir, csv2cdfInfo.outputDir, $
+      csv2cdfInfo.prefixId, csv2cdfInfo.modelName, csv2cdfInfo.fulloutFileName, csv2cdfInfo.stringStartHour, $
+      csv2cdfInfo.stringEndHour, $
+      logWin=labcom_txt, PROGRESSBAR=csv2cdfInfo.PROGRESSBAR
+  endif
   ; *******************************************************************************************************
   ; checking observation availability per species
   ;test 11
@@ -906,7 +922,7 @@ if itobs eq 1 then begin
   ipoll(*,*)='.'
   extvalues=0
   day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
-  for i=0,n_elements(statnames)-1 do begin  
+  for i=0,n_elements(statnames)-1 do begin
     widget_control,labprog_txt,set_value='STEP 12: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
       fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
@@ -1008,18 +1024,28 @@ if itmod eq 1 then begin
   printf,11,'***  Existence of MODfile              *'
   printf,11,'****************************************'
   print,'STEP 13'
-  dir_mod=dir_mod+'\'
+  dir_mod=dir_mod+path_sep()
   res=file_test(dir_mod+model)
+  point=strpos(model, '.', /REVERSE_SEARCH)
+  bFName=strmid(model, 0, point)
+  extension=strmid(model, point+1, 3)
   if res eq 0 then begin
-    txt='STEP 13 STOP! Modfile '+model+' does not exist in MODELING_DIR'
-    txtall=[txt,txtall]
-    widget_control,labcom_txt,set_value=txtall
-    txtall=['STOP',txtall]
-    widget_control,labcom_txt,set_value=txtall
-    close,11
-    close,12
-    ierror=1
-    return
+    extension='csv'
+    FName=dir_mod+bFName+'.'+extension
+    res=file_test(FName)
+    ;modelFile=FName
+    model=bFName+'.'+extension
+    if res eq 0 then begin
+      txt='STEP 13 STOP! Modfile '+model+' does not exist in MODELING_DIR'
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+      txtall=['STOP',txtall]
+      widget_control,labcom_txt,set_value=txtall
+      close,11
+      close,12
+      ierror=1
+      return
+    endif
   endif else begin
     printf,11,'STEP 13 OK: MODfile '+model+' found in MODELING_DIR'
     txt='STEP 13 OK: MODfile '+model+' found in MODELING_DIR'
@@ -1041,8 +1067,8 @@ if itmod eq 1 then begin
   printf,11,'***  Existence of stations/species/attribute in MODfile         *'
   printf,11,'*****************************************************************'
   print,'STEP 14'
-  lmod=strlen(dir_mod+model)
-  extension=strmid(dir_mod+model,lmod-3,3)
+  ;lmod=strlen(dir_mod+model)
+  ;extension=strmid(dir_mod+model,lmod-3,3)
   if extension eq 'cdf' then begin
     fileName=dir_mod+model
     fName=file_search(fileName)
@@ -1115,7 +1141,7 @@ if itmod eq 1 then begin
     endfor
     statvals=strarr(5000,nparams+1) & statvals(*,*)=!values.f_nan
     itel=0
-    readf,1,atxt
+    ;readf,1,atxt
     while ~eof(1) do begin
       readf,1,atxt
       atxt=strcompress(atxt,/remove_all)
@@ -1192,7 +1218,7 @@ if itmod eq 1 then begin
         for is=0,n_elements(spec)-1 do begin
           idname=statnames(i)+'_'+spec(is)
           Result = NCDF_VARID(id, idName)
-          if result ne -1 then begin           
+          if result ne -1 then begin
             if inqStHr.datatype eq 'UNKNOWN' and inqEnHr.datatype eq 'UNKNOWN' then begin
               ncdf_varget, Id, idname, var
               dimVar=n_elements(var)
@@ -1449,9 +1475,9 @@ if itobsmod eq 1 then begin
         !quiet=1
       endfor
     endif
-;KeesC 12JAN2015    
-    startHour=float(startHour)
-    endHour=float(endHour)
+    ;KeesC 12JAN2015
+    startHour=float(StartHour)
+    endHour=float(EndHour)
     if icase eq 1 then begin
       ncdf_attget,id,'Parameters',params,/global
       params=string(params)
@@ -1502,7 +1528,7 @@ if itobsmod eq 1 then begin
           kc=where(ivar eq 0,nkc)
           if nkc ge 1 then var(kc)=-999
           cc=where(var gt -800.,count)   ;var(8760)
-;KeesC 12JAN2015           
+          ;KeesC 12JAN2015
           avail(i,is)=float(count)/(EndHour-StartHour+1.)*100.
           cc=where(var le -800.,count)   ;var(8760)
           if count ge 1 then var(cc)=!values.f_nan

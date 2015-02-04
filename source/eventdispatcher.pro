@@ -7,6 +7,7 @@
 ;  ;view->setObsGroupStatIndex, index
 ;
 ;END
+
 PRO fairmode_doNothing, ev
 
   print, 'Nothing to do'
@@ -211,7 +212,6 @@ PRO fairmode_helpMenuSelection, ev
   spawn,fullString,/noshell,/nowait
   ;helpfolder=fs->getHelpDir(withseparator=withseparator)+'\'
   ;spawn,[mgr->getpdfReaderLocation(),helpfolder+'DELTA_UserGuide_V4_0.pdf'],/noshell,/nowait
-
 END
 
 PRO fairmode_downloadMenuSelection, ev
@@ -225,7 +225,6 @@ PRO fairmode_downloadMenuSelection, ev
     errMsg=dialog_message([['Please check path to browser location'], fullString, [' Check existence or read permission'], [' and modify -HOME/resource/init.ini- accordingly.']], /ERROR)
     return
   endif
-
   if size(ev, /TYPE) eq 8 then ev=ev.top
   widget_control, ev, get_uvalue=view
   print, 'fairmode_downloadMenuSelection'
@@ -235,7 +234,6 @@ PRO fairmode_downloadMenuSelection, ev
   print, 'Browser launcher:',mgr->getBrowserLocation()
   fullString=[mgr->getBrowserLocation(),'aqm.jrc.ec.europa.eu/DELTA/']
   spawn,fullString,/noshell,/nowait
-
 END
 
 PRO fairmode_flagAllObservationsButton, ev
@@ -410,6 +408,48 @@ PRO fairmode_benchmarkBtt, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_obsModMainBtt'
   view->startBenchMark, benchMarkFileName
+
+END
+
+PRO fairmode_runInteractiveMenuSelection, ev
+
+  ;testBenchMarkFileNames=widget_info(ev.id, /UNAME)
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  ;print, 'fairmode_obsModMainBtt'
+  view->dataFormatConversionUtility
+
+END
+
+PRO fairmode_runBatchMenuSelection, ev
+
+  testBenchMarkFileNames=widget_info(ev.id, /UNAME)
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  ;print, 'fairmode_obsModMainBtt'
+  view->convertObsFromCSVtoCDF
+
+END
+
+;PRO fairmode_plotQualityMenuSelection, ev
+PRO fairmode_testQualityMenuSelection, ev
+
+  ;testBenchMarkFileNames=widget_info(ev.id, /UNAME)
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  ;print, 'fairmode_obsModMainBtt'
+  view->testPlotQuality
+
+END
+
+PRO fairmode_allAvailableScenarioButton, ev
+
+  ;help, ev, /str
+  select=ev.select
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  ;print, 'fairmode_obsModMainBtt'
+  view->userAllAvailableScenarioSelection, select
 
 END
 
@@ -947,6 +987,26 @@ PRO fairmode_displayElaboration, ev
   widget_control, ev, get_uvalue=view
   ;print, 'fairmode_elaborationMenuSelection'
   view->displayElaborationSelectionGUI
+
+END
+
+PRO fairmode_magicEnt, ev
+
+  print, 'allCombination-Entity'
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  ;print, 'fairmode_magicElab'
+  view->buildAllAvailableCombination
+
+END
+
+PRO fairmode_magicElab, ev
+
+  print, 'allCombination-Elab'
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  ;print, 'fairmode_magicElab'
+  view->buildAllAvailableCombination
 
 END
 

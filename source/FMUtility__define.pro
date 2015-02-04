@@ -2,6 +2,20 @@
 ;Geographic section
 ;**************************************************************
 
+FUNCTION FMUtility::removeSpecialChars, value, SPACETOO=SPACETOO
+
+ specialList=reform(byte(['!', '$', '%', '&', '/', '(', ')', '=', '?', '^', '*']))
+ if keyword_set(SPACETOO) then specialList=[specialList, byte(' ')] 
+ specNo=n_elements(specialList)
+ newValue=byte(value)
+ for i=0, specNo-1 do begin
+  wrong=where(newValue eq specialList[i], count, complement=complement)
+  if count gt 0 then newValue=newValue[complement]
+ endfor
+ return, string(newValue)
+  
+END
+
 FUNCTION FMUtility::coordLambertToLatLon, xy, pars
 
   return, destXY

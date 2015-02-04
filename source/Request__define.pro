@@ -1,5 +1,5 @@
 ;********************
-@structure_definition
+@../common/structure_definition
 ;********************
 
 PRO Request::setElaborationOCTimeAvgName, value
@@ -74,11 +74,18 @@ FUNCTION Request::getSingleObsCatInfos
   
 END
 
-FUNCTION Request::getGroupNames
+FUNCTION Request::getCategoryNames
 
   if ptr_valid(self.singleObsCatInfos) then return, *self.singleObsCatInfos
   return, [-1]
   
+END
+
+FUNCTION Request::getGroupNames
+
+  if ptr_valid(self.groupNames) then return, *self.groupNames
+  return, [-1]
+
 END
 
 PRO  Request::setGoogleEarthLocation, location
@@ -345,13 +352,6 @@ PRO Request::setGroupNames, list
   
 END
 
-FUNCTION Request::getGroupNames
-
-  if ptr_valid(self.groupNames) then return, *self.groupNames
-  return, [-1]
-  
-END
-
 FUNCTION Request::getGroupCodes
 
   if ptr_valid(self.groupCodes) then return, *self.groupCodes
@@ -370,6 +370,18 @@ FUNCTION Request::buildAllGroupNames
   return, all[1:*]
   
 END
+
+;FUNCTION Request::buildAllGroupNames
+;
+;  names=self->getGroupNames()
+;  ;all=['']
+;  ;for i=0, n_elements(names)-1 do begin
+;  ;  list=*names[i]
+;  ;  all=[all, list]
+;  ;endfor
+;  return, names
+;
+;END
 
 ;PRO Request::setScaleInfo, value
 ;
@@ -524,11 +536,11 @@ FUNCTION Request::isGroupObsPresent
   
 END
 
-FUNCTION Request::getGroupTitlesNumber
-
-  if ptr_valid(self.groupTitles) then return, n_elements(self.groupTitles) else return, 0
-  
-END
+;FUNCTION Request::getGroupTitlesNumber
+;
+;  if ptr_valid(self.groupTitles) then return, n_elements(self.groupTitles) else return, 0
+;  
+;END
 
 FUNCTION Request::getSingleObsNumber
 
@@ -1259,6 +1271,12 @@ END
 ; import/export utility
 ;*****************************
 
+FUNCTION Request::getCompatibleVersionList
+
+  return, ['3.2', '3.1']
+
+END
+
 FUNCTION Request::getFileFormatVersion
 
   return, '3.2'
@@ -1288,9 +1306,14 @@ FUNCTION Request::restoreDataVerTwoDotZero, filename, path
   
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, datalist
-  if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
-  if version ne self->getFileFormatVersion() then message, 'File version not compatible'
+  ;if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
+  ;if version ne self->getFileFormatVersion() then message, 'File version not compatible'
   
+  if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
+  versions=self->getCompatibleVersionList()
+  idx=where(version eq self->getFileFormatVersion(), count)
+  if count eq 0 then message, 'File version not compatible'
+
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, entityFileName
   if dataName eq 'EntityFileName' then self->setEntityFileName, path+entityFileName else message, 'EntityFileName in a wrong position'
@@ -1333,9 +1356,14 @@ FUNCTION Request::restoreData, filename, path
   
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, datalist
-  if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
-  if version ne self->getFileFormatVersion() then message, 'File version not compatible'
+  ;if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
+  ;if version ne self->getFileFormatVersion() then message, 'File version not compatible'
   
+  if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
+  versions=self->getCompatibleVersionList()
+  idx=where(version eq versions, count)
+  if count eq 0 then message, 'File version not compatible'
+
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, requestFileName
   if dataName eq 'RequestFileName' then self->setFileName, requestFileName else message, 'RequestFileName in a wrong position'

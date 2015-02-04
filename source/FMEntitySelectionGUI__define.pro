@@ -1,4 +1,246 @@
-; integrity with batch mode...
+PRO FMEntitySelectionGUI::buildOKButton, base
+
+  subBase=base
+  okBtt=widget_button(subBase, value='OK', UNAME='DISPLAYOK', $
+    event_pro=self.eventprefix+'OKRequest', SCR_XSIZE=70, SCR_YSIZE=35, /ALIGN_CENTER)
+  if self.mgr->IsAdvancedFilter() then magicBtt=widget_button(subBase, value='Magic', UNAME='MAGIC', $
+    event_pro=self.eventprefix+'magicEnt', SCR_XSIZE=70, SCR_YSIZE=35, /ALIGN_CENTER)
+;okButton = widget_button(mainButtonBase, Value='OK', UNAME='APPLY', $
+; XSIZE=70, YSIZE=35, event_pro=self.eventPrefix+'okModeBtt', /ALIGN_CENTER)
+    
+END
+
+FUNCTION FMEntitySelectionGUI::buildTestObs, type, stats, $
+    spec=spec, mods=mods, scen=scen
+    
+  util=obj_new('FMUtility')
+  
+  specName=''
+  for i=0, n_elements(spec)-1 do specName=specName+'_'+string(spec[i])
+  specName=strmid(specName, 1, strlen(specName)-1)
+  
+  modName=mods
+  scenName=scen
+  
+  rName=util->removeSpecialChars('_run_'+modName+'_'+scenName, /SPACETOO)
+  sName=util->removeSpecialChars('spec_'+specName, /SPACETOO)
+  
+  case type of
+    ; test obs 1 - one single stations
+    1:begin
+    self->singleObsRadioButton
+    self->addObservations, stats[0], '', /SINGLE
+    oName='1single_stat'
+  end
+  ; test obs 2 - two single stations
+  2:begin
+  self->singleObsRadioButton
+  self->addObservations, stats[0], '', /SINGLE
+  self->addObservations, stats[1], '', /SINGLE
+  oName='2single_stat'
+end
+; test obs 3 - one single stations and one group (of 2)
+3:begin
+self->singleObsRadioButton
+self.info->addObservations, stats[0], '', /SINGLE
+self->groupObsRadioButton
+self.info->addObservations, [stats[2],stats[3]] , 'testG1'
+;self.info->addObservations, , 'testG1'
+oName='1single_1group_stat'
+end
+; test obs 4 - two single stations and one group (of 2)
+4:begin
+self->singleObsRadioButton
+self->addObservations, stats[0], '', /SINGLE
+self->addObservations, stats[1], '', /SINGLE
+self->groupObsRadioButton
+self->addObservations, [stats[2], stats[3]], 'testG2'
+;self->addObservations, , 'testG2'
+oName='2single_1group_stat'
+end
+; test obs 5 - two single stations and two groups (of 2)
+5:begin
+self->singleObsRadioButton
+self->addObservations, stats[0], '', /SINGLE
+self->addObservations, stats[1], '', /SINGLE
+self->groupObsRadioButton
+self->addObservations, [stats[2], stats[3]], 'testG3'
+;self->addObservations, , 'testG3'
+self->addObservations, [stats[4], stats[5]], 'testG4'
+;self->addObservations, stats[5], 'testG4'
+oName='2single_2group_stat'
+end
+; test obs 6 - one group (of 2)
+6:begin
+self->groupObsRadioButton
+self->addObservations, [stats[2], stats[3]], 'testG5'
+;self->addObservations, , 'testG5'
+oName='1group_stat'
+end
+; test obs 7 - more groups (of 2)
+7:begin
+self->groupObsRadioButton
+self->addObservations, [stats[2], stats[3]], 'testG6'
+;self->addObservations, , 'testG6'
+self->addObservations, [stats[4], stats[5]], 'testG7'
+;self->addObservations, , 'testG7'
+oName='2group_stat'
+end
+endcase
+
+obj_destroy, util
+return, rName+'_'+sName+'_'+oName
+
+END
+
+FUNCTION FMEntitySelectionGUI::getTestObs
+
+  widget_control, self.queryResultList, get_uvalue=displayCodes
+  ObsNo=n_elements(displayCodes)
+  
+  idx=randomu(seed)
+  singleStat1=displayCodes[idx*ObsNo]
+  singleStat2=displayCodes[(idx*ObsNo+1) mod ObsNo]
+  
+  idx=randomu(seed)
+  groupStat1of1=displayCodes[idx*ObsNo]
+  groupStat2of1=displayCodes[(idx*ObsNo+1) mod ObsNo]
+  
+  idx=randomu(seed)
+  groupStat1of2=displayCodes[idx*ObsNo]
+  groupStat2of2=displayCodes[(idx*ObsNo+1) mod ObsNo]
+  
+  return, [singleStat1, singleStat2, groupStat1of1, groupStat2of1, groupStat1of2, groupStat2of2]
+  
+END
+
+PRO FMEntitySelectionGUI::buildAllAvailableCombination
+
+  prevSilentMode=self.silentMode
+  self.silentMode=1
+  logFile=self.mgr->getTestDir(/WITH)+'entity.log'
+  self.mgr->logging, file=logFile
+  
+  allScenarios=self->getAllScenarioCodes()
+  allModels=self->getAllModelCodes()
+  allpars=self->getAllParameterCodes()
+  scenarioNo=n_elements(allScenarios)
+  modelsNo=n_elements(allModels)
+  parsNo=n_elements(allpars)
+  sIndexes=indgen(scenarioNo)
+  mIndexes=indgen(modelsNo)
+  
+  idx=randomu(seed)
+  par1=allpars[idx*parsNo]
+  par2=allpars[(idx*parsNo+1) mod parsNo]
+  
+  entFileList=''
+  k=0
+  fm=self.mgr->getFileSystemMgr()
+  util=obj_new('FMUtility')
+  ext=fm->getEntityExtension()
+  
+  done=0
+  multipleToDo=1
+  singleToDo=1
+  sIdx=0
+  mIdx=0
+  k=0
+  self->groupObsRadioButton
+  self->removeAllObs
+  self->singleObsRadioButton
+  self->removeAllObs
+  
+  while (done ne 1) and ((multipleToDo) or (singleToDo)) do begin
+  
+    tempSIdx=sIndexes[sIdx]
+    tempMIdx=mIndexes[mIdx]
+    self->userScenarioSelections, tempSIdx
+    self->userModelSelections, tempMIdx
+    widget_control, self.runList, get_uvalue=RUNINDEXES
+    valIdxs=where(RUNINDEXES ne -1, totRuns)
+    if (totRuns eq 1) and singleToDo then begin
+      scenNames='' & modelsNames=''
+      for l=0, n_elements(sIndexes[sIdx])-1 do scenNames=scenNames+self->getScenarioNameAtIndex(sIndexes[l])
+      for l=0, n_elements(mIndexes[mIdx])-1 do modelsNames=modelsNames+self->getModelNameAtIndex(mIndexes[l])
+      for i=1, 7 do begin
+        for j=0, 1 do begin
+          if j eq 0 then parametersCodes=par1
+          if j eq 1 then parametersCodes=[par1,par2]
+          spec=parametersCodes
+          self->userParameterCodeSelections, parametersCodes
+          obsAreGood=0
+          m=0
+          while not(obsAreGood) do begin
+            stats=self->getTestObs()
+            fileName=self->buildTestObs( i, $
+              stats, spec=spec, mods=modelsNames, scen=scenNames)
+            obsAreGood=self->checkIntegrity()
+            m++
+            if m gt 1 then stop
+          endwhile
+          for l=0, 1 do begin
+            self->userUseObsModButton, l
+            k++
+            thisFileName=strcompress(k, /REMOVE)+fileName+'_modobs'+strcompress(l, /REMOVE)+ext
+            self.info->saveData, $
+              self.mgr->getTestDir(/WITH)+thisFileName
+            entFileList=[entFileList, thisFileName]
+          endfor
+          self->groupObsRadioButton
+          self->removeAllObs
+          self->singleObsRadioButton
+          self->removeAllObs
+        endfor
+      endfor
+      singleToDo=0
+    endif
+    
+    if (totRuns gt 1) and multipleToDo then begin
+      scenNames='' & modelsNames=''
+      for l=0, n_elements(sIndexes[sIdx])-1 do scenNames=scenNames+'_'+self->getScenarioNameAtIndex(sIndexes[l])
+      for l=0, n_elements(mIndexes[mIdx])-1 do modelsNames=modelsNames+'_'+self->getModelNameAtIndex(mIndexes[l])
+      for i=1, 7 do begin
+        for j=0, 1 do begin
+          if j eq 0 then parametersCodes=par1
+          if j eq 1 then parametersCodes=[par1,par2]
+          spec=parametersCodes
+          self->userParameterCodeSelections, parametersCodes
+          stats=self->getTestObs()
+          fileName=self->buildTestObs( i, $
+            stats, spec=spec, mods=modelsNames, scen=scenNames)
+          for l=0, 1 do begin
+            self->userUseObsModButton, l
+            k++
+            thisFileName=strcompress(k, /REMOVE)+fileName+'_modobs'+strcompress(l, /REMOVE)+ext
+            self.info->saveData, $
+              self.mgr->getTestDir(/WITH)+thisFileName
+            entFileList=[entFileList, thisFileName]
+          endfor
+          self->groupObsRadioButton
+          self->removeAllObs
+          self->singleObsRadioButton
+          self->removeAllObs
+        endfor
+        multipleToDo=0
+      endfor
+    endif
+    if n_elements(mIdx) le (modelsNo-1) then mIdx=[mIdx,mIdx+1] else done=1
+  endwhile
+  
+  textFile=self.mgr->getMagicEntityList()
+  fm->writePlainTextFile, textFile, entFileList[1:n_elements(entFileList)-1]
+  self->groupObsRadioButton
+  self->removeAllObs
+  self->singleObsRadioButton
+  self->removeAllObs
+  self.silentMode=prevSilentMode
+  self.mgr->logging, /OFF
+  a=self.mgr->dialogMessage(['Magic done!','Look at '+textFile,'for details'], title='ENTITY MAGIC DONE', /INFORMATION )
+  obj_destroy, util
+  
+END
+
 PRO FMEntitySelectionGUI::setAllObservationsFlag, value
 
 END
@@ -317,6 +559,23 @@ PRO FMEntitySelectionGUI::userUseObsModButton, select
   
 END
 
+PRO FMEntitySelectionGUI::userAllAvailableScenarioSelection, select, NO_RESET=NO_RESET, modelSelections=modelselections
+
+  widget_control, self.allAvailableScenarioFlagButton, set_button=select
+  self.info->setAllAvailableScenarioFlag, select
+  self->fillScenarioList
+  if n_elements(modelselections) ne 0 then self->userModelSelections,modelselections else self->userModelSelections, 0 
+  if not(keyword_set(NO_RESET)) then begin
+    self->userScenarioSelections, 0
+  endif
+;mods=self.info->getModelSelections()
+;self->userModelSelections, mods
+;set here right.... ****
+;scenarioCodes=self.info->getScenarioCodeSelections()
+;self->userParameterCodeSelections, parCodes
+  
+END
+
 PRO FMEntitySelectionGUI::userRunSelection, index
 
   widget_control, self.runList, get_uvalue=RUNINDEXES
@@ -363,7 +622,8 @@ PRO FMEntitySelectionGUI::removeObsButton
 
   widget_control, self.selectedObservedList, get_uvalue=displayCodes
   idxes=widget_info(self.selectedObservedList, /LIST_SELECT)
-  if idxes[0] ne -1 and displayCodes[0] ne -1 then begin
+  if strcompress(idxes[0], /REMOVE) ne '-1' and strcompress(displayCodes[0], /REMOVE) ne '-1' then begin
+    ;if idxes[0] ne -1 and displayCodes[0] ne -1 then begin
     ;print, idxes
     if self.singleButtonFlag eq 1b then selectedCodes=displayCodes[idxes] else selectedCodes=idxes
     ;print, selectedCodes
@@ -416,10 +676,10 @@ END
 
 PRO FMEntitySelectionGUI::loadObsButton
 
-  answer='Yes'
+  answer='YES'
   if ~self.silentMode then answer=self->dialogMessage(['This operation will ovewrite monitoring selections. Do you want to continue?'], title=['Load obsevations'], /QUESTION)
   fsm=obj_new('FMFileSystemManager')
-  if answer eq 'Yes' then begin
+  if strupcase(answer) eq 'YES' then begin
     self->setAllObservationsFlag, 0
     filter=['*'+fsm->getObservedListExtension()]
     fix_filter='*'+fsm->getObservedListExtension()
@@ -463,8 +723,8 @@ END
 PRO FMEntitySelectionGUI::obsStoredListSelection
 
   widget_control, self.selectedObservedList, get_uvalue=displayCodes
-    hlp=strcompress(displayCodes,/remove_all)
-    if hlp[0] ne '-1' then begin 
+  hlp=strcompress(displayCodes,/remove_all)
+  if hlp[0] ne '-1' then begin
     if self.singleButtonFlag eq 1b then begin
       self->displaySingleDescr
     endif else begin
@@ -497,6 +757,8 @@ PRO FMEntitySelectionGUI::configure
   
   self->fillScenarioList
   self->fillModelList
+  self->userAllAvailableScenarioSelection, self.info->getAllAvailableScenarioFlag(), /NO_RESET, modelSelections=self.info->getModelSelections() 
+  
   self->userModelSelections, self.info->getModelSelections()
   self->userScenarioSelections, self.info->getScenarioSelections()
   
@@ -819,6 +1081,13 @@ FUNCTION FMEntitySelectionGUI::getAllScenarioCodes
   return, codes
   
 END
+
+FUNCTION FMEntitySelectionGUI::getScenarioCodes
+
+  codes=self.info->getScenarioCodes()
+  return, codes
+  
+END
 ;Model section - description
 FUNCTION FMEntitySelectionGUI::getModelDescriptionAtIndex, index
 
@@ -1050,10 +1319,16 @@ PRO FMEntitySelectionGUI::buildModelSection, base
   obsModelBase = widget_base(extraFlagBase, $
     XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
-; KeesC 20NOV2014    
   self.observedModelFlagButton = widget_button(obsModelBase, $
     XOFFSET=0 ,YOFFSET=0, VALUE='MOD without OBS', event_pro=self.eventPrefix+'useObsModButton', $
-    SCR_YSIZE=self->getLabelYSize(), sensitive=1)   ;self.mgr->isAdvancedFilter())
+    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedFilter())
+    
+  allAvailableScenBase = widget_base(extraFlagBase, $
+    XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, $
+    TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
+  self.allAvailableScenarioFlagButton = widget_button(obsModelBase, $
+    XOFFSET=0 ,YOFFSET=0, VALUE='All available scenario(s)', event_pro=self.eventPrefix+'allAvailableScenarioButton', $
+    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedFilter())
     
 END
 
@@ -1232,6 +1507,7 @@ PRO FMEntitySelectionGUI__Define
     runList: 0l, $
     runDescrText: 0l, $
     observedModelFlagButton: 0l, $
+    allAvailableScenarioFlagButton: 0l, $
     modelList: 0l,$
     scenarioList: 0l,$
     parameterDescriptionText: 0l, $
@@ -1252,7 +1528,6 @@ PRO FMEntitySelectionGUI__Define
     singleButtonFlag: 0b, $
     lastGroupName: '', $
     obsGroupStatIndex: 0, $
-    silentMode: 0, $
     Inherits FMInfoSelectionGUI $
     }
     

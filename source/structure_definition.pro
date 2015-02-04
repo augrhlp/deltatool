@@ -357,7 +357,8 @@ FUNCTION getFMRunFile
   struct = { model: '', $					; model name/id
     scenario: '', $					; scenario name/id
     filename: '', $
-    execDate: '' $
+    execDate: '', $
+    isBase: 0 $
     ;parameters: ptr_new() $			; list of parameters
     }
     
