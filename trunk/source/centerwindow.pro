@@ -1,0 +1,1 @@
+Pro center_window, WID_BASE	if !D.Name eq 'WIN' then begin		Device, GET_SCREEN_SIZE=scr_size		info = Widget_Info(WID_BASE, /GEOMETRY)		xoffset = (scr_size[0] - info.scr_xsize)/2.		yoffset = (scr_size[1] - info.scr_ysize)/3.		Widget_Control, WID_BASE, XOFFSET=xoffset, YOFFSET=yoffset	endifEnd

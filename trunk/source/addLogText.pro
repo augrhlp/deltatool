@@ -1,0 +1,1 @@
+PRO addLogText, WID_TEXT, newText		if n_elements(WID_TEXT) eq 1 then begin    widget_control, WID_TEXT, get_value=txtAll    txtall=[[newText],reform([txtall])]    widget_control, WID_TEXT, set_value=txtall	endifEND

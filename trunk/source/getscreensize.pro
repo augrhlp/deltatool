@@ -1,0 +1,1 @@
+FUNCTION getScreenSize, WID_BASE Device, GET_SCREEN_SIZE=scr_size return, scr_sizeEnd
