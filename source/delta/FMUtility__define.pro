@@ -4,15 +4,15 @@
 
 FUNCTION FMUtility::removeSpecialChars, value, SPACETOO=SPACETOO
 
- specialList=reform(byte(['!', '$', '%', '&', '/', '(', ')', '=', '?', '^', '*']))
- if keyword_set(SPACETOO) then specialList=[specialList, byte(' ')] 
- specNo=n_elements(specialList)
- newValue=byte(value)
- for i=0, specNo-1 do begin
-  wrong=where(newValue eq specialList[i], count, complement=complement)
-  if count gt 0 then newValue=newValue[complement]
- endfor
- return, string(newValue)
+  specialList=reform(byte(['!', '$', '%', '&', '/', '(', ')', '=', '?', '^', '*']))
+  if keyword_set(SPACETOO) then specialList=[specialList, byte(' ')]
+  specNo=n_elements(specialList)
+  newValue=byte(value)
+  for i=0, specNo-1 do begin
+    wrong=where(newValue eq specialList[i], count, complement=complement)
+    if count gt 0 then newValue=newValue[complement]
+  endfor
+  return, string(newValue)
   
 END
 
@@ -165,7 +165,7 @@ END
 
 FUNCTION FMUtility::getTitleTextFont
 
-;  return, "COURIER*BOLD*ITALIC*12"
+  ;  return, "COURIER*BOLD*ITALIC*12"
   return, "TIMES ROMAN*18*BOLD"
   
 END
@@ -770,6 +770,7 @@ FUNCTION FMUtility::getSysTime, FILECOMPATIBILITY=FILECOMPATIBILITY
       idx=strpos(date, ':')
       if idx ne -1 then date=strmid(date, 0, idx)+strmid(date, idx+1, 100) else search=0
     endwhile
+    date=strcompress(date, /REMOVE_ALL)
   endif
   return, date
   

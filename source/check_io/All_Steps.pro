@@ -19,14 +19,15 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   ;STEP 08: Consistency of statnames and OBSfiles
   ;STEP 09: Check consistency of species in STARTUPfile and OBSfile
   ;STEP 10: TimeLength OBSfiles [< 8760|8784 (Hourly), =1 (Yearly)]
-  ;STEP 11: OBS data availability at stations (%); Extreme values
-  ;STEP 12: Check OBS equal to zero (real or novalue ?)
-  ;STEP 13: Existence of MODfile
-  ;STEP 14: Existence of stations/species/attribute in MODfile
-  ;STEP 15: TimeLength of MOD/species files [< 8760|8784 (hourly), =1 (yearly)]
-  ;STEP 16: Check on MOD NaN/Inf/Extreme values
-  ;STEP 17: MOD availability at stations for STARTUP species (%)
-  ;STEP 18: Basic Statistics
+  ;STEP 11: TimeLength OBSfiles [< 8760|8784 (Hourly), =1 (Yearly)]
+  ;STEP 12: OBS data availability at stations (%); Extreme values
+  ;STEP 13: Check OBS equal to zero (real or novalue ?)
+  ;STEP 14: Existence of MODfile
+  ;STEP 15: Existence of stations/species/attribute in MODfile
+  ;STEP 16: TimeLength of MOD/species files [< 8760|8784 (hourly), =1 (yearly)]
+  ;STEP 17: Check on MOD NaN/Inf/Extreme values
+  ;STEP 18: MOD availability at stations for STARTUP species (%)
+  ;STEP 19: Basic Statistics
   
   
   ; *******************************************************************************************************
@@ -675,9 +676,9 @@ if itobs eq 1 then begin
   
   ; *******************************************************************************************************
   
-  widget_control,labprog_txt,set_value='STEP 10'
+  widget_control,labprog_txt,set_value='STEP 10A'
   printf,11,'*****************************************************************'
-  printf,11,'***         STEP 10                                             *'
+  printf,11,'***         STEP 10A                                             *'
   printf,11,'***  TimeLength OBSfiles [< 8760|8784 (Hourly), =1 (Yearly)]    *'
   printf,11,'*****************************************************************'
   print,'STEP 10'
@@ -751,7 +752,7 @@ if itobs eq 1 then begin
     csv2cdfInfo.stringStartHour=strcompress(year, /REMOVE)+'0101'
     csv2cdfInfo.stringEndHour=strcompress(year, /REMOVE)+'1231'
     csv2cdfInfo.PROGRESSBAR=0
-    printf,11,'STEP 10 OK: Number of TimeLines OBSfiles (in STARTUPfile) and Date format OK'
+    printf,11,'STEP 10A OK: Number of TimeLines OBSfiles (in STARTUPfile) and Date format OK'
     txt='STEP 10 OK: Number of TimeLines OBSfiles  and Date format(in STARTUPfile) OK'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
@@ -760,12 +761,18 @@ if itobs eq 1 then begin
   widget_control,labok(10),set_value=' *OK* '
   
   if getenv('DO_OBS_CDF_CONVERSION') eq '1' then begin
+    widget_control,labprog_txt,set_value='STEP 11'
     a=dialog_message('Now convert to cdf format the observations...', title='CDF conversion')
     csv2cdf, csv2cdfInfo.startUpFile, $
       csv2cdfInfo.startHour, csv2cdfInfo.endHour, csv2cdfInfo.inputDir, csv2cdfInfo.outputDir, $
       csv2cdfInfo.prefixId, csv2cdfInfo.modelName, csv2cdfInfo.fulloutFileName, csv2cdfInfo.stringStartHour, $
       csv2cdfInfo.stringEndHour, $
       logWin=labcom_txt, PROGRESSBAR=csv2cdfInfo.PROGRESSBAR
+    txt='STEP 11 OK: convert to cdf format the observations OK'
+    txtall=[txt,txtall]
+    widget_control,labcom_txt,set_value=txtall
+  printf,11,' '
+  widget_control,labok(11),set_value=' *OK* '
   endif
   ; *******************************************************************************************************
   ; checking observation availability per species
@@ -791,7 +798,7 @@ if itobs eq 1 then begin
   extvalues=0
   day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
   for i=0,n_elements(statnames)-1 do begin
-    widget_control,labprog_txt,set_value='STEP 11: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+    widget_control,labprog_txt,set_value='STEP 12: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
       fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
       if count eq 1 then begin
@@ -891,12 +898,12 @@ if itobs eq 1 then begin
   endfor
   widget_control,labprog_txt,set_value=''
   printf,12,' '
-  widget_control,labok(11),set_value=' *OK* '
-  txt='STEP 11 (Info) OK: OBS availability: see LogFile'
+  widget_control,labok(12),set_value=' *OK* '
+  txt='STEP 12 (Info) OK: OBS availability: see LogFile'
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
-  if extvalues eq 0 then txt='STEP 11 OK: No Extreme OBS values'
-  if extvalues eq 1 then txt='STEP 11 (Info): Extreme OBS values: see LogFile'
+  if extvalues eq 0 then txt='STEP 12 OK: No Extreme OBS values'
+  if extvalues eq 1 then txt='STEP 12 (Info): Extreme OBS values: see LogFile'
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
   
@@ -904,18 +911,18 @@ if itobs eq 1 then begin
   ; Check OBS equal to zero (real or novalue ?)
   ;test 12
   
-  widget_control,labprog_txt,set_value='STEP 12'
+  widget_control,labprog_txt,set_value='STEP 13'
   printf,11,'********************************************************'
-  printf,11,'***           STEP 12                                  *'
+  printf,11,'***           STEP 13                                  *'
   printf,11,'*** Check OBS equal to zero (real or novalue ?)        *'
   printf,11,'********************************************************'
   ;  printf,11,'See SummaryFile'
   printf,11,' '
   printf,12,'********************************************************'
-  printf,12,'***           STEP 12                                  *'
+  printf,12,'***           STEP 13                                  *'
   printf,12,'*** Check OBS equal to zero (real or novalue ?)        *'
   printf,12,'********************************************************'
-  print,'STEP 12'
+  print,'STEP 13'
   poll=fltarr(n_elements(statnames),n_elements(spec),8784)
   poll(*,*,*)=-999.
   ipoll=strarr(n_elements(statnames),n_elements(spec))
@@ -923,7 +930,7 @@ if itobs eq 1 then begin
   extvalues=0
   day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
   for i=0,n_elements(statnames)-1 do begin
-    widget_control,labprog_txt,set_value='STEP 12: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+    widget_control,labprog_txt,set_value='STEP 13: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
       fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
       if count eq 1 then begin
@@ -1003,11 +1010,11 @@ if itobs eq 1 then begin
   widget_control,labprog_txt,set_value=''
   printf,12,' '
   widget_control,labok(12),set_value=' *OK* '
-  txt='STEP 12 (Info) OK: Check OBS = 0: see LogFile'
+  txt='STEP 13 (Info) OK: Check OBS = 0: see LogFile'
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
-  if extvalues eq 0 then txt='STEP 12 OK: No OBS = 0'
-  if extvalues eq 1 then txt='STEP 12 (Info): OBS = 0: Make -999, see LogFile'
+  if extvalues eq 0 then txt='STEP 13 OK: No OBS = 0'
+  if extvalues eq 1 then txt='STEP 13 (Info): OBS = 0: Make -999, see LogFile'
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
   
@@ -1018,12 +1025,12 @@ endif   ; itobs
 if itmod eq 1 then begin
   ;test 13
 
-  widget_control,labprog_txt,set_value='STEP 13'
+  widget_control,labprog_txt,set_value='STEP 14'
   printf,11,'****************************************'
-  printf,11,'***         STEP 13                    *'
+  printf,11,'***         STEP 14                    *'
   printf,11,'***  Existence of MODfile              *'
   printf,11,'****************************************'
-  print,'STEP 13'
+  print,'STEP 14'
   dir_mod=dir_mod+path_sep()
   res=file_test(dir_mod+model)
   point=strpos(model, '.', /REVERSE_SEARCH)
@@ -1036,7 +1043,7 @@ if itmod eq 1 then begin
     ;modelFile=FName
     model=bFName+'.'+extension
     if res eq 0 then begin
-      txt='STEP 13 STOP! Modfile '+model+' does not exist in MODELING_DIR'
+      txt='STEP 14 STOP! Modfile '+model+' does not exist in MODELING_DIR'
       txtall=[txt,txtall]
       widget_control,labcom_txt,set_value=txtall
       txtall=['STOP',txtall]
@@ -1047,13 +1054,13 @@ if itmod eq 1 then begin
       return
     endif
   endif else begin
-    printf,11,'STEP 13 OK: MODfile '+model+' found in MODELING_DIR'
-    txt='STEP 13 OK: MODfile '+model+' found in MODELING_DIR'
+    printf,11,'STEP 14 OK: MODfile '+model+' found in MODELING_DIR'
+    txt='STEP 14 OK: MODfile '+model+' found in MODELING_DIR'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endelse
   printf,11,' '
-  widget_control,labok(13),set_value=' *OK* '
+  widget_control,labok(14),set_value=' *OK* '
   
   ; *******************************************************************************************************
   ;test 14
@@ -1061,12 +1068,12 @@ if itmod eq 1 then begin
   readSpec
   readStatSpec
   
-  widget_control,labprog_txt,set_value='STEP 14'
+  widget_control,labprog_txt,set_value='STEP 15'
   printf,11,'*****************************************************************'
-  printf,11,'***         STEP 14                                             *'
+  printf,11,'***         STEP 15                                             *'
   printf,11,'***  Existence of stations/species/attribute in MODfile         *'
   printf,11,'*****************************************************************'
-  print,'STEP 14'
+  print,'STEP 15'
   ;lmod=strlen(dir_mod+model)
   ;extension=strmid(dir_mod+model,lmod-3,3)
   if extension eq 'cdf' then begin
@@ -1171,7 +1178,7 @@ if itmod eq 1 then begin
     close,1
   endif
   if iprob eq 1 then begin
-    txt='STEP 14: STOP! Inconsistent speclist in STARTUPfile and MODfile'
+    txt='STEP 15: STOP! Inconsistent speclist in STARTUPfile and MODfile'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
     txtall=['STOP',txtall]
@@ -1182,23 +1189,23 @@ if itmod eq 1 then begin
     return
   endif
   if iprob eq 0 then begin
-    printf,11,'STEP 14 OK: Species consistent in STARTUPfile and MODfile'
-    txt='STEP 14 OK: Species consistent in STARTUPfile and MODfile'
+    printf,11,'STEP 15 OK: Species consistent in STARTUPfile and MODfile'
+    txt='STEP 15 OK: Species consistent in STARTUPfile and MODfile'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endif
   printf,11,' '
-  widget_control,labok(14),set_value=' *OK* '
+  widget_control,labok(15),set_value=' *OK* '
   
   ; *******************************************************************************************************
   ;check on length modeling data
   
-  widget_control,labprog_txt,set_value='STEP 15'
+  widget_control,labprog_txt,set_value='STEP 16'
   printf,11,'**********************************************************************'
-  printf,11,'***         STEP 15                                                  *'
+  printf,11,'***         STEP 16                                                  *'
   printf,11,'***  TimeLength of MOD/species files [< 8760|8784 (hourly), =1 (yearly)]   *'
   printf,11,'**********************************************************************'
-  print,'STEP 15'
+  print,'STEP 16'
   lmod=strlen(dir_mod+model)
   iprob=0
   extension=strmid(dir_mod+model,lmod-3,3)
@@ -1281,13 +1288,13 @@ if itmod eq 1 then begin
     ncdf_close,id
   endif
   if YearMOD ne YearStartup and YearMOD ne -1 then begin
-    txt='STEP 15: WARNING! YearMOD ('+strcompress(YearMOD,/remove_all)+') NE YearStartup ('+$
+    txt='STEP 16: WARNING! YearMOD ('+strcompress(YearMOD,/remove_all)+') NE YearStartup ('+$
       strcompress(YearStartup,/remove_all)+')'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endif
   if iprob eq 1 then begin
-    txt='STEP 15: STOP! TimeLength of MOD/species files [< 8760|8784 (hourly), =1 (yearly)]'
+    txt='STEP 16: STOP! TimeLength of MOD/species files [< 8760|8784 (hourly), =1 (yearly)]'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
     txtall=['STOP',txtall]
@@ -1298,28 +1305,28 @@ if itmod eq 1 then begin
     return
   endif
   if iprob eq 0 then begin
-    printf,11,'STEP 15 OK: TimeLength all MODfile/species eq 8760|EndHour-StartHour+1 (hourly), or 1 (yearly)'
-    txt='STEP 15 OK: TimeLength all MODfile/species eq 8760|EndHour-StartHour+1 (hourly), or 1 (yearly)'
+    printf,11,'STEP 16 OK: TimeLength all MODfile/species eq 8760|EndHour-StartHour+1 (hourly), or 1 (yearly)'
+    txt='STEP 16 OK: TimeLength all MODfile/species eq 8760|EndHour-StartHour+1 (hourly), or 1 (yearly)'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endif
   printf,11,' '
-  widget_control,labok(15),set_value=' *OK* '
+  widget_control,labok(16),set_value=' *OK* '
   
   ; *******************************************************************************************************
   ; checking mod extreme values
   ;test 16
   
-  widget_control,labprog_txt,set_value='STEP 16'
+  widget_control,labprog_txt,set_value='STEP 17'
   printf,11,'**************************************************'
-  printf,11,'***         STEP 16                              *'
+  printf,11,'***         STEP 17                              *'
   printf,11,'***  Check on MOD NaN/Inf/Extreme values         *'
   printf,11,'**************************************************'
   printf,12,'**************************************************'
-  printf,12,'***         STEP 16                              *'
+  printf,12,'***         STEP 17                              *'
   printf,12,'***  Check on MOD NaN/Inf/Extreme values         *'
   printf,12,'**************************************************'
-  print,'STEP 16'
+  print,'STEP 17'
   lmod=strlen(dir_mod+model)
   extension=strmid(dir_mod+model,lmod-3,3)
   iprob=0
@@ -1410,18 +1417,18 @@ if itmod eq 1 then begin
     close,1
   endif
   if iprob eq 1 then begin
-    txt='STEP 16 (Info): NaN/Inf/Extreme MOD values at stations: see SummaryFile'
+    txt='STEP 17 (Info): NaN/Inf/Extreme MOD values at stations: see SummaryFile'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
     printf,11,'See SummaryFile'
   endif else begin
-    printf,11,'STEP 15 OK: No NaN/Inf/Extreme values in MOD results'
-    txt='STEP 16 OK: No NaN/Inf/Extreme values in MOD results'
+    printf,11,'STEP 17 OK: No NaN/Inf/Extreme values in MOD results'
+    txt='STEP 17 OK: No NaN/Inf/Extreme values in MOD results'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endelse
   printf,11,' '
-  widget_control,labok(16),set_value=' *OK* '
+  widget_control,labok(17),set_value=' *OK* '
   
 endif   ;itmod
 
@@ -1435,18 +1442,18 @@ if itobsmod eq 1 then begin
   
   ReadStatSpec
   
-  widget_control,labprog_txt,set_value='STEP 17'
+  widget_control,labprog_txt,set_value='STEP 18'
   printf,11,'****************************************************************'
-  printf,11,'***           STEP 17                                          *'
+  printf,11,'***           STEP 18                                          *'
   printf,11,'*** MOD availability at stations for STARTUP species (%)       *'
   printf,11,'****************************************************************'
   printf,11,'See SummaryFile'
   printf,11,' '
   printf,12,'****************************************************************'
-  printf,12,'***           STEP 17                                          *'
+  printf,12,'***           STEP 18                                          *'
   printf,12,'*** MOD availability at stations for STARTUP species (%)       *'
   printf,12,'****************************************************************'
-  print,'STEP 17'
+  print,'STEP 18'
   iprob=0
   YearMOD=-1
   avail=fltarr(n_elements(statnames),n_elements(spec))
@@ -1487,7 +1494,7 @@ if itobsmod eq 1 then begin
     endif
   endif
   if YearMOD ne YearStartup and YearMOD ne -1 then begin
-    txt='STEP 17: WARNING! YearMOD ('+strcompress(YearMOD,/remove_all)+') NE YearStartup ('+$
+    txt='STEP 18: WARNING! YearMOD ('+strcompress(YearMOD,/remove_all)+') NE YearStartup ('+$
       strcompress(YearStartup,/remove_all)+')'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
@@ -1503,7 +1510,7 @@ if itobsmod eq 1 then begin
   
   if extension eq 'cdf' then begin
     for i=0,n_elements(statnames)-1 do begin
-      widget_control,labprog_txt,set_value='STEP 17a: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+      widget_control,labprog_txt,set_value='STEP 18a: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
       for is=0,n_elements(spec)-1 do begin
         if icase eq 0 then begin
           idname=statnames(i)+'_'+spec(is)
@@ -1557,7 +1564,7 @@ if itobsmod eq 1 then begin
     endwhile
     statvals=statvals(0:itel-1,*)
     for i=0,n_elements(statnames)-1 do begin
-      widget_control,labprog_txt,set_value='STEP 17a: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+      widget_control,labprog_txt,set_value='STEP 18a: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
       statv1=reform(statvals[*,0])
       cc=where(statnames[i] eq statv1,ncc)
       statv2=reform(statvals(cc[0],1:nparams))
@@ -1579,7 +1586,7 @@ if itobsmod eq 1 then begin
   
     day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
     for i=0,n_elements(statnames)-1 do begin
-      widget_control,labprog_txt,set_value='STEP 17b: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+      widget_control,labprog_txt,set_value='STEP 18b: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
       if strupcase(spec_stations(i)) ne 'NOOBS' then begin
         fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
         if count gt 0 then begin
@@ -1671,25 +1678,25 @@ if itobsmod eq 1 then begin
     printf,12,fix(i+1),statnames(i),avail(i,*),format='(i5,3x,a15,25f8.2,1x)'
   endfor
   printf,12,' '
-  txt='STEP 17 (Info) OK: MOD availability / BasicStatistics: see LogFile/SummaryFile'
+  txt='STEP 18 (Info) OK: MOD availability / BasicStatistics: see LogFile/SummaryFile'
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
-  widget_control,labok(17),set_value=' *OK* '
+  widget_control,labok(18),set_value=' *OK* '
   
   ; *******************************************************************************************************
   ;
-  widget_control,labprog_txt,set_value='STEP 18'
+  widget_control,labprog_txt,set_value='STEP 19'
   printf,11,'***********************************'
-  printf,11,'***         STEP 18               *'
+  printf,11,'***         STEP 19               *'
   printf,11,'***     Basic Statistics          *'
   printf,11,'***********************************'
   printf,11,'See SummaryFile'
   printf,11,' '
   printf,12,'***********************************'
-  printf,12,'***           STEP 18             *'
+  printf,12,'***           STEP 19             *'
   printf,12,'***     Basic Statistics          *'
   printf,12,'***********************************'
-  print,'STEP 18'
+  print,'STEP 19'
   printf,12,'BASIC STATISTICS '
   printf,12,'================'
   printf,12,'Station  **  OBS:Min/Max/Mean  **  MOD:Min/Max/Mean'
@@ -1707,10 +1714,10 @@ if itobsmod eq 1 then begin
     endfor
   endfor
   printf,12,' '
-  txt='STEP 18 (Info) OK: BasicStatistics: see SummaryFile'
+  txt='STEP 19 (Info) OK: BasicStatistics: see SummaryFile'
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
-  widget_control,labok(18),set_value=' *OK* '
+  widget_control,labok(19),set_value=' *OK* '
   
 endif  ; itobsmod
 

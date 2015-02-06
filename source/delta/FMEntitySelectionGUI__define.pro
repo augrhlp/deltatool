@@ -118,7 +118,7 @@ PRO FMEntitySelectionGUI::buildAllAvailableCombination
 
   prevSilentMode=self.silentMode
   self.silentMode=1
-  logFile=self.mgr->getTestDir(/WITH)+'entity.log'
+  logFile=self.mgr->getLogDir(/WITH)+'entity.log'
   self.mgr->logging, file=logFile
   
   allScenarios=self->getAllScenarioCodes()
@@ -179,12 +179,13 @@ PRO FMEntitySelectionGUI::buildAllAvailableCombination
             m++
             if m gt 1 then stop
           endwhile
-          for l=0, 1 do begin
+          ;for l=0, 1 do begin
+          for l=0, 0 do begin
             self->userUseObsModButton, l
             k++
             thisFileName=strcompress(k, /REMOVE)+fileName+'_modobs'+strcompress(l, /REMOVE)+ext
             self.info->saveData, $
-              self.mgr->getTestDir(/WITH)+thisFileName
+              self.mgr->getMagicDir(/WITH)+thisFileName
             entFileList=[entFileList, thisFileName]
           endfor
           self->groupObsRadioButton
@@ -209,7 +210,8 @@ PRO FMEntitySelectionGUI::buildAllAvailableCombination
           stats=self->getTestObs()
           fileName=self->buildTestObs( i, $
             stats, spec=spec, mods=modelsNames, scen=scenNames)
-          for l=0, 1 do begin
+          ;for l=0, 1 do begin
+          for l=0, 0 do begin
             self->userUseObsModButton, l
             k++
             thisFileName=strcompress(k, /REMOVE)+fileName+'_modobs'+strcompress(l, /REMOVE)+ext
