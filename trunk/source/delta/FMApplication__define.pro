@@ -119,10 +119,14 @@ PRO FMApplication::changeAllAvailableScenarioSelection, selection
   
 END
 
-PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir
+PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
 
   self.lastElabFilterType=self.mainConfig->getElaborationFilterType()
+  ; create test list as "STANDARD" user
+  self.mainConfig->setElaborationFilterType, 1
+  
   fm=self->getFileSystemMgr()
+  
   testElab=fm->getElaborationTemplateFileName()
   testEnt=fm->getEntityTemplateFileName()
   testRequest=fm->getRequestTemplateFileName()
@@ -133,9 +137,18 @@ PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir
   postScriptRequest=fm->getRequestTemplateFileName(/POSTSCRIPT)
   rasterRequest=fm->getRequestTemplateFileName(/RASTER)
   
+  ;copy all the templates in working dir
+  templateFolder=fm->getTemplateDir(/WITH)
+  
+  fm->fileCopy, templateFolder+testElab, wDir+testElab, /OVERWRITE
+  fm->fileCopy, templateFolder+testEnt, wDir+testEnt, /OVERWRITE
+  fm->fileCopy, templateFolder+testRequest, wDir+testRequest, /OVERWRITE
+  fm->fileCopy, templateFolder+testBatch, wDir+testBatch, /OVERWRITE
+  fm->fileCopy, templateFolder+postScriptRequest, wDir+postScriptRequest, /OVERWRITE
+  fm->fileCopy, templateFolder+rasterRequest, wDir+rasterRequest, /OVERWRITE
+  
   reqs[0]=postScriptRequest & reqs[1]=rasterRequest
   ;reqs[0]=rasterRequest
-  
   ;copy elabFile to templateElab
   ;rename entityFile to templateEntity
   for i=0, n_elements(reqs)-1 do begin
@@ -143,12 +156,13 @@ PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir
     print, '***********'+batchFile+'**************'
     print, 'elaboration: ', wDir+elabFile
     print, 'entity: ', wDir+entFile
-    fm->fileCopy, wDir+reqs[i], wDir+testRequest, /OVERWRITE
     fm->fileCopy, wDir+elabFile, wDir+testElab, /OVERWRITE
     fm->fileCopy, wDir+entFile, wDir+testEnt, /OVERWRITE
     fm->fileCopy, wDir+testBatch, wDir+batchFile, /OVERWRITE
+    fm->fileCopy, wDir+reqs[i], wDir+testRequest, /OVERWRITE
     ;self.mainView->startBenchMark, wDir+testBatch, WORKINGDIR=wDir, /BATCH
     self.mainView->startBenchMark, batchFile, WORKINGDIR=wDir, /BATCH, /SAMEFILENAME
+    self->moveResultFile, batchFile, wDir, resDir
     print, '********end***********'
     print, '***********************'
   ;execute batch (auto output naming)
@@ -159,6 +173,24 @@ PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir
 END
 ;  self.lastElabFilterType=self.mainConfig->getElaborationFilterType()
 ;  self->restoreElabFilterType
+
+PRO FMApplication::moveResultFile, fileName, sourceDir, destinationDir
+
+  fm=self->getFileSystemMgr()
+  
+  bFileName=fm->getBaseFileName(fileName, PRESERVE_PATH=PRESERVE_PATH, PRESERVE_EXTENSION=PRESERVE_EXTENSION)
+  resFiles=file_search(sourceDir+bFileName+'*')
+  elabFilesExt=['.ent', '.elb', '.rqs', '.btc']
+  for i=0, n_elements(resFiles)-1 do begin
+    ext=fm->getExtension(resFiles[i])
+    idx=where(ext eq elabFilesExt, count)
+    if count eq 0 then begin
+      bFileName=fm->getBaseFileName(resFiles[i], PRESERVE_PATH=PRESERVE_PATH, /PRESERVE_EXTENSION)
+      fm->fileRename, resFiles[i], destinationDir+bFileName, /OVERWRITE
+    endif
+  endfor
+  
+END
 
 PRO FMApplication::convertObsFromCSVtoCDF
 
@@ -382,6 +414,17 @@ FUNCTION FMApplication::getResourceDir, WITHSEPARATOR=WITHSEPARATOR
   
 END
 
+FUNCTION FMApplication::getMagicDir, WITHSEPARATOR=WITHSEPARATOR
+
+  return, self.fileSystemMgr->getMagicDir(WITHSEPARATOR=WITHSEPARATOR)
+  
+END
+
+FUNCTION FMApplication::getLogDir, WITHSEPARATOR=WITHSEPARATOR
+
+  return, self.fileSystemMgr->getLogDir(WITHSEPARATOR=WITHSEPARATOR)
+  
+END
 
 PRO FMApplication::checkDataIntegrityClose, errorResult=errorResult, AUTOCHECK=AUTOCHECK
 
@@ -460,15 +503,40 @@ END
 PRO FMApplication::testPlotQuality
 
   fm=self->getFileSystemMgr()
-  elabList=fm->readPlainTextFile(self->getMagicElaborationList())
-  entList=fm->readPlainTextFile(self->getMagicEntityList())
+  elabMagicFile=self->getMagicElaborationList()
+  entityMagicFile=self->getMagicEntityList()
+  
+  fInfo=file_info(elabMagicFile)
+  if fInfo.read ne 1 then begin
+    self->setTestMode, 0
+    self->setLogMode, 0
+    aa=self->dialogMessage('Use Magic button on Analysis Diaolg GUI before compute this test', /WARN)
+    return
+  endif
+  
+  fInfo=file_info(entityMagicFile)
+  if fInfo.read ne 1 then begin
+    self->setTestMode, 0
+    self->setLogMode, 0
+    aa=self->dialogMessage('Use Magic button on Entity Diaolg GUI before compute this test', /WARN)
+    return
+  endif
+  
+  elabList=fm->readPlainTextFile(elabMagicFile)
+  entList=fm->readPlainTextFile(entityMagicFile)
+  
+  elabList=elabList[where(elabList ne '')]
+  entList=entList[where(entList ne '')]
+  
   amount=n_elements(elabList)*n_elements(entList)
   
   a=self->dialogMessage('Expected about '+strcompress(amount)+' files...', /WARN)
   self->setTestMode, 1
   self->setLogMode, 1
   
-  wDir=self->getTestDir(/WITH)
+  ;wDir=self->getWorkingDir(/WITH, /ADD_DATE_FOLDER)
+  wDir=self->getMagicDir(/WITH)
+  resDir=self->getMagicDir(/WITH, /ADD)
   
   k=0
   for i=0, n_elements(entList)-1 do begin
@@ -483,7 +551,7 @@ PRO FMApplication::testPlotQuality
       ;endif
       k++
       batchName=strcompress(k, /REMOVE)+'_ent_'+entId+'elab_'+elabId+fm->getBatchExtension()
-      self->doTestBatch, batchName, entList[i], elabList[j], wDir
+      self->doTestBatch, batchName, entList[i], elabList[j], wDir, resDir
     endfor
   endfor
   self->setTestMode, 0
@@ -492,9 +560,9 @@ PRO FMApplication::testPlotQuality
   
 END
 
-FUNCTION FMApplication::getTestDir, WITHSEPARATOR=WITHSEPARATOR
+FUNCTION FMApplication::getMagicDir, WITHSEPARATOR=WITHSEPARATOR, ADD_DATE_FOLDER=ADD_DATE_FOLDER;, RESULT=RESULT
 
-  return, self.fileSystemMgr->getTestDir(WITHSEPARATOR=WITHSEPARATOR)
+  return, self.fileSystemMgr->getMagicDir(WITHSEPARATOR=WITHSEPARATOR, ADD_DATE_FOLDER=ADD_DATE_FOLDER);, RESULT=RESULT)
   
 END
 
@@ -981,17 +1049,17 @@ PRO FMApplication::Recognize, coord
   foundValue=''
   for i=n_elements(rEdges)-1, 0, -1 do begin
     thisRegion=*rEdges[i]
-    print, 'thisRegion:', thisRegion
-    print, 'coord:', coord
-    print, 'coord[0] ge thisRegion[0,0]', coord[0], thisRegion[0,0]
-    print, 'coord[0] le thisRegion[3,0]', coord[0], thisRegion[3,0]
-    print, 'coord[1] ge thisRegion[0,1]', coord[1], thisRegion[0,1]
-    print, 'coord[1] le thisRegion[1,1]', coord[1], thisRegion[1,1]
+    ;print, 'thisRegion:', thisRegion
+    ;print, 'coord:', coord
+    ;print, 'coord[0] ge thisRegion[0,0]', coord[0], thisRegion[0,0]
+    ;print, 'coord[0] le thisRegion[3,0]', coord[0], thisRegion[3,0]
+    ;print, 'coord[1] ge thisRegion[0,1]', coord[1], thisRegion[0,1]
+    ;print, 'coord[1] le thisRegion[1,1]', coord[1], thisRegion[1,1]
     if (coord[0] ge thisRegion[0,0]) and $
       (coord[0] le thisRegion[3,0]) and $
       (coord[1] ge thisRegion[0,1]) and $
       (coord[1] le thisRegion[1,1]) then begin
-      print, "found", i
+      ;print, "found", i
       ; MM fall 2014
       foundName=foundName+rNames[i]+'**'
       foundValue=foundValue+rValues[i]+'**'
@@ -1978,9 +2046,15 @@ END
 FUNCTION FMApplication::restoreEntity, fileName, WORKINGDIR=WORKINGDIR
 
   ;phil batch 18/03
-  if n_elements(WORKINGDIR) ne 1 then benchMarkDir=self.fileSystemMgr->getSaveDir(/WITH) else benchMarkDir=WORKINGDIR
-  fileName=benchMarkDir+fileName
+  ;if n_elements(WORKINGDIR) ne 1 then benchMarkDir=self.fileSystemMgr->getSaveDir(/WITH) else benchMarkDir=WORKINGDIR
+  ;fileName=benchMarkDir+fileName
   ;end phil batch
+  if n_elements(WORKINGDIR) eq 1 then wDir=WORKINGDIR else wDir=self.fileSystemMgr->getSaveDir(/WITH)
+  fm=self->getFileSystemMgr()
+  fName=fm->getBaseFileName(fileName, EXTENSION=EXTENSION, FOLDER=FOLDER, /PRESERVE_EXT)
+  if n_elements(FOLDER) eq 1 then wDir=FOLDER
+  wDir=fm->cleanPath(wDir)
+  fileName=wDir+path_sep()+fName
   entityD=self->getEntityDisplay()
   print, 'Data selection restored, filename:<', fileName, '>'
   ; confirm nice restore
@@ -2001,11 +2075,12 @@ END
 
 FUNCTION FMApplication::restoreElaboration, fileName, WORKINGDIR=WORKINGDIR
 
-  ;phil batch 18/03
-  if n_elements(WORKINGDIR) ne 1 then benchMarkDir=self.fileSystemMgr->getSaveDir(/WITH) else benchMarkDir=WORKINGDIR
-  ;benchMarkDir=self.fileSystemMgr->getSaveDir(/WITH)
-  fileName=benchMarkDir+fileName
-  ;end phil batch
+  if keyword_set(WORKINGDIR) then wDir=WORKINGDIR else wDir=self.fileSystemMgr->getSaveDir(/WITH)
+  fm=self->getFileSystemMgr()
+  fName=fm->getBaseFileName(fileName, EXTENSION=EXTENSION, FOLDER=FOLDER, /PRESERVE_EXT)
+  if n_elements(FOLDER) eq 1 then wDir=FOLDER
+  wDir=fm->cleanPath(wDir)
+  fileName=wDir+path_sep()+fName
   elabD=self->getElaborationDisplay()
   print, 'Analysis restored, filename:<', fileName, '>'
   ; confirm nice restore

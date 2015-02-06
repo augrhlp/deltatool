@@ -61,7 +61,7 @@ PRO FMElaborationSelectionGUI::buildAllAvailableCombination
 
   prevSilentMode=self.silentMode
   self.silentMode=1
-  logFile=self.mgr->getTestDir(/WITH)+'elab.log'
+  logFile=self.mgr->getLogDir(/WITH)+'elab.log'
   self.mgr->logging, file=logFile
   
   allDiagrams=self->getAllDiagramNames()
@@ -94,12 +94,12 @@ PRO FMElaborationSelectionGUI::buildAllAvailableCombination
         endif
       endwhile
       self.info->saveData, $
-        self.mgr->getTestDir(/WITH)+fileName
+        self.mgr->getMagicDir(/WITH)+fileName
       elabFileList=[elabFileList, fileName]
     endfor
   endfor
   textFile=self.mgr->getMagicElaborationList()
-  fm->writePlainTextFile, textFile, elabFileList[0:k-1]
+  fm->writePlainTextFile, textFile, elabFileList[1:k-1]
   self.silentMode=prevSilentMode
   self.mgr->logging, /OFF
   a=self.mgr->dialogMessage(['Magic done!','Look at '+textFile,'for details'], title='ELAB MAGIC DONE', /INFORMATION )

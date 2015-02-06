@@ -374,7 +374,7 @@ PRO FMMainGUI::restoreEntity
     GET_PATH=path, /MUST_EXIST, PATH=self.fsm->getSaveDir(),$
     TITLE='Restore a previous saved entity')
   ;phil batch 18/03
-  entityFileName = FILE_BASENAME(entityFileName)
+  ;entityFileName = FILE_BASENAME(entityFileName)
   ; end phil
   if entityFileName ne '' then begin
     if self.mgr->restoreEntity(entityFileName) then begin
@@ -415,7 +415,7 @@ PRO FMMainGUI::restoreElaboration
     GET_PATH=path, /MUST_EXIST, PATH=self.fsm->getSaveDir(), $
     TITLE='Restore a previous saved analysis'  )
   ;phil batch 18/03
-  elabFileName = FILE_BASENAME(elabFileName)
+  ;elabFileName = FILE_BASENAME(elabFileName)
   ; end phil
   if elabFileName ne '' then begin
     if self.mgr->restoreElaboration(elabFileName) then begin

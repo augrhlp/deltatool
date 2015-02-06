@@ -307,7 +307,7 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   DeltaMet=['WS','WD','TEMP']
   DeltaMetUnits=['m/s','ms-1','m/sec','deg','K','C']
 
-  steps=strarr(18+1)
+  steps=strarr(19+1)
   STEPS(1)= 'STEP 01: Check on existence of directories'
   STEPS(2)= 'STEP 02: Check on existence of STARTUPfile'
   STEPS(3)= 'STEP 03: SCALE/PARAMETERS/MONITORING in STARTUPfile'
@@ -318,16 +318,18 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   STEPS(8)= 'STEP 08: Consistency of statnames and OBSfiles'
   STEPS(9)= 'STEP 09: Check consistency of species in STARTUPfile and OBSfile'
   STEPS(10)= 'STEP 10: TimeLength OBSfiles [=8760, =8784 (LeapYear), =1 (Yearly)]'
-  STEPS(11)= 'STEP 11: OBS data availability at stations (%); Extreme values'
-  STEPS(12)= 'STEP 12: Check OBS equal to zero (real or novalue ?)'
-  STEPS(13)= 'STEP 13: Existence of MODfile'
-  STEPS(14)= 'STEP 14: Existence of stations/species/attribute in MODfile'
-  STEPS(15)= 'STEP 15: TimeLength of MOD/species [=8760 (hourly), =1 (yearly)]'
-  STEPS(16)= 'STEP 16: Check on MOD NaN/Inf/Extreme values'
-  STEPS(17)= 'STEP 17: MOD availability at stations for STARTUP species (%)'
-  STEPS(18)= 'STEP 18: Basic Statistics'
+  STEPS(11)= 'STEP 11: Obs csv to cdf conversion'
+  STEPS(12)= 'STEP 12: OBS data availability at stations (%); Extreme values'
+  STEPS(13)= 'STEP 13: Check OBS equal to zero (real or novalue ?)'
+  STEPS(14)= 'STEP 14: Existence of MODfile'
+  STEPS(15)= 'STEP 15: Existence of stations/species/attribute in MODfile'
+  STEPS(16)= 'STEP 16: TimeLength of MOD/species [=8760 (hourly), =1 (yearly)]'
+  STEPS(17)= 'STEP 17: Check on MOD NaN/Inf/Extreme values'
+  STEPS(18)= 'STEP 18: MOD availability at stations for STARTUP species (%)'
+  STEPS(19)= 'STEP 19: Basic Statistics'
 
   ;count=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16']
+  k=0
   nsteps=n_elements(STEPS)
   itgen=1 & itobs=1 & itmod=1 & itobsmod=1
   labok=lonarr(nsteps)
@@ -356,16 +358,18 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   butGen=cw_bgroup(base11,/column,/nonexclusive,'READ INFO from STARTUP File',uvalue='STEPG',set_value=[1])
   for i=1,4 do begin
     baseG2(i)=widget_base(base11,/row,space=0)
-    labGen(i)=widget_label(baseG2(i),value=steps(i+1),/align_left)
-    labok(i+1)=widget_label(baseG2(i),value=oktxt,/align_left)
+    k++
+    labGen(i)=widget_label(baseG2(i),value=steps(k),/align_left)
+    labok(k)=widget_label(baseG2(i),value=oktxt,/align_left)
   endfor
   butObs=cw_bgroup(base11,/column,/nonexclusive,'OBS',uvalue='STEPO',set_value=[1])
-  labObs=lonarr(7)
-  baseO2=lonarr(7)
-  for i=0,6 do begin
+  labObs=lonarr(9)
+  baseO2=lonarr(9)
+  for i=0,8 do begin
     baseO2(i)=widget_base(base11,/row,space=0)
-    labObs(i)=widget_label(baseO2(i),value=steps(i+6),/align_left)
-    labok(i+6)=widget_label(baseO2(i),value=oktxt,/align_left)
+    k++
+    labObs(i)=widget_label(baseO2(i),value=steps(k),/align_left)
+    labok(k)=widget_label(baseO2(i),value=oktxt,/align_left)
   endfor
   butMod=cw_bgroup(base11,/column,/nonexclusive,'MOD',uvalue='STEPM',set_value=[1])
   labMod=lonarr(5)
@@ -374,16 +378,18 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   textXsize=160
   for i=0,3 do begin
     baseM2(i)=widget_base(base11,/row,space=0)
-    labMod(i)=widget_label(baseM2(i),value=steps(i+13),/align_left)
-    labok(i+13)=widget_label(baseM2(i),value=oktxt,/align_left)
+    k++
+    labMod(i)=widget_label(baseM2(i),value=steps(k),/align_left)
+    labok(k)=widget_label(baseM2(i),value=oktxt,/align_left)
   endfor
   butOM=cw_bgroup(base11,space=0, xpad=0, ypad=0, /column,/nonexclusive,'OBS/MOD',uvalue='STEPOM',set_value=[1], font='times Roman*12*bold')
   labOM=lonarr(2)
   baseOM2=lonarr(3)
   for i=0,1 do begin
     baseOM2(i)=widget_base(base11,/row,space=0)
-    labOM(i)=widget_label(baseOM2(i),value=steps(i+17),/align_left)
-    labok(i+17)=widget_label(baseOM2(i),value=oktxt,/align_left)
+    k++
+    labOM(i)=widget_label(baseOM2(i),value=steps(k),/align_left)
+    labok(k)=widget_label(baseOM2(i),value=oktxt,/align_left)
   endfor
   secondColumn=widget_base(base1,/column)
   thirdColumn=widget_base(base1,/column)

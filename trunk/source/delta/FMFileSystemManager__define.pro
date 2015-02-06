@@ -1,6 +1,27 @@
 ;********************
 @structure_definition
 ;********************
+FUNCTION FMFileSystemManager::getMagicDir, WITHSEPARATOR=WITHSEPARATOR, ADD_DATE_FOLDER=ADD_DATE_FOLDER;, RESULT=RESULT
+
+  dir=self->getUserDataHome(/WITH)
+  dir=dir+'magic'
+  fullFolder=dir
+  if keyword_set(RESULT) then fullFolder=fullFolder+path_sep()+'result'
+  IF KEYWORD_SET(ADD_DATE_FOLDER) then begin
+    utility=obj_new('FMUtility')
+    folder=utility->getSysTime(/FILE)
+    fullFolder=dir+path_sep()+folder
+    cd, current=current
+    cd, dir
+    file_mkdir, folder;  fullFolder
+    cd, current
+    obj_destroy, utility
+  endif
+  if keyword_set(WITHSEPARATOR) then sep=path_sep() else sep=''
+  return, fullFolder+sep
+  
+END
+
 FUNCTION FMFileSystemManager::getReleaseDate
 
   keyName='date'
@@ -26,7 +47,7 @@ FUNCTION FMFileSystemManager::getLicenseFileName, FULLPATH=FULLPATH
   fileName='licence.rtf'
   if keyword_set(FULLPATH) then fileName=self->getHelpDir(/WITH)+fileName
   return, fileName
-
+  
 END
 
 FUNCTION FMFileSystemManager::getHelpFileName, FULLPATH=FULLPATH
@@ -67,7 +88,7 @@ END
 
 FUNCTION FMFileSystemManager::getMagicElaborationList
 
-  return, self->getTestDir(/WITH)+'elablist.txt'
+  return, self->getTemplateDir(/WITH)+'elablist.txt'
   
 END
 
@@ -78,9 +99,18 @@ FUNCTION FMFileSystemManager::getTestDir, WITHSEPARATOR=WITHSEPARATOR
   
 END
 
+;FUNCTION FMFileSystemManager::getTemplateFolder
+;
+;  dir=self->getUserDataHome(/WITH)
+;  dir=dir+'template'
+;  if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
+;  return, dir
+;
+;END
+
 FUNCTION FMFileSystemManager::getMagicEntityList
 
-  return, self->getTestDir(/WITH)+'entitylist.txt'
+  return, self->getTemplateDir(/WITH)+'entitylist.txt'
   
 END
 
@@ -91,7 +121,7 @@ FUNCTION FMFileSystemManager::cleanPath, testPath
   while found do begin
     length=strlen(cleanPathStr)
     slashPos=strpos(cleanPathStr, path_sep(), /REVERSE_SEARCH)
-    if length-1 eq slashPos then cleanPathStr=strmid(cleanPathStr,0, length-1) else found=0
+    if length-1 eq slashPos and length ne 0 then cleanPathStr=strmid(cleanPathStr,0, length-1) else found=0
   endwhile
   return, cleanPathStr
   
@@ -395,15 +425,18 @@ PRO  FMFileSystemManager::fileRename, sourceFile, targetFile, OVERWRITE=OVERWRIT
   
 END
 
-FUNCTION FMFileSystemManager::getBaseFileName, fileName, PRESERVE_PATH=PRESERVE_PATH, PRESERVE_EXTENSION=PRESERVE_EXTENSION
+FUNCTION FMFileSystemManager::getBaseFileName, fileName, PRESERVE_PATH=PRESERVE_PATH, PRESERVE_EXTENSION=PRESERVE_EXTENSION, FOLDER=FOLDER, EXTENSION=EXTENSION
 
   bName=fileName
   if ~keyword_set(PRESERVE_PATH) then begin
     bNameStartPos=strpos(bName, self->getSystemDirSeparator(), /REVERSE_SEARCH)
+    folder=strmid(fileName, 0, bNameStartPos)
+    if strlen(folder) eq 0 then a=ptr_new(folder, /NO_COPY)
     if bNameStartPos ne -1 then bName=strmid(fileName, bNameStartPos+1, strlen(fileName)-bNameStartPos)
   endif
   if ~keyword_set(PRESERVE_EXTENSION) then begin
     bNameDotStartPos=strpos(bName, '.', /REVERSE_SEARCH)
+    extension=strmid(fileName, bNameDotStartPos, 100)
     if bNameDotStartPos ne -1 then bName=strmid(bName, 0, bNameDotStartPos)
   endif
   return,  bName
@@ -2076,9 +2109,9 @@ END
 
 FUNCTION FMFileSystemManager::getDataDir, WITHSEPARATOR=WITHSEPARATOR
 
-;MM jan 2015 start
+  ;MM jan 2015 start
   dir=self->getUserDataHome(/WITH)
-;MM jan 2015 end
+  ;MM jan 2015 end
   dir=dir+"data"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -2087,9 +2120,9 @@ END
 
 FUNCTION FMFileSystemManager::getConfigurationDir, WITHSEPARATOR=WITHSEPARATOR
 
-;MM jan 2015 start
+  ;MM jan 2015 start
   dir=self->getUserDataHome(/WITH)
-;MM jan 2015 end
+  ;MM jan 2015 end
   dir=dir+"configuration"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -2098,9 +2131,9 @@ END
 
 FUNCTION FMFileSystemManager::getLogDir, WITHSEPARATOR=WITHSEPARATOR
 
-;MM jan 2015 start
+  ;MM jan 2015 start
   dir=self->getUserDataHome(/WITH)
-;MM jan 2015 end
+  ;MM jan 2015 end
   dir=dir+"log"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -2109,9 +2142,9 @@ END
 
 FUNCTION FMFileSystemManager::getTempDir, WITHSEPARATOR=WITHSEPARATOR
 
-;MM jan 2015 start
+  ;MM jan 2015 start
   dir=self->getUserDataHome(/WITH)
-;MM jan 2015 end
+  ;MM jan 2015 end
   dir=dir+"temp"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -2164,7 +2197,7 @@ FUNCTION FMFileSystemManager::readKeyFromInit, fileName, keyName, RT_APP=RT_APP,
     endif
     i++
   endwhile
-  if n_elements(keyValue) ne 0 then return, keyValue else stop 
+  if n_elements(keyValue) ne 0 then return, keyValue else stop
   
 END
 ;MM jan 2015 end
@@ -2192,7 +2225,7 @@ END
 
 FUNCTION FMFileSystemManager::getResourceDir, WITHSEPARATOR=WITHSEPARATOR
 
-;MM jan 2015 start
+  ;MM jan 2015 start
   dataHome=self->getUserDataHome(/WITH)
   ;MM jan 2015 end
   dir=dataHome+"resource"
@@ -2222,10 +2255,21 @@ END
 
 FUNCTION FMFileSystemManager::getSaveDir, WITHSEPARATOR=WITHSEPARATOR
 
-;MM jan 2015 start
+  ;MM jan 2015 start
   dir=self->getUserDataHome(/WITH)
-;MM jan 2015 end
+  ;MM jan 2015 end
   dir=dir+"save"
+  if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
+  return, dir
+  
+END
+
+FUNCTION FMFileSystemManager::getTemplateDir, WITHSEPARATOR=WITHSEPARATOR
+
+  ;MM jan 2015 start
+  dir=self->getUserDataHome(/WITH)
+  ;MM jan 2015 end
+  dir=dir+'template'
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
   
@@ -2233,9 +2277,9 @@ END
 
 FUNCTION FMFileSystemManager::getDumpDir, WITHSEPARATOR=WITHSEPARATOR
 
-;MM jan 2015 start
+  ;MM jan 2015 start
   dir=self->getUserDataHome(/WITH)
-;MM jan 2015 end
+  ;MM jan 2015 end
   dir=dir+"dump"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -2607,7 +2651,7 @@ FUNCTION FMFileSystemManager::init
   ;  fileName='app.folder.ini'
   ;  keyName='ABSOLUTE'
   ;  RT_APP=1
-
+  
   ;aa=dialog_message('User:'+'fileName:'+fileName+'keyName:'+keyName)
   ;endelse
   
