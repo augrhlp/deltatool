@@ -36,7 +36,7 @@ PRO FM_Generic, request, result
     print,'ExtraValues not available'
   endelse
   iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
-  
+
   nobsS=0
   nreg=0
   if isSingleSelection then begin
@@ -70,7 +70,7 @@ PRO FM_Generic, request, result
     mChoice4runG=groupRawData[gRunIndexes].observedCode
   endif
   nobs=nobsS+nobsG  ; total number of stations (ie single stations and all stations in the groups - with double counting)
-  
+
   if isSingleSelection eq 1 and isGroupSelection eq 0 then begin  ; only single stations
     mChoice1run=mChoice1runS
     mChoice2run=mChoice2runS
@@ -105,15 +105,15 @@ PRO FM_Generic, request, result
   OCStat=request->getElaborationOCStat()
   print, 'OCStat->', OCStat
   print, 'OCTimeAvgName->', OCTimeAvgName
-  
+
   SG_Computing, request, result, npar, nmod, nsce, nobs, nobsS, nobsG, $
     mChoice1run, mChoice2run, mChoice3run, mChoice4run,$
     parCodes, modelCodes, ScenarioCodes, obsNames, $
     startIndex, endIndex, MonitIndexes, RunIndexes, RawData, $
     elabcode, statType, extraValues, statXYResult
-    
+
   nobs=nobsS+ngroup   ; redefined = number of single stations + number of groups
-  
+
   ; ****** DUMP FILE *****
   iprintnr=2 ; 2 values (OBS MOD) are dumped
   if iUseObserveModel eq 1 then iprintnr=1
@@ -123,7 +123,7 @@ PRO FM_Generic, request, result
   ;                   Decomment the lines with '10xdump'
   ; 10xdump: Decomment next line
   ; iprintnr=10
-  
+
   atxt=systime()
   atxt=strsplit(atxt,' ',/extract)
   ctxt=strsplit(atxt(3),':',/extract)
@@ -193,7 +193,7 @@ PRO FM_Generic, request, result
       request->writeDataDumpFileRecord, txthlp
     endfor
   endif
-  
+
   for ipar=0,npar-1 do begin
     for imod=0,nmod-1 do begin
       for isce=0,nsce-1 do begin
@@ -249,12 +249,12 @@ PRO FM_Generic, request, result
     endfor
   endfor
   request->closeDataDumpFile
-  
-;KeesC 3NOV2013  
-;  if elabcode ne 35 and elabcode ne 36 and elabcode ne 37 then $
-;    statXYResult=statXYResult(*,*,*,*,0:1)
+
+  ;KeesC 3NOV2013
+  ;  if elabcode ne 35 and elabcode ne 36 and elabcode ne 37 then $
+  ;    statXYResult=statXYResult(*,*,*,*,0:1)
   if elabCode eq 2 or elabCode eq 14 then statXYResult(*,*,*,*,0)=statXYResult(*,*,*,*,1)
-  
+
   ; KeesC suppress stations with NaN: station should have values for all pars, all mods, and all sceno
   statValidO=intarr(nobs) & statValidO(*)=-1
   statValidR=intarr(nobs) & statValidR(*)=-1
@@ -283,10 +283,10 @@ PRO FM_Generic, request, result
     statXYResult='AllNaN'
     goto, nocalcul
   endif
-  
+
   PrepareLegends, request, result, ifree, npar, nmod, nsce, nobsS, nobs, obsNames, numStatValid, $
     statValid2, legendNames, legendColors, legendSymbols, statSymbols, statColors
-    
+
   ; KeesC : Put into linear structure for input to PH plotroutines (i.e. diagramCode ne 0)
   nobs=numStatValid
   if diagramCode ne 0 then begin
@@ -294,7 +294,7 @@ PRO FM_Generic, request, result
     legHlp=strarr(nmulti)
     statC=intarr(nmulti)
     statS=intarr(nmulti)
-;KeesC 9NOV2013: 3 changed into 4    
+    ;KeesC 9NOV2013: 3 changed into 4
     statXY=fltarr(nmulti,4)
     k=0
     for ipar=0,npar-1 do begin
@@ -313,9 +313,9 @@ PRO FM_Generic, request, result
             if ifree eq '0011' then legHlp(k)=legendNames(iobs,3)+'&'+legendNames(isce,2)
             statXY(k,0)=statXYResult(ipar,imod,isce,iobs,0)
             statXY(k,1)=statXYResult(ipar,imod,isce,iobs,1)
-;KeesC 2NOV2013            
+            ;KeesC 2NOV2013
             statXY(k,2)=statXYResult(ipar,imod,isce,iobs,2)
-;KeesC 9NOV2013             
+            ;KeesC 9NOV2013
             statXY(k,3)=statXYResult(ipar,imod,isce,iobs,3)
             statC(k)=statColors(ipar,imod,isce,iobs)
             statS(k)=statSymbols(ipar,imod,isce,iobs)
@@ -332,19 +332,19 @@ PRO FM_Generic, request, result
     legendSymbols=statSymbols
     statXY=0
   endif
-  
+
   nocalcul:
-  
+
   result->setGenericPlotInfo, statXYResult, statSymbols, statColors, legendNames, legendColors,legendSymbols
-  
+
 END
 ;************************************************************************
 PRO SG_Computing, $
-    request, result, Index1, Index2, Index3, Index4, nobsS, nobsG, $
-    mChoice1run, mChoice2run, mChoice3run, mChoice4run,$
-    test1, test2, test3, test4, startIndex, endIndex,$
-    MonitIndexes, RunIndexes, RawData, elabcode, statType, extraValues,statXYResult
-    
+  request, result, Index1, Index2, Index3, Index4, nobsS, nobsG, $
+  mChoice1run, mChoice2run, mChoice3run, mChoice4run,$
+  test1, test2, test3, test4, startIndex, endIndex,$
+  MonitIndexes, RunIndexes, RawData, elabcode, statType, extraValues,statXYResult
+
   isSingleSelection=request->isSingleObsPresent()
   isGroupSelection=request->isGroupObsPresent()
   hourStat=request->getGroupByTimeInfo() ;HourType
@@ -353,17 +353,17 @@ PRO SG_Computing, $
   iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
   extraValNumber=request->getExtraValuesNumber()
   if extraValNumber gt 0 then extraVal=request->getExtraValues()
-  
+
   dimAll=(Index1)*(Index2)*(Index3)*(Index4)
-;KeesC 9NOV2013: 3 changed into 4  
+  ;KeesC 9NOV2013: 3 changed into 4
   statXYResult=fltarr(Index1,Index2,Index3,Index4,4)
   ; 10xdump: Decomment next line
   ;  statXYResult=fltarr(Index1,Index2,Index3,Index4,10)
   statXYGroup=fltarr(index1,index2,index3,index4) & statXYGroup(*,*,*,*)=!values.f_nan
-;KeesC 2NOV2013  
+  ;KeesC 2NOV2013
   obsLatitudes=request->getSingleObsLatitudes()
   obsLongitudes=request->getSingleObsLongitudes()
-  
+
   ;  close,12 & openw,12,'C:\DELTA_TOOL\dump\percent.dat'
   for i1=0, Index1-1 do begin   ;par
     for i2=0, Index2-1 do begin  ; mod
@@ -392,18 +392,18 @@ PRO SG_Computing, $
             obsTemp=runTemp
             obsTemp(*)=-999
           endelse
-          
+
 ; cooment or not next 3 lines...
 ;          ccc=where(obsTemp eq 0, countCCC)
 ; KeesC 8NOV2013: added elabCode=38
 ;          if countCCC gt 0 and elabCode ne 38 then obsTemp(ccc)=-999.
-          
-          
+
+
           if elabCode ne 71 and elabCode ne 72 and elabCode ne 73 then begin
             time_operations, request, result, obsTemp, runTemp
             obs_run_nan,request,result,obsTemp, runTemp
           endif
-          
+
           longshort=0
           ;          if elabCode eq 10 or elabCode eq 75 then longshort=1
           CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
@@ -506,6 +506,21 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,0]=criteriaOU/stddevOM(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=correlate(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=abs(correlate(obsTemp, runTemp))
+            ;KeesC 20SEP2014  ; for calculation of %
+            signNum=2*stddevOM(obstemp)*stddevOM(runTemp)*(1.-correlate(obsTemp,runTemp))
+            signDen=(stddevOM(obstemp)-stddevOM(runTemp))^2
+            sign=0.
+            if finite(signNum) eq 1 and finite(signDen) eq 1 then begin
+              if signNum gt signDen then sign=-1 ;Error dominated by R
+              if signNum le signDen then sign=1 ;Error dominated by NMSD
+            endif
+            if criteriaOU gt 0 then begin
+              statXYResult[i1,i2,i3,i4,2]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*2.)
+              statXYResult[i1,i2,i3,i4,3]=bias(obsTemp, runTemp)/(CriteriaOU*2.)
+            endif else begin
+              statXYResult[i1,i2,i3,i4,2]=!values.f_nan
+              statXYResult[i1,i2,i3,i4,3]=!values.f_nan
+            endelse
           endif
           if elabcode eq 17 then begin ;Soccer
             statXYResult[i1,i2,i3,i4,0]=bias(obsTemp, runTemp)
@@ -546,6 +561,21 @@ PRO SG_Computing, $
             if stddevOM(obsTemp) eq 0 then statXYResult[i1,i2,i3,i4,0]=!values.f_nan
             statXYResult[i1,i2,i3,i4,1]=nmb(stddevOM(obsTemp), stddevOM(runTemp))
             statXYGroup[i1,i2,i3,i4]=nmb(stddevOM(obsTemp), stddevOM(runTemp))
+            ;KeesC 20SEP2014  ; for calculation of %
+            signNum=2*stddevOM(obstemp)*stddevOM(runTemp)*(1.-correlate(obsTemp,runTemp))
+            signDen=(stddevOM(obstemp)-stddevOM(runTemp))^2
+            sign=0.
+            if finite(signNum) eq 1 and finite(signDen) eq 1 then begin
+              if signNum gt signDen then sign=-1 ;Error dominated by R
+              if signNum le signDen then sign=1 ;Error dominated by NMSD
+            endif
+            if criteriaOU gt 0 then begin
+              statXYResult[i1,i2,i3,i4,2]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*2.)
+              statXYResult[i1,i2,i3,i4,3]=bias(obsTemp, runTemp)/(CriteriaOU*2.)
+            endif else begin
+              statXYResult[i1,i2,i3,i4,2]=!values.f_nan
+              statXYResult[i1,i2,i3,i4,3]=!values.f_nan
+            endelse
           endif
           if elabcode eq 26 then begin  ; AOTx
             ExtraValues=request->getExtraValues()
@@ -602,7 +632,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=fac2(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=fac2(obsTemp, runTemp)
           endif
-; KeesC 9NOV2013
+          ; KeesC 9NOV2013
           if elabcode eq 35 or elabcode eq 36 or elabCode eq 37 then begin ;OU Target GeoMap
             signNum=2*stddevOM(obstemp)*stddevOM(runTemp)*(1.-correlate(obsTemp,runTemp))
             signDen=(stddevOM(obstemp)-stddevOM(runTemp))^2
@@ -622,7 +652,7 @@ PRO SG_Computing, $
               statXYGroup[i1,i2,i3,i4]=!values.f_nan
             endelse
           endif
-;KeesC 8NOV2013          
+          ;KeesC 8NOV2013
           if elabcode eq 38 then begin  ; CUMULx
             ExtraValues=request->getExtraValues()
             refValue=ExtraValues[0]
@@ -641,7 +671,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,0]=obsCU/1000.
             statXYResult[i1,i2,i3,i4,1]=runCU/1000.
             statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
-          endif          
+          endif
           if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then begin ;OU Target
             signNum=2*stddevOM(obstemp)*stddevOM(runTemp)*(1.-correlate(obsTemp,runTemp))
             signDen=(stddevOM(obstemp)-stddevOM(runTemp))^2
@@ -803,14 +833,14 @@ PRO SG_Computing, $
                   obsStatResult=mean(obsGroupStatResult)
                   runStatResult=mean(runGroupStatResult)
                   run2StatResult=mean(run2GroupStatResult)
-                ; 10xdump: Decomment next lines
-                ;                  run3StatResult=mean(run3GroupStatResult)
-                ;                  run4StatResult=mean(run4GroupStatResult)
-                ;                  run5StatResult=mean(run5GroupStatResult)
-                ;                  run6StatResult=mean(run6GroupStatResult)
-                ;                  run7StatResult=mean(run7GroupStatResult)
-                ;                  run8StatResult=mean(run8GroupStatResult)
-                ;                  run9StatResult=mean(run9GroupStatResult)
+                  ; 10xdump: Decomment next lines
+                  ;                  run3StatResult=mean(run3GroupStatResult)
+                  ;                  run4StatResult=mean(run4GroupStatResult)
+                  ;                  run5StatResult=mean(run5GroupStatResult)
+                  ;                  run6StatResult=mean(run6GroupStatResult)
+                  ;                  run7StatResult=mean(run7GroupStatResult)
+                  ;                  run8StatResult=mean(run8GroupStatResult)
+                  ;                  run9StatResult=mean(run9GroupStatResult)
                 endif
                 if elabCode eq 14 then begin
                   if ncurrNames ge 2 then begin
@@ -829,14 +859,14 @@ PRO SG_Computing, $
                   obsStatResult=regcnst
                   RunStatResult=spatCorr
                   Run2StatResult=regres
-                ; 10xdump: Decomment next lines
-                ;                  Run3StatResult=mean(run3GroupStatResult)
-                ;                  Run4StatResult=mean(run4GroupStatResult)
-                ;                  Run5StatResult=mean(run5GroupStatResult)
-                ;                  Run6StatResult=mean(run6GroupStatResult)
-                ;                  Run7StatResult=mean(run7GroupStatResult)
-                ;                  Run8StatResult=mean(run8GroupStatResult)
-                ;                  Run9StatResult=mean(run9GroupStatResult)
+                  ; 10xdump: Decomment next lines
+                  ;                  Run3StatResult=mean(run3GroupStatResult)
+                  ;                  Run4StatResult=mean(run4GroupStatResult)
+                  ;                  Run5StatResult=mean(run5GroupStatResult)
+                  ;                  Run6StatResult=mean(run6GroupStatResult)
+                  ;                  Run7StatResult=mean(run7GroupStatResult)
+                  ;                  Run8StatResult=mean(run8GroupStatResult)
+                  ;                  Run9StatResult=mean(run9GroupStatResult)
                 endif
                 if total(where(elabCode eq [20,22,34])) ge 0 then begin
                   ccNeg=where(statXYGroupHlp lt 0.,countNeg)
@@ -847,14 +877,14 @@ PRO SG_Computing, $
                 obsStatResult=!values.f_nan
                 runStatResult=!values.f_nan
                 Run2StatResult=!values.f_nan
-              ; 10xdump: Decomment next lines
-              ;                Run3StatResult=!values.f_nan
-              ;                Run4StatResult=!values.f_nan
-              ;                Run5StatResult=!values.f_nan
-              ;                Run6StatResult=!values.f_nan
-              ;                Run7StatResult=!values.f_nan
-              ;                Run8StatResult=!values.f_nan
-              ;                Run9StatResult=!values.f_nan
+                ; 10xdump: Decomment next lines
+                ;                Run3StatResult=!values.f_nan
+                ;                Run4StatResult=!values.f_nan
+                ;                Run5StatResult=!values.f_nan
+                ;                Run6StatResult=!values.f_nan
+                ;                Run7StatResult=!values.f_nan
+                ;                Run8StatResult=!values.f_nan
+                ;                Run9StatResult=!values.f_nan
               endelse
             endif
             ;Worst 90%% group
@@ -900,14 +930,14 @@ PRO SG_Computing, $
             statXYResultHlp[i1,i2,i3,nobsS+iG,0]=obsStatResult
             statXYResultHlp[i1,i2,i3,nobsS+iG,1]=runStatResult
             statXYResultHlp[i1,i2,i3,nobsS+iG,2]=run2StatResult
-          ; 10xdump: Decomment next lines
-          ;            statXYResultHlp[i1,i2,i3,nobsS+iG,3]=run3StatResult
-          ;            statXYResultHlp[i1,i2,i3,nobsS+iG,4]=run4StatResult
-          ;            statXYResultHlp[i1,i2,i3,nobsS+iG,5]=run5StatResult
-          ;            statXYResultHlp[i1,i2,i3,nobsS+iG,6]=run6StatResult
-          ;            statXYResultHlp[i1,i2,i3,nobsS+iG,7]=run7StatResult
-          ;            statXYResultHlp[i1,i2,i3,nobsS+iG,8]=run8StatResult
-          ;            statXYResultHlp[i1,i2,i3,nobsS+iG,9]=run9StatResult
+            ; 10xdump: Decomment next lines
+            ;            statXYResultHlp[i1,i2,i3,nobsS+iG,3]=run3StatResult
+            ;            statXYResultHlp[i1,i2,i3,nobsS+iG,4]=run4StatResult
+            ;            statXYResultHlp[i1,i2,i3,nobsS+iG,5]=run5StatResult
+            ;            statXYResultHlp[i1,i2,i3,nobsS+iG,6]=run6StatResult
+            ;            statXYResultHlp[i1,i2,i3,nobsS+iG,7]=run7StatResult
+            ;            statXYResultHlp[i1,i2,i3,nobsS+iG,8]=run8StatResult
+            ;            statXYResultHlp[i1,i2,i3,nobsS+iG,9]=run9StatResult
           endfor ;i3
         endfor ;i2
       endfor  ;i1
@@ -917,20 +947,20 @@ PRO SG_Computing, $
 END
 ; ************************************************************************************
 PRO PrepareLegends, request, result, ifree, npar, nmod, nsce, nobsS, nobs, obsNames, numStatValid, $
-    statValid2, legendNames, legendColors, legendSymbols, statSymbols, statColors
-    
+  statValid2, legendNames, legendColors, legendSymbols, statSymbols, statColors
+
   groupTitles=request->getGroupTitles()
   parCodes=request->getParameterCodes()
   modelCodes=request->getModelCodes()
   scenarioCodes=request->getScenarioCodes()
   elabcode=request->getElaborationCode()
   obsShortNames=request->getSingleShortObsNames()
-  
+
   legendNames=strarr(max([npar,nmod,nsce,nobs]),6) & legendNames(*)=''   ; npar, nmod, nsce, nobs
   legendNames(0:npar-1,0)=parCodes
   legendNames(0:nmod-1,1)=modelCodes
   legendNames(0:nsce-1,2)=scenarioCodes
-  
+
   nreg=0
   if nobsS ge 1 then begin
     regNamesAll=strarr(nobsS)
@@ -942,18 +972,18 @@ PRO PrepareLegends, request, result, ifree, npar, nmod, nsce, nobsS, nobs, obsNa
     if total(where(elabCode eq [10,11,18,75,76,77])) ge 0 then legendNames(0:nobsS-1,3)=$
       regnamesAll+'&'+obsNames[0:nobsS-1]
   endif
-  
+
   if nobs gt nobsS then legendNames(nobsS:nobs-1,3)=groupTitles
   if numStatValid ge 1 then hlp=legendNames(statValid2,3)  ; else hlp=' '
   legendNames(*,3)=''
   if numStatValid ge 1 then legendNames(0:numStatValid-1,3)=hlp
-  
+
   if nobsS ge 1 then legendNames(0:nobsS-1,4)=obsshortNames
   if nobs gt nobsS then legendNames(nobsS:nobs-1,4)=groupTitles
   if numStatValid ge 1 then hlp=legendNames(statValid2,4)
   legendNames(*,4)=''
   if numStatValid ge 1 then legendNames(0:numStatValid-1,4)=hlp
-  
+
   statSymbols=intarr(npar,nmod,nsce,nobs) & statSymbols(*,*,*,*)=-1
   statColors=intarr(npar,nmod,nsce,nobs) & statColors(*,*,*,*)=-1
   if npar ge 1 and nmod eq 1 and nsce eq 1 and nobs eq 1 then begin
@@ -1066,18 +1096,18 @@ PRO PrepareLegends, request, result, ifree, npar, nmod, nsce, nobsS, nobs, obsNa
     ifree='1110'
   endif
   ; 1111   not used - too complicated for plotting
-  
+
   if numStatValid ge 1 then begin
     statColors=statColors(*,*,*,statValid2)
     statSymbols=statSymbols(*,*,*,statValid2)
   endif
-  
+
   legendColors=statColors
   legendSymbols=statSymbols
   legendNames(0,5)=ifree
   legendColors=reform(legendColors)
   legendSymbols=reform(legendSymbols)
-  
+
 END
 
 ;****************  insert FM_MeanTS using FM_StatTarget as a base*************
@@ -1135,7 +1165,7 @@ pro FM_MeanTS, request, result
     groupRawData=result->getGroupRawData()
     groupRDMatrix=result->getGroupRawDataCheckMatrix(gMonitIndexes, gRunIndexes)
   endif
-  
+
   extraValNumber=request->getExtraValuesNumber()
   if extraValNumber gt 0 then begin
     print, 'extra Values available #', extraValNumber
@@ -1145,16 +1175,16 @@ pro FM_MeanTS, request, result
   endelse
   obsFact=1
   ; **example** **start**
-  
+
   mcFlags=request->getMultipleChoiceUserSelectionFlags()
   ; which are multiples?
   whichAreMultiple=where(mcFlags eq 1b, multipleChoicesNo)
-  
+
   if multipleChoicesNo eq 0 then begin
     multipleChoicesNo = 1
     whichAreMultiple[0] = 1
   endif
-  
+
   ; ++++++++++++++1 multiple choice+++++++++++++++++
   ; only one multiple choice section **begin**
   ; useful memo: npar, nmod, nsce, nobs
@@ -1191,7 +1221,7 @@ pro FM_MeanTS, request, result
       forGLastIndex =n_elements(groupTitles)-1
       forGLastIndex2=n_elements(modelCodes)-1
     endif
-    
+
   end
   ; Only scenarios are multiple **not allowed but leave code here for safe**
   2:begin ;scenarios section
@@ -1233,74 +1263,74 @@ if multipleChoicesNo eq 1 then begin
   statXYResult=fltarr(targetPointsNo+1, endIndex-startIndex+1)
   statSymbols=strarr(targetPointsNo+1)
   statColors=intarr(targetPointsNo+1)
-  
+
   if isSingleSelection then begin
-  
+
     for i=0, forSLastIndex do begin
       ; only one choice
       choiceIdx1=(where(mChoice1runS eq test1S[i]))[0]
-      
+
       obsTemp=*singleRawData[sMonitIndexes[choiceIdx1]].observedData
       runTemp=*singleRawData[sRunIndexes[choiceIdx1]].runData
-      
+
       time_operations, request, result, obsTemp, runTemp
-      
+
       obsTemp=obsTemp[startIndex:endIndex]
       runTemp=runTemp[startIndex:endIndex]
-      
+
       idxs=where((obsTemp eq -999) or (obsTemp eq -8888), count)
       if count gt 0 then obsTemp(idxs)=!values.f_nan
-      
+
       runIdxs=where(runTemp eq -999, count)
       if count gt 0 then runTemp(runIdxs)=!VALUES.F_NAN
-      
+
       statXYResult[i+1,*]=runTemp
       statSymbols[i+1]=9
       statColors[i+1]=targetColors[i]
       statXYResult[0,*]=obsTemp
       statSymbols[0]=9
       statColors[0]=0 ;targetColors[i]
-      
+
     endfor
-    
+
   endif
-  
+
   if isGroupSelection then begin
-  
+
     for k=0,forGLastIndex2 do begin  ;loop models
-    
+
       currentNames=*groupNames[0]
       validIdxs=n_elements(currentNames)
       obsGroupStatResult=fltarr(validIdxs,endIndex-startIndex+1)
       runGroupStatResult=fltarr(validIdxs,endIndex-startIndex+1)
-      
+
       for j=0, validIdxs-1 do begin  ;groups loop
-      
+
         choiceIdx1=(where(mChoice1runG eq currentNames(j) and mChoice2runG eq test1G(k)))[0]
-        
+
         ;        print, 'gMonitIndexes[choiceIdx1]', gMonitIndexes[choiceIdx1]
         obsTemp=*groupRawData[gMonitIndexes[choiceIdx1]].observedData
-        
-        
-        
+
+
+
         choiceIdx1=(where(mChoice1runG eq currentNames[j] and mChoice2runG eq test1G(k)))[0]
-        
+
         ;        print, 'sRunIndexes[choiceIdx1]', gRunIndexes[choiceIdx1]
         runTemp=*groupRawData[gRunIndexes[choiceIdx1]].runData
-        
+
         time_operations, request, result, obsTemp, runTemp
-        
+
         idxs=where((obsTemp eq -999) or (obsTemp eq -8888), count)
         if count gt 0 then obsTemp(idxs)=!values.f_nan
-        
+
         runIdxs=where(runTemp eq -999, count)
         if count gt 0 then runTemp(runIdxs)=!VALUES.F_NAN
-        
+
         obsGroupStatResult(j,*)=obsTemp[startIndex:endIndex]
         runGroupStatResult(j,*)=runTemp[startIndex:endIndex]
-        
+
       endfor
-      
+
       for jj=0,endIndex-startIndex do begin
         if validIdxs gt 1 then begin
           obshlp=reform(obsGroupStatResult(*,jj))
@@ -1325,18 +1355,18 @@ if multipleChoicesNo eq 1 then begin
             statXYResult(k+1,jj)=!values.f_nan
           endelse
         endif
-        
+
       endfor
-      
+
       statSymbols[k+1]=9
       statColors[k+1]=targetColors[k]
       statSymbols[0]=9
       statColors[0]=0
-      
+
     endfor
-    
+
   endif
-  
+
 endif
 legendColors=statColors
 legendSymbols=statsymbols
@@ -1409,9 +1439,9 @@ pro FM_StatTable2, request, result
     nobs=nobs+n_elements(allGroupStations)
     groupRawData=result->getGroupRawData()
     groupRDMatrix=result->getGroupRawDataCheckMatrix(gMonitIndexes, gRunIndexes)
-  ;nobs=nobs+nobs=nobs+
+    ;nobs=nobs+nobs=nobs+
   endif
-  
+
   extraValNumber=request->getExtraValuesNumber()
   if extraValNumber gt 0 then begin
     print, 'extra Values available #', extraValNumber
@@ -1423,7 +1453,7 @@ pro FM_StatTable2, request, result
   limitValue=0.
   if strupcase(frequency) eq 'HOUR' then limitValue=extraVal(0)
   ;  PercValue=extraVal(1)
-  
+
   ;MM summer 2012 Start
   ;Now you have
   ;request->getModelInfo()
@@ -1446,27 +1476,27 @@ pro FM_StatTable2, request, result
   hourStat=request->getGroupByTimeInfo() ;HourType
   ;  flag_average=fix(hourStat[0].value)
   statType=request->getGroupByStatInfo() ;HourType
-  
-  
-  
+
+
+
   mcFlags=request->getMultipleChoiceUserSelectionFlags()
   ; which are multiples?
   whichAreMultiple=where(mcFlags eq 1b, multipleChoicesNo)
-  
+
   if multipleChoicesNo eq 0 then begin
     multipleChoicesNo = 1
     whichAreMultiple[0] = 3
   endif
-  
+
   ; ++++++++++++++1 multiple choice+++++++++++++++++
   ; only one multiple choice section **begin**
   if multipleChoicesNo eq 1 then begin
     case whichAreMultiple[0] of
-    
+
       ; Only observations are multiple
       3:begin ;observations section
       print, '--> Only observations are multiple'
-      
+
       if isSingleSelection then begin
         print, 'singles selected!'
         mChoice1runS=singleRawData[sRunIndexes].observedCode
@@ -1493,7 +1523,7 @@ pro FM_StatTable2, request, result
     end
   endcase
 endif else begin
-; multiple choice not allowed
+  ; multiple choice not allowed
 endelse
 
 nvar=8
@@ -1510,30 +1540,30 @@ if isSingleSelection then begin
   regNamesAll=strarr(nobs)
   for i=0, nobsS-1 do regNamesAll[i]=request->getRegionofObs(obsCodes[i]);regionCode=request->getRegionofObs(obsCodes[i])
   ;  obsFact=1
-  
+
   fileName=  modelCodes(0)+'_'+parcodes(0)+'.dat'  ;Printing only in case of single stations choice
   request->openDataDumpFile, fileName;/ADDSYSTIME; --> filename=StatisticName+systime+.txt
 
   if strupcase(frequency) eq 'HOUR' then request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt MO MM SO SM R RMSE ExcO ExcM TargetOU OU'
   if strupcase(frequency) eq 'YEAR' then request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt MO MM TargetOU OU'
   statXYResultS=fltarr(forSLastIndex+1,nvar)
-  
+
   for i=0, forSLastIndex do begin
-  
+
     choiceIdx1=(where(mChoice1runS eq test1(i)))[0]
     obsTemp=*singleRawData[sMonitIndexes[choiceIdx1]].observedData
     runTemp=*singleRawData[sRunIndexes[choiceIdx1]].runData
     time_operations, request, result, obsTemp, runTemp
     obs_run_nan,request,result,obsTemp, runTemp
-    
+
     ;MM summer 2012 Start
     ; Replace hard coded 'OU' with specific parameter from elaboration.dat
     ;request->getElaborationOCStat()
     CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
     ;MM summer 2012 End
-    
+
     if strupcase(frequency) eq 'YEAR' then obsTemp(*)=mean(obsTemp)
-    
+
     statXYResultS(i,0)=mean(obsTemp)
     statXYResultS(i,6)=mean(runTemp)
     cExcMod=where(runTemp gt limitValue,countExcMod)
@@ -1545,32 +1575,32 @@ if isSingleSelection then begin
     if statType gt 0 then statXYResultS(i,1)=statXYResultS(i,1)/24.
     statXYResultS(i,2)=(mean(runTemp)-mean(obsTemp))/(2*CriteriaOU)
     ;    if elabCode eq 31 or elabCode eq 83 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
-    ;    if elabCode eq 32 or elabCode eq 84 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv   
+    ;    if elabCode eq 32 or elabCode eq 84 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
     statXYResultS(i,3)=sqrt((1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(runTemp))/(2*CriteriaOU)
     statXYResultS(i,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(2.*CriteriaOU)
-         
+
     if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=0.
-    
-  if strupcase(frequency) eq 'HOUR' then begin
-   ; Name Obscode Region Type lon lat alt MO MM SO SM R RMSE ExcO ExcM TargOU OU'
-    txt=string(obsnames(i),obsCodes(i), regNamesAll(i),categoryInfo(1,i),$
-      obsLongitudes(i), obsLatitudes(i), obsAltitudes(i),$
-      mean(obsTemp),mean(runTemp),stddevOM(obsTemp),stddevOM(runTemp),$
-      correlate(obsTemp, runTemp),rmse(obsTemp, runTemp),statXYResultS(i,1),statXYResultS(i,5),$
-      rmse(obsTemp, runTemp)/(2.*CriteriaOU(0)),CriteriaOU(0),$
-      format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
-      request->writeDataDumpFileRecord, txt 
-   endif else begin
-   ; Name Obscode Region Type lon lat alt MO MM TargetOU OU'
-    txt=string(obsnames(i),obsCodes(i), regNamesAll(i),categoryInfo(1,i),$
-      obsLongitudes(i), obsLatitudes(i), obsAltitudes(i),$
-      mean(obsTemp),mean(runTemp),bias(obsTemp, runTemp)/(2.*CriteriaOU(0)),CriteriaOU(0),$
-      format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
-      request->writeDataDumpFileRecord, txt 
-   endelse
-   
-   ; !!! redefine statXYResultS (i,5) to contain threshold info after printing exceedances
-   obsTempSort=obsTemp(sort(obsTemp))
+
+    if strupcase(frequency) eq 'HOUR' then begin
+      ; Name Obscode Region Type lon lat alt MO MM SO SM R RMSE ExcO ExcM TargOU OU'
+      txt=string(obsnames(i),obsCodes(i), regNamesAll(i),categoryInfo(1,i),$
+        obsLongitudes(i), obsLatitudes(i), obsAltitudes(i),$
+        mean(obsTemp),mean(runTemp),stddevOM(obsTemp),stddevOM(runTemp),$
+        correlate(obsTemp, runTemp),rmse(obsTemp, runTemp),statXYResultS(i,1),statXYResultS(i,5),$
+        rmse(obsTemp, runTemp)/(2.*CriteriaOU(0)),CriteriaOU(0),$
+        format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
+      request->writeDataDumpFileRecord, txt
+    endif else begin
+      ; Name Obscode Region Type lon lat alt MO MM TargetOU OU'
+      txt=string(obsnames(i),obsCodes(i), regNamesAll(i),categoryInfo(1,i),$
+        obsLongitudes(i), obsLatitudes(i), obsAltitudes(i),$
+        mean(obsTemp),mean(runTemp),bias(obsTemp, runTemp)/(2.*CriteriaOU(0)),CriteriaOU(0),$
+        format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
+      request->writeDataDumpFileRecord, txt
+    endelse
+
+    ; !!! redefine statXYResultS (i,5) to contain threshold info after printing exceedances
+    obsTempSort=obsTemp(sort(obsTemp))
     runTempSort=runTemp(sort(runTemp))
     percentileThreshold=0.95
     if strupcase(parCodes) eq 'NO2' then percentileThreshold=0.998
@@ -1586,55 +1616,55 @@ if isSingleSelection then begin
     obstempThreshold(*)=obstempSort(percentileThreshold*timeLength)
     CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obstempThreshold,alpha,criteriaOrig,LV
     statXYResultS(i,5)=(runTempSort(indiceT)-obsTempSort(indiceT))/(2*CriteriaOU)
-      
+
   endfor
   request->closeDataDumpFile
   cc=where(finite(statXYResultS(*,0)) eq 1, countFiniteS)
-  
+
   if countFiniteS gt 1 then begin
     adummy=statXYResultS(cc,0)
-;KeesC 11SEP2014  
+    ;KeesC 11SEP2014
     kees0=reform(statXYResultS(cc,0))
     kees6=reform(statXYResultS(cc,6))
     kc=where(finite(kees0) eq 1 and finite(kees6) eq 1,nc)
     if nc ge 2 then begin
-    statXYResultS(*,6)=(1.-correlate(kees0(kc),kees6(kc)))/(2*(CriteriaOU/stddevOM(kees0(kc)))^2)
-    statXYResultS(*,7)=(stddevOM(kees0(kc))-stddevOM(kees6(kc)))/(2.*CriteriaOU)
-;    statXYResultS(*,6)=(1.-correlate(statXYResultS(cc,0), statXYResultS(cc,6)))/(2*(CriteriaOU/stddevOM(statXYResultS(cc,0)))^2)
-;    statXYResultS(*,7)=(stddevOM(statXYResultS(cc,0))-stddevOM(statXYResultS(cc,6)))/(2.*CriteriaOU)   
+      statXYResultS(*,6)=(1.-correlate(kees0(kc),kees6(kc)))/(2*(CriteriaOU/stddevOM(kees0(kc)))^2)
+      statXYResultS(*,7)=(stddevOM(kees0(kc))-stddevOM(kees6(kc)))/(2.*CriteriaOU)
+      ;    statXYResultS(*,6)=(1.-correlate(statXYResultS(cc,0), statXYResultS(cc,6)))/(2*(CriteriaOU/stddevOM(statXYResultS(cc,0)))^2)
+      ;    statXYResultS(*,7)=(stddevOM(statXYResultS(cc,0))-stddevOM(statXYResultS(cc,6)))/(2.*CriteriaOU)
     endif else begin
       statXYResultS(*,6)=!values.f_nan
       statXYResultS(*,7)=!values.f_nan
-    endelse  
+    endelse
   endif else begin
     statXYResultS(*,6)=!values.f_nan
     statXYResultS(*,7)=!values.f_nan
   endelse
-  
+
   ahlp=statXYResultS(*,0)
   ccFin=where(finite(ahlp) eq 1,countFin)
-  
+
   if countFin gt 0 then begin
     statXYResultS=reform(statXYResultS(ccFin,*))
     statSymbolsS=reform(statSymbolsS(ccFin))
     statcolorsS=reform(statcolorsS(ccFin))
     legendSymbolsS=reform(legendSymbolsS(ccFin))
   endif
-  
-  
-  
+
+
+
 endif
 
 if isGroupSelection then begin
 
   statXYResultG=fltarr(forGLastIndex+1,nvar)
-  
+
   for i=0, forGLastIndex do begin
     currentCodes=*groupCodes[i]
     currentNames=*groupNames[i]
     validIdxs=n_elements(currentNames)
     statXYResultInt=fltarr(validIdxs,nvar)
-    
+
     for j=0, validIdxs-1 do begin
       choiceIdx1=(where(mChoice1runG eq currentNames[j]))[0]
       ;      print, 'gMonitIndexes[choiceIdx1]', gMonitIndexes[choiceIdx1]
@@ -1644,14 +1674,14 @@ if isGroupSelection then begin
       ;      obsTemp=obsTemp[startIndex:endIndex]
       ;      runTemp=runTemp[startIndex:endIndex]
       obs_run_nan,request,result,obsTemp, runTemp
-      
+
       ;MM summer 2012 Start
       ; Replace hard coded 'OU' with specific parameter from elaboration.dat
       ; request->getElaborationOCStat()
       ; CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
       CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
       ;MM summer 2012 End
-      
+
       statXYResultInt(j,0)=mean(obsTemp)
       statXYResultInt(j,6)=mean(runTemp)
       cExcMod=where(runTemp gt limitValue,countExcMod)
@@ -1664,7 +1694,7 @@ if isGroupSelection then begin
       statXYResultInt(j,2)=(mean(runTemp)-mean(obsTemp))/(2*CriteriaOU)
       statXYResultInt(j,3)=(1.-correlate(obsTemp, runTemp))/(2*(CriteriaOU/stddevOM(obsTemp))^2)
       statXYResultInt(j,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(2.*CriteriaOU)
-      
+
       obsTempSort=obsTemp(sort(obsTemp))
       runTempSort=runTemp(sort(runTemp))
       percentileThreshold=0.95
@@ -1673,14 +1703,14 @@ if isGroupSelection then begin
       obstempThreshold=obstemp
       obstempThreshold(*)=obstempSort(percentileThreshold*timeLength)
       CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obstempThreshold,alpha,criteriaOrig,LV
-      statXYResultS(i,5)=(runTempSort(indiceT)-obsTempSort(indiceT))/(2*CriteriaOU)    
+      statXYResultS(i,5)=(runTempSort(indiceT)-obsTempSort(indiceT))/(2*CriteriaOU)
       if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=0.
     endfor
-    
+
     ahlp=statXYResultInt(*,0)
     ccFin=where(finite(ahlp) eq 1,countfinite)
     if countfinite gt 0 then statXYResultInt=reform(statXYResultInt(ccFin,*))
-    
+
     if groupStatToApplyCode eq 1 then begin ;worst among 90% percentile
       if countFinite gt 0 then begin
         for iv=0,nvar-1 do begin
@@ -1722,17 +1752,17 @@ if isGroupSelection then begin
       statXYResultG(i,7)=!values.f_nan
     endelse
   endfor
-  
+
   ahlp=statXYResultG(*,0)
   ccFin=where(finite(ahlp) eq 1,countFin)
-  
+
   if countFin gt 0 then begin
     statXYResultG=reform(statXYResultG(ccFin,*))
     statSymbolsG=reform(statSymbolsG(ccFin))
     statcolorsG=reform(statcolorsG(ccFin))
     legendSymbolsG=reform(legendSymbolsG(ccFin))
   endif
-  
+
 endif
 
 if countFiniteS+countFiniteG gt 0 then begin
@@ -1749,13 +1779,13 @@ if countFiniteS+countFiniteG gt 0 then begin
   if countFiniteS gt 0 then statcolors(countFiniteG:countFiniteG+countFiniteS-1,*)=statcolorsS
   if countFiniteG gt 0 then legendSymbols(0:countFiniteG-1,*)=legendSymbolsG
   if countFiniteS gt 0 then legendSymbols(countFiniteG:countFiniteG+countFiniteS-1,*)=legendSymbolsS
-  
+
   legendColors=intarr(4)
   legendColors[1]=countFiniteS+countFiniteG
   legendColors[0]=nobsS+nobsG
   legendColors(2)=limitValue
-;  legendColors(3)=PercValue
-  
+  ;  legendColors(3)=PercValue
+
 endif else begin
 
   statXYResult=fltarr(1, nvar)
@@ -1768,9 +1798,9 @@ endif else begin
   legendColors[1]=countFiniteS+countFiniteG
   legendColors[0]=nobsS+nobsG
   legendColors(2)=limitValue
-;  legendColors(3)=PercValue
-  
-  
+  ;  legendColors(3)=PercValue
+
+
 endelse
 
 result->setGenericPlotInfo, statXYResult, statSymbols, statColors, legendNames, legendColors, legendSymbols
@@ -1841,13 +1871,13 @@ PRO FM_GoogleEarth, request, result, plotter
       goto,endGE
     endif
   endif
-  
+
   regNamesAll=strarr(nobs)
-  
+
   ;for i=0, nobs-1 do print, obsCodes[i],'**', obsNames[i],'**', request->getRegionofObs(obsCodes[i]);regionCode=request->getRegionofObs(obsCodes[i])
   for i=0, nobs-1 do regNamesAll[i]=request->getRegionofObs(obsCodes[i]);regionCode=request->getRegionofObs(obsCodes[i])
   regNames = regNamesAll[UNIQ(regNamesAll, SORT(regNamesAll))]
-  
+
   ; access to goals & criteria table (see configuration dir)
   ; **example** **start**
   mParameter=parCodes[0] & mScalename='LOCAL' & mStatName='IOA' & timeAvgName='N/A'
@@ -1856,7 +1886,7 @@ PRO FM_GoogleEarth, request, result, plotter
   if keyword_set(NOVALUES) then print, 'No values' else print, gcValues
   print, '***End GC query***'
   ; **example** **end**
-  
+
   ; access to extra values (thresholds, references...) user input example **start**
   ; **example** **start**
   extraValNumber=request->getExtraValuesNumber()
@@ -1868,12 +1898,12 @@ PRO FM_GoogleEarth, request, result, plotter
   endelse
   obsFact=1
   ; **example** **start**
-  
+
   ;  rawData=result->getRawData()
   ;  rDMatrix=result->getRawDataCheckMatrix(monitIndexes, runIndexes)
-  
+
   ; 2 multiple choices sections --begin--+++++++++++++++++++++++++++++++
-  
+
   mixedMode='Mixed mode: observations+parameters+models'
   print,mixedMode
   mChoice1run=singlerawData[srunIndexes].observedCode
@@ -1893,7 +1923,7 @@ PRO FM_GoogleEarth, request, result, plotter
   ntest3=n_elements(test3)
   legendColors=indgen(n_elements(test1)*n_elements(test2)*n_elements(test3))
   legendSymbols=n_elements(test1)*n_elements(test2)*n_elements(test3)
-  
+
   LastIndex1=n_elements(test1)-1
   LastIndex2=n_elements(test2)-1
   LastIndex3=n_elements(test3)-1
@@ -1907,7 +1937,7 @@ PRO FM_GoogleEarth, request, result, plotter
       altstat(0:ntest1-1,j,k)=float(obsaltitudes)
     endfor
   endfor
-  
+
   statXYResult=fltarr(ntest1+1,ntest2+1,ntest3+1,5) & statXYResult(*,*,*,*)=!values.f_nan
   statSymb=strarr(ntest1+1,ntest2+1,ntest3+1,5)
   for j=0,ntest2-1 do begin
@@ -1929,7 +1959,7 @@ PRO FM_GoogleEarth, request, result, plotter
           mChoice3run eq test3[k]))[0]
         if choiceIdx1 ne -1 then begin
           runTemp=*singlerawData[srunIndexes[choiceIdx1]].runData
-          
+
           time_operations, request, result, obsTemp, runTemp
           obs_run_nan,request,result,obsTemp, runTemp
           elabcode=request->getElaborationCode() ;ElaborationCode 58 or 59, ...
@@ -2043,11 +2073,11 @@ PRO FM_GoogleEarth, request, result, plotter
       endfor
     endfor
   endfor
-  
+
   endGE:
   if Sing eq 0 then statXYResult[0]='AllNaN'
   result->setGenericPlotInfo, statXYResult, statSymb, statNb, legoNames1, legendColors, legendSymbols
-  
+
 END
 
 ;****************
@@ -2107,14 +2137,14 @@ PRO FM_ConditionScatter, request, result
     groupRDMatrix=result->getGroupRawDataCheckMatrix(gMonitIndexes, gRunIndexes)
   endif
   nobs=nobsS+ngroup
-  
+
   if isSingleSelection then begin
     regNamesAll=strarr(nobsS)
     for i=0, nobsS-1 do regNamesAll[i]=request->getRegionofObs(obsCodes[i]);regionCode=request->getRegionofObs(obsCodes[i])
     regNames = regNamesAll[UNIQ(regNamesAll, SORT(regNamesAll))]
   endif
   nreg=n_elements(regNames)
-  
+
   ; access to goals & criteria table (see configuration dir)
   ; **example** **start**
   mParameter=parCodes[0] & mScalename='LOCAL' & mStatName='IOA' & timeAvgName='N/A'
@@ -2123,7 +2153,7 @@ PRO FM_ConditionScatter, request, result
   if keyword_set(NOVALUES) then print, 'No values' else print, gcValues
   print, '***End GC query***'
   ; **example** **end**
-  
+
   ; access to extra values (thresholds, references...) user input example **start**
   ; **example** **start**
   extraValNumber=request->getExtraValuesNumber()
@@ -2135,16 +2165,16 @@ PRO FM_ConditionScatter, request, result
     print, 'extra Values not available'
   endelse
   obsFact=1
-  
+
   mcFlags=request->getMultipleChoiceUserSelectionFlags()
   ; which are multiples?
   whichAreMultiple=where(mcFlags eq 1b, multipleChoicesNo)
-  
+
   if multipleChoicesNo eq 0 then begin
     multipleChoicesNo = 1
     whichAreMultiple[0] = 3
   endif
-  
+
   ; ++++++++++++++1 multiple choice+++++++++++++++++
   ; only one multiple choice section **begin**
   if multipleChoicesNo eq 1 then begin
@@ -2192,7 +2222,7 @@ endif else begin
     legendSymbols=strarr(2+nobs)
     legendSymbols(0:1)=9
     legendSymbols(2:1+nobs)=indgen(nobs) mod 13
-    
+
   endif
 endelse
 ; 2 multiple choices sections **end**
@@ -2203,7 +2233,7 @@ endelse
 if multipleChoicesNo eq 1 then begin
 
   statXYResult=fltarr(targetPointsNo,2)
-  
+
   ; only one choice
   varCond=fix(extraval(0))
   if varCond gt 1 then begin
@@ -2219,41 +2249,41 @@ if multipleChoicesNo eq 1 then begin
   runMain=*singleRawData[sRunIndexes[choiceMain]].runData
   obsCond=*singleRawData[sMonitIndexes[choiceCond]].observedData
   runCond=*singleRawData[srunIndexes[choiceCond]].runData
-  
+
   time_operations, request, result, obsMain, runMain
   time_operations, request, result, obsCond, runCond
   obsMain=obsMain[startIndex:endIndex]
   obsCond=obsCond[startIndex:endIndex]
   runMain=runMain[startIndex:endIndex]
   runCond=runCond[startIndex:endIndex]
-  
+
   cc=where(obscond lt 0. or obsmain le 0. or runmain lt -900, count999)
   if count999 gt 0 then begin
     obsmain(cc)=!values.f_nan
     runmain(cc)=!values.f_nan
     obscond(cc)=!values.f_nan
   endif
-  
+
   ccCond= where(obsCond ge extraval(1) and obsCond le extraval(2) and finite(obsCond) eq 1 $
     and finite(obsMain) eq 1 and finite(runMain) eq 1,countCond)
-    
+
   ccCond0=where((obsCond lt extraval(1) or obsCond gt extraval(2)) and finite(obsCond) eq 1 $
     and finite(obsMain) eq 1 and finite(runMain) eq 1,countCond0)
-    
+
   if countCond gt 0 then begin
     statXYResult(0,0)=mean(obsMain(ccCond))
     statXYResult(0,1)=mean(runMain(ccCond))
   endif else begin
     statXYResult(0,*)=!values.f_nan
   endelse
-  
+
   if countCond0 gt 0 then begin
     statXYResult(1,0)=mean(obsMain(ccCond0))
     statXYResult(1,1)=mean(runMain(ccCond0))
   endif else begin
     statXYResult(1,*)=!values.f_nan
   endelse
-  
+
   legendColors=statColors
   legendSymbols=statsymbols
   legendNames(0)=parCodes(Varmain)+' for '+strtrim(extraval(1),2)+' < '+parCodes(varCond)+' < '+strtrim(extraval(2),2)
@@ -2272,7 +2302,7 @@ if multipleChoicesNo ne 1 then begin
   statColors=intarr(targetPointsNo)
   k=0
   for i=0, extLastIndex do begin
-  
+
     varCond=fix(extraval(0))
     if varCond gt 1 then begin
       varCond=0
@@ -2280,62 +2310,62 @@ if multipleChoicesNo ne 1 then begin
     endif
     if varCond eq 0 then Varmain=1
     if varCond eq 1 then Varmain=0
-    
+
     choiceCond=(where(legoTest1 eq test1(i) and legoTest2 eq test2(varCond)))[0]
     choiceMain=(where(legoTest1 eq test1(i) and legoTest2 eq test2(Varmain)))[0]
-    
+
     obsCond=*singleRawData[sMonitIndexes[choiceCond]].observedData
     obsMain=*singleRawData[sMonitIndexes[choiceMain]].observedData
-    
+
     choiceCond=(where(mChoice1run eq test1[i] and mChoice2run eq test2[varCond]))[0]
     choiceMain=(where(mChoice1run eq test1[i] and mChoice2run eq test2[Varmain]))[0]
-    
+
     runCond=*singleRawData[srunIndexes[choiceCond]].runData
     runMain=*singleRawData[srunIndexes[choiceMain]].runData
-    
+
     time_operations, request, result, obsMain, runMain
     time_operations, request, result, obsCond, runCond
-    
-    
+
+
     obsMain=obsMain[startIndex:endIndex]
     runMain=runMain[startIndex:endIndex]
     obsCond=obsCond[startIndex:endIndex]
     runCond=runCond[startIndex:endIndex]
-    
+
     cc=where(obscond lt 0. or obsmain le 0. or runmain lt -900, count999)
     if count999 gt 0 then begin
       obsmain(cc)=!values.f_nan
       runmain(cc)=!values.f_nan
       obscond(cc)=!values.f_nan
     endif
-    
+
     ccCond= where(obsCond ge extraval(1) and obsCond le extraval(2) and finite(obsCond) eq 1 $
       and finite(obsMain) eq 1 and finite(runMain) eq 1,countCond)
-      
+
     ccCond0=where((obsCond lt extraval(1) or obsCond gt extraval(2)) and finite(obsCond) eq 1 $
       and finite(obsMain) eq 1 and finite(runMain) eq 1,countCond0)
-      
+
     if countCond gt 0 then begin
       statXYResult(k,0)=mean(obsMain(ccCond))
       statXYResult(k,1)=mean(runMain(ccCond))
     endif else begin
       statXYResult(k,*)=!values.f_nan
     endelse
-    
+
     if countCond0 gt 0 then begin
       statXYResult(k+1,0)=mean(obsMain(ccCond0))
       statXYResult(k+1,1)=mean(runMain(ccCond0))
     endif else begin
       statXYResult(k+1,*)=!values.f_nan
     endelse
-    
+
     statColors[k]=0
     statColors[k+1]=1
     legendColors=statColors
     ;    regionWhere=where(regNamesAll(i) eq regNames)
     statSymbols[k]=k mod 13
     statSymbols[k+1]=k mod 13
-    
+
     legendColors(0:1)=[0,1]
     legendColors(2:1+n_elements(regNames))=-2
     legendNames(0)=parCodes(Varmain)+' for '+strtrim(extraval(1),2)+' < '+parCodes(varCond)+' < '+strtrim(extraval(2),2)
@@ -2344,7 +2374,7 @@ if multipleChoicesNo ne 1 then begin
     k=k+2
   endfor
   legendSymbols(0:1)=13
-  
+
 endif
 result->setGenericPlotInfo, statXYResult, statSymbols, statColors, legendNames, legendColors, legendSymbols
 ; 2 multiple choices section **end**
@@ -2369,7 +2399,7 @@ PRO FM_MultiParModScatter, request, result
   npar=request->getParameterNumber()
   nmod=request->getModelNumber()
   modelCodes=request->getModelCodes()
-  
+
   parCodes=request->getParameterCodes()
   scenarioCodes=request->getScenarioCodes()
   nsce=request->getScenarioNumber()
@@ -2404,10 +2434,10 @@ PRO FM_MultiParModScatter, request, result
     nobs=nobs+n_elements(allGroupStations)
     groupRawData=result->getGroupRawData()
     groupRDMatrix=result->getGroupRawDataCheckMatrix(gMonitIndexes, gRunIndexes)
-  ;nobs=nobs+nobs=nobs+
+    ;nobs=nobs+nobs=nobs+
   endif
   regNamesAll=strarr(nobs)
-  
+
   ;for i=0, nobs-1 do print, obsCodes[i],'**', obsNames[i],'**', request->getRegionofObs(obsCodes[i]);regionCode=request->getRegionofObs(obsCodes[i])
   if n_elements(obsCodes) eq 0 then begin
     aa=dialogMsg('elaboration not available without single obs selection', FORCELOG=1)
@@ -2415,7 +2445,7 @@ PRO FM_MultiParModScatter, request, result
   endif
   for i=0, nobs-1 do regNamesAll[i]=request->getRegionofObs(obsCodes[i]);regionCode=request->getRegionofObs(obsCodes[i])
   regNames = regNamesAll[UNIQ(regNamesAll, SORT(regNamesAll))]
-  
+
   ; access to goals & criteria table (see configuration dir)
   ; **example** **start**
   mParameter=parCodes[0] & mScalename='LOCAL' & mStatName='IOA' & timeAvgName='N/A'
@@ -2424,7 +2454,7 @@ PRO FM_MultiParModScatter, request, result
   if keyword_set(NOVALUES) then print, 'No values' else print, gcValues
   print, '***End GC query***'
   ; **example** **end**
-  
+
   ; access to extra values (thresholds, references...) user input example **start**
   ; **example** **start**
   extraValNumber=request->getExtraValuesNumber()
@@ -2437,19 +2467,19 @@ PRO FM_MultiParModScatter, request, result
   endelse
   obsFact=1
   ; **example** **start**
-  
+
   ;  rawData=result->getRawData()
   ;  rDMatrix=result->getRawDataCheckMatrix(monitIndexes, runIndexes)
-  
+
   mcFlags=request->getMultipleChoiceUserSelectionFlags()
   ; which are multiples?
   whichAreMultiple=where(mcFlags eq 1b, multipleChoicesNo)
-  
+
   if multipleChoicesNo eq 0 then begin
     multipleChoicesNo = 1
     whichAreMultiple[0] = 0
   endif
-  
+
   ; ++++++++++++++1 multiple choice+++++++++++++++++
   ; only one multiple choice section **begin**
   if multipleChoicesNo eq 1 then begin
@@ -2459,7 +2489,9 @@ PRO FM_MultiParModScatter, request, result
       print, '--> Only parameters are multiple'
       mChoice1run=SingleRawData[srunIndexes].parameterCode
       test1=parCodes
-      legendNames=['OBS vs OBS',modelCodes+' vs '+modelCodes]
+;KeesC 06FEB2015 ==> je ne suis pas sure de ce changement ?? mais il y a un probleme avec par1 vs par2 scatter
+;      legendNames=['OBS vs OBS',modelCodes+' vs '+modelCodes]
+      legendNames=['PAR vs PAR',modelCodes+' vs '+modelCodes]
       legoNames=parCodes
       targetColors=intarr(2)
       targetPointsNo=2
@@ -2468,8 +2500,8 @@ PRO FM_MultiParModScatter, request, result
       legendColors=[0,1]
       legendSymbols=[9,9]
     end
-    1:begin ;modelss section
-    print, '--> Only modelss are multiple'
+    1:begin ;models section
+    print, '--> Only models are multiple'
     mChoice1run=SingleRawData[srunIndexes].modelCode
     test1=modelCodes
     legendNames=['MOD vs MOD',parCodes+' vs '+parCodes]
@@ -2492,7 +2524,7 @@ if multipleChoicesNo eq 1 then begin
   statSymbols(*)=9
   statColors(0:range-1)=0
   statColors(range:2*range-1)=1
-  
+
   if n_elements(test1) ne 2 then begin
     aa=dialogMsg('Check (batch) selections (multiple mandatory for this elab)', FORCELOG=1)
     return
@@ -2504,14 +2536,14 @@ if multipleChoicesNo eq 1 then begin
   obsCond=*singleRawData[sMonitIndexes[choiceCond]].observedData
   runMain=*singleRawData[sRunIndexes[choiceMain]].runData
   runCond=*singleRawData[srunIndexes[choiceCond]].runData
-  
+
   time_operations, request, result, obsMain, obsCond
   time_operations, request, result, runMain, runCond
   obsMain=obsMain[startIndex:endIndex]
   obsCond=obsCond[startIndex:endIndex]
   runMain=runMain[startIndex:endIndex]
   runCond=runCond[startIndex:endIndex]
-  
+
   cc=where(obscond le -900. or obsMain le 0., count900)
   if count900 gt 0 then begin
     obscond(cc)=!values.f_nan
@@ -2527,7 +2559,7 @@ if multipleChoicesNo eq 1 then begin
   statXYResult(0:range-1,1)=obsCond(*)
   statXYResult(range:2*range-1,0)=runMain(*)
   statXYResult(range:2*range-1,1)=runCond(*)
-  
+
 endif
 
 result->setGenericPlotInfo, statXYResult, statSymbols, statColors, legendNames, legendColors, legendSymbols
@@ -2590,9 +2622,9 @@ pro FM_QQ_SC_ALLTIME, request, result
     nobs=nobs+n_elements(allGroupStations)
     groupRawData=result->getGroupRawData()
     groupRDMatrix=result->getGroupRawDataCheckMatrix(gMonitIndexes, gRunIndexes)
-  ;nobs=nobs+nobs=nobs+
+    ;nobs=nobs+nobs=nobs+
   endif
-  
+
   ; access to goals & criteria table (see configuration dir)
   ; **example** **start**
   mParameter=parCodes[0] & mScalename='LOCAL' & mStatName='IOA' & timeAvgName='N/A'
@@ -2601,7 +2633,7 @@ pro FM_QQ_SC_ALLTIME, request, result
   if keyword_set(NOVALUES) then print, 'No values' else print, gcValues
   print, '***End GC query***'
   ; **example** **end**
-  
+
   ; access to extra values (thresholds, references...) user input example **start**
   ; **example** **start**
   extraValNumber=request->getExtraValuesNumber()
@@ -2613,16 +2645,16 @@ pro FM_QQ_SC_ALLTIME, request, result
   endelse
   obsFact=1
   ; **example** **start**
-  
+
   mcFlags=request->getMultipleChoiceUserSelectionFlags()
   ; which are multiples?
   whichAreMultiple=where(mcFlags eq 1b, multipleChoicesNo)
-  
+
   if multipleChoicesNo eq 0 then begin
     multipleChoicesNo = 1
     whichAreMultiple[0] = 1
   endif
-  
+
   ; ++++++++++++++1 multiple choice+++++++++++++++++
   ; only one multiple choice section **begin**
   if multipleChoicesNo eq 1 then begin
@@ -2737,19 +2769,19 @@ if multipleChoicesNo eq 1 then begin
   statXYResult=fltarr(targetPointsNo, endIndex-startIndex+1,2)
   statSymbols=intarr(targetPointsNo)
   statColors=intarr(targetPointsNo)
-  
+
   if isSingleSelection then begin
-  
+
     for i=0, forSLastIndex do begin
       ; only one choice
       choiceIdx1=(where(mChoice1runS eq test1S[i]))[0]
-      
+
       obsTemp=*singleRawData[sMonitIndexes[choiceIdx1]].observedData
       runTemp=*singleRawData[sRunIndexes[choiceIdx1]].runData
-      
+
       time_operations, request, result, obsTemp, runTemp
       obs_run_nan,request,result,obsTemp, runTemp
-      
+
       range =n_elements(obsTemp)
       if elabcode eq 13 then begin  ;scatter all times
         statXYResult[i,0:range-1,0]=obsTemp(*)
@@ -2758,44 +2790,44 @@ if multipleChoicesNo eq 1 then begin
         statXYResult[i,0:range-1,0]=obsTemp(sort(obsTemp))
         statXYResult[i,0:range-1,1]=runTemp(sort(runTemp))
       endelse
-      
+
       statSymbols[i]=9
       statColors[i]=i
-      
+
     endfor
-    
+
   endif
-  
+
   if isGroupSelection then begin
-  
+
     for k=0,forGLastIndex2 do begin  ;loop models
-    
+
       currentNames=*groupNames[0]
       validIdxs=n_elements(currentNames)
       obsGroupStatResult=fltarr(validIdxs,endIndex-startIndex+1)
       runGroupStatResult=fltarr(validIdxs,endIndex-startIndex+1)
-      
+
       for j=0, validIdxs-1 do begin  ;groups loop
-      
+
         choiceIdx1=(where(mChoice1runG eq currentNames(j) and mChoice2runG eq test1G(k)))[0]
-        
+
         ;        print, 'gMonitIndexes[choiceIdx1]', gMonitIndexes[choiceIdx1]
         obsTemp=*groupRawData[gMonitIndexes[choiceIdx1]].observedData
-        
+
         choiceIdx1=(where(mChoice1runG eq currentNames[j] and mChoice2runG eq test1G(k)))[0]
-        
+
         ;        print, 'sRunIndexes[choiceIdx1]', gRunIndexes[choiceIdx1]
         runTemp=*groupRawData[gRunIndexes[choiceIdx1]].runData
-        
+
         time_operations, request, result, obsTemp, runTemp
         obs_run_nan,request,result,obsTemp, runTemp
-        
+
         range =n_elements(obsTemp)
         obsGroupStatResult[j,0:range-1]=obsTemp(*)
         runGroupStatResult[j,0:range-1]=runTemp(*)
-        
+
       endfor
-      
+
       if elabcode eq 13 or elabCode eq 29 then begin  ;scatter all times
         for jj=0,endIndex-startIndex do begin
           statXYResult(k,jj,0)=mean(obsGroupStatResult(*,jj))
@@ -2815,11 +2847,11 @@ if multipleChoicesNo eq 1 then begin
       statColors[k]=k
       statSymbols[0]=9
       statColors[0]=0
-      
+
     endfor
-    
+
   endif
-  
+
 endif
 legendColors=statColors
 legendSymbols=statsymbols
@@ -2833,5 +2865,5 @@ function strsplit, stringIn, pattern, _ref_extra=extra
   ON_ERROR, 2  ; return to caller
   RETURN, (n_params() eq 1) ? STRTOK(stringIn, _STRICT_EXTRA=extra) : $
     STRTOK(stringIn, pattern, _STRICT_EXTRA=extra)
-    
+
 end

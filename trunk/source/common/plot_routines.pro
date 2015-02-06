@@ -85,11 +85,13 @@ PRO FM_PlotBars, plotter, request, result
     endif
   endif
   if strmid(ifree,2,1) eq '1' then begin
-    allDataXY(*,*,*,*,0)=0.
-    obsbar=0
+;KeesC 23DEC2014    
+;    allDataXY(*,*,*,*,0)=0.
+;    obsbar=0
   endif
   if ifree eq '1011' or ifree eq '0111' then begin
-    allDataXY(*,*,*,*,0)=(!y.range(1)-!y.range(0))/50.
+;KeesC 23DEC2014    
+;    allDataXY(*,*,*,*,0)=(!y.range(1)-!y.range(0))/50.
     obsbar=1
   endif
   
@@ -505,17 +507,21 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   LOADCT,39
   mytek_color;, 0, 32
   
+;KeesC 06FEB2015  
   if elabcode eq 71 then begin
-    ntxt1='Delta_OBS (Day-Night)'
-    titleY='Formule (Day-Night)'
+    ntxt1='OBS[Day-Night]'
+    titleY1='MOD'
+    titleY2='[Day-Night]'
   endif
   if elabcode eq 72 then begin
-    ntxt1='Delta_OBS (Summer-Winter)'
-    titleY='Formule (Summer-Winter)'
+    ntxt1='OBS[Summer-Winter]'
+    titleY1='MOD'
+    titleY2='[Summer-Winter]'
   endif
   if elabcode eq 73 then begin
-    ntxt1='Delta_OBS (WeekDays-WeekEnd)'
-    titleY='Formule (WeekDays-WeekEnd)'
+    ntxt1='OBS[WeekDays-WeekEnd]'
+    titleY1='MOD'
+    titleY2='[WeekDays-WeekEnd]'
   endif
   
   maxxAxis=max(allDataXY(*,0),/nan)*1.1
@@ -548,9 +554,15 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   if n_elements(parCodes) ge 2 then begin
     for ipc=1,n_elements(parCodes)-1 do pars=pars+'*'+parCodes(ipc)
   endif
-  plot, [-Xaxis,Xaxis], color=0,/nodata, xtitle=ntxt1,ytitle=titleY, title='DynamicEvaluation'+'   '+pars,$
+;KeesC 06FEB2015  
+  plot, [-Xaxis,Xaxis], color=0,/nodata, xtitle=ntxt1,ytitle='', title='DynamicEvaluation'+'   '+pars,$
     charsize=1, background=255,yrange=[-Yaxis,Yaxis],xrange=[-Xaxis,Xaxis],xstyle=1,ystyle=1, $
-    position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
+    position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)  
+;KeesC 06FEB2015
+  hx=-Xaxis-1.85*Xaxis/12.
+  hy1= 2.*Yaxis/12. & hy2=1.*Yaxis/12.
+  xyouts,hx,hy1,titleY1,charsize=2,charthick=1,color=0
+  xyouts,hx,hy2,titleY2,charsize=2,charthick=1,color=0
   adummy=fltarr(10) & adummy(*)=1.
   CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV  ;hourly/daily
   PolfX=fltarr(6)
@@ -1036,7 +1048,9 @@ PRO FM_PlotScatter, plotter, request, result
       return
     endif
     xtitle=modelCodes(0)+'/'+mus[0]
-    ytitle=modelCodes(1)+'/'+'EmisUnits'
+;KeesC 06FEB2015    
+    ytitle=modelCodes(1)+'/'+mus[0]
+;    ytitle=modelCodes(1)+'/'+'EmisUnits'
   endif
   if elabCode eq 56 then begin
     xtitle='OBS '+musstr
@@ -1055,9 +1069,11 @@ PRO FM_PlotScatter, plotter, request, result
     charsize=1.5*psfact, background=255,xrange=[minAxis,maxAxis],$
     yrange=[minAxis,maxAxis],xstyle=1,ystyle=1, position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
   ythlp=strsplit(ytitle,'/',/extract)
-  xyouts,.04,.7,ythlp[0]+'/',/normal,color=0
+;KeesC 06FEB2015  
+  xyouts,.03,.75,ythlp[0]+'/',/normal,color=0
   for i=1,n_elements(ythlp)-1 do begin
-    xyouts,.04,.7-i*.04,ythlp[i],/normal,color=0
+;KeesC 06FEB2015    
+    xyouts,.03,.75-i*.04,ythlp[i],/normal,color=0
   endfor
   if elabCode ne 50 and elabcode ne 57 and criteria[0] gt 0 then begin
     critPolyfill  =fltarr(1000,2)
@@ -1113,6 +1129,8 @@ PRO FM_PlotScatter, plotter, request, result
         allDataXY=allDataXY[nmulti/2:nmulti-1,*]
         nmulti=nmulti/2
       endif
+;KeesC 06FEB2015      
+      if elabCode eq 57 then nmulti=nmulti/2
       ;      nObs=n_elements(allDataColor)
       recognizeHighLight=bytarr(nmulti)
       recognizeRegionEdges=ptrarr(nmulti) ; coords (normalized standard)
@@ -1146,7 +1164,8 @@ PRO FM_PlotScatter, plotter, request, result
         if elabCode eq 56 then begin
           recognizeNames[iObs]=obsnames(istat)
         endif
-        if elabCode ne 56 and elabCode ne 57 then begin
+;KeesC 06FEB2015        
+        if elabCode ne 50 and elabCode ne 56 and elabCode ne 57 then begin
           recognizeNames[iObs]=legNames[iObs]
         endif
         recognizeValues[iObs]=strtrim(allDataXY[iObs, 0], 2)+'/'+strtrim(allDataXY[iObs, 1], 2)
@@ -4284,6 +4303,8 @@ pro legendGenericBuild,request,result,plotter
   ;  allDataXY=targetInfo->getXYS()
   
   nmulti=npar*nmod*nsce*nobs
+;KeesC 06FEB2015  
+  if elabCode eq 50 then nmulti=1
   
   legendnames1=strarr(n_elements(legNames)) & legendnames2=strarr(n_elements(legNames))
   for i=0,n_elements(legNames)-1 do begin
@@ -4317,7 +4338,10 @@ pro legendGenericBuild,request,result,plotter
   
   ind=0
   ;  for i=0, nmulti-1 do begin  ; min([symbolSequenceNo-1,62,n_elements(legSyms)-1]) do begin
-  for i=0, min([symbolSequenceNo-1,44,n_elements(legSyms)-1]) do begin
+;KeesC 06FEB2015    
+  i1=min([symbolSequenceNo-1,44,n_elements(legSyms)-1])  
+  if elabCode eq 50 or elabCode eq 57 then i1=0
+  for i=0,i1 do begin
     jheight = i MOD 9
     startx = .14*fix(i/9)
     startY=1.-((jheight+1)*legoHeight*2)
