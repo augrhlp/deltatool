@@ -375,6 +375,8 @@ PRO SG_Computing, $
             rsult=dialogMsg(FORCELOG=FORCELOG, ['INCONSISTENT DATA:',$
               'Check availability of Parameter '+test1(i1)+' at Station '+test4(i4),$
               'in model '+test2[i2]+' for scenario '+test3(i3)],/error)
+            ;return
+            ;1208_ent_21elab_28.btc
             stop
           endif
           runTemp=*RawData[RunIndexes[choiceIdx1]].runData
@@ -391,6 +393,7 @@ PRO SG_Computing, $
             obsTemp(*)=-999
           endelse
           
+; cooment or not next 3 lines...
 ;          ccc=where(obsTemp eq 0, countCCC)
 ; KeesC 8NOV2013: added elabCode=38
 ;          if countCCC gt 0 and elabCode ne 38 then obsTemp(ccc)=-999.
@@ -698,6 +701,8 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=nmb([obsTemp1,obsTemp2],[runTemp1,runTemp2])
           endif
           if elabcode eq 74 then begin ;OU Forecast
+            ; MM workaround feb 2015
+            if n_elements(extraVal) eq 0 then extraVal=findgen(10)
             limitValue=extraVal(0)
             uncertainty=extraVal(1)/100.
             runOU=runTemp

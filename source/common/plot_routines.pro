@@ -1245,14 +1245,15 @@ PRO FM_PlotScatterLegend, plotter, request, result
 
   silentMode=plotter->getSilentMode()
   FORCELOG=silentMode
+  targetInfo=result->getGenericPlotInfo()
+  allDataXY=targetInfo->getXYS()
+
   infoSize=size(allDataXy, /STRUCT)
   if infoSize.n_dimensions ne 2 then begin
     a=dialogMsg('Not enough models for this elaboration', FORCELOG=FORCELOG)
     return
   endif
   
-  targetInfo=result->getGenericPlotInfo()
-  allDataXY=targetInfo->getXYS()
   if checkDataNan(allDataXY) then  begin
     plot,indgen(10),/nodata ,color=255,background=255
     xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
