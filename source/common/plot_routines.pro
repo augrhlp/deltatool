@@ -1213,11 +1213,32 @@ PRO FM_PlotScatter, plotter, request, result
   
     nObs_param=size_alldataXY(1)
     nvalues=size_alldataXY(2)
-    
+;KeesC 07FEB2015    
+    recognizeHighLight=bytarr(nObs_param*nvalues)
+    recognizeRegionEdges=ptrarr(nObs_param*nvalues)
+    recognizeNames=strarr(nObs_param*nvalues)
+    recognizeValues=strarr(nObs_param*nvalues)
+
     for iobs=0, nObs_param-1 do begin
       for ival=0,nvalues-1 do begin
         mypsym,allDataSymbol[iObs],1
         plots, allDataXY[iObs,ival,0], allDataXY[iObs,ival,1], psym=8, color=2+allDataColor[iObs], symsize=1
+;KeesC 07FEB2015  
+        recognizePoint=fltarr(4,2)
+        recognizePoint[0,*]=[allDataXY[iObs,ival,0]-recognizeRange, allDataXY[iObs,ival,1]-recognizeRange]
+        recognizePoint[1,*]=[allDataXY[iObs,ival,0]-recognizeRange, allDataXY[iObs,ival,1]+recognizeRange]
+        recognizePoint[2,*]=[allDataXY[iObs,ival,0]+recognizeRange, allDataXY[iObs,ival,1]+recognizeRange]
+        recognizePoint[3,*]=[allDataXY[iObs,ival,0]+recognizeRange, allDataXY[iObs,ival,1]-recognizeRange]
+        recognizePoint=transpose(recognizePoint)
+        normRecognizePoint=convert_coord(recognizePoint, /DATA, /TO_NORMAL)
+        normRecognizePoint=transpose(normRecognizePoint)
+        normRecognizePoint=normRecognizePoint[*, 0:1]
+        recognizePointPtr=ptr_new(normRecognizePoint, /NO_COPY)
+        ival2=iobs*nvalues+ival
+        recognizeHighLight[ival2]=0b
+        recognizeRegionEdges[ival2]=recognizePointPtr
+        recognizeNames[ival2]='Hour = '+strcompress(ival,/remove_all)
+        recognizeValues[ival2]=strtrim(allDataXY[iObs,ival,0],2)+'/'+strtrim(allDataXY[iObs,ival,1], 2)
       endfor
       obshlp=reform(allDataXY(iObs,*,0))
       modhlp=reform(allDataXY(iObs,*,1))
@@ -1232,12 +1253,12 @@ PRO FM_PlotScatter, plotter, request, result
       xyouts,0.80,0.30-iobs*0.05,'R2 = '+strtrim(R2,2),/normal,color=2+allDataColor(iobs),charthick=2,charsize=1.3
     endfor
   endelse
-  ;  endif
-  if elabcode eq 6 or elabCode eq 39 or elabCode eq 50 or elabCode eq 56 or elabCode eq 57 then begin
+;KeesC 07FEB2015
+  if elabcode eq 6 or elabCode eq 13 or elabCode eq 39 or elabCode eq 50 or elabCode eq 56 or elabCode eq 57 then begin
     rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
     plotInfo->setRecognizeInfo, rInfo
   endif
-  
+
   if criteria gt 0. then begin
     ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
     astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
@@ -1252,7 +1273,7 @@ PRO FM_PlotScatter, plotter, request, result
       xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0
     endif
   endif
-  
+
   jumpend:
   !p.font=-1
   setDeviceFont, fontName='System', /STANDARD
