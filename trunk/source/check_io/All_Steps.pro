@@ -542,8 +542,10 @@ if itobs eq 1 then begin
   print,'STEP 07'
   dir_obs=dir_obs+path_sep()
   filenames=file_search(dir_obs+'*.csv',count=count_filenames)
-  filenames=strmid(filenames,strlen(dir_obs),100)
+  ; change the way to extract filename
+  slashPos=strpos(filenames, path_sep(), /REVERSE_SEARCH)
   for i=0,count_filenames-1 do begin
+    filenames[i]=strmid(filenames[i],slashPos[i]+1,100)
     res=strsplit(filenames(i),'.',/extract)
     filenames(i)=res(0)
   endfor

@@ -1,15 +1,16 @@
 ;********************************
 ;
 ;********************************
-FUNCTION FMMainConfig::getElaborationFilterType
+FUNCTION FMMainConfig::getUserType
 
- return, self.elabFilterType
+ return, self.userType
 
 END
 
 FUNCTION FMMainConfig::getBenchmarkManagingEnabled
 
   return, self.benchmarkManagingEnabled
+  ;if self.userType ge 2
 
 END
 
@@ -19,11 +20,10 @@ PRO FMMainConfig::setBenchmarkManagingEnabled, benchmarkManagingEnabled
 
 END
 
-PRO FMMainConfig::setElaborationFilterType, elabFilterType
+PRO FMMainConfig::setUserType, userType
 
-  if n_elements(elabFilterType) ne 0 then self.elabFilterType=elabFilterType
-  self.elaborationList->setFilterType, elabFilterType
-  
+  if n_elements(userType) ne 0 then self.userType=userType
+  self.elaborationList->setUserType, userType
 
 END
 
@@ -184,7 +184,7 @@ END
 PRO FMMainConfig__Define
 
 Struct = { FMMainConfig , $
-    elabFilterType: 0, $
+    userType: 0, $
     benchmarkManagingEnabled: 0, $
     elaborationList: obj_new(''), $
 		runList: obj_new(''), $

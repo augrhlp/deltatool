@@ -2448,6 +2448,12 @@ FUNCTION FMFileSystemManager::getMonitoringCsvFileExtension
   
 END
 
+FUNCTION FMFileSystemManager::getObservedYearFile
+
+ return, self->getObservedDataDir(/WITH)+'OBS'+self->getRunFileTimeSuffix()+self->getMonitoringCsvFileExtension()
+
+END
+
 FUNCTION FMFileSystemManager::getRunFileTimeSuffix
 
   return, '_TIME'

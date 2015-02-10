@@ -231,14 +231,14 @@ PRO FMBatchEntitySelectionGUI::buildModelSection, base
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
   self.observedModelFlagButton = widget_button(obsModelBase, $
     XOFFSET=0 ,YOFFSET=0, VALUE='MOD without OBS', event_pro=self.eventPrefix+'useObsModButton', $
-    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedFilter())
+    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedUser())
     
   scenSelectionBase = widget_base(extraFlagBase, $
     XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
   self.allAvailableScenarioFlagButton = widget_button(obsModelBase, $
     XOFFSET=0 ,YOFFSET=0, VALUE='All available scenario(s)', event_pro=self.eventPrefix+'allAvailableScenarioButton', $
-    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedFilter())
+    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedUser())
 
 END
 

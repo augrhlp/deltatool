@@ -101,43 +101,43 @@ PRO Elaboration::fillDataFromFile, fileName
 END
 
 ;MM summer/fall 2012 start
-PRO Elaboration::setFilterType, filterType
+PRO Elaboration::setUserType, userType
 
   ;filterType eq 0 --> Standard
   ;filterType eq 1 --> Advanced
-  ;filterType eq 2 --> Benchmark
+  ;filterType eq 2 --> Developer/Benchmark
 
   thisList=*self.list
 
-  if n_elements(filterType) eq 0 then filterType=9
+  if n_elements(userType) eq 0 then userType=9
 
-  if filterType eq 0 then begin
+  if userType eq 0 then begin
     idxs=where(thisList.isStandard)
   endif
 
-  if filterType eq 1 then begin
+  if userType eq 1 then begin
     idxs=where(thisList.isAdvanced)
   endif
 
-  if filterType eq 2 then begin
-    idxs=where(thisList.isBenchmark)
+  if userType eq 2 then begin
+    idxs=where(thisList.isAdvanced)
   endif
 
-  if filterType eq 9 then begin
+  if userType eq 9 then begin
     idxs=indgen(n_elements(thisList))
   endif
 
-;  print, '**filterType**'
-;  print, filterType
+;  print, '**userType**'
+;  print, userType
 ;  print, '*************'
-  self->setModeFilterList, thisList[idxs]
+  self->setModeUserList, thisList[idxs]
 
 END
 
-PRO Elaboration::setModeFilterList, list
+PRO Elaboration::setModeUserList, list
 
-  ptr_free, self.modeFilterList
-  self.modeFilterList = ptr_new(list, /NO_COPY)
+  ptr_free, self.modeUserList
+  self.modeUserList = ptr_new(list, /NO_COPY)
 
 END
 
@@ -169,7 +169,7 @@ END
 
 FUNCTION Elaboration::getFilteredList
 
- filteredList=*self.modeFilterList
+ filteredList=*self.modeUserList
  return, filteredList
 
 END
@@ -383,7 +383,7 @@ END
 PRO Elaboration__Define
 
   Struct = { Elaboration , $
-    modeFilterList: ptr_new(), $
+    modeUserList: ptr_new(), $
     Inherits ConfigurableData $
     }
 

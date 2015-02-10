@@ -29,7 +29,7 @@ FUNCTION CIRCLE, xcenter, ycenter, radius
 END
 PRO FM_PlotBars, plotter, request, result
 
-  plotter->wsetMainDataDraw
+  plotter->wsetMainDataDraw, /PROGRESS
   silentMode=plotter->getSilentMode()
   FORCELOG=silentMode
   plotInfo=result->getPlotInfo()
@@ -557,7 +557,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
 ;KeesC 06FEB2015  
   plot, [-Xaxis,Xaxis], color=0,/nodata, xtitle=ntxt1,ytitle='', title='DynamicEvaluation'+'   '+pars,$
     charsize=1, background=255,yrange=[-Yaxis,Yaxis],xrange=[-Xaxis,Xaxis],xstyle=1,ystyle=1, $
-    position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)  
+    position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
 ;KeesC 06FEB2015
   hx=-Xaxis-1.85*Xaxis/12.
   hy1= 2.*Yaxis/12. & hy2=1.*Yaxis/12.
@@ -1218,7 +1218,7 @@ PRO FM_PlotScatter, plotter, request, result
     recognizeRegionEdges=ptrarr(nObs_param*nvalues)
     recognizeNames=strarr(nObs_param*nvalues)
     recognizeValues=strarr(nObs_param*nvalues)
-
+    
     for iobs=0, nObs_param-1 do begin
       for ival=0,nvalues-1 do begin
         mypsym,allDataSymbol[iObs],1
@@ -1258,7 +1258,7 @@ PRO FM_PlotScatter, plotter, request, result
     rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
     plotInfo->setRecognizeInfo, rInfo
   endif
-
+  
   if criteria gt 0. then begin
     ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
     astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
@@ -1273,7 +1273,7 @@ PRO FM_PlotScatter, plotter, request, result
       xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0
     endif
   endif
-
+  
   jumpend:
   !p.font=-1
   setDeviceFont, fontName='System', /STANDARD

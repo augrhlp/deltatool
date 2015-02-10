@@ -358,13 +358,13 @@ PRO CompositeBatchManager::updateToCaller
   self.mainMgr->setBlockWindowControl, /OFF
   fileName=self.mainMgr->saveBatch("", "", splitBatchInfo, /GUI)
   if fileName ne '' and self->getBenchMarkSaveMode() eq 'MENU' then self.mainMgr->updateMenuBenchMarkInfoContents, fileName, self->getBenchMarkTreeElementName(), self->getBenchMarkTreeFatherElementCode()
-  self.mainMgr->restoreElabFilterType
+  self.mainMgr->restoreUserType
   
 END
 
 PRO CompositeBatchManager::exitRequest
 
-  self.mainMgr->restoreElabFilterType
+  self.mainMgr->restoreUserType
   self.mainMgr->enable
   
 END
@@ -402,15 +402,21 @@ PRO CompositeBatchManager::displayEntity
   
 END
 
-FUNCTION CompositeBatchManager::isAdvancedFilter
+FUNCTION CompositeBatchManager::isDeveloperUser
 
- return, self.mainMgr->isAdvancedFilter()
+ return, self.mainMgr->isDeveloperUser()
 
 END
 
-FUNCTION CompositeBatchManager::isStandardFilter
+FUNCTION CompositeBatchManager::isAdvancedUser
 
- return, self.mainMgr->isStandardFilter()
+ return, self.mainMgr->isAdvancedUser()
+
+END
+
+FUNCTION CompositeBatchManager::isStandardUser
+
+ return, self.mainMgr->isStandardUser()
 
 END
 

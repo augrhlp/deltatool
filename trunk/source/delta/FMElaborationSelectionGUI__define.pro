@@ -14,7 +14,7 @@ PRO FMElaborationSelectionGUI::buildOKButton, base
   subBase=base
   okBtt=widget_button(subBase, value='OK', UNAME='DISPLAYOK', $
     event_pro=self.eventprefix+'OKRequest', SCR_XSIZE=70, SCR_YSIZE=35, /ALIGN_CENTER)
-  if self.mgr->IsAdvancedFilter() then magicBtt=widget_button(subBase, value='Magic', UNAME='MAGIC', $
+  if self.mgr->IsDeveloperUser() then magicBtt=widget_button(subBase, value='Magic', UNAME='MAGIC', $
     event_pro=self.eventprefix+'magicElab', SCR_XSIZE=70, SCR_YSIZE=35, /ALIGN_CENTER)
 ;okButton = widget_button(mainButtonBase, Value='OK', UNAME='APPLY', $
 ; XSIZE=70, YSIZE=35, event_pro=self.eventPrefix+'okModeBtt', /ALIGN_CENTER)

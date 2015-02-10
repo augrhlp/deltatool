@@ -514,14 +514,14 @@ END
 
 FUNCTION Plotter::getSilentMode
 
- return, self.silent
-
+  return, self.silent
+  
 END
 
 PRO Plotter::setSilentMode, value
 
   self.silent=value
-
+  
 END
 
 FUNCTION Plotter::getPSCharSizeFactor
@@ -559,15 +559,15 @@ END
 
 FUNCTION Plotter::sizeCorrection, recArrays, X=X, Y=Y, SYMBOL=SYMBOL
 
-  print, '*****'
+  ;print, '*****'
   for i=0, n_elements(recArrays)-1 do begin
     if ptr_valid(recArrays[i]) then begin
       thisRec=recArrays[i]
       help, *thisRec
       ;print, *recArrays
-      print, '*****'
-      print, 'width', (*thisRec)[3,0]-(*thisRec)[0,0]
-      print, '*****'
+      ;print, '*****'
+      ;print, 'width', (*thisRec)[3,0]-(*thisRec)[0,0]
+      ;print, '*****'
       xDiff=abs((*thisRec)[3,0]-(*thisRec)[0,0])
       yDiff=abs((*thisRec)[2,1]-(*thisRec)[0,1])
       minDiff=0.01
@@ -609,14 +609,14 @@ END
 
 FUNCTION Plotter::getImageType
 
- return, self.imageType
-
+  return, self.imageType
+  
 END
 
 FUNCTION Plotter::setImageType, value
 
   self.imageType=value
-
+  
 END
 
 PRO Plotter::setCurrentdevice, deviceName
@@ -668,9 +668,9 @@ FUNCTION Plotter::getPosition
       ;position[2]=position[2]+position[2]/10
       position[1]=self.legendSpaceYNorm*(position[3]-position[1])+position[1]
       ;position[0]=
-      print, position
+      ;print, position
     endelse
-    print, 'position', position
+    ;print, 'position', position
   endif
   return, position
   
@@ -777,8 +777,8 @@ PRO Plotter::opendevice, deviceName, fileName, orientation, pageBreak, location,
       device, /ENCAPSULATED, BITS_PER_PIXEL=24, file=fullFileName, /COLOR
     endif
     self.position=location
-    print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
-    print, !D.NAME, self.currentDeviceName, self.previousDeviceName
+    ;print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
+    ;print, !D.NAME, self.currentDeviceName, self.previousDeviceName
     return
   endif
   
@@ -787,8 +787,8 @@ PRO Plotter::opendevice, deviceName, fileName, orientation, pageBreak, location,
     self.deviceIsOpen=1
     self.previousDeviceName=!D.NAME
     self->setCurrentdevice, deviceName
-    print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
-    print, !D.NAME, self.currentDeviceName, self.previousDeviceName
+    ;print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
+    ;print, !D.NAME, self.currentDeviceName, self.previousDeviceName
     return
   endif
   
@@ -805,7 +805,7 @@ PRO Plotter::closedevice, pageBreak, fileName, printOrientation, WORKINGDIR=WORK
       self.deviceIsOpen=0
       ;set_plot, self.previousDeviceName
       self->setCurrentdevice, self.previousDeviceName
-      print, 'printOrientation: ', printOrientation
+      ;print, 'printOrientation: ', printOrientation
       self->postScriptFixing
     ;if printOrientation eq 'LANDSCAPE' then self->postScriptFixing
     endif
@@ -821,8 +821,8 @@ PRO Plotter::closedevice, pageBreak, fileName, printOrientation, WORKINGDIR=WORK
       ;set_plot, self.previousDeviceName
       self->setCurrentdevice, self.previousDeviceName
     endif
-    print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
-    print, !D.NAME, self.currentDeviceName, self.previousDeviceName
+    ;print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
+    ;print, !D.NAME, self.currentDeviceName, self.previousDeviceName
     return
   endif
   
@@ -830,8 +830,8 @@ PRO Plotter::closedevice, pageBreak, fileName, printOrientation, WORKINGDIR=WORK
     ;set_plot, self.previousDeviceName
     self->setCurrentdevice, self.previousDeviceName
     self.deviceIsOpen=0
-    print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
-    print, !D.NAME, self.currentDeviceName, self.previousDeviceName
+    ;print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
+    ;print, !D.NAME, self.currentDeviceName, self.previousDeviceName
     return
   endif
   
@@ -849,9 +849,15 @@ PRO Plotter::wsetInfoDataDraw
   
 END
 
-PRO Plotter::wsetMainDataDraw
+PRO Plotter::wsetMainDataDraw, PROGRESS=PROGRESS
 
-  if ~self->currentDeviceIsPostscript() then self.mainView->wsetMainDataDraw
+  if ~self->currentDeviceIsPostscript() then begin
+    self.mainView->wsetMainDataDraw
+    if keyword_set(PROGRESS) then begin
+      erase, 10
+      xyouts, 0.5, 0.5, 'Plot in progress', ALIGN=0.5, /NORM, CHARSIZE=3., CHARTHICK=3.
+    endif
+  endif
   device, /DECOMPOSE
   
 END
@@ -903,7 +909,7 @@ END
 ;PRO Plotter::plotStandardLegend, request, result
 ;
 ;  self.mainView->wsetInfoDataDraw
-;  
+;
 ;END
 
 PRO Plotter::setInfoDataDrawArea
@@ -1095,7 +1101,7 @@ PRO Plotter::plotLegoAndSymbols, outLegoCoords, outSymbolCoords, legoValues, bar
   endif
   barstart=Lindgen(nbars)*(barsize+barspace*(winrange/nbars)) ;Coor. at left edges
   tickv=winoffset+barstart+(0.5*barsize)       ;Tick coor. (centered)
-  print, '-->', barsize
+  ;print, '-->', barsize
   if not(keyword_set(FIRST)) then begin
     for i=0,nbars-1 do begin         ;Draw the bars
       width=winoffset+[barstart[i],barstart[i], $     ;Compute bar width

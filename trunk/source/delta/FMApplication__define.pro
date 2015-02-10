@@ -2,6 +2,12 @@
 @../common/structure_definition
 @../check_io/checkcriteria
 ;********************
+PRO FMApplication::closeAllFiles
+
+ self.dataMinerMgr->CloseAllDesc
+
+END
+
 PRO FMApplication::configureExecutable
 
   lines=''
@@ -121,9 +127,9 @@ END
 
 PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
 
-  self.lastElabFilterType=self.mainConfig->getElaborationFilterType()
+  self.lastUserType=self.mainConfig->getUserType()
   ; create test list as "STANDARD" user
-  self.mainConfig->setElaborationFilterType, 1
+  self.mainConfig->setUserType, 1
   
   fm=self->getFileSystemMgr()
   
@@ -167,12 +173,12 @@ PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
     print, '***********************'
   ;execute batch (auto output naming)
   endfor
-  self.logMode=1
-  self->restoreElabFilterType
+  self->setLogMode, 1
+  self->restoreUserType
   
 END
-;  self.lastElabFilterType=self.mainConfig->getElaborationFilterType()
-;  self->restoreElabFilterType
+;  self.lastUserType=self.mainConfig->getUserType()
+;  self->restoreUserType
 
 PRO FMApplication::moveResultFile, fileName, sourceDir, destinationDir
 
@@ -248,15 +254,18 @@ PRO FMApplication::logging, file=file, QUIET=QUIET, ON=ON, OFF=OFF
   if n_elements(file) ne 0 then logFile=file else logFile=self.logFile
   if file_test(logFile) eq 0 then APPEND=1 else APPEND=0
   fm->writePlainTextFile, logFile, [title,textMessage], APPEND=APPEND
-  if keyword_set(QUIET) then self.logMode=0
+  if keyword_set(QUIET) then self->setLogMode, 0
   a=self->dialogMessage(textMessage, title=title, /INFORMATION)
-  self.logMode=logMode
+  self->setLogMode, logMode
   
 END
 
 PRO FMApplication::setLogMode, value
 
+  common deltaLog, logMode
+
   self.logMode=value
+  logMode=value
   
 END
 
@@ -364,29 +373,36 @@ FUNCTION FMApplication::getBenchmarkManagingEnabled
   
 END
 
-FUNCTION FMApplication::IsAdvancedFilter
+FUNCTION FMApplication::IsAdvancedUser
 
-  filterType=self.mainConfig->getElaborationFilterType()
-  return, filterType ne 0
+  userType=self.mainConfig->getUserType()
+  return, userType gt 0
   
 END
 
-FUNCTION FMApplication::IsStandardFilter
+FUNCTION FMApplication::IsDeveloperUser
 
-  filterType=self.mainConfig->getElaborationFilterType()
-  return, filterType eq 0
+  userType=self.mainConfig->getUserType()
+  return, userType eq 2
   
 END
 
-FUNCTION FMApplication::getElaborationFilterType
+FUNCTION FMApplication::IsStandardUser
 
-  return, self.mainConfig->getElaborationFilterType()
+  userType=self.mainConfig->getUserType()
+  return, userType eq 0
   
 END
 
-FUNCTION FMApplication::getAvailableFilterType
+FUNCTION FMApplication::getUserType
 
-  return, self.availableFilterType
+  return, self.mainConfig->getUserType()
+  
+END
+
+FUNCTION FMApplication::getAvailableUserType
+
+  return, self.availableUserType
   
 END
 
@@ -414,12 +430,6 @@ FUNCTION FMApplication::getResourceDir, WITHSEPARATOR=WITHSEPARATOR
   
 END
 
-FUNCTION FMApplication::getMagicDir, WITHSEPARATOR=WITHSEPARATOR
-
-  return, self.fileSystemMgr->getMagicDir(WITHSEPARATOR=WITHSEPARATOR)
-  
-END
-
 FUNCTION FMApplication::getLogDir, WITHSEPARATOR=WITHSEPARATOR
 
   return, self.fileSystemMgr->getLogDir(WITHSEPARATOR=WITHSEPARATOR)
@@ -438,10 +448,12 @@ PRO FMApplication::checkDataIntegrityClose, errorResult=errorResult, AUTOCHECK=A
     ; close Delta!!!
     endif
     if errorResult eq -1 and keyword_set(AUTOCHECK) then begin
-      warnMessage=['Ah-ah']
-      warnTitle='Please, please, checked Data Set'
+      warnMessage=['No complete checks performed or error. Run Delta at your own risk.']
+      warnTitle='Check Failed or skipped'
       a=self->dialogMessage(warnMessage, TITLE=warnTitle, /CENTER, /ERROR)
-      self->checkDataIntegrity, /AUTOCHECK
+      self->updateVersionFile, fileTime=self.fileSystemMgr->getstartUpFileTime()
+      self->enable
+      ;self->checkDataIntegrity, /AUTOCHECK
     endif
     if errorResult eq 0 then begin
       infoMessage=['Test Passed']
@@ -481,9 +493,9 @@ PRO FMApplication::dataFormatConversionUtility, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHE
   
 END
 
-PRO FMApplication::restoreElabFilterType
+PRO FMApplication::restoreUserType
 
-  self.mainConfig->setElaborationFilterType, self.lastElabFilterType
+  self.mainConfig->setUserType, self.lastUserType
   
 END
 
@@ -1013,10 +1025,17 @@ END
 FUNCTION FMApplication::isSuggestedDataIntegrity
 
   if self->isNewDataSet() then begin
-    warningMessage=['Uhhmmm... You seem to have a new version of FairMode...', 'To prevent problems, it is strongly raccomended to run Check Integrity Tool.', 'You can ALWAYS run this tool under Help menu.']
-    warningTitle='New FairMode Version'
-    a=self->dialogMessage(warningMessage, TITLE=warningTitle, /CENTER)
-    return, 1
+    ;warningMessage=['Uhhmmm... You seem to have a new version of FairMode...', 'To prevent problems, it is strongly raccomended to run Check Integrity Tool.', 'You can ALWAYS run this tool under Help menu.']
+    ;warningTitle='New FairMode Version'
+    warningMessage=[['We detected that you are using a new dataset.'], $
+      ['We highly recomended that you perform an integrity check before proceeding to the delta tool'], $
+      ['This might require 5 minutes.'], $
+      ['Note that you will always have the possibility to perform this integrity checks later on through the help menu'], $
+      ['YES: Run Check'], $
+      ['NO: Skip check and run delta tool']]
+    warningTitle='New Dataset'
+    ans=self->dialogMessage(warningMessage, TITLE=warningTitle, /CENTER, /QUESTION)
+    if strupcase(ans) eq 'YES' then return, 1 else return, 0
   endif
   return, 0
   
@@ -1633,8 +1652,9 @@ PRO FMApplication::displayCompositeBatchGUI
     self.lastView->show
   endif else begin
     ;self.benchMarkView=obj_new('FMBenchMarkCreationGUI', self.benchMarkDisplay->Clone(/DEEP), self)
-    self.lastElabFilterType=self.mainConfig->getElaborationFilterType()
-    self.mainConfig->setElaborationFilterType, 2
+    self.lastUserType=self.mainConfig->getUserType()
+    ;self.mainConfig->setUserType, 2
+    self.mainConfig->setUserType, 1
     bEntityDI=obj_new('EntityDisplayInfo')
     self->initEntityDisplay, bEntityDI, self.mainConfig, self.categoryList, self.modelList, self.scenarioList, self.observedList, self.parameterTypeList, self.parameterList, self.monitoringGroupStatList
     bElabDI=obj_new('ElaborationDisplayInfo')
@@ -2035,6 +2055,7 @@ PRO FMApplication::doElaboration, request, multipleUserChoices, BATCH=BATCH, WOR
     request->getPrintOrient(),request->getPageBreak(), request->getLocation(), BATCH=BATCH, WORKINGDIR=WORKINGDIR
   self.plotter->plotAll, request, result
   self.plotter->closedevice, request->getPageBreak(), outFileName, request->getPrintOrient(), WORKINGDIR=WORKINGDIR
+  request->closeDataDumpFile
   self->updateRecognizeData, request, result, SILENT=BATCH
   ;  endif
   
@@ -2100,10 +2121,10 @@ END
 FUNCTION FMApplication::restoreRequest, fileName, WORKINGDIR=WORKINGDIR, BATCH=BATCH, outFileName=outFileName
 
   request=obj_new('Request')
-  ;print, self.lastElabFilterType
-  self.lastElabFilterType=self.mainConfig->getElaborationFilterType()
-  print, self.lastElabFilterType
-  self.mainConfig->setElaborationFilterType
+  ;print, self.lastUserType
+  self.lastUserType=self.mainConfig->getUserType()
+  print, self.lastUserType
+  self.mainConfig->setUserType
   if (request->restoreData(fileName)) then begin
     ; MM summer 2012 Start
     ;request->setScaleInfo, self->getScaleInfo()
@@ -2117,7 +2138,7 @@ FUNCTION FMApplication::restoreRequest, fileName, WORKINGDIR=WORKINGDIR, BATCH=B
   endif else begin
     msg=self->dialogMessage(['Batch restored failed from:', '<'+fileName+'> file.'], title=['Request'], /INFORMATION)
   endelse
-  self.mainConfig->setElaborationFilterType, lastElabFilterType
+  self.mainConfig->setUserType, lastUserType
   
 END
 
@@ -2329,12 +2350,11 @@ END
 
 PRO FMApplication::startUp
 
-  versionParCodes=*self.versionInfoCodes
+  ;versionParCodes=*self.versionInfoCodes
   if self->checkApplicationIntegrity(errorTitle, errorMessage) then begin
     self->startJournaling
     confDir=self.fileSystemMgr->getConfigurationDir(/WITH)
-    self->loadInitFileData, parameterName=parameterName, parameterValue=parameterValue, $
-      parsToBeRemoved=versionParCodes
+    self->loadInitFileData, parameterName=parameterName, parameterValue=parameterValue
       
     lookUpIdx=(where(parameterName eq 'STARTUP_LOOKUP'))[0]
     if lookUpIdx[0] eq -1 then doLookUp=1 else doLookUp=fix(parameterValue[lookUpIdx])
@@ -2345,12 +2365,12 @@ PRO FMApplication::startUp
     for i=0, n_elements(parameterName)-1 do begin
       thisPar=strupCase(parameterName[i])
       if strmid(thisPar, 0, 4) eq 'TXT_' then varname=parameterValue[i] else fileName=parameterValue[i]
-      verParCheck=(where(versionParCodes eq thisPar))[0]
-      if verParCheck ne -1 then begin
-        self->addVersionInfo, thisPar, parameterValue[i]
-        addVersionDefaultParameter=1
-        continue
-      endif
+      ;verParCheck=(where(versionParCodes eq thisPar))[0]
+      ;if verParCheck ne -1 then begin
+      ;  self->addVersionInfo, thisPar, parameterValue[i]
+      ;  addVersionDefaultParameter=1
+      ;  continue
+      ;endif
       case strupCase(thisPar) of
         'STARTUP_LOOKUP' : ;do nothing
         ;'ELABORATION_FILE' : self->configElaboration, confDir, fileName, (self->getModelInfo()).frequency
@@ -2630,17 +2650,18 @@ PRO FMApplication::fillMainConfigFromFile, confDir, parameterName=parameterName,
 
   self.mainConfig->fillFlexyData, confDir, self.fileSystemMgr, (self->getModelInfo()).frequency, parameterName=parameterName, parameterValue=parameterValue
   
-  elabFilterTypeIdx=(where(parameterName eq 'ELAB_FILTER_TYPE'))[0]
-  ; Available type: 0: Standard, 1: Advanced, 2: Benchmark
-  if elabFilterTypeIdx[0] eq -1 then elabFilterType=0 else elabFilterType=(where(parameterValue[elabFilterTypeIdx] eq self.availableFilterType))[0]
+  userTypeIdx=(where(parameterName eq 'USER_TYPE'))[0]
+  ; Available type: 0: Standard (Filtered elabs), 1: Advanced (All Elabs), 2: Developer (Benchmark+Magic)
+  if userTypeIdx[0] eq -1 then userType=0 else userType=(where(parameterValue[userTypeIdx] eq self.availableUserType))[0]
   
-  benchmarkManagingEnableIdx=(where(parameterName eq 'BENCHMARK_ENABLE_MGR'))[0]
+  ;benchmarkManagingEnableIdx=(where(parameterName eq 'BENCHMARK_ENABLE_MGR'))[0]
   ; TRUE or 1 --> Enabling Benchmark related menu voices
   ; not present or other values --> Benchmark related menu voices are disabled
   benchmarkManagingEnable=0
-  if benchmarkManagingEnableIdx[0] ne -1 then benchmarkManagingEnable=parameterValue[benchmarkManagingEnableIdx] eq '1' or strupcase(parameterValue[benchmarkManagingEnableIdx]) eq 'TRUE'
+  if userType ge 2 then benchmarkManagingEnable=1
+  ;if benchmarkManagingEnableIdx[0] ne -1 then benchmarkManagingEnable=parameterValue[benchmarkManagingEnableIdx] eq '1' or strupcase(parameterValue[benchmarkManagingEnableIdx]) eq 'TRUE'
   
-  self.mainConfig->setElaborationFilterType, elabFilterType
+  self.mainConfig->setUserType, userType
   self.mainConfig->setBenchmarkManagingEnabled, benchmarkManagingEnable
   
 END
@@ -2700,10 +2721,10 @@ FUNCTION FMApplication :: init
   ;self.request=obj_new('Request')
   self.dataMinerMgr=obj_new('DataMiner')
   self.benchMarkMenuList=obj_new('MenuInfo')
-  self.availableFilterType=["STANDARD", "ADVANCED", "BENCHMARK"]
-  self.versionInfoCodes=ptr_new(['TXT_VERSION_DATE', 'TXT_VERSION_CODE'], /NO_COPY);, 'CONVERSION_DIR', 'PLANNING_DIR', 'NON_LINEAR_DIR']
+  self.availableUserType=["STANDARD", "ADVANCED", "DEVELOPER"];, "BENCHMARK"]
+  ;self.versionInfoCodes=ptr_new(['TXT_VERSION_DATE', 'TXT_VERSION_CODE'], /NO_COPY);, 'CONVERSION_DIR', 'PLANNING_DIR', 'NON_LINEAR_DIR']
   self.testMode=0
-  self.logMode=0
+  self->setLogMode, 0
   ;self.magicFile='magic'
   return, 1
   
@@ -2750,7 +2771,7 @@ END
 PRO FMApplication__Define
 
   Struct = { FMApplication , $
-    lastElabFilterType: 0, $
+    lastUserType: 0, $
     mainView : obj_new(), $
     benchmarkView: obj_new(), $
     entityView: obj_new(), $
@@ -2795,7 +2816,7 @@ PRO FMApplication__Define
     ;scaleInfo: '', $
     modelInfo: getFMModelInfoStruct(), $
     ;MM summer 2012 End
-    availableFilterType: strarr(3), $
+    availableUserType: strarr(3), $
     ;versionDate : '', $
     ;versionCode : '', $
     psCharSizeFactor: 0., $
