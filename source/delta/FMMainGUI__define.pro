@@ -289,7 +289,7 @@ END
 PRO FMMainGUI::startBenchMark, fileName, WORKINGDIR=WORKINGDIR, BATCH=BATCH, SAMEFILENAME=SAMEFILENAME
 
   self->restoreBatch, fileName, WORKINGDIR=WORKINGDIR, BATCH=BATCH, SAMEFILENAME=SAMEFILENAME
-  self.mgr->restoreElabFilterType
+  self.mgr->restoreUserType
   
 END
 
@@ -696,10 +696,8 @@ PRO FMMainGUI::build
   interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR)
   ;autoFormatConversionBtt=widget_Button(helpMenu, VALUE='Convert observation (csv to cdf)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runBatchMenuSelection')
   
-  if self.mgr->IsAdvancedFilter() then begin
-    testPlotIntegrityBtt=widget_Button(helpMenu, VALUE='Plot quality test integrity tool', UNAME='TESTPLOTQUALITYINTEGRITY', UVALUE='TESTQUALITYINTEGRITY_BTT', event_pro=self.eventPrefix+'testQualityMenuSelection', /SEPARATOR)
-    checkIntegrityBtt=widget_Button(helpMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
-  endif
+  if self.mgr->IsDeveloperUser() then testPlotIntegrityBtt=widget_Button(helpMenu, VALUE='Plot quality test integrity tool', UNAME='TESTPLOTQUALITYINTEGRITY', UVALUE='TESTQUALITYINTEGRITY_BTT', event_pro=self.eventPrefix+'testQualityMenuSelection', /SEPARATOR)
+  if self.mgr->IsAdvancedUser() then checkIntegrityBtt=widget_Button(helpMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
   
   wwwPageBtt=widget_Button(helpMenu, VALUE='DELTA WWW', UNAME='Download site...', UVALUE='OPENWWW_BTT', event_pro=self.eventPrefix+'downloadMenuSelection')
   aboutBtt=widget_Button(helpMenu, VALUE='About...', UNAME='About', UVALUE='DISPMAP', event_pro=self.eventprefix+'aboutSplash')
@@ -1035,7 +1033,7 @@ PRO FMMainGUI::buildModelSection, base
     
   observedModelFlagButton= widget_button(observedModelFlagBase, $
     XOFFSET=0 ,YOFFSET=0, VALUE='MOD without OBS', UNAME='USEOBSMODBTT', event_pro=self.eventprefix+'obsModMainBtt', $$
-    SCR_XSIZE=self->xSummarySize()-20 ,SCR_YSIZE=self->getSubTitleYDim(), sensitive=self.mgr->isAdvancedFilter())
+    SCR_XSIZE=self->xSummarySize()-20 ,SCR_YSIZE=self->getSubTitleYDim(), sensitive=self.mgr->isAdvancedUser())
     
   ;widget_control, observedModelFlagButton, set_button=self.mgr->isAdvancedFilter()
   widget_control, observedModelFlagButton, set_button=0
@@ -1050,7 +1048,7 @@ PRO FMMainGUI::buildModelSection, base
     
   scenarioBasicFlagButton= widget_button(scenarioBasicFlagBase, $
     XOFFSET=0 ,YOFFSET=0, VALUE='All available scenario(s)', UNAME='SHOWBASESCENBTT', event_pro=self.eventprefix+'allAvailableScenarioButton', $$
-    SCR_XSIZE=self->xSummarySize()-20 ,SCR_YSIZE=self->getSubTitleYDim(), sensitive=self.mgr->isAdvancedFilter())
+    SCR_XSIZE=self->xSummarySize()-20 ,SCR_YSIZE=self->getSubTitleYDim(), sensitive=self.mgr->isAdvancedUser())
     
   widget_control, scenarioBasicFlagButton, set_button=0
   

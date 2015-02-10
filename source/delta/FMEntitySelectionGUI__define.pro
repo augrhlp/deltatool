@@ -3,7 +3,7 @@ PRO FMEntitySelectionGUI::buildOKButton, base
   subBase=base
   okBtt=widget_button(subBase, value='OK', UNAME='DISPLAYOK', $
     event_pro=self.eventprefix+'OKRequest', SCR_XSIZE=70, SCR_YSIZE=35, /ALIGN_CENTER)
-  if self.mgr->IsAdvancedFilter() then magicBtt=widget_button(subBase, value='Magic', UNAME='MAGIC', $
+  if self.mgr->IsDeveloperUser() then magicBtt=widget_button(subBase, value='Magic', UNAME='MAGIC', $
     event_pro=self.eventprefix+'magicEnt', SCR_XSIZE=70, SCR_YSIZE=35, /ALIGN_CENTER)
 ;okButton = widget_button(mainButtonBase, Value='OK', UNAME='APPLY', $
 ; XSIZE=70, YSIZE=35, event_pro=self.eventPrefix+'okModeBtt', /ALIGN_CENTER)
@@ -216,7 +216,7 @@ PRO FMEntitySelectionGUI::buildAllAvailableCombination
             k++
             thisFileName=strcompress(k, /REMOVE)+fileName+'_modobs'+strcompress(l, /REMOVE)+ext
             self.info->saveData, $
-              self.mgr->getTestDir(/WITH)+thisFileName
+              self.mgr->getMagicDir(/WITH)+thisFileName
             entFileList=[entFileList, thisFileName]
           endfor
           self->groupObsRadioButton
@@ -1323,14 +1323,14 @@ PRO FMEntitySelectionGUI::buildModelSection, base
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
   self.observedModelFlagButton = widget_button(obsModelBase, $
     XOFFSET=0 ,YOFFSET=0, VALUE='MOD without OBS', event_pro=self.eventPrefix+'useObsModButton', $
-    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedFilter())
+    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedUser())
     
   allAvailableScenBase = widget_base(extraFlagBase, $
     XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
   self.allAvailableScenarioFlagButton = widget_button(obsModelBase, $
     XOFFSET=0 ,YOFFSET=0, VALUE='All available scenario(s)', event_pro=self.eventPrefix+'allAvailableScenarioButton', $
-    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedFilter())
+    SCR_YSIZE=self->getLabelYSize(), sensitive=self.mgr->isAdvancedUser())
     
 END
 

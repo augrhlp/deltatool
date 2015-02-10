@@ -1,3 +1,13 @@
+FUNCTION getNetcdfFileDescStruct
+
+  struct = { netcdfFileDesc, $
+    fileName: '', $
+    openUnit: 0l $
+    }
+  return, struct
+  
+END
+
 FUNCTION getFMModelInfoStruct
 
   struct = { modelInfo, $

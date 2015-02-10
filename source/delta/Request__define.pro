@@ -85,7 +85,7 @@ FUNCTION Request::getGroupNames
 
   if ptr_valid(self.groupNames) then return, *self.groupNames
   return, [-1]
-
+  
 END
 
 PRO  Request::setGoogleEarthLocation, location
@@ -386,25 +386,25 @@ END
 ;PRO Request::setScaleInfo, value
 ;
 ;  self.scaleInfo=value
-;  
+;
 ;END
 ;
 ;FUNCTION Request::getScaleInfo
 ;
 ;  return, self.scaleInfo
-;  
+;
 ;END
 
 ;PRO Request::setModelTypeInfo, value
 ;
 ;  self.modelTypeInfo=value
-;  
+;
 ;END
 ;
 ;FUNCTION Request::getModelTypeInfo
 ;
 ;  return, self.modelTypeInfo
-;  
+;
 ;END
 
 ; End february 1st MM
@@ -438,8 +438,10 @@ PRO Request::openDataDumpFile, fileName, prefix=prefix, addSysTime=addSysTime
 END
 PRO Request::closeDataDumpFile
 
-  close, self.dataDumpFileUnit
-  free_lun, self.dataDumpFileUnit
+  if self.dataDumpFileUnit ne 0 then begin
+    close, self.dataDumpFileUnit
+    free_lun, self.dataDumpFileUnit
+  endif
   
 END
 
@@ -539,7 +541,7 @@ END
 ;FUNCTION Request::getGroupTitlesNumber
 ;
 ;  if ptr_valid(self.groupTitles) then return, n_elements(self.groupTitles) else return, 0
-;  
+;
 ;END
 
 FUNCTION Request::getSingleObsNumber
@@ -1274,7 +1276,7 @@ END
 FUNCTION Request::getCompatibleVersionList
 
   return, ['3.2', '3.1']
-
+  
 END
 
 FUNCTION Request::getFileFormatVersion
@@ -1313,7 +1315,7 @@ FUNCTION Request::restoreDataVerTwoDotZero, filename, path
   versions=self->getCompatibleVersionList()
   idx=where(version eq self->getFileFormatVersion(), count)
   if count eq 0 then message, 'File version not compatible'
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, entityFileName
   if dataName eq 'EntityFileName' then self->setEntityFileName, path+entityFileName else message, 'EntityFileName in a wrong position'
@@ -1363,7 +1365,7 @@ FUNCTION Request::restoreData, filename, path
   versions=self->getCompatibleVersionList()
   idx=where(version eq versions, count)
   if count eq 0 then message, 'File version not compatible'
-
+  
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, requestFileName
   if dataName eq 'RequestFileName' then self->setFileName, requestFileName else message, 'RequestFileName in a wrong position'

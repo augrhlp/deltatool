@@ -1583,8 +1583,10 @@ FUNCTION EntityDisplayInfo::getFilterScenarioIndexes, NULL=NULL
     scenNames=*self.scenarioNames
     ;bases=strpos(strlowcase(scenNames.code), 'base')
     bases=strpos(strlowcase(scenNames), 'base')
-    if n_elements(scenNames) eq 1 then bases=0 
+    if n_elements(scenNames) eq 1 then bases=0
     basesIdx=where(bases ne -1, count)
+    if count eq 0 then basesIdx=0
+    ; if we don't have "base" string inside scenario name, the first one in the list is the base scenario...
     if not(self.allAvailableScenarioFlag) then begin
       idxs=basesIdx
     endif else begin
@@ -2124,7 +2126,7 @@ END
 
 FUNCTION EntityDisplayInfo::getCompatibleVersionList
 
-  return, ['3.2', '3.1']
+  return, ['3.2', '3.1', '2.0']
 
 END
 
@@ -3164,9 +3166,307 @@ END
 
 FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   ; open file for read
   ERROR=0
   catch, error_status
+
   
   if error_status NE 0 THEN BEGIN
     ERROR=1
@@ -3174,17 +3474,22 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
     errMsg=dialog_message('problem with file: <'+fileName+'> check format version, existence or read permission.', /ERROR)
     return, 0
   endif
+
   
   openr, unit, fileName, /GET_LUN
+
   
   bufferString=''
+
   
   readf, unit, bufferString
+
   
   readf, unit, bufferString
   self.utility->convertStreamDataFile, bufferString, dataName, datalist
   ;if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
   ;if version ne self->getFileFormatVersion() then message, 'File version not compatible'
+
   
   if dataName eq 'Version' then version=datalist[0] else message, 'File version not compatible'
   versions=self->getCompatibleVersionList()
@@ -3195,19 +3500,23 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   ;readf, unit, bufferString
   ;  data=self->getParameterTypeNames()
   ;  record=self.utility->buildFileDataStream('ParameterTypeNames', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getParameterTypeCodes()
   ;  record=self.utility->buildFileDataStream('getParameterTypeCodes', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getParameterTypeDescriptions()
   ;  record=self.utility->buildFileDataStream('getParameterTypeDescriptions', data)
+
   
   ;  readf, unit, bufferString
   ;  ;record=self.utility->buildFileDataStream('getParameterTypeSelections', data)
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
   ;  self->setParameterTypeSelections, long(dataList)
+
   
   ; Added Oct/November 2011 MM
   readf, unit, bufferString
@@ -3218,6 +3527,7 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   readf, unit, bufferString
   self->setAllObservationsFlag, bufferString, /FILEMODE
   ; MM end
+
   
   ; Added Oct/November 2011 MM
   readf, unit, bufferString
@@ -3227,54 +3537,69 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   ; Replaced 2 Oct 2011 MM
   readf, unit, bufferString
   self->setParameterTypeSelections, bufferString, /FILEMODE
+
   ; MM end
   
   ;readf, unit, bufferString
   ;  data=self->getParameterNames()
   ;  record=self.utility->buildFileDataStream('getParameterNames', data)
+
   
   ;  readf, unit, bufferString
   ;  data=self->getParameterCodes()
   ;  record=self.utility->buildFileDataStream('getParameterCodes', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getParameterTypes()
   ;  record=self.utility->buildFileDataStream('getParameterTypes', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getParameterMeasureUnits()
   ;  record=self.utility->buildFileDataStream('getParameterMeasureUnits', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getParameterDescriptions()
   ;  record=self.utility->buildFileDataStream('getParameterDescriptions', data)
+
   
   ;readf, unit, bufferString
   ;data=self->getParameterObservedCodes()
   ;record=self.utility->buildFileDataStream('getParameterObservedCodes', data)
+
   
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
   ;  self->setParameterSelections, long(dataList)
+
+
+
   ;
   ; Replaced 2 Oct 2011 MM
   ; Replaced 10 Mar 2012 MM (Now Version is 3.1)
   readf, unit, bufferString
   self->setParameterCodeSelections, bufferString, /FILEMODE
   ; MM end
+
+
   ; MM end
   
   ;readf, unit, bufferString
   ;  data=self->getrunNames()
   ;  record=self.utility->buildFileDataStream('getrunNames', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getrunCodes()
   ;  record=self.utility->buildFileDataStream('getrunCodes', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getrunDescriptions()
   ;  record=self.utility->buildFileDataStream('getrunDescriptions', data)
+
   
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
@@ -3285,31 +3610,38 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   readf, unit, bufferString
   self->setRunSelections, bufferString, /FILEMODE
   ; MM end
+
   
   ;readf, unit, bufferString
   ;  data=self->getrunQueryCodes()
   ;  record=self.utility->buildFileDataStream('getrunQueryCodes', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getrunScenarioCodes()
   ;  record=self.utility->buildFileDataStream('getrunScenarioCodes', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getrunModelCodes()
   ;  record=self.utility->buildFileDataStream('getrunModelCodes', data)
   ; Scenario section
+
   
   ;readf, unit, bufferString
   ;  data=self->getscenarioNames()
   ;  record=self.utility->buildFileDataStream('getscenarioNames', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getscenarioCodes()
   ;  record=self.utility->buildFileDataStream('getscenarioCodes', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getscenarioDescriptions()
   ;  record=self.utility->buildFileDataStream('getscenarioDescriptions', data)
+
   
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
@@ -3320,18 +3652,22 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   readf, unit, bufferString
   self->setScenarioSelections, bufferString, /FILEMODE
   ; MM end
+
   
   ;readf, unit, bufferString
   ;  data=self->getmodelNames()
   ;  record=self.utility->buildFileDataStream('getmodelNames', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getmodelCodes()
   ;  record=self.utility->buildFileDataStream('getmodelCodes', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getmodelDescriptions()
   ;  record=self.utility->buildFileDataStream('getmodelDescriptions', data)
+
   
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
@@ -3341,27 +3677,33 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   readf, unit, bufferString
   self->setModelSelections, bufferString, /FILEMODE
   ; MM end
+
   
   ; Category section
   ;readf, unit, bufferString
   ;data=self->getcategoryPresenceFlags()
   ;record=self.utility->buildFileDataStream('getcategoryPresenceFlags', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getcategoryCodes()
   ;  record=self.utility->buildFileDataStream('getcategoryCodes', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getcategoryTitles()
   ;  record=self.utility->buildFileDataStream('getcategoryTitles', data)
+
   
   ;readf, unit, bufferString
   ;data=self->getcategoryValues()
   ;record=self.utility->buildFileDataStream('getcategoryValues', data)
+
   
   ;readf, unit, bufferString
   ;data=self->getcategoryWidgetTypes()
   ;record=self.utility->buildFileDataStream('getcategoryWidgetTypes', data)
+
   
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
@@ -3371,31 +3713,38 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   readf, unit, bufferString
   self->setCategorySelections, bufferString, /FILEMODE
   ; MM end
+
   
   ; Obs section
   ;readf, unit, bufferString
   ;  data=self->getobsCatCategoryCodes()
   ;  record=self.utility->buildFileDataStream('getobsCatCategoryCodes', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getobsCatObservedCodes()
   ;  record=self.utility->buildFileDataStream('getobsCatObservedCodes', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getobsCatValues()
   ;  record=self.utility->buildFileDataStream('getobsCatValues', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getobservedNames()
   ;  record=self.utility->buildFileDataStream('getobservedNames', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getobservedShortNames()
   ;  record=self.utility->buildFileDataStream('getobservedShortNames', data)
+
   
   ;readf, unit, bufferString
   ;  data=self->getobservedCodes()
   ;  record=self.utility->buildFileDataStream('getobservedCodes', data)
+
   
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
@@ -3406,6 +3755,7 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   readf, unit, bufferString
   self->setObservedQueryCodesSelections, bufferString, /FILEMODE
   ; MM end
+
   
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
@@ -3416,6 +3766,7 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   readf, unit, bufferString
   self->setObservedCodesSelections, bufferString, /FILEMODE
   ; MM end
+
   
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
@@ -3425,6 +3776,7 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   readf, unit, bufferString
   self->setObservedGroupTitles, bufferString, /FILEMODE
   ; MM end
+
   
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
@@ -3435,6 +3787,7 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   ;ptr_free, self.observedCodesGroupSelections
   self->setObservedCodesGroupSelections, bufferString, /FILEMODE
   ; MM end
+
   
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
@@ -3444,6 +3797,7 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   readf, unit, bufferString
   self->setUseObservedModelFlag, bufferString, /FILEMODE
   ; MM end
+
   
   ;  readf, unit, bufferString
   ;  self.utility->convertStreamDataFile, bufferString, dataName, dataList
@@ -3452,10 +3806,12 @@ FUNCTION EntityDisplayInfo::restoreDataVerThreeDotOne, filename
   readf, unit, bufferString
   self->setObservedGroupStatCodeSelection, bufferString, /FILEMODE
   ; MM end
+
   
   close, unit
   free_lun, unit
   return, 1
+
   
 END
 

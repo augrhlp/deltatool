@@ -3,14 +3,14 @@
 ;********************
 PRO DataMiner::setTestMode, value
 
- self.testMode=value
-
+  self.testMode=value
+  
 END
 
 FUNCTION DataMiner::getTestMode
 
- return, self.testMode
-
+  return, self.testMode
+  
 END
 
 FUNCTION DataMiner::getRunFileInfo, fileName
@@ -37,7 +37,7 @@ FUNCTION DataMiner::getMissingValue
   
 END
 
-FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONLYMODEL
+FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONLYMODEL, SINGLEFILENAME=SINGLEFILENAME
 
   modelInfo=request->getModelInfo()
   year=modelInfo.year
@@ -122,13 +122,13 @@ FUNCTION DataMiner::readCSVFile, request, filename, HEADER=HEADER, ONLYMODEL=ONL
 END
 
 ;FUNCTION DataMiner::buildMonitoringFileName, monitoringCode
-FUNCTION DataMiner::buildMonitoringCsvFileName, monitoringCode
+FUNCTION DataMiner::buildMonitoringCsvFileName, monitoringCode, YEAR=YEAR
 
   ;fName=self.fileSystemMgr->getObservedDataDir(/WITH)+monitoringCode+self.fileSystemMgr->getMonitoringFileExtension()
   ;TODO: remove temp set 'station' prefix
   ; temp set to workaround filenames!!!
   ;fName=self.fileSystemMgr->getObservedDataDir(/WITH)+'station'+monitoringCode+self.fileSystemMgr->getMonitoringFileExtension()
-  fName=self.fileSystemMgr->getObservedDataDir(/WITH)+monitoringCode+self.fileSystemMgr->getMonitoringCsvFileExtension()
+  if keyword_Set(YEAR) then fName=self.fileSystemMgr->getObservedYearFile() else fName=self.fileSystemMgr->getObservedDataDir(/WITH)+monitoringCode+self.fileSystemMgr->getMonitoringCsvFileExtension() 
   return, fName
   
 END
@@ -168,10 +168,103 @@ FUNCTION DataMiner::buildMonitoringCdfFileName, fileName, resultType; (TWOD=TWOD
   
 END
 
+FUNCTION DataMiner::buildMonitoringCsvYearFileName, fileName, resultType; (TWOD=TWOD, TIME=TIME)
+
+  ;  ;allRunCodes=runInfoList->getCodes()
+  ;  ;idx=(where(runCode eq allRunCodes))[0]
+  ;
+  ;  ;fName=runInfoList[idx].filename
+  ;  ;fName=runInfoList[idx].scenarioCode+'_'+runInfoList[idx].modelCode
+  ;  extensionPos=strpos(fileName, '.', /REVERSE_SEARCH)
+  ;  extension=strarr(2)
+  ;  extension[0]=strmid(fileName, 0, extensionPos)
+  ;  extension[1]=strmid(fileName, extensionPos+1, strlen(fileName)-extensionPos)
+  ;
+  ;  fName=self.fileSystemMgr->getObsDataDir(/WITH)+extension[0]+'_'+resultType+'.'+extension[1]
+  fName=self.fileSystemMgr->getObservedDataDir(/WITH)+'OBS_TIME'+self.fileSystemMgr->getMonitoringCsvFileExtension()
+  return, fName
+  
+END
+
 FUNCTION DataMiner::buildRunDataBlockName, statCode, parameterCode
 
   cdfBlockName=statCode+'_'+parameterCode
   return, cdfBlockName
+  
+END
+
+FUNCTION DataMiner::readMonitoringYearCsvData, request, fileName, statCode, parameterCode, NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL
+
+  ERROR=0
+  catch, error_status
+  ;print, systime()
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL 
+    ;print, 'problem with file: <'+fileName+'> check existence or read permission.', /ERROR)
+    NOTPRESENT=1
+    return, -1
+  endif
+
+  NOTPRESENT=0
+  
+  openr, unit, fileName, /GET_LUN
+  bufferString=''
+  RowNr=0
+  yearAVG=0
+  while not(eof(unit)) do begin
+    readf, unit, bufferString
+    checkFirst=strmid(bufferString, 0,1)
+    check1=(strpos(checkFirst, '[')+1) > 0
+    check2=(strpos(checkFirst, ';')+1) > 0
+    check3=(strpos(checkFirst, '#')+1) > 0
+    null=strlen(strcompress(bufferString, /REMOVE_all)) eq 0
+    if (check1+check2+check3) gt 0 or null then begin
+    endif else begin
+      info=strsplit(bufferString, ';', /EXTRACT, count=count)
+      if RowNr eq 0 then begin
+        RowNr=1
+        if strlowcase(info[0]) eq 'yearlyavg' then begin
+          pollout=strcompress(info[2:n_elements(info)-1],/remove_all)
+          infoyr=info[0]
+          year=fix(info[1])
+          yearAVG=1
+        endif else begin
+          pollout=strcompress(info[4:n_elements(info)-1],/remove_all)
+        endelse
+        npol=n_elements(pollout)
+        storeData=fltarr(8784)  ;8760
+      endif else begin
+        if strupcase(strcompress(info[0],/remove_all)) eq strupcase(statCode) then begin
+          kpol=where(pollout eq parameterCode,nc)
+          nr=1+kpol[0]
+          if yearAVG eq 1 then begin
+            storeData[0]=float(info(nr))
+            goto,yAvg
+          endif
+          year=fix(info[0])
+          k1=day_sum(fix(info(1))-1)*24
+          k2=(fix(info(2))-1)*24
+          k3=fix(info(3))
+          k0=k1+k2+k3
+          storeData[k0]=float(info(nr))
+        endif
+      endelse
+    endelse
+  endwhile
+  yAvg:
+  if yearAVG eq 1 then begin
+    for kk=1,8783 do storeData(kk)=storeData(0)
+  endif
+  close, unit & free_lun, unit
+  if 4*(fix(year)/4) ne fix(year) then begin   ;normal year: shift 24 hours back
+    storeHlp=storeData(60*24:366*24-1)  ;01/03/year 0hr - 31/dec/year 23hr
+    storeData(59*24:365*24-1)=storeHlp
+    data=reform(storeData(0:8759))
+  endif else begin
+    data=storeData
+  endelse
+  return,data
   
 END
 
@@ -234,6 +327,7 @@ for i=0, n_elements(runFiles)-1 do begin
       count++
       
       singleMonitCsvFileName=self->buildMonitoringCsvFileName(singleMonits[j])
+      yearMonitCsvFileName=self->buildMonitoringCsvFileName(singleMonits[j], /YEAR)
       singleMonitCdfFileName=self->buildMonitoringCdfFileName(singleMonits[j])
       for k=0, n_elements(parameters)-1 do begin
         singleResultData[sl].observedCode=singleMonits[j]
@@ -243,6 +337,12 @@ for i=0, n_elements(runFiles)-1 do begin
         ;tryNcdf first
         print, 'Try to found data from cdf', singleMonitCdfFileName, singleMonits[j], parameters[k]
         mParData=self->readMonitoringCdfData(request,singleMonitCdfFileName, singleMonits[j], parameters, k, NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL)
+        if keyword_set(NOTPRESENT) eq 1 then begin
+          ;tryNcdf first
+          print, '...data not found in csv(year)...'
+          print, 'Try to found data from (year) csv', yearMonitCsvFileName, singleMonits[j], parameters[k]
+          mParData=self->readMonitoringYearCsvData(request, yearMonitCsvFileName, singleMonits[j], parameters[k], NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL)
+        endif
         if keyword_set(NOTPRESENT) then begin
           ;tryNcdf first
           print, '...data not found in cdf...'
@@ -406,7 +506,61 @@ FUNCTION DataMiner::readMonitoringCsvDataForAllParameters, fileName, parameterCo
   
 END
 
+PRO DataMiner::closeAllDesc
+
+  allDesc=getNetcdfFileDescStruct()
+  for i=1, n_elements(allDesc)-1 do ncdf_close, allDesc[i].openUnit
+  self->setNetcdfDescriptor, allDesc[0]
+  
+END
+
+FUNCTION DataMiner::openNetcdf, fileName
+
+  ERROR=0
+  catch, error_status
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL
+    ncdf_close, Id
+    NOTPRESENT=1
+    return, -1
+  endif
+  NOTPRESENT=0
+  
+  allDesc=self->getNetcdfDescriptor()
+  idx=where(fileName eq allDesc.fileName, count)
+  if count eq 0 then begin
+    Id = ncdf_open(fileName)
+    thisNcdfDesc=getNetcdfFileDescStruct()
+    thisNcdfDesc.fileName=fileName
+    thisNcdfDesc.openUnit=Id
+    newDesc=replicate(getNetcdfFileDescStruct(), n_elements(allDesc)+1)
+    newDesc[0:n_elements(allDesc)-1]=allDesc
+    newDesc[n_elements(allDesc)]=thisNcdfDesc
+    self->setNetcdfDescriptor, newDesc
+  endif else begin
+    thisNcdfDesc=allDesc[idx]
+  endelse
+  return, thisNcdfDesc.openUnit
+  
+END
+
+FUNCTION DataMiner::getNetcdfDescriptor
+
+  if ptr_valid(self.ncdfDescr) then return, *self.ncdfDescr
+  return, -1
+  
+END
+
+PRO DataMiner::setNetcdfDescriptor, list
+
+  ptr_free, self.ncdfDescr
+  self.ncdfDescr=ptr_new(list, /NO_COPY)
+  
+END
+
 FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, NOTPRESENT=NOTPRESENT
+
   ERROR=0
   catch, error_status
   if error_status NE 0 THEN BEGIN
@@ -425,7 +579,8 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
   
   if ext eq 'cdf' then begin
     !quiet=1
-    Id = ncdf_open(fileName)
+    ;Id = ncdf_open(fileName)
+    Id = self->openNetcdf(fileName)
     cdfBlockName=statCode+'_'+parameterCodes[k]
     checkName=ncdf_varid(Id,cdfBlockName)
     ;Old: variable = StationName_Parameter
@@ -433,7 +588,7 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
       ; KeesC 05FEB 2014
       data=fltarr(8784) & data(*)=-999
       ncdf_varget, Id, cdfBlockName, dataShort
-      ncdf_close, Id
+      ;ncdf_close, Id
       dataShort=reform(dataShort)
       dimShort=n_elements(dataShort)
       data(0:dimShort-1)=dataShort
@@ -466,7 +621,7 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
         ncdf_attget,Id,'Year',year,/global
         year=fix(year)
       endif
-      ncdf_close, Id
+      ;ncdf_close, Id
       if 4*(fix(year)/4) ne fix(year) then data=reform(data(0:8759))
       return,data
     endelse
@@ -553,7 +708,8 @@ FUNCTION DataMiner::readMonitoringCdfData, request,fileName, statCode, parameter
   
   if ext eq 'cdf' then begin
     !quiet=1
-    Id = ncdf_open(fileName)
+    ;Id = ncdf_open(fileName)
+    Id = self->openNetcdf(fileName)
     cdfBlockName=statCode+'_'+parameterCodes[k]
     checkName=ncdf_varid(Id,cdfBlockName)
     ;Old: variable = StationName_Parameter
@@ -561,7 +717,7 @@ FUNCTION DataMiner::readMonitoringCdfData, request,fileName, statCode, parameter
       ; KeesC 05FEB 2014
       data=fltarr(8784) & data(*)=-999
       ncdf_varget, Id, cdfBlockName, dataShort
-      ncdf_close, Id
+      ;ncdf_close, Id
       dataShort=reform(dataShort)
       dimShort=n_elements(dataShort)
       data(0:dimShort-1)=dataShort
@@ -594,7 +750,7 @@ FUNCTION DataMiner::readMonitoringCdfData, request,fileName, statCode, parameter
         ncdf_attget,Id,'Year',year,/global
         year=fix(year)
       endif
-      ncdf_close, Id
+      ;ncdf_close, Id
       if 4*(fix(year)/4) ne fix(year) then data=reform(data(0:8759))
       return,data
     endelse
@@ -668,12 +824,19 @@ FUNCTION DataMiner :: init, testMode
   if not self -> Object :: init() then return , 0
   if n_elements(testMode) eq 1 then sel.testMode=testMode
   self.fileSystemMgr=obj_New('FMFileSystemManager')
+  first=getNetcdfFileDescStruct()
+  first.fileName=''
+  first.openUnit=0l
+  self.ncdfDescr=ptr_new(first, /NO_COPY)
   return, 1
   
 END
 
 PRO DataMiner :: cleanUp
 
+  self->CloseAllDesc
+  ;allDesc=getNetcdfFileDescStruct()
+  ;for i=1, n_elements(allDesc)-1 do ncdf_close, thisNcdfDesc.thisNcdfDesc.openUnit
   obj_destroy, self.fileSystemMgr
   self -> Object :: cleanUp
   
@@ -684,6 +847,7 @@ PRO DataMiner__Define
   Struct = { DataMiner , $
     fileSystemMgr: obj_new(), $
     testMode: 0, $
+    ncdfDescr: ptr_new(), $
     Inherits Object $
     }
     

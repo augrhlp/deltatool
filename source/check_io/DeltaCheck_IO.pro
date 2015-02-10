@@ -13,6 +13,8 @@ END
 PRO updateRunFileName, ev, deltaMgr, model=model, scenario=scenario
 
   fsm=deltaMgr->getFileSystemMgr()
+  
+  deltaMgr->closeAllFIles
   extension=fsm->getAvailableRunFileExtension()
   suffix=fsm->getRunFileTimeSuffix()
 
@@ -275,6 +277,8 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   ;Delta tool integration
   version='VERSION 3.0'
   fileMgr=deltaMgr->getFileSystemMgr()
+  deltaMgr->closeAllFIles
+
   dir=fileMgr->getHomeDir()
   ;  dir_res=dir+'resource\'  ;fileMgr->getResourceDir()
   ;  dir_obs=dir+'data\monitoring\'  ;fileMgr->getObservedDataDir()

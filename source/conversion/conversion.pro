@@ -3,7 +3,7 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   slash=path_sep()
   dims=getScreenSize()
   genericWidth=dims[0]/3-dims[0]/10
-
+  
   ; MM fall 2014 Start
   startUpFile= ''
   initRun= ''
@@ -20,6 +20,7 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   endHour= ''
   if obj_valid(deltaMgr) then begin
     fileMgr=deltaMgr->getFileSystemMgr()
+    deltaMgr->closeAllFIles
     dir=fileMgr->getHomeDir()
     ;  dir_res=dir+'resource\'  ;fileMgr->getResourceDir()
     ;  dir_obs=dir+'data\monitoring\'  ;fileMgr->getObservedDataDir()
@@ -52,15 +53,15 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     dirIn=fileMgr->getRunDataDir(/WITH)
     dirOut=fileMgr->getRunDataDir(/WITH)
     dir_log=fileMgr->getLogDir(/WITH)
-
+    
     modelInfo=deltaMgr->getModelList()
     modelNames=modelInfo->getDisplayNames()
     modelCodes=modelInfo->getCodes()
-
+    
     scenarioInfo=deltaMgr->getScenarioList()
     scenarioNames=scenarioInfo->getDisplayNames()
     scenarioCodes=scenarioInfo->getCodes()
-
+    
     year= scenarioNames[0]
     initRun= year+'0101';strtrim(0, 1)
     endRun= year+'1231';strtrim(8760, 1)
