@@ -116,6 +116,11 @@ END
 
 PRO FMEntitySelectionGUI::buildAllAvailableCombination
 
+  self.mgr->setLastUserType, self.mgr->getUserType()
+  ;STANDARD
+  self.mgr->setUserType, 0
+  self->configure
+
   prevSilentMode=self.silentMode
   self.silentMode=1
   logFile=self.mgr->getLogDir(/WITH)+'entity.log'
@@ -240,6 +245,9 @@ PRO FMEntitySelectionGUI::buildAllAvailableCombination
   self.mgr->logging, /OFF
   a=self.mgr->dialogMessage(['Magic done!','Look at '+textFile,'for details'], title='ENTITY MAGIC DONE', /INFORMATION )
   obj_destroy, util
+
+  self.mgr->restoreUserType
+  self->configure
   
 END
 

@@ -29,7 +29,7 @@ FUNCTION CIRCLE, xcenter, ycenter, radius
 END
 PRO FM_PlotBars, plotter, request, result
 
-  plotter->wsetMainDataDraw, /PROGRESS
+  plotter->wsetMainDataDraw
   silentMode=plotter->getSilentMode()
   FORCELOG=silentMode
   plotInfo=result->getPlotInfo()
@@ -1001,7 +1001,7 @@ PRO FM_PlotScatter, plotter, request, result
   if maxAxis eq 0 and minAxis eq 0 then maxAxis=1.
   recognizeRange=(maxAxis-minAxis)*0.01
   infoSize=size(allDataXy, /STRUCT)
-  if infoSize.n_dimensions ne 2 then begin
+  if infoSize.n_dimensions lt 2 then begin
     a=dialogMsg('Not enough models for this elaboration', FORCELOG=FORCELOG)
     return
   endif
@@ -1043,7 +1043,7 @@ PRO FM_PlotScatter, plotter, request, result
     ytitle='MOD/mg.m-2/'+cumulstr
   endif
   if elabCode eq 50 then begin
-    if n_elements(modelCodes) ne 2 then begin
+    if n_elements(modelCodes) lt 2 then begin
       a=dialogMsg('Not enough models for this elaboration', FORCELOG=FORCELOG)
       return
     endif
@@ -1289,7 +1289,7 @@ PRO FM_PlotScatterLegend, plotter, request, result
   allDataXY=targetInfo->getXYS()
 
   infoSize=size(allDataXy, /STRUCT)
-  if infoSize.n_dimensions ne 2 then begin
+  if infoSize.n_dimensions lt 2 then begin
     a=dialogMsg('Not enough models for this elaboration', FORCELOG=FORCELOG)
     return
   endif

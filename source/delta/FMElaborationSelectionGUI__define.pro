@@ -59,6 +59,11 @@ END
 
 PRO FMElaborationSelectionGUI::buildAllAvailableCombination
 
+  self.mgr->setLastUserType, self.mgr->getUserType()
+  ;STANDARD
+  self.mgr->setUserType, 0
+  self->configure
+
   prevSilentMode=self.silentMode
   self.silentMode=1
   logFile=self.mgr->getLogDir(/WITH)+'elab.log'
@@ -104,6 +109,9 @@ PRO FMElaborationSelectionGUI::buildAllAvailableCombination
   self.mgr->logging, /OFF
   a=self.mgr->dialogMessage(['Magic done!','Look at '+textFile,'for details'], title='ELAB MAGIC DONE', /INFORMATION )
   obj_destroy, util
+
+  self.mgr->restoreUserType
+  self->configure
   
 END
 

@@ -2,6 +2,25 @@
 @../common/structure_definition
 @../check_io/checkcriteria
 ;********************
+
+PRO FMApplication::setUserType, value
+
+ self.mainConfig->setUserType, value
+
+END
+
+PRO FMApplication::setLastUserType, value
+
+ self.lastUserType=value
+
+END
+
+FUNCTION FMApplication::getLastUserType
+
+ return, self.lastUserType
+
+END
+
 PRO FMApplication::closeAllFiles
 
  self.dataMinerMgr->CloseAllDesc
@@ -127,9 +146,9 @@ END
 
 PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
 
-  self.lastUserType=self.mainConfig->getUserType()
+  self->setLastUserType, self->getUserType()
   ; create test list as "STANDARD" user
-  self.mainConfig->setUserType, 1
+  self->setUserType, 0
   
   fm=self->getFileSystemMgr()
   
@@ -375,29 +394,29 @@ END
 
 FUNCTION FMApplication::IsAdvancedUser
 
-  userType=self.mainConfig->getUserType()
+  userType=self->getUserType()
   return, userType gt 0
   
 END
 
 FUNCTION FMApplication::IsDeveloperUser
 
-  userType=self.mainConfig->getUserType()
+  userType=self->getUserType()
   return, userType eq 2
   
 END
 
 FUNCTION FMApplication::IsStandardUser
 
-  userType=self.mainConfig->getUserType()
+  userType=self->getUserType()
   return, userType eq 0
   
 END
 
 FUNCTION FMApplication::getUserType
 
-  return, self.mainConfig->getUserType()
-  
+ return, self.mainConfig->getUserType()
+
 END
 
 FUNCTION FMApplication::getAvailableUserType
@@ -495,7 +514,7 @@ END
 
 PRO FMApplication::restoreUserType
 
-  self.mainConfig->setUserType, self.lastUserType
+  self->setUserType, self.lastUserType
   
 END
 
@@ -1652,9 +1671,10 @@ PRO FMApplication::displayCompositeBatchGUI
     self.lastView->show
   endif else begin
     ;self.benchMarkView=obj_new('FMBenchMarkCreationGUI', self.benchMarkDisplay->Clone(/DEEP), self)
-    self.lastUserType=self.mainConfig->getUserType()
+    self->setLastUserType, self->getUserType()
     ;self.mainConfig->setUserType, 2
-    self.mainConfig->setUserType, 1
+    ;standard
+    self->setUserType, 0
     bEntityDI=obj_new('EntityDisplayInfo')
     self->initEntityDisplay, bEntityDI, self.mainConfig, self.categoryList, self.modelList, self.scenarioList, self.observedList, self.parameterTypeList, self.parameterList, self.monitoringGroupStatList
     bElabDI=obj_new('ElaborationDisplayInfo')
@@ -2053,6 +2073,7 @@ PRO FMApplication::doElaboration, request, multipleUserChoices, BATCH=BATCH, WOR
   self.plotter->setSilentMode, keyword_set(BATCH)
   self.plotter->opendevice, request->getPlotDeviceName(), outFileName, $
     request->getPrintOrient(),request->getPageBreak(), request->getLocation(), BATCH=BATCH, WORKINGDIR=WORKINGDIR
+  self.plotter->wsetMainDataDraw, /PROGRESS
   self.plotter->plotAll, request, result
   self.plotter->closedevice, request->getPageBreak(), outFileName, request->getPrintOrient(), WORKINGDIR=WORKINGDIR
   request->closeDataDumpFile
@@ -2122,9 +2143,9 @@ FUNCTION FMApplication::restoreRequest, fileName, WORKINGDIR=WORKINGDIR, BATCH=B
 
   request=obj_new('Request')
   ;print, self.lastUserType
-  self.lastUserType=self.mainConfig->getUserType()
+  self->setLastUserType, self->getUserType()
   print, self.lastUserType
-  self.mainConfig->setUserType
+  self->setUserType
   if (request->restoreData(fileName)) then begin
     ; MM summer 2012 Start
     ;request->setScaleInfo, self->getScaleInfo()
@@ -2138,7 +2159,7 @@ FUNCTION FMApplication::restoreRequest, fileName, WORKINGDIR=WORKINGDIR, BATCH=B
   endif else begin
     msg=self->dialogMessage(['Batch restored failed from:', '<'+fileName+'> file.'], title=['Request'], /INFORMATION)
   endelse
-  self.mainConfig->setUserType, lastUserType
+  self->setUserType, lastUserType
   
 END
 
@@ -2661,7 +2682,7 @@ PRO FMApplication::fillMainConfigFromFile, confDir, parameterName=parameterName,
   if userType ge 2 then benchmarkManagingEnable=1
   ;if benchmarkManagingEnableIdx[0] ne -1 then benchmarkManagingEnable=parameterValue[benchmarkManagingEnableIdx] eq '1' or strupcase(parameterValue[benchmarkManagingEnableIdx]) eq 'TRUE'
   
-  self.mainConfig->setUserType, userType
+  self->setUserType, userType
   self.mainConfig->setBenchmarkManagingEnabled, benchmarkManagingEnable
   
 END
