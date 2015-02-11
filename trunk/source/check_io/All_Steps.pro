@@ -765,6 +765,9 @@ if itobs eq 1 then begin
   if getenv('DO_OBS_CDF_CONVERSION') eq '1' then begin
     widget_control,labprog_txt,set_value='STEP 11'
     a=dialog_message('Now convert to cdf format the observations...', title='CDF conversion')
+    fm=deltaMgr->getFileSystemMgr()
+    csv2cdfInfo.inputDir=fm->cleanPath(csv2cdfInfo.inputDir)
+    csv2cdfInfo.outputDir=fm->cleanPath(csv2cdfInfo.outputDir)
     csv2cdf, csv2cdfInfo.startUpFile, $
       csv2cdfInfo.startHour, csv2cdfInfo.endHour, csv2cdfInfo.inputDir, csv2cdfInfo.outputDir, $
       csv2cdfInfo.prefixId, csv2cdfInfo.modelName, csv2cdfInfo.fulloutFileName, csv2cdfInfo.stringStartHour, $

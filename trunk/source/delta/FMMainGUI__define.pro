@@ -671,7 +671,7 @@ PRO FMMainGUI::build
   elaborationMenu=widget_button(fmMenuBar, value='Analysis', UNAME='DISPLAYMENU', /MENU)
   helpMenu=Widget_Button(fmMenuBar, VALUE='Help', UNAME='HELPMENU', UVALUE='HELPMENU', /MENU)
   
-  checkIntegrityBtt=widget_Button(fileMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
+  ;checkIntegrityBtt=widget_Button(fileMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
   saveAsImageButton=widget_button(fileMenu, value='Save image', UNAME='SAVEIMG', event_pro=self.eventprefix+'saveImage')
   saveAsImageBlackBackGroundButton=widget_button(fileMenu, value='Save as image (Black Back)', UNAME='SAVEIMGBLK', event_pro=self.eventprefix+'saveImageBlack', sensitive=0)
   saveAsImageWhiteBackGroundButton=widget_button(fileMenu, value='Save as image (White Back)', UNAME='SAVEIMGWHT', event_pro=self.eventprefix+'saveImageWhite', sensitive=0)
