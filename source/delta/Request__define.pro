@@ -438,6 +438,16 @@ PRO Request::openDataDumpFile, fileName, prefix=prefix, addSysTime=addSysTime
 END
 PRO Request::closeDataDumpFile
 
+  ERROR=0
+  catch, error_status
+  
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL & close, /ALL
+    ;silent exit
+    return
+  endif
+
   if self.dataDumpFileUnit ne 0 then begin
     close, self.dataDumpFileUnit
     free_lun, self.dataDumpFileUnit

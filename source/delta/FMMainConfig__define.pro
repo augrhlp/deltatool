@@ -22,7 +22,7 @@ END
 
 PRO FMMainConfig::setUserType, userType
 
-  if n_elements(userType) ne 0 then self.userType=userType
+  self.userType=userType
   self.elaborationList->setUserType, userType
 
 END

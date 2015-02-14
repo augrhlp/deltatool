@@ -59,9 +59,10 @@ END
 
 PRO FMElaborationSelectionGUI::buildAllAvailableCombination
 
-  self.mgr->setLastUserType, self.mgr->getUserType()
-  ;STANDARD
+  applicationUserType=self.mgr->getUserType()
+  ;STANDARD user type
   self.mgr->setUserType, 0
+  self.mgr->updateElaborationDisplay, self.info
   self->configure
 
   prevSilentMode=self.silentMode
@@ -110,7 +111,9 @@ PRO FMElaborationSelectionGUI::buildAllAvailableCombination
   a=self.mgr->dialogMessage(['Magic done!','Look at '+textFile,'for details'], title='ELAB MAGIC DONE', /INFORMATION )
   obj_destroy, util
 
-  self.mgr->restoreUserType
+  ;back to application user type
+  self.mgr->setUserType, applicationUserType
+  self.mgr->updateElaborationDisplay, self.info
   self->configure
   
 END
@@ -552,7 +555,6 @@ PRO FMElaborationSelectionGUI::fillElaborationList
 
   elabNames=self.info->getElabNamesBySelectedDiagram()
   if elabNames[0] eq '' then if ~self.silentMode then a=dialog_message('No elabs for this diagram') else print, 'No elabs for this diagram' 
-  if elabNames[0] eq '' then if ~self.silentMode then a=dialog_message('No elabs for this diagram') else print, 'No elabs for this diagram'
   widget_control, self.elaborationList, set_value=elabNames
   
   self->userElabSelection, 0

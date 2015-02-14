@@ -5,26 +5,26 @@
 
 PRO FMApplication::setUserType, value
 
- self.mainConfig->setUserType, value
-
+  self.mainConfig->setUserType, value
+  
 END
 
-PRO FMApplication::setLastUserType, value
+;PRO FMApplication::setLastUserType, value
+;
+; self.lastUserType=value
+;
+;END
 
- self.lastUserType=value
-
-END
-
-FUNCTION FMApplication::getLastUserType
-
- return, self.lastUserType
-
-END
+;FUNCTION FMApplication::getLastUserType
+;
+; return, self.lastUserType
+;
+;END
 
 PRO FMApplication::closeAllFiles
 
- self.dataMinerMgr->CloseAllDesc
-
+  self.dataMinerMgr->CloseAllDesc
+  
 END
 
 PRO FMApplication::configureExecutable
@@ -146,10 +146,6 @@ END
 
 PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
 
-  self->setLastUserType, self->getUserType()
-  ; create test list as "STANDARD" user
-  self->setUserType, 0
-  
   fm=self->getFileSystemMgr()
   
   testElab=fm->getElaborationTemplateFileName()
@@ -193,7 +189,6 @@ PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
   ;execute batch (auto output naming)
   endfor
   self->setLogMode, 1
-  self->restoreUserType
   
 END
 ;  self.lastUserType=self.mainConfig->getUserType()
@@ -282,7 +277,7 @@ END
 PRO FMApplication::setLogMode, value
 
   common deltaLog, logMode
-
+  
   self.logMode=value
   logMode=value
   
@@ -415,8 +410,8 @@ END
 
 FUNCTION FMApplication::getUserType
 
- return, self.mainConfig->getUserType()
-
+  return, self.mainConfig->getUserType()
+  
 END
 
 FUNCTION FMApplication::getAvailableUserType
@@ -472,7 +467,7 @@ PRO FMApplication::checkDataIntegrityClose, errorResult=errorResult, AUTOCHECK=A
       a=self->dialogMessage(warnMessage, TITLE=warnTitle, /CENTER, /ERROR)
       self->updateVersionFile, fileTime=self.fileSystemMgr->getstartUpFileTime()
       self->enable
-      ;self->checkDataIntegrity, /AUTOCHECK
+    ;self->checkDataIntegrity, /AUTOCHECK
     endif
     if errorResult eq 0 then begin
       infoMessage=['Test Passed']
@@ -512,12 +507,6 @@ PRO FMApplication::dataFormatConversionUtility, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHE
   
 END
 
-PRO FMApplication::restoreUserType
-
-  self->setUserType, self.lastUserType
-  
-END
-
 PRO FMApplication::updateMenuBenchMarkInfoContents, fileName, displayName, fatherCode
 
   fileName=self.fileSystemMgr->getFileName(fileName)
@@ -533,6 +522,24 @@ END
 
 PRO FMApplication::testPlotQuality
 
+  ERROR=0
+  catch, error_status
+  
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    self->setTestMode, 0
+    self->setLogMode, 0
+    catch, /CANCEL & close, /ALL
+    if n_elements(applicationUserType) eq 1 then begin
+      self->setUserType, applicationUserType
+      self->setUserType, applicationUserType
+      self->updateElaborationDisplay, saveElab
+      self->updateEntityDisplay, saveEntity
+    endif
+    errMsg=self->dialogMessage(title='File(s) corrupted or missing', [['Something wrong with Magic files'], ['Repeat process using Magic button within Data selection and Analysis GUI']], /ERROR)
+    return
+  endif
+  
   fm=self->getFileSystemMgr()
   elabMagicFile=self->getMagicElaborationList()
   entityMagicFile=self->getMagicEntityList()
@@ -541,6 +548,12 @@ PRO FMApplication::testPlotQuality
   if fInfo.read ne 1 then begin
     self->setTestMode, 0
     self->setLogMode, 0
+    if n_elements(applicationUserType) eq 1 then begin
+      self->setUserType, applicationUserType
+      self->setUserType, applicationUserType
+      self->updateElaborationDisplay, saveElab
+      self->updateEntityDisplay, saveEntity
+    endif
     aa=self->dialogMessage('Use Magic button on Analysis Diaolg GUI before compute this test', /WARN)
     return
   endif
@@ -549,6 +562,12 @@ PRO FMApplication::testPlotQuality
   if fInfo.read ne 1 then begin
     self->setTestMode, 0
     self->setLogMode, 0
+    if n_elements(applicationUserType) eq 1 then begin
+      self->setUserType, applicationUserType
+      self->setUserType, applicationUserType
+      self->updateElaborationDisplay, saveElab
+      self->updateEntityDisplay, saveEntity
+    endif
     aa=self->dialogMessage('Use Magic button on Entity Diaolg GUI before compute this test', /WARN)
     return
   endif
@@ -570,6 +589,17 @@ PRO FMApplication::testPlotQuality
   resDir=self->getMagicDir(/WITH, /ADD)
   
   k=0
+  ; setting for STANDARD user
+  applicationUserType=self->getUserType()
+  self->setUserType, 0
+  saveEntity=self.entityDisplay
+  saveElab=self.elaborationDisplay
+  ent=obj_new('EntityDisplayInfo')
+  elab=obj_new('ElaborationDisplayInfo')
+  self->updateElaborationDisplay, elab
+  self->updateEntityDisplay, ent
+  ;; end
+  
   for i=0, n_elements(entList)-1 do begin
     for j=0, n_elements(elabList)-1 do begin
       entId=(strsplit(entList[i], '_', /EXTRACT))[0]
@@ -585,8 +615,15 @@ PRO FMApplication::testPlotQuality
       self->doTestBatch, batchName, entList[i], elabList[j], wDir, resDir
     endfor
   endfor
+  ; restore setting for this user
   self->setTestMode, 0
   self->setLogMode, 0
+  obj_destroy, elab
+  obj_destroy, ent
+  self->setUserType, applicationUserType
+  self->updateElaborationDisplay, saveElab
+  self->updateEntityDisplay, saveEntity
+  ;end
   a=self->dialogMessage('Test done', /INFO)
   
 END
@@ -1671,16 +1708,15 @@ PRO FMApplication::displayCompositeBatchGUI
     self.lastView->show
   endif else begin
     ;self.benchMarkView=obj_new('FMBenchMarkCreationGUI', self.benchMarkDisplay->Clone(/DEEP), self)
-    self->setLastUserType, self->getUserType()
-    ;self.mainConfig->setUserType, 2
-    ;standard
+    applicationUserType=self->getUserType()
+    ;standard (As request by JRC-Staff)
     self->setUserType, 0
     bEntityDI=obj_new('EntityDisplayInfo')
     self->initEntityDisplay, bEntityDI, self.mainConfig, self.categoryList, self.modelList, self.scenarioList, self.observedList, self.parameterTypeList, self.parameterList, self.monitoringGroupStatList
     bElabDI=obj_new('ElaborationDisplayInfo')
     ;self->initElaborationDisplay, self.mainConfig, self.diagramList, self.axisTypeList, self.groupByStatList, self.groupByTimeList, self.seasonList, self.dayPeriodList
     self->initElaborationDisplay, bElabDI, self.mainConfig, self.diagramList, self.groupByStatList, self.groupByTimeList, self.seasonList, self.dayPeriodList
-    self.compositeBatchMgr= obj_new('CompositeBatchManager', self, bEntityDI, bElabDI)
+    self.compositeBatchMgr= obj_new('CompositeBatchManager', self, bEntityDI, bElabDI, applicationUserType)
     self.compositeBatchMgr->realize
   ;    self.benchMarkView=obj_new('FMBenchMarkCreationGUI', obj_new(""), self, bEntityDI, bElabDI)
   ;    self.benchMarkView->realize
@@ -2143,9 +2179,7 @@ FUNCTION FMApplication::restoreRequest, fileName, WORKINGDIR=WORKINGDIR, BATCH=B
 
   request=obj_new('Request')
   ;print, self.lastUserType
-  self->setLastUserType, self->getUserType()
-  print, self.lastUserType
-  self->setUserType
+  applicationUT=self->getUserType()
   if (request->restoreData(fileName)) then begin
     ; MM summer 2012 Start
     ;request->setScaleInfo, self->getScaleInfo()
@@ -2159,7 +2193,6 @@ FUNCTION FMApplication::restoreRequest, fileName, WORKINGDIR=WORKINGDIR, BATCH=B
   endif else begin
     msg=self->dialogMessage(['Batch restored failed from:', '<'+fileName+'> file.'], title=['Request'], /INFORMATION)
   endelse
-  self->setUserType, lastUserType
   
 END
 
@@ -2376,7 +2409,7 @@ PRO FMApplication::startUp
     self->startJournaling
     confDir=self.fileSystemMgr->getConfigurationDir(/WITH)
     self->loadInitFileData, parameterName=parameterName, parameterValue=parameterValue
-      
+    
     lookUpIdx=(where(parameterName eq 'STARTUP_LOOKUP'))[0]
     if lookUpIdx[0] eq -1 then doLookUp=1 else doLookUp=fix(parameterValue[lookUpIdx])
     if doLookUp then self.fileSystemMgr->lookUpSystemData, modelInfo=modelInfo
@@ -2601,6 +2634,20 @@ PRO FMApplication::initEntityDisplay, entityDisplay, mainConfig, categoryList, m
 END
 
 ;PRO FMApplication::initElaborationDisplay, mainConfig, diagramList, axisTypeList, groupByStatList, groupByTimeList, seasonList, dayperiodList, parameterTypeList, parameterList
+PRO FMApplication::updateElaborationDisplay, elabInfo
+
+  self.mainConfig->setUserType, self->getUserType()
+  self->initElaborationDisplay, elabInfo, self.mainConfig, self.diagramList, self.groupByStatList, self.groupByTimeList, self.seasonList, self.dayPeriodList
+  
+END
+
+PRO FMApplication::updateEntityDisplay, entityInfo
+
+  self.mainConfig->setUserType, self->getUserType()
+  self->initEntityDisplay, entityInfo, self.mainConfig, self.categoryList, self.modelList, self.scenarioList, self.observedList, self.parameterTypeList, self.parameterList, self.monitoringGroupStatList
+  
+END
+
 PRO FMApplication::initElaborationDisplay, elabDisplay, mainConfig, diagramList, groupByStatList, groupByTimeList, seasonList, dayperiodList, parameterTypeList, parameterList
 
   elabList=mainConfig->getElaborationList()
@@ -2792,7 +2839,7 @@ END
 PRO FMApplication__Define
 
   Struct = { FMApplication , $
-    lastUserType: 0, $
+    ;lastUserType: 0, $
     mainView : obj_new(), $
     benchmarkView: obj_new(), $
     entityView: obj_new(), $

@@ -337,8 +337,9 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   nsteps=n_elements(STEPS)
   itgen=1 & itobs=1 & itmod=1 & itobsmod=1
   labok=lonarr(nsteps)
+;KeesC 11FEB2015  
   base = WIDGET_BASE(/ROW,title='DELTACHECK_IO *** '+version, MBAR=WID_MENU, $
-    TLB_FRAME_ATTR=1, uvalue=deltaMgr, /TLB_KILL_REQUEST_EVENTS, event_pro='DeltaCheck_IO_event', /ROW)
+    TLB_FRAME_ATTR=1, uvalue=deltaMgr, /TLB_KILL_REQUEST_EVENTS, event_pro='DeltaCheck_IO_event', /ROW,xsize=1200)
   base1=WIDGET_BASE(base,/row,space=0)
   base110=widget_base(base1,/column)
 
@@ -379,14 +380,16 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   labMod=lonarr(5)
   baseM2=lonarr(5)
   labelXsize=80
-  textXsize=160
+;KeesC 11FEB2015  
+  textXsize=300
   for i=0,3 do begin
     baseM2(i)=widget_base(base11,/row,space=0)
     k++
     labMod(i)=widget_label(baseM2(i),value=steps(k),/align_left)
     labok(k)=widget_label(baseM2(i),value=oktxt,/align_left)
   endfor
-  butOM=cw_bgroup(base11,space=0, xpad=0, ypad=0, /column,/nonexclusive,'OBS/MOD',uvalue='STEPOM',set_value=[1], font='times Roman*12*bold')
+;KeesC 11FEB2015  
+  butOM=cw_bgroup(base11,space=0, xpad=0, ypad=0, /column,/nonexclusive,'OBS/MOD',uvalue='STEPOM',set_value=[1]);, font='times Roman*12*bold')
   labOM=lonarr(2)
   baseOM2=lonarr(3)
   for i=0,1 do begin
@@ -396,7 +399,8 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     labok(k)=widget_label(baseOM2(i),value=oktxt,/align_left)
   endfor
   secondColumn=widget_base(base1,/column)
-  thirdColumn=widget_base(base1,/column)
+;KeesC 11FEB2015  
+  thirdColumn=widget_base(base1,/column,xsize=425)
 
   lab121=widget_label(secondColumn,value='FILE LOCATIONS',font='times Roman*16*bold', /ALIGN_RIGHT)
   
