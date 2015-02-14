@@ -358,13 +358,13 @@ PRO CompositeBatchManager::updateToCaller
   self.mainMgr->setBlockWindowControl, /OFF
   fileName=self.mainMgr->saveBatch("", "", splitBatchInfo, /GUI)
   if fileName ne '' and self->getBenchMarkSaveMode() eq 'MENU' then self.mainMgr->updateMenuBenchMarkInfoContents, fileName, self->getBenchMarkTreeElementName(), self->getBenchMarkTreeFatherElementCode()
-  self.mainMgr->restoreUserType
+  self.mainMgr->setUserType, self.userType
   
 END
 
 PRO CompositeBatchManager::exitRequest
 
-  self.mainMgr->restoreUserType
+  self.mainMgr->setUserType, self.userType
   self.mainMgr->enable
   
 END
@@ -512,8 +512,9 @@ END
 ;*************************************************************
 ; constructor / destructor
 ;*************************************************************
-FUNCTION CompositeBatchManager::init, mainMgr, sampleEntity, sampleElaboration;, benchMarkTreeInfo
+FUNCTION CompositeBatchManager::init, mainMgr, sampleEntity, sampleElaboration, userType;, benchMarkTreeInfo
 
+  self.userType=userType
   self.mainMgr=mainMgr
   self.tempBatchElaborationInfo=sampleElaboration
   self.tempBatchEntityInfo=sampleEntity
@@ -568,6 +569,7 @@ PRO CompositeBatchManager__Define
     benchMarkTreeFatherElementCode: 0, $
     benchMarkTreeElementName: '', $
     benchMarkTreeFatherLevel: 0, $
+    userType: 0, $
     Inherits Object $
     }
     

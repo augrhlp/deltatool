@@ -1,13 +1,13 @@
 @DeltaCheck_io_definecommon
 pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   common keesc1
-  
+
   conversionStruct={startUpFile:'', $
     startHour:0, endHour:0, inputDir:'', outputDir:'', $
     prefixId:'', modelName:'', fulloutFileName:'', stringStartHour:'', stringEndHour:'', $
     logWin:0l, PROGRESSBAR:0b}
   csv2cdfInfo=replicate(conversionStruct, 1)
-  
+
   ;STEP 01: Check on existence of directories
   ;STEP 02: Check on existence of STARTUPfile
   ;STEP 03: MODEL/PARAMETERS/MONITORING sections in STARTUPfile
@@ -28,14 +28,14 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   ;STEP 17: Check on MOD NaN/Inf/Extreme values
   ;STEP 18: MOD availability at stations for STARTUP species (%)
   ;STEP 19: Basic Statistics
-  
-  
+
+
   ; *******************************************************************************************************
   ; Counter
   ;nrlist=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19',$
   ;        '20','21','22','23','24','25']
   ;step='STEP'+nrlist
-  
+
   ; *******************************************************************************************************
   atxt=' '
   atxt1=' '
@@ -49,7 +49,7 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   staterror=strarr(6000)
   spec_stations=strarr(6000)
   ierror=0
-  
+
   ; *******************************************************************************************************
   ;*******************************************************************************************************
   ; Test on existence of directories
@@ -143,15 +143,15 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   endif
   printf,11,' '
   widget_control,labok(1),set_value=' *OK* '
-  
+
   leapyear=0
   if 4*(fix(year)/4) eq fix(year) then leapyear=1
   YearCheckWindow=year
   YearStartup=fix(year)
-  
+
   ; *******************************************************************************************************
   if itgen eq 1 then begin  ;startup
-  
+
     widget_control,labprog_txt,set_value='STEP 02'
     ; Test on existence of startup.ini
     printf,11,'***********************************************'
@@ -180,9 +180,9 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
     endelse
     printf,11,' '
     widget_control,labok(2),set_value=' *OK* '
-    
+
     ; *******************************************************************************************************
-    
+
     widget_control,labprog_txt,set_value='STEP 03'
     ; test on existence of sections SCALE/PARAMETERS/MONITORING in startup.ini
     printf,11,'*********************************************************'
@@ -194,6 +194,7 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
     check_MODEL=0
     check_PARAMETERS=0
     check_MONITORING=0
+
     while ~eof(1) do begin
       atxt=discardComments(1)
       if atxt eq '[MODEL]' then begin
@@ -249,7 +250,6 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
         printf,11,txt
         txtall=[txt,txtall]
         widget_control,labcom_txt,set_value=txtall
-        continue
         if fix(fileYear) lt 1900 or fix(fileYear) gt 2100 then begin
           txt='STEP 03: WARNING! YEAR LT 1900 or YEAR GT 2100. MODEL section in STARTUPfile'
           txtall=[txt,txtall]
@@ -261,7 +261,6 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
           txt='STEP 03 OK: 1900 < YEAR < 2100'
           txtall=[txt,txtall]
           widget_control,labcom_txt,set_value=txtall
-          continue
         endelse
       endif
       if atxt eq '[PARAMETERS]' then begin
@@ -302,9 +301,9 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
         txt='STEP 03 OK: MONITORING section exists in STARTUPfile'
         txtall=[txt,txtall]
         widget_control,labcom_txt,set_value=txtall
-        continue
       endelse
     endif
+
   endwhile
   if check_MODEL eq 0 then begin
     txt='STEP 03: STOP! No [MODEL] section in STARTUPfile file or check spelling'
@@ -341,14 +340,14 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   endif
   printf,11,' '
   widget_control,labok(3),set_value=' *OK* '
-  
-  ; *******************************************************************************************************
-  
+  ;
+  ;  ; *******************************************************************************************************
+  ;
   widget_control,labprog_txt,set_value='STEP 04'
   ; Start read section PARAMETERS from startup.ini
-  
+
   readSpec
-  
+
   printf,11,'*************************************************************'
   printf,11,'***         STEP 04                                         *'
   printf,11,'*** Read Species from PARAMETERS section in STARTUPfile     *'
@@ -410,14 +409,14 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
     return
   endelse
   widget_control,labok(4),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
-  
+
   widget_control,labprog_txt,set_value='STEP 05'
   ;Start read section MONITORING from startupfile
-  
+
   readstatspec
-  
+
   printf,11,'*************************************************************'
   printf,11,'***         STEP 05                                         *'
   printf,11,'*** Read Stations from MONITORING section in STARTUPfile    *'
@@ -456,7 +455,7 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
     ierror=1
     return
   endelse
-  
+
 endif   ; end itgen general
 
 ; *******************************************************************************************************
@@ -465,9 +464,9 @@ endif   ; end itgen general
 if itobs eq 1 then begin
 
   ReadSpec
-  
+
   ReadStatSpec
-  
+
   widget_control,labprog_txt,set_value='STEP 06'
   ;KeesC 18JAN2015 12 lines
   Nres0=sort(strupcase(statnames))
@@ -531,9 +530,9 @@ if itobs eq 1 then begin
   ;KeesC 18JAN2015 1 line
   printf,12,' '
   widget_control,labok(6),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
-  
+
   widget_control,labprog_txt,set_value='STEP 07'
   printf,11,'***************************************************************'
   printf,11,'***         STEP 07                                           *'
@@ -541,25 +540,68 @@ if itobs eq 1 then begin
   printf,11,'***************************************************************'
   print,'STEP 07'
   dir_obs=dir_obs+path_sep()
-  filenames=file_search(dir_obs+'*.csv',count=count_filenames)
-  ; change the way to extract filename
-  slashPos=strpos(filenames, path_sep(), /REVERSE_SEARCH)
-  for i=0,count_filenames-1 do begin
-    filenames[i]=strmid(filenames[i],slashPos[i]+1,100)
-    res=strsplit(filenames(i),'.',/extract)
-    filenames(i)=res(0)
-  endfor
+  fileYearly=file_search(dir_obs+'OBS_Yearly.csv',count=count_fileY)
+  if count_fileY eq 0 then begin   ; not yearly
+    filenames=file_search(dir_obs+'*.csv',count=count_filenames)
+    slashPos=strpos(filenames, path_sep(), /REVERSE_SEARCH)
+    for i=0,count_filenames-1 do begin
+      filenames[i]=strmid(filenames[i],slashPos[i]+1,100)
+      res=strsplit(filenames(i),'.',/extract)
+      filenames(i)=res(0)
+    endfor
+  endif else begin
+    atxt=' '
+    get_lun,lunY
+    openr,lunY,dir_obs+'OBS_Yearly.csv'
+    readf,lunY,atxt
+    res=strsplit(atxt,';',/extract)
+    if strlowcase(res[0]) ne 'yearlyavg' or n_elements(res) le 2 then begin
+      txt='STEP 07: STOP! Incorrect first line in OBS_Yearly.csv'
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+      txtall=['STOP',txtall]
+      widget_control,labcom_txt,set_value=txtall
+      close,lunY
+      free_lun,lunY
+      close,11
+      close,12
+      ierror=1
+      return
+    endif
+    paramsYearlyObs=res[2:n_elements(res)-1]
+    YearOBS=fix(res(1))
+    itel=0
+    filenames=strarr(2000)
+    while not(eof(lunY)) do begin
+      readf,lunY,atxt
+      res=strsplit(atxt,';',/extract)
+      filenames(itel)=res(0)
+      itel=itel+1
+    endwhile
+    filenames=filenames(0:itel-1)
+    close,lunY
+    free_lun,lunY
+    count_filenames=itel
+  endelse
   printf,11,'Nb of stations listed in STARTUPfile = ',nstat
   printf,11,'Nb of OBS-stations listed in STARTUPfile = ',numb_OBS
   printf,11,'Nb of NoOBS-stations listed in STARTUPfile = ',numb_NoOBS
-  printf,11,'Nb of files in MONITORING_DIR  = ', count_filenames
+  if count_fileY eq 0 then printf,11,'Nb of files in MONITORING_DIR  = ', count_filenames
+  if count_fileY eq 1 then printf,11,'Nb of stations in OBS_Yearly.csv  = ', count_filenames
   if numb_OBS le count_filenames then begin
-    printf,11,'STEP 07 OK: Nb of OBS-stations in STARTUPfile **LE** Nb of station files in MONITORING_DIR'
-    txt='STEP 07 OK: Nb of OBS-stations in STARTUPfile **LE** Nb of station files in MONITORING_DIR'
+    if count_fileY eq 0 then begin
+      printf,11,'STEP 07 OK: Nb of OBS-stations in STARTUPfile **LE** Nb of station files in MONITORING_DIR'
+      txt='STEP 07 OK: Nb of OBS-stations in STARTUPfile **LE** Nb of station files in MONITORING_DIR'
+    endif
+    if count_fileY eq 1 then begin
+      printf,11,'STEP 07 OK: Nb of OBS-stations in STARTUPfile **LE** Nb of stations in OBS_Yearly.csv'
+      txt='STEP 07 OK: Nb of OBS-stations in STARTUPfile **LE** Nb of stations in OBS_Yearly.csv'
+    endif
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endif else begin
-    txt='STEP 07: STOP! Nb of OBS-stations in STARTUPfile **GT** Nb of station files in MONITORING_DIR'
+    if count_fileY eq 0 then txt='STEP 07: STOP! Nb of OBS-stations in STARTUPfile **GT** Nb of station files in MONITORING_DIR'
+    if count_fileY eq 1 then txt='STEP 07: STOP! Nb of OBS-stations in STARTUPfile **GT** Nb of stations in OBS_Yearly.csv'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
     txtall=['STOP',txtall]
@@ -571,10 +613,10 @@ if itobs eq 1 then begin
   endelse
   printf,11,' '
   widget_control,labok(7),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ; consistency between station names and csv files
-  
+
   widget_control,labprog_txt,set_value='STEP 08'
   printf,11,'****************************************************'
   printf,11,'***         STEP 08                                *'
@@ -583,6 +625,7 @@ if itobs eq 1 then begin
   print,'STEP 08'
   count_file=0
   inconsistent_files=' '
+  fileYearly=file_search(dir_obs+'OBS_Yearly.csv',count=count_fileY)
   for i=0,n_elements(statnames)-1 do begin
     if strupcase(spec_stations(i)) ne 'NOOBS' then begin
       cc=where(strupcase(statnames(i)) eq strupcase(filenames), count)
@@ -594,7 +637,8 @@ if itobs eq 1 then begin
     txt='STEP 08: STOP! Inconsistent naming in STARTUPfile and OBSfiles'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
-    printf,11,'NO consistency in OBS-statnames and OBSfiles - Check the following stations:'
+    if count_fileY eq 0 then printf,11,'NO consistency in OBS-statnames and OBSfiles - Check the following stations:'
+    if count_fileY eq 1 then printf,11,'NO consistency in OBS-statnames and OBS_Yearly.csv - Check the following stations:'
     printf,11,inconsistent_files
     txtall=['STOP',txtall]
     widget_control,labcom_txt,set_value=txtall
@@ -603,17 +647,23 @@ if itobs eq 1 then begin
     ierror=1
     return
   endif else begin
-    printf,11,'STEP 08 OK: Consistency in OBS-statnames and OBSfiles'
-    txt='STEP 08 OK: Consistency in statnames and OBSfiles'
+    if count_fileY eq 0 then begin
+      printf,11,'STEP 08 OK: Consistency in OBS-statnames and OBSfiles'
+      txt='STEP 08 OK: Consistency in statnames and OBSfiles'
+    endif
+    if count_fileY eq 1 then begin
+      printf,11,'STEP 08 OK: Consistency in OBS-statnames and OBS_Yearly.csv'
+      txt='STEP 08 OK: Consistency in statnames and OBS_Yearly.csv'
+    endif
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endelse
   printf,11,' '
   widget_control,labok(8),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ; species consistency startup.ini and OBSfiles
-  
+
   widget_control,labprog_txt,set_value='STEP 09'
   printf,11,'**************************************************************'
   printf,11,'***         STEP 09                                          *'
@@ -621,44 +671,53 @@ if itobs eq 1 then begin
   printf,11,'**************************************************************'
   print,'STEP 09'
   iprob=0
-  for i=0,n_elements(statnames)-1 do begin
-    widget_control,labprog_txt,set_value='STEP 09: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
-    if strupcase(spec_stations(i)) ne 'NOOBS' then begin
-      fn=file_search(dir_obs+statnames[i]+'.csv',count=count)
-      if count eq 1 then begin
-        close,1 & openr,1,fn
-        speclist=strsplit(spec_stations(i),'*',/extract) ; speclist is list of specs at station i from startup.ini
-        readf,1,atxt  ; first line in obsfile
-        res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - YearlyAvg 2009 Param1 Param2
-        res=strcompress(res,/remove_all)
-        nres=n_elements(res)
-        ;        if strupcase(res(nres-1)) eq 'NOOBS' then begin
-        ;          close,1
-        ;          goto,nextstat09
-        ;        endif
-        if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
-          res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
-          nb_specstat=n_elements(res2)-2
-          spec_station=res2(2:nb_specstat+1) ; PM10 PM25
-        endif else begin                                   ; hourly obs values
-          nb_specstat=n_elements(res)-4
-          spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
-        endelse
-        ;if statnames[i] eq '42R801BORGERHOUT' then stop
-        for is=0,n_elements(speclist)-1 do begin
-          cc=where(speclist(is) eq spec_station,count)
-          if count eq 0 then begin
-            iprob=1
-            printf,11,'Inconsistent species: '+speclist(is)+' in STARTUPfile & NOT in ',statnames(i)
-          endif
-        endfor
-        close,1
+  fileYearly=file_search(dir_obs+'OBS_Yearly.csv',count=count_fileY)
+  if count_fileY eq 1 then begin
+    for is=0,n_elements(speclist)-1 do begin
+      cc=where(speclist(is) eq paramsYearlyObs,count)
+      if count eq 0 then begin
+        iprob=1
+        printf,11,'Inconsistent species: '+speclist(is)+' in STARTUPfile & NOT in OBS_Yearly.csv
       endif
-    endif
-    nextstat09:
-  endfor
+    endfor
+  endif
+  if count_fileY eq 0 then begin
+    for i=0,n_elements(statnames)-1 do begin
+      widget_control,labprog_txt,set_value='STEP 09: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+      if strupcase(spec_stations(i)) ne 'NOOBS' then begin
+        fn=file_search(dir_obs+statnames[i]+'.csv',count=count)
+        if count eq 1 then begin
+          close,1 & openr,1,fn
+          speclist=strsplit(spec_stations(i),'*',/extract) ; speclist is list of specs at station i from startup.ini
+          readf,1,atxt  ; first line in obsfile
+          res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - YearlyAvg 2009 Param1 Param2
+          res=strcompress(res,/remove_all)
+          nres=n_elements(res)
+          if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
+            res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
+            nb_specstat=n_elements(res2)-2
+            spec_station=res2(2:nb_specstat+1) ; PM10 PM25
+          endif else begin                                   ; hourly obs values
+            nb_specstat=n_elements(res)-4
+            spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
+          endelse
+          ;if statnames[i] eq '42R801BORGERHOUT' then stop
+          for is=0,n_elements(speclist)-1 do begin
+            cc=where(speclist(is) eq spec_station,count)
+            if count eq 0 then begin
+              iprob=1
+              printf,11,'Inconsistent species: '+speclist(is)+' in STARTUPfile & NOT in ',statnames(i)
+            endif
+          endfor
+          close,1
+        endif
+      endif
+      nextstat09:
+    endfor
+  endif
   if iprob eq 1 then begin
-    txt='STEP 09: STOP! Inconsistency of species in STARTUPfile (station lines) and OBSfile'
+    if count_fileY eq 0 then txt='STEP 09: STOP! Inconsistency of species in STARTUPfile (station lines) and OBSfile'
+    if count_fileY eq 1 then txt='STEP 09: STOP! Inconsistency of species in STARTUPfile (station lines) and OBS_Yearly.csv'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
     txtall=['STOP',txtall]
@@ -668,16 +727,22 @@ if itobs eq 1 then begin
     ierror=1
     return
   endif else begin
-    printf,11,'STEP 09 OK: Species at stations (from STARTUPfile) are also species in OBSfile for each station'
-    txt='STEP 09 OK: Species at station (from STARTUPfile) are also species in OBSfile for each station'
+    if count_fileY eq 0 then begin
+      printf,11,'STEP 09 OK: Species at stations (from STARTUPfile) are also species in OBSfile for each station'
+      txt='STEP 09 OK: Species at station (from STARTUPfile) are also species in OBSfile for each station'
+    endif
+    if count_fileY eq 1 then begin
+      printf,11,'STEP 09 OK: Species at stations (from STARTUPfile) are also species in OBS_Yearly.csv'
+      txt='STEP 09 OK: Species at station (from STARTUPfile) are also species in OBS_Yearly.csv'
+    endif
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endelse
   printf,11,' '
   widget_control,labok(9),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
-  
+
   widget_control,labprog_txt,set_value='STEP 10A'
   printf,11,'*****************************************************************'
   printf,11,'***         STEP 10A                                             *'
@@ -685,48 +750,62 @@ if itobs eq 1 then begin
   printf,11,'*****************************************************************'
   print,'STEP 10'
   iprob=0
-  for i=0,n_elements(statnames)-1 do begin
-    if strupcase(spec_stations(i)) ne 'NOOBS' then begin
-      fn=dir_obs+statnames[i]+'.csv'
-      fns=strmid(fn,strlen(dir_obs),100)
-      widget_control,labprog_txt,set_value='STEP 10: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
-      nlines=file_lines(fn)
-      close,1 & openr,1,fn
-      readf,1,atxt  ; first line in obsfile
-      res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year PM10 PM25
-      res=strcompress(res,/remove_all)
-      nres=n_elements(res)
-      ;      if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat10
-      if strlowcase(res[0]) eq 'yearlyavg' then YearObs=fix(res(1))
-      if strlowcase(res[0]) eq 'yearlyavg' and nlines ne 2 then begin
-        printf,11,'TimeLines OBSfile (yearly) '+fns+' NE 1 -----',nlines-2
-        iprob=1
-      endif
-      if strlowcase(res[0]) ne 'yearlyavg' then begin
-        if nlines eq 1 then begin
-          printf,11,'TimeLines OBSfile '+fns+' EQ 1 -----'
+  fileYearly=file_search(dir_obs+'OBS_Yearly.csv',count=count_fileY)
+  if count_fileY eq 1 then begin
+    if YearOBS lt 1900 or YearOBS gt 2100 then begin
+      printf,11,'Year may be out of range '
+      txt='STEP 10: WARNING! Year may be out of range '
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+    endif
+    txt='STEP 10 OK'
+    txtall=[txt,txtall]
+    widget_control,labcom_txt,set_value=txtall
+  endif
+  if count_fileY eq 0 then begin
+    for i=0,n_elements(statnames)-1 do begin
+      if strupcase(spec_stations(i)) ne 'NOOBS' then begin
+        fn=dir_obs+statnames[i]+'.csv'
+        fns=strmid(fn,strlen(dir_obs),100)
+        widget_control,labprog_txt,set_value='STEP 10: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+        nlines=file_lines(fn)
+        close,1 & openr,1,fn
+        readf,1,atxt  ; first line in obsfile
+        res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year PM10 PM25
+        res=strcompress(res,/remove_all)
+        nres=n_elements(res)
+        ;      if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat10
+        if strlowcase(res[0]) eq 'yearlyavg' then YearObs=fix(res(1))
+        if strlowcase(res[0]) eq 'yearlyavg' and nlines ne 2 then begin
+          printf,11,'TimeLines OBSfile (yearly) '+fns+' NE 1 -----',nlines-2
           iprob=1
         endif
-        while not(eof(1)) do begin
-          readf,1,atxt
-          res1=strsplit(atxt,';',/extract)
-          if n_elements(res1) le 3 then begin
-            printf,11,'Date format not correct '+fns
+        if strlowcase(res[0]) ne 'yearlyavg' then begin
+          if nlines eq 1 then begin
+            printf,11,'TimeLines OBSfile '+fns+' EQ 1 -----'
             iprob=1
           endif
-          datum=res1(0:3)
-          YearOBS=fix(datum(0))
-          if (fix(datum(0)) lt 1900 or fix(datum(0)) gt 2100) or (fix(datum(1)) le 0 or fix(datum(1)) ge 13) or $
-            (fix(datum(2)) le 0 or fix(datum(2)) ge 32) or (fix(datum(3)) le -1 or fix(datum(3)) ge 25) then begin
-            printf,11,'Date format not correct '+fns
-            iprob=1
-          endif
-        endwhile
+          while not(eof(1)) do begin
+            readf,1,atxt
+            res1=strsplit(atxt,';',/extract)
+            if n_elements(res1) le 3 then begin
+              printf,11,'Date format not correct '+fns
+              iprob=1
+            endif
+            datum=res1(0:3)
+            YearOBS=fix(datum(0))
+            if (fix(datum(0)) lt 1900 or fix(datum(0)) gt 2100) or (fix(datum(1)) le 0 or fix(datum(1)) ge 13) or $
+              (fix(datum(2)) le 0 or fix(datum(2)) ge 32) or (fix(datum(3)) le -1 or fix(datum(3)) ge 25) then begin
+              printf,11,'Date format not correct '+fns
+              iprob=1
+            endif
+          endwhile
+        endif
+        nextstat10:
+        close,1
       endif
-      nextstat10:
-      close,1
-    endif
-  endfor
+    endfor
+  endif
   if YearOBS ne YearStartup then begin
     txt='STEP 10: WARNING! YearOBS ('+strcompress(YearOBS,/remove_all)+') NE YearStartup ('+$
       strcompress(YearStartup,/remove_all)+')'
@@ -734,7 +813,7 @@ if itobs eq 1 then begin
     widget_control,labcom_txt,set_value=txtall
   endif
   if iprob eq 1 then begin
-    txt='STEP 10: STOP! TimeLines OBSfile EQ 1 or Date format not correct'
+    if count_fileY eq 0 then txt='STEP 10: STOP! TimeLines OBSfile EQ 1 or Date format not correct'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
     txtall=['STOP',txtall]
@@ -744,7 +823,7 @@ if itobs eq 1 then begin
     ierror=1
     return
   endif
-  if iprob eq 0 then begin
+  if iprob eq 0 and count_fileY eq 0 then begin
     csv2cdfInfo.inputDir=dir_obs
     csv2cdfInfo.startHour=0
     csv2cdfInfo.endHour=8760
@@ -761,168 +840,238 @@ if itobs eq 1 then begin
   endif
   printf,11,' '
   widget_control,labok(10),set_value=' *OK* '
-  
-  if getenv('DO_OBS_CDF_CONVERSION') eq '1' then begin
-    widget_control,labprog_txt,set_value='STEP 11'
-    a=dialog_message('Now convert to cdf format the observations...', title='CDF conversion')
+
+  if count_fileY eq 0 then begin
+    if getenv('DO_OBS_CDF_CONVERSION') eq '1' then begin
+      widget_control,labprog_txt,set_value='STEP 11'
+      a=dialog_message('Now convert to cdf format the observations...', title='CDF conversion')
+; PHIL 14/02/15 Block below seems to belong to Mirko (3 lines)
     fm=deltaMgr->getFileSystemMgr()
     csv2cdfInfo.inputDir=fm->cleanPath(csv2cdfInfo.inputDir)
     csv2cdfInfo.outputDir=fm->cleanPath(csv2cdfInfo.outputDir)
-    csv2cdf, csv2cdfInfo.startUpFile, $
-      csv2cdfInfo.startHour, csv2cdfInfo.endHour, csv2cdfInfo.inputDir, csv2cdfInfo.outputDir, $
-      csv2cdfInfo.prefixId, csv2cdfInfo.modelName, csv2cdfInfo.fulloutFileName, csv2cdfInfo.stringStartHour, $
-      csv2cdfInfo.stringEndHour, $
-      logWin=labcom_txt, PROGRESSBAR=csv2cdfInfo.PROGRESSBAR
-    txt='STEP 11 OK: convert to cdf format the observations OK'
-    txtall=[txt,txtall]
-    widget_control,labcom_txt,set_value=txtall
-  printf,11,' '
-  widget_control,labok(11),set_value=' *OK* '
+      csv2cdf, csv2cdfInfo.startUpFile, $
+        csv2cdfInfo.startHour, csv2cdfInfo.endHour, csv2cdfInfo.inputDir, csv2cdfInfo.outputDir, $
+        csv2cdfInfo.prefixId, csv2cdfInfo.modelName, csv2cdfInfo.fulloutFileName, csv2cdfInfo.stringStartHour, $
+        csv2cdfInfo.stringEndHour, $
+        logWin=labcom_txt, PROGRESSBAR=csv2cdfInfo.PROGRESSBAR
+      txt='STEP 11 OK: convert to cdf format the observations OK'
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+      printf,11,' '
+      widget_control,labok(11),set_value=' *OK* '
+    endif
   endif
   ; *******************************************************************************************************
   ; checking observation availability per species
   ;test 11
-  
+
   widget_control,labprog_txt,set_value='STEP 11'
   printf,11,'***********************************************************'
   printf,11,'***           STEP 11                                     *'
   printf,11,'*** OBS availability at stations (%), and Extreme Values  *'
   printf,11,'***********************************************************'
   printf,11,'See SummaryFile'
-  printf,11,' '
+  ;  printf,11,' '
   printf,12,'***********************************************************'
   printf,12,'***           STEP 11                                     *'
   printf,12,'*** OBS availability at stations (%), and Extreme Values  *'
   printf,12,'***********************************************************'
   print,'STEP 11'
-  poll=fltarr(n_elements(statnames),n_elements(spec),8784)
-  poll(*,*,*)=-999.
-  ipoll=strarr(n_elements(statnames),n_elements(spec))
-  ipoll(*,*)='.'
   sumfile=fltarr(n_elements(statnames),n_elements(spec),6) & sumfile(*,*,*)=-999
-  extvalues=0
-  day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
-  for i=0,n_elements(statnames)-1 do begin
-    widget_control,labprog_txt,set_value='STEP 12: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
-    if strupcase(spec_stations(i)) ne 'NOOBS' then begin
-      fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
-      if count eq 1 then begin
-        close,1 & openr,1,fn
-        readf,1,atxt
-        res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
-        res=strcompress(res,/remove_all)
-        nres=n_elements(res)
-        ;        if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat11
-        if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
-          res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
-          nb_specstat=n_elements(res2)-2
-          spec_station=res2(2:nb_specstat+1) ; PM10 PM25
-        endif else begin                                   ; hourly obs values
-          nb_specstat=n_elements(res)-4
-          spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
-        endelse
-        if strlowcase(res[0]) ne 'yearlyavg' then begin
-          while not(eof(1)) do begin
+  if count_fileY eq 1 then begin
+    Values0=intarr(count_filenames) & values0(*)=0
+    atxt=' '
+    get_lun,lunY
+    openr,lunY,dir_obs+'OBS_Yearly.csv'
+    readf,lunY,atxt
+    npYO=n_elements(paramsYearlyObs)
+    iprob=0
+    iprob1=0
+    itel=0
+    itelP=0
+    itelE=0
+    while not(eof(lunY)) do begin
+      readf,lunY,atxt
+      itel=itel+1
+      res=strsplit(atxt,';',/extract)
+      fname=res(0)
+      nres=n_elements(res)
+      if nres-1 ne npYO then begin
+        iprob=1
+        itelP=itelP+1
+        printf,12,'In OBS_Yearly.csv: '+strtrim(fname,2)+' -- Number of Yearly values NOT equal to number of species'
+      endif
+      if nres-1 eq npYO then begin
+        fres=float(res(1:npYO))
+        for ip=0,npYO-1 do begin
+          if fres(ip) eq 0. then values0(itel)=1
+          if fres(ip) gt 1000. or (fres(ip) lt -100 and fres(ip) ne -999) then begin
+            iprob1=1
+            itelE=itelE+1
+            printf,12,'In OBS_Yearly.csv: '+strtrim(fname,2)+' -- Extreme value'
+          endif
+        endfor
+      endif
+    endwhile
+    if itelP ge 1 then printf,11,itelP,' Stations in OBS_Yearly.csv NOT correct'
+    if itelE ge 1 then printf,11,itelE,' Stations in OBS_Yearly.csv with extreme values'
+    close,lunY
+    free_lun,lunY
+    printf,11,' '
+    printf,12,' '
+    if iprob eq 0 and iprob1 eq 0 then begin
+      widget_control,labok(12),set_value=' *OK* '
+      txt='STEP 12 (Info) OK: Yearly OBS values, No extreme values'
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+    endif
+    if iprob eq 1 then begin
+      txt='STEP 12: STOP! Stations in OBS_Yearly.csv NOT correct'
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+      txtall=['STOP',txtall]
+      widget_control,labcom_txt,set_value=txtall
+      close,11
+      close,12
+      ierror=1
+      return
+    endif
+    if iprob1 eq 1 then begin
+      txt='STEP 12: WARNING! Extreme values in OBS_Yearly.csv'
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+    endif
+  endif
+  if count_fileY eq 0 then begin
+    poll=fltarr(n_elements(statnames),n_elements(spec),8784)
+    poll(*,*,*)=-999.
+    ipoll=strarr(n_elements(statnames),n_elements(spec))
+    ipoll(*,*)='.'
+    sumfile=fltarr(n_elements(statnames),n_elements(spec),6) & sumfile(*,*,*)=-999
+    extvalues=0
+    day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
+    for i=0,n_elements(statnames)-1 do begin
+      widget_control,labprog_txt,set_value='STEP 12: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+      if strupcase(spec_stations(i)) ne 'NOOBS' then begin
+        fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
+        if count eq 1 then begin
+          close,1 & openr,1,fn
+          readf,1,atxt
+          res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
+          res=strcompress(res,/remove_all)
+          nres=n_elements(res)
+          ;        if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat11
+          if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
+            res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
+            nb_specstat=n_elements(res2)-2
+            spec_station=res2(2:nb_specstat+1) ; PM10 PM25
+          endif else begin                                   ; hourly obs values
+            nb_specstat=n_elements(res)-4
+            spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
+          endelse
+          if strlowcase(res[0]) ne 'yearlyavg' then begin
+            while not(eof(1)) do begin
+              readf,1,atxt
+              res1=strsplit(atxt,';',/extract, /PRESERVE_NULL)
+              datum=res1(0:3)
+              k1=day_sum(fix(datum(1))-1)*24
+              k2=(fix(datum(2))-1)*24
+              k3=fix(datum(3))
+              iline=k1+k2+k3
+              if 4*(fix(datum(0))/4) ne fix(datum(0)) and iline ge 60*24 then iline=iline-24
+              ph=reform(float(res1(4:4+nb_specstat-1)))
+              for ip=0,nb_specstat-1 do begin
+                shlp=where(spec_station(ip) eq spec,nc)
+                if nc ge 1 then begin
+                  if ph(ip) gt 1000. or (ph(ip) lt -100 and ph(ip) ne -999) then begin
+                    ipoll(i,shlp[0])='X'
+                    extvalues=1
+                    poll(i,shlp[0],iline)=-999
+                  endif else begin
+                    poll(i,shlp[0],iline)=ph(ip)
+                  endelse
+                endif
+              endfor
+            endwhile
+          endif
+          if strlowcase(res[0]) eq 'yearlyavg' then begin
             readf,1,atxt
-            res1=strsplit(atxt,';',/extract, /PRESERVE_NULL)
-            datum=res1(0:3)
-            k1=day_sum(fix(datum(1))-1)*24
-            k2=(fix(datum(2))-1)*24
-            k3=fix(datum(3))
-            iline=k1+k2+k3
-            if 4*(fix(datum(0))/4) ne fix(datum(0)) and iline ge 60*24 then iline=iline-24
-            ph=reform(float(res1(4:4+nb_specstat-1)))
+            res2=strsplit(atxt,';',/extract)
+            ph=reform(float(res2(0:nb_specstat-1)))
             for ip=0,nb_specstat-1 do begin
               shlp=where(spec_station(ip) eq spec,nc)
               if nc ge 1 then begin
                 if ph(ip) gt 1000. or (ph(ip) lt -100 and ph(ip) ne -999) then begin
                   ipoll(i,shlp[0])='X'
                   extvalues=1
-                  poll(i,shlp[0],iline)=-999
+                  poll(i,shlp[0],*)=-999
                 endif else begin
-                  poll(i,shlp[0],iline)=ph(ip)
+                  poll(i,shlp[0],*)=ph(ip)
                 endelse
               endif
             endfor
-          endwhile
-        endif
-        if strlowcase(res[0]) eq 'yearlyavg' then begin
-          readf,1,atxt
-          res2=strsplit(atxt,';',/extract)
-          ph=reform(float(res2(0:nb_specstat-1)))
+          endif
+          hlp=where(poll lt -100,nc)
+          if nc ge 1 then poll(hlp)=!values.f_nan
           for ip=0,nb_specstat-1 do begin
             shlp=where(spec_station(ip) eq spec,nc)
             if nc ge 1 then begin
-              if ph(ip) gt 1000. or (ph(ip) lt -100 and ph(ip) ne -999) then begin
-                ipoll(i,shlp[0])='X'
-                extvalues=1
-                poll(i,shlp[0],*)=-999
-              endif else begin
-                poll(i,shlp[0],*)=ph(ip)
-              endelse
+              minv=min(poll(i,shlp[0],0:8759),/nan)
+              maxv=max(poll(i,shlp[0],0:8759),/nan)
+              meanv=mean(poll(i,shlp[0],0:8759),/nan)
+              sumfile(i,shlp[0],0:2)=[minv,maxv,meanv]
             endif
           endfor
         endif
-        hlp=where(poll lt -100,nc)
-        if nc ge 1 then poll(hlp)=!values.f_nan
-        for ip=0,nb_specstat-1 do begin
-          shlp=where(spec_station(ip) eq spec,nc)
-          if nc ge 1 then begin
-            minv=min(poll(i,shlp[0],0:8759),/nan)
-            maxv=max(poll(i,shlp[0],0:8759),/nan)
-            meanv=mean(poll(i,shlp[0],0:8759),/nan)
-            sumfile(i,shlp[0],0:2)=[minv,maxv,meanv]
-          endif
-        endfor
+        nextstat11:
+        close,1
       endif
-      nextstat11:
-      close,1
-    endif
-  endfor
-  apoll=finite(poll)
-  kc=where(apoll eq 0,nkc)
-  if nkc ge 1 then poll(kc)=-999
-  avail=fltarr(n_elements(statnames),n_elements(spec))
-  for istat=0,n_elements(statnames)-1 do begin
-    for is=0,n_elements(spec)-1 do begin
-      cc=where(poll(istat,is,0:8759) gt -800. ,count)
-      avail(istat,is)=count/8760.*100.
     endfor
-  endfor
-  printf,12,spec,'   Extr.Val.X',format='(18x,25a10)'
-  for istat=0,n_elements(statnames)-1 do begin
-    ExV=''
-    for ip=0,n_elements(spec)-1 do begin
-      ExV=ExV+ipoll(istat,ip)
+    apoll=finite(poll)
+    kc=where(apoll eq 0,nkc)
+    if nkc ge 1 then poll(kc)=-999
+    avail=fltarr(n_elements(statnames),n_elements(spec))
+    for istat=0,n_elements(statnames)-1 do begin
+      for is=0,n_elements(spec)-1 do begin
+        cc=where(poll(istat,is,0:8759) gt -800. ,count)
+        avail(istat,is)=count/8760.*100.
+      endfor
     endfor
-    stravail=string(reform(avail(istat,*)))
-    for is=0,n_elements(spec)-1 do begin
-      if avail(istat,is) eq 0. then stravail(is)='-'
+    printf,12,spec,'   Extr.Val.X',format='(18x,25a10)'
+    for istat=0,n_elements(statnames)-1 do begin
+      ExV=''
+      for ip=0,n_elements(spec)-1 do begin
+        ExV=ExV+ipoll(istat,ip)
+      endfor
+      stravail=string(reform(avail(istat,*)))
+      for is=0,n_elements(spec)-1 do begin
+        if avail(istat,is) eq 0. then stravail(is)='-'
+      endfor
+      printf,12,fix(istat+1),[statnames(istat),stravail,ExV],format='(i4,3x,a12,25a10)'
     endfor
-    printf,12,fix(istat+1),[statnames(istat),stravail,ExV],format='(i4,3x,a12,25a10)'
-  endfor
-  widget_control,labprog_txt,set_value=''
-  printf,12,' '
-  widget_control,labok(12),set_value=' *OK* '
-  txt='STEP 12 (Info) OK: OBS availability: see LogFile'
-  txtall=[txt,txtall]
-  widget_control,labcom_txt,set_value=txtall
-  if extvalues eq 0 then txt='STEP 12 OK: No Extreme OBS values'
-  if extvalues eq 1 then txt='STEP 12 (Info): Extreme OBS values: see LogFile'
-  txtall=[txt,txtall]
-  widget_control,labcom_txt,set_value=txtall
-  
+    widget_control,labprog_txt,set_value=''
+    printf,12,' '
+    widget_control,labok(12),set_value=' *OK* '
+    txt='STEP 12 (Info) OK: OBS availability: see LogFile'
+    txtall=[txt,txtall]
+    widget_control,labcom_txt,set_value=txtall
+    if extvalues eq 0 then txt='STEP 12 OK: No Extreme OBS values'
+    if extvalues eq 1 then txt='STEP 12 (Info): Extreme OBS values: see LogFile'
+    txtall=[txt,txtall]
+    widget_control,labcom_txt,set_value=txtall
+  endif
+
   ; *******************************************************************************************************
   ; Check OBS equal to zero (real or novalue ?)
   ;test 12
-  
+
   widget_control,labprog_txt,set_value='STEP 13'
   printf,11,'********************************************************'
   printf,11,'***           STEP 13                                  *'
   printf,11,'*** Check OBS equal to zero (real or novalue ?)        *'
   printf,11,'********************************************************'
-  ;  printf,11,'See SummaryFile'
-  printf,11,' '
+  printf,11,'See SummaryFile'
+  ;  printf,11,' '
   printf,12,'********************************************************'
   printf,12,'***           STEP 13                                  *'
   printf,12,'*** Check OBS equal to zero (real or novalue ?)        *'
@@ -933,96 +1082,116 @@ if itobs eq 1 then begin
   ipoll=strarr(n_elements(statnames),n_elements(spec))
   ipoll(*,*)='.'
   extvalues=0
-  day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
-  for i=0,n_elements(statnames)-1 do begin
-    widget_control,labprog_txt,set_value='STEP 13: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
-    if strupcase(spec_stations(i)) ne 'NOOBS' then begin
-      fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
-      if count eq 1 then begin
-        close,1 & openr,1,fn
-        readf,1,atxt
-        res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
-        res=strcompress(res,/remove_all)
-        nres=n_elements(res)
-        ;        if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat12
-        if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
-          res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
-          nb_specstat=n_elements(res2)-2
-          spec_station=res2(2:nb_specstat+1) ; PM10 PM25
-        endif else begin                                   ; hourly obs values
-          nb_specstat=n_elements(res)-4
-          spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
-        endelse
-        if strlowcase(res[0]) ne 'yearlyavg' then begin
-          while not(eof(1)) do begin
+  if count_fileY eq 1 then begin
+    printf,12,' '
+    for iv=0,count_filenames-1 do begin
+      if values0(iv) eq 1 then printf,12,'In OBS_Yearly.csv: '+strtrim(fname,2)+' -- OBS=0'
+    endfor
+    if fix(total(values0)) ge 1 then begin
+      txt='STEP 13 WARNING: Check OBS = 0: see LogFile'
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+      printf,11,fix(total(values0)),' Stations in OBS_Yearly.csv with OBS=0'
+    endif else begin
+      txt='STEP 13 OK: No OBS = 0'
+      txtall=[txt,txtall]
+      widget_control,labcom_txt,set_value=txtall
+      widget_control,labok(13),set_value=' *OK* '
+    endelse
+  endif
+  if count_fileY eq 0 then begin
+    day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
+    for i=0,n_elements(statnames)-1 do begin
+      widget_control,labprog_txt,set_value='STEP 13: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+      if strupcase(spec_stations(i)) ne 'NOOBS' then begin
+        fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
+        if count eq 1 then begin
+          close,1 & openr,1,fn
+          readf,1,atxt
+          res=strsplit(atxt,';',/extract) ; yyyy mm dd hh PM10 PM25- OR - year Param1 Param2
+          res=strcompress(res,/remove_all)
+          nres=n_elements(res)
+          ;        if strupcase(res(nres-1)) eq 'NOOBS' then goto,nextstat12
+          if strlowcase(res[0]) eq 'yearlyavg' then begin       ;if 'YearlyAvg'   YearlyAvg obs values
+            res2=strsplit(atxt,';',/extract)  ; YearlyAvg 2009 PM10 PM25
+            nb_specstat=n_elements(res2)-2
+            spec_station=res2(2:nb_specstat+1) ; PM10 PM25
+          endif else begin                                   ; hourly obs values
+            nb_specstat=n_elements(res)-4
+            spec_station=res(4:4+nb_specstat-1) ; PM10 PM25
+          endelse
+          if strlowcase(res[0]) ne 'yearlyavg' then begin
+            while not(eof(1)) do begin
+              readf,1,atxt
+              res1=strsplit(atxt,';',/extract,  /PRESERVE_NULL)
+              datum=res1(0:3)
+              k1=day_sum(fix(datum(1))-1)*24
+              k2=(fix(datum(2))-1)*24
+              k3=fix(datum(3))
+              iline=k1+k2+k3
+              if 4*(fix(datum(0))/4) ne fix(datum(0)) and iline ge 60*24 then iline=iline-24
+              ph=reform(float(res1(4:4+nb_specstat-1)))
+              for ip=0,nb_specstat-1 do begin
+                shlp=where(spec_station(ip) eq spec,nc)
+                if nc ge 1 then begin
+                  if abs(ph(ip)) lt 0.00001 then begin
+                    ipoll(i,shlp[0])='X'
+                    extvalues=1
+                    poll(i,shlp[0],iline)=-999
+                  endif else begin
+                    poll(i,shlp[0],iline)=0
+                  endelse
+                endif
+              endfor
+            endwhile
+          endif
+          if strlowcase(res[0]) eq 'yearlyavg' then begin
             readf,1,atxt
-            res1=strsplit(atxt,';',/extract,  /PRESERVE_NULL)
-            datum=res1(0:3)
-            k1=day_sum(fix(datum(1))-1)*24
-            k2=(fix(datum(2))-1)*24
-            k3=fix(datum(3))
-            iline=k1+k2+k3
-            if 4*(fix(datum(0))/4) ne fix(datum(0)) and iline ge 60*24 then iline=iline-24
-            ph=reform(float(res1(4:4+nb_specstat-1)))
+            res2=strsplit(atxt,';',/extract)
+            ph=reform(float(res2(0:nb_specstat-1)))
             for ip=0,nb_specstat-1 do begin
               shlp=where(spec_station(ip) eq spec,nc)
               if nc ge 1 then begin
                 if abs(ph(ip)) lt 0.00001 then begin
                   ipoll(i,shlp[0])='X'
                   extvalues=1
-                  poll(i,shlp[0],iline)=-999
+                  poll(i,shlp[0],*)=-999
                 endif else begin
-                  poll(i,shlp[0],iline)=0
+                  poll(i,shlp[0],*)=0
                 endelse
               endif
             endfor
-          endwhile
+          endif
+          close,1
         endif
-        if strlowcase(res[0]) eq 'yearlyavg' then begin
-          readf,1,atxt
-          res2=strsplit(atxt,';',/extract)
-          ph=reform(float(res2(0:nb_specstat-1)))
-          for ip=0,nb_specstat-1 do begin
-            shlp=where(spec_station(ip) eq spec,nc)
-            if nc ge 1 then begin
-              if abs(ph(ip)) lt 0.00001 then begin
-                ipoll(i,shlp[0])='X'
-                extvalues=1
-                poll(i,shlp[0],*)=-999
-              endif else begin
-                poll(i,shlp[0],*)=0
-              endelse
-            endif
-          endfor
-        endif
+        nextstat12:
         close,1
       endif
-      nextstat12:
-      close,1
-    endif
-  endfor
-  apoll=finite(poll)
-  kc=where(apoll eq 0,nkc)
-  if nkc ge 1 then poll(kc)=-999
-  printf,12,spec,'   Value=0',format='(18x,25a10)'
-  for istat=0,n_elements(statnames)-1 do begin
-    ExV=''
-    for ip=0,n_elements(spec)-1 do begin
-      ExV=ExV+ipoll(istat,ip)
     endfor
-    printf,12,fix(istat+1),[statnames(istat),ExV],format='(i4,3x,a12,25a10)'
-  endfor
-  widget_control,labprog_txt,set_value=''
-  printf,12,' '
-  widget_control,labok(12),set_value=' *OK* '
-  txt='STEP 13 (Info) OK: Check OBS = 0: see LogFile'
-  txtall=[txt,txtall]
-  widget_control,labcom_txt,set_value=txtall
-  if extvalues eq 0 then txt='STEP 13 OK: No OBS = 0'
-  if extvalues eq 1 then txt='STEP 13 (Info): OBS = 0: Make -999, see LogFile'
-  txtall=[txt,txtall]
-  widget_control,labcom_txt,set_value=txtall
-  
+    apoll=finite(poll)
+    kc=where(apoll eq 0,nkc)
+    if nkc ge 1 then poll(kc)=-999
+    printf,12,spec,'   Value=0',format='(18x,25a10)'
+    for istat=0,n_elements(statnames)-1 do begin
+      ExV=''
+      for ip=0,n_elements(spec)-1 do begin
+        ExV=ExV+ipoll(istat,ip)
+      endfor
+      printf,12,fix(istat+1),[statnames(istat),ExV],format='(i4,3x,a12,25a10)'
+    endfor
+    widget_control,labprog_txt,set_value=''
+    printf,12,' '
+;PHIL 14/02/15 Mirko has labok=12
+    widget_control,labok(13),set_value=' *OK* '
+    txt='STEP 13 (Info) OK: Check OBS = 0: see LogFile'
+    txtall=[txt,txtall]
+    widget_control,labcom_txt,set_value=txtall
+    if extvalues eq 0 then txt='STEP 13 OK: No OBS = 0'
+    if extvalues eq 1 then txt='STEP 13 (Info): OBS = 0: Make -999, see LogFile'
+    txtall=[txt,txtall]
+    widget_control,labcom_txt,set_value=txtall
+  endif
+  printf,11,' '
 endif   ; itobs
 ; *******************************************************************************************************
 ; *******************************************************************************************************
@@ -1066,13 +1235,13 @@ if itmod eq 1 then begin
   endelse
   printf,11,' '
   widget_control,labok(14),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ;test 14
-  
+
   readSpec
   readStatSpec
-  
+
   widget_control,labprog_txt,set_value='STEP 15'
   printf,11,'*****************************************************************'
   printf,11,'***         STEP 15                                             *'
@@ -1201,10 +1370,10 @@ if itmod eq 1 then begin
   endif
   printf,11,' '
   widget_control,labok(15),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ;check on length modeling data
-  
+
   widget_control,labprog_txt,set_value='STEP 16'
   printf,11,'**********************************************************************'
   printf,11,'***         STEP 16                                                  *'
@@ -1317,11 +1486,11 @@ if itmod eq 1 then begin
   endif
   printf,11,' '
   widget_control,labok(16),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ; checking mod extreme values
   ;test 16
-  
+
   widget_control,labprog_txt,set_value='STEP 17'
   printf,11,'**************************************************'
   printf,11,'***         STEP 17                              *'
@@ -1434,7 +1603,7 @@ if itmod eq 1 then begin
   endelse
   printf,11,' '
   widget_control,labok(17),set_value=' *OK* '
-  
+
 endif   ;itmod
 
 ; *******************************************************************************************************
@@ -1444,9 +1613,9 @@ endif   ;itmod
 if itobsmod eq 1 then begin
 
   ReadSpec
-  
+
   ReadStatSpec
-  
+
   widget_control,labprog_txt,set_value='STEP 18'
   printf,11,'****************************************************************'
   printf,11,'***           STEP 18                                          *'
@@ -1512,7 +1681,7 @@ if itobsmod eq 1 then begin
     params=res(2:n_elements(res)-1)
     nparams=n_elements(params)
   endif
-  
+
   if extension eq 'cdf' then begin
     for i=0,n_elements(statnames)-1 do begin
       widget_control,labprog_txt,set_value='STEP 18a: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
@@ -1586,9 +1755,42 @@ if itobsmod eq 1 then begin
       endfor
     endfor
   endif
-  
-  if itobs ne 1 then begin
-  
+
+; if itobs ne 1 then begin
+  fileYearly=file_search(dir_obs+'OBS_Yearly.csv',count=count_fileY)
+  if count_fileY eq 1 then begin
+    atxt=' '
+    get_lun,lunY
+    openr,lunY,dir_obs+'OBS_Yearly.csv'
+    readf,lunY,atxt
+    res=strsplit(atxt,';',/extract)
+    paramsYearlyObs=res[2:n_elements(res)-3]
+    npYO=n_elements(paramsYearlyObs)
+    valuesOBS=fltarr(count_filenames,npYO)
+    for i=0,count_filenames-1 do begin
+      readf,lunY,atxt
+      res=strsplit(atxt,';',/extract)
+      filenames(i)=strtrim(res(0),2)
+      valuesOBS(i,*)=float(res(1:npYO))
+    endfor
+    close,lunY
+    free_lun,lunY
+    nspec=n_elements(spec)
+    for i=0,n_elements(statnames)-1 do begin
+      cc=where(statnames(i) eq filenames,nc)
+      if nc eq 1 then begin
+        nr=cc[0]
+        valStat=reform(valuesOBS(nr,*))
+        for is=0,nspec-1 do begin
+          kk=where(spec(is) eq paramsYearlyObs,nk)
+          if nk eq 1 then begin
+            sumfile(i,is,0:2)=valStat(kk[0])
+          endif
+        endfor
+      endif
+    endfor
+  endif
+  if itobs ne 1 and count_fileY eq 0 then begin
     day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
     for i=0,n_elements(statnames)-1 do begin
       widget_control,labprog_txt,set_value='STEP 18b: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
@@ -1670,12 +1872,11 @@ if itobsmod eq 1 then begin
         close,1
       endif
     endfor
-    
   endif  ; itobs ne 1
-  
+
   if extension eq 'cdf' then ncdf_close,id
   if extension eq 'csv' then close,1
-  
+
   printf,12,strtrim(spec,2),format='(20x,25a8)'
   hlp=where(finite(sumfile) eq 0,nc)
   if nc ge 1 then sumfile(hlp)=-999
@@ -1687,7 +1888,7 @@ if itobsmod eq 1 then begin
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
   widget_control,labok(18),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ;
   widget_control,labprog_txt,set_value='STEP 19'
@@ -1723,7 +1924,7 @@ if itobsmod eq 1 then begin
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
   widget_control,labok(19),set_value=' *OK* '
-  
+
 endif  ; itobsmod
 
 ; *******************************************************************************************************

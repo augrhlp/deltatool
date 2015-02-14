@@ -116,16 +116,15 @@ PRO Elaboration::setUserType, userType
   endif
 
   if userType eq 1 then begin
-    idxs=where(thisList.isAdvanced)
+    idxs=indgen(n_elements(thisList))
+    ;idxs=where(thisList.isAdvanced)
   endif
 
   if userType eq 2 then begin
-    idxs=where(thisList.isAdvanced)
-  endif
-
-  if userType eq 9 then begin
     idxs=indgen(n_elements(thisList))
   endif
+  
+  if userType gt 2 then essage, 'naaaaaa'
 
 ;  print, '**userType**'
 ;  print, userType

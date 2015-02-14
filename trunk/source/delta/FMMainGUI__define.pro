@@ -288,8 +288,9 @@ END
 
 PRO FMMainGUI::startBenchMark, fileName, WORKINGDIR=WORKINGDIR, BATCH=BATCH, SAMEFILENAME=SAMEFILENAME
 
+  applicationUT=self.mgr->getUserType()
   self->restoreBatch, fileName, WORKINGDIR=WORKINGDIR, BATCH=BATCH, SAMEFILENAME=SAMEFILENAME
-  self.mgr->restoreUserType
+  self.mgr->setUserType, applicationUT
   
 END
 
@@ -697,7 +698,8 @@ PRO FMMainGUI::build
   ;autoFormatConversionBtt=widget_Button(helpMenu, VALUE='Convert observation (csv to cdf)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runBatchMenuSelection')
   
   if self.mgr->IsDeveloperUser() then testPlotIntegrityBtt=widget_Button(helpMenu, VALUE='Plot quality test integrity tool', UNAME='TESTPLOTQUALITYINTEGRITY', UVALUE='TESTQUALITYINTEGRITY_BTT', event_pro=self.eventPrefix+'testQualityMenuSelection', /SEPARATOR)
-  if self.mgr->IsAdvancedUser() then checkIntegrityBtt=widget_Button(helpMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
+  ;if self.mgr->IsAdvancedUser() then checkIntegrityBtt=widget_Button(helpMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
+  checkIntegrityBtt=widget_Button(helpMenu, VALUE='Data check integrity tool', UNAME='CHECKDATAINTEGRITY', UVALUE='CHECKDATAINTEGRITY_BTT', event_pro=self.eventPrefix+'checkDataIntegrityMenuSelection')
   
   wwwPageBtt=widget_Button(helpMenu, VALUE='DELTA WWW', UNAME='Download site...', UVALUE='OPENWWW_BTT', event_pro=self.eventPrefix+'downloadMenuSelection')
   aboutBtt=widget_Button(helpMenu, VALUE='About...', UNAME='About', UVALUE='DISPMAP', event_pro=self.eventprefix+'aboutSplash')
