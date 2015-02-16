@@ -228,7 +228,7 @@ PRO FMMainGUI::showAboutSplash
   ;getFairModeFileName
   if obj_valid(self.aboutGUI) then obj_destroy, self.aboutGUI
   logo=self.mgr->getSplashLogoImage()
-  self.aboutGUI=obj_new('FMLogoGUI', mgr, logo, self.mgr->getVersionCode(), self.mgr->getVersionDate())
+  self.aboutGUI=obj_new('FMLogoGUI', mgr, logo, self.mgr->getReleaseVersion(), self.mgr->getReleaseDate())
   self.aboutGUI->realize
   self.aboutGUI->moveToCenterScreen
   self.aboutGUI->showAboutSplash

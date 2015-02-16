@@ -3,6 +3,12 @@
 @../check_io/checkcriteria
 ;********************
 
+FUNCTION FMApplication::cleanPath, path
+
+  return, self.fileSystemMgr->cleanPath(path)
+  
+END
+
 PRO FMApplication::setUserType, value
 
   self.mainConfig->setUserType, value
@@ -982,15 +988,15 @@ FUNCTION FMApplication::setPSCharSizeFactor, value
   
 END
 
-FUNCTION FMApplication::getVersionDate
+FUNCTION FMApplication::getReleaseDate
 
-  return, self.versionDate
+  return, self.fileSystemMgr->getReleaseDate()
   
 END
 
-FUNCTION FMApplication::getVersionCode
+FUNCTION FMApplication::getReleaseVersion
 
-  return, self.fileSystemMgr->getVersion()
+  return, self.fileSystemMgr->getReleaseVersion()
   
   
 END

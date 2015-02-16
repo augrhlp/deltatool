@@ -18,6 +18,8 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   postfix= ''
   startHour= ''
   endHour= ''
+  dir_obs=''
+  dir_mod=''
   if obj_valid(deltaMgr) then begin
     fileMgr=deltaMgr->getFileSystemMgr()
     deltaMgr->closeAllFIles
@@ -98,7 +100,7 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   spa='              '
   
   base = WIDGET_BASE(/ROW,title=spa+'DELTATOOL_MODcsv2cdf *** '+version, $
-    MBAR=WID_MENU,xsize=xw,ysize=yw,TLB_FRAME_ATTR=1)
+    MBAR=WID_MENU,xsize=xw,ysize=yw,TLB_FRAME_ATTR=1,/TLB_KILL_REQUEST_EVENTS)
   base1=WIDGET_BASE(base,/column,space=10)
   labxx=widget_label(base1,value=' ',ysize=9)
   base1211=widget_base(base1,/row)
@@ -175,7 +177,9 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     nsavefile: 0, $
     infoWids : infoWids, $
     labWids:labWids, $
-    version :version $
+    version :version, $
+    dir_obs: dir_obs, $
+    dir_mod: dir_mod $
     }
     
   Widget_Control, base, SET_UVALUE=Ptr_New(pState, /NO_COPY)
