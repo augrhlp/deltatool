@@ -3,12 +3,18 @@ pro csv2cdf, startUpFile, $
     prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, $
     logWin=logWin, PROGRESSBAR=PROGRESSBAR
     
+  ; change this value where you're sure that everything went good and a right cdf was created.
+  processOK=0
+  checkInputDir=strpos(inputDir, path_sep(), /REVERSE_SEARCH)
+  checkOutputDir=strpos(outputDir, path_sep(), /REVERSE_SEARCH)
+  if strlen(inputDir)-1 ne checkInputDir then inputDir=inputDir+path_sep()
+  if strlen(outputDir)-1 ne checkOutputDir then outputDir=outputDir+path_sep()
   ;  startupini=startup   ;'d:\DeltaTool\resource\startup30km.ini'
   ;  modDir=dir_in   ;'d:\DeltaTool\data\modeling\'   ; change into modeling dir
   ;  outFile=dir_out+model   ; d:\DeltaTool\data\cdf_out\2009_MODEL_TIME.cdf'
   ;  startHour=hour0
   ;  endHour=hour1
-    
+  
   if keyword_set(PROGRESS_BAR) then a=dialog_message(title='Csv to Cdf', 'Now start cdf conversion of observation...')
   atxt=' '
   iyear=0 ; normal year
@@ -29,7 +35,12 @@ pro csv2cdf, startUpFile, $
   nspec=n_elements(species) & nstat=n_elements(statnames)
   polls=strarr(nspec)
   
-  idout=ncdf_create(fulloutFileName,/clobber)
+  ;tempFullOutFileName='temp_'+fulloutFileName
+  fNamePos=strpos(fulloutFileName, path_sep(), /REVERSE_SEARCH)
+  fName=strmid(fulloutFileName, fNamePos+1, strlen(fulloutFileName)-fNamePos)
+  folder=strmid(fulloutFileName, 0, fNamePos+1)
+  tempFullOutFileName=folder+'temp_'+fName
+  idout=ncdf_create(tempFullOutFileName,/clobber)
   dim_nv=ncdf_dimdef(idout,'V',nspec)
   dim_nt=ncdf_dimdef(idout,'T',hour1-hour0+1)
   vardim=[dim_nv,dim_nt]
@@ -72,6 +83,7 @@ pro csv2cdf, startUpFile, $
           ;widget_control,labcom_txt,set_value=txtall
           
           ierror=1
+          break
           return
         endif
       endif
@@ -102,11 +114,13 @@ pro csv2cdf, startUpFile, $
             endelse
             firstRow=0
           endif else begin
-            k1=day_sum(fix(info(1))-1)*24
-            k2=(fix(info(2))-1)*24
-            k3=fix(info(3))
-            k0=k1+k2+k3
-            polls(*)=-999
+            if fileTime eq 'H' then begin
+              k1=day_sum(fix(info(1))-1)*24
+              k2=(fix(info(2))-1)*24
+              k3=fix(info(3))
+              k0=k1+k2+k3
+              polls(*)=-999
+            endif
             for isp=0,nspec-1 do begin
               cc=where(specStat eq species(isp),nc)
               if fileTime eq 'H' then begin
@@ -132,8 +146,16 @@ pro csv2cdf, startUpFile, $
       Idvar=ncdf_varid(idout,name_var)
       ncdf_varput,idout,Idvar,storeData(*,hour0:hour1)
     endelse
+    processOK=1
   endfor
   ncdf_close,idout
+  ; only if everything goes fine rename...
+  if processOK then begin
+    file_move, tempFullOutFileName, fulloutFileName, /OVERWRITE
+  endif else begin
+    a=dialog_message(title='Wrong conversion', ['Delta can''t proceed, check your conversion settings.'], /ERROR)
+    file_delete, tempFullOutFileName
+  endelse
   ;widget_control,labpr_txt,set_value=' '
   txt='End CSV_to_CDF'
   addLogText, logWin, txt

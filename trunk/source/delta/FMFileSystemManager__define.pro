@@ -31,7 +31,7 @@ FUNCTION FMFileSystemManager::getReleaseDate
   
 END
 
-FUNCTION FMFileSystemManager::getVersion
+FUNCTION FMFileSystemManager::getReleaseVersion
 
   keyName='version'
   fileName='app.folder.ini'
@@ -2450,7 +2450,8 @@ END
 
 FUNCTION FMFileSystemManager::getObservedYearFile
 
- return, self->getObservedDataDir(/WITH)+'OBS'+self->getRunFileTimeSuffix()+self->getMonitoringCsvFileExtension()
+ ;return, self->getObservedDataDir(/WITH)+'OBS'+self->getRunFileTimeSuffix()+self->getMonitoringCsvFileExtension()
+ return, self->getObservedDataDir(/WITH)+'OBS_Yearly'+self->getMonitoringCsvFileExtension()
 
 END
 
@@ -2482,6 +2483,7 @@ FUNCTION FMFileSystemManager::getSplashLogoFileName
 
   fileName=self->getResourceDir(/WITH)
   fileName=fileName+"fairmode_logo.bmp"
+  ;fileName=fileName+"fairmode_logo.jpg"
   return, fileName
   
 END

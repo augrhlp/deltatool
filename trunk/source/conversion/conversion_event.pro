@@ -3,6 +3,9 @@ pro conversion_event, ev
 
   Widget_Control, ev.id,  GET_UVALUE=what
   Widget_Control, ev.top, GET_UVALUE=pState
+
+  IF TAG_NAMES(ev, /STRUCTURE_NAME) EQ 'WIDGET_KILL_REQUEST' THEN what='DONE'
+
   pState=*(pstate)
   deltaMgr=pState.deltaMgr
   slash=path_sep()
@@ -10,10 +13,12 @@ pro conversion_event, ev
   CASE what OF
     'HOMEDIR':  begin
       widget_control,labdir1_txt,get_value = dir
-      dir=dir[0]
-      dir=strcompress(dir,/remove_all)
-      if strmid(dir,0,1,/reverse_offset) ne slash then dir=dir+slash
-      print,dir
+      dir=deltaMgr.fileSystem->cleanPath(dir)
+      pState.homeDir=dir
+      ;dir=dir[0]
+      ;dir=strcompress(dir,/remove_all)
+      ;if strmid(dir,0,1,/reverse_offset) ne slash then dir=dir+slash
+      ;print,dir
       fillConversionWids, pstate
     end
     'DEFAULT': begin   ;
@@ -112,12 +117,20 @@ pro conversion_event, ev
     'MODEL': begin
       pState.observedFlag=0
       pState.iread=0
+      pstate.dir_mod=deltaMgr->cleanPath(pstate.dir_mod)
+      pState.dirOut=pstate.dir_mod
+      pState.dirIn=pstate.dir_mod
       fillConversionWids, pstate
+      widget_control,pstate.butgo2,sensitive=1
     end
     'OBSERVED': begin
       pState.observedFlag=1
       pState.iread=0
+      pstate.dir_obs=deltaMgr->cleanPath(pstate.dir_obs)
+      pstate.dirOut=pstate.dir_obs
+      pstate.dirIn=pstate.dir_obs
       fillConversionWids, pstate
+      widget_control,pstate.butgo2,sensitive=1
     end
     'initrun': begin
       widget_control,pState.infowids[1],get_value=initrun
@@ -165,7 +178,9 @@ pro conversion_event, ev
     end
     'inputdir': begin
       widget_control,pState.infowids[3],get_value=dir_in
-      pstate.dirIn=strcompress(dir_in[0], /REMOVE)
+      dir_in=deltaMgr->cleanPath(dir_in)
+      pState.dirIn=dir_in
+      ;pstate.dirIn=strcompress(dir_in[0], /REMOVE)
       fillConversionWids, pstate
     end
     'prefixid': begin
@@ -175,7 +190,9 @@ pro conversion_event, ev
     end
     'outputdir': begin
       widget_control,pState.infowids[5],get_value=dir_out
-      pstate.dirOut=strcompress(dir_out[0], /REMOVE)
+      dir_out=deltaMgr->cleanPath(dir_out)
+      pState.dirOut=dir_out
+      ;pstate.dirOut=strcompress(dir_out[0], /REMOVE)
       fillConversionWids, pstate
     end
     ;    'outputfile': begin
