@@ -120,6 +120,7 @@ pro conversion_event, ev
       pstate.dir_mod=deltaMgr->cleanPath(pstate.dir_mod)
       pState.dirOut=pstate.dir_mod
       pState.dirIn=pstate.dir_mod
+      pstate.prefixId=pstate.year
       fillConversionWids, pstate
       widget_control,pstate.butgo2,sensitive=1
     end
@@ -129,6 +130,7 @@ pro conversion_event, ev
       pstate.dir_obs=deltaMgr->cleanPath(pstate.dir_obs)
       pstate.dirOut=pstate.dir_obs
       pstate.dirIn=pstate.dir_obs
+      pstate.prefixId=''
       fillConversionWids, pstate
       widget_control,pstate.butgo2,sensitive=1
     end
