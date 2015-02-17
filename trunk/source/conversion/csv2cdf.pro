@@ -1,7 +1,8 @@
 pro csv2cdf, startUpFile, $
     startHour, endHour, inputDir, outputDir, $
     prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, $
-    logWin=logWin, PROGRESSBAR=PROGRESSBAR
+; KeesC 17FEB2015    
+    logWin=logWin, PROGRESSBAR=PROGRESSBAR,progWIN=progWIN
     
   ; change this value where you're sure that everything went good and a right cdf was created.
   processOK=0
@@ -63,8 +64,9 @@ pro csv2cdf, startUpFile, $
     if strupcase(spec_stations(is)) ne 'NOOBS' and strupcase(spec_stations(is)) ne 'NOVAL' then begin
       hlp1=strtrim(is+1,2)
       hlp2=strtrim(nstat,2)
-      addLogText, logWin, hlp1+' / '+hlp2+'  [ = nstat ]      Reading ... '+statnames(is)
-      ;widget_control,labpr_txt,set_value=hlp1+' / '+hlp2+'  [ = nstat ]      Reading ... '+statnames(is)
+; KeesC 17FEB2015 2 lines      
+;      addLogText, progWin, hlp1+' / '+hlp2+'  [ = nstat ]   ... '+statnames(is)
+      widget_control,progWIN,set_value=' '+hlp1+' / '+hlp2+'  [=nstat ]    '+statnames(is)
       wait,.0005
       if prefixId eq '' then begin
         filename=inputDir+statnames(is)+'.csv'
