@@ -237,7 +237,7 @@ PRO FMApplication::convertObsFromCSVtoCDF
   
   csv2cdf, startUpFile, $
     startHour, endHour, inputDir, outputDir, $
-    prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, logWin=logWin, /PROGRESSBAR
+    prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, logWin=logWin, progwin=progwin /PROGRESSBAR
   textMessage=[fulloutFileName+' created', 'please move csv files away']
   titel='Conversion done'
   a=self->dialogMessage(textMessage, title=title, /INFORMATION)

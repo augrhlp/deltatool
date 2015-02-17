@@ -289,7 +289,7 @@ pro conversion_event, ev
       endif
       csv2cdf,  pstate.startUpFile, $
         pstate.startHour, pstate.endHour, pstate.dirIn, pstate.dirOut,  $
-        pstate.prefixId, pstate.modelName, outFileName, pstate.initRun, pstate.endRun, logWin= pState.labcom_txt
+        pstate.prefixId, pstate.modelName, outFileName, pstate.initRun, pstate.endRun, logWin= pState.labcom_txt,progwin=pState.labcom_txt
         
       ;      if ierror eq 1 then txt=['=====================================','CDF_to_CDF ---- ERROR',$
       ;        '=====================================']
