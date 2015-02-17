@@ -109,8 +109,8 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     /editable,/all_events,uvalue='HOMEDIR')
   labxx=widget_label(base1211,value=' ',xsize=2)
   basegn=widget_base(base1,/row,space=20)
-  butgo = WIDGET_BUTTON(basegn,VALUE=' ReadInfo >> ', UVALUE='READINFO',ysize=30,font='times Roman*18*bold')
-  butdef = WIDGET_BUTTON(basegn,VALUE=' Default Setting ', UVALUE='DEFAULT',ysize=30,font='times Roman*18*bold')
+  butgo = WIDGET_BUTTON(basegn,VALUE=' ReadInfo >> ', UVALUE='READINFO',ysize=30,font='times Roman*18*bold', sensitive=0)
+  butdef = WIDGET_BUTTON(basegn,VALUE=' Default Setting ', UVALUE='DEFAULT',ysize=30,font='times Roman*18*bold', sensitive=0)
   next02=widget_label(basegn,value=' ',xsize=250,font='times Roman*16*bold')
   baseleft=widget_base(base1)
   
