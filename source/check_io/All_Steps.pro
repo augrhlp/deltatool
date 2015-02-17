@@ -1,13 +1,13 @@
 @DeltaCheck_io_definecommon
 pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   common keesc1
-  
+
   conversionStruct={startUpFile:'', $
     startHour:0, endHour:0, inputDir:'', outputDir:'', $
     prefixId:'', modelName:'', fulloutFileName:'', stringStartHour:'', stringEndHour:'', $
     logWin:0l, PROGRESSBAR:0b}
   csv2cdfInfo=replicate(conversionStruct, 1)
-  
+
   ;STEP 01: Check on existence of directories
   ;STEP 02: Check on existence of STARTUPfile
   ;STEP 03: MODEL/PARAMETERS/MONITORING sections in STARTUPfile
@@ -19,7 +19,7 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   ;STEP 08: Consistency of statnames and OBSfiles
   ;STEP 09: Check consistency of species in STARTUPfile and OBSfile
   ;STEP 10: TimeLength OBSfiles [< 8760|8784 (Hourly), =1 (Yearly)]
-  ;STEP 11: TimeLength OBSfiles [< 8760|8784 (Hourly), =1 (Yearly)]
+  ;STEP 11: Conversion csv to cdf
   ;STEP 12: OBS data availability at stations (%); Extreme values
   ;STEP 13: Check OBS equal to zero (real or novalue ?)
   ;STEP 14: Existence of MODfile
@@ -28,14 +28,14 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   ;STEP 17: Check on MOD NaN/Inf/Extreme values
   ;STEP 18: MOD availability at stations for STARTUP species (%)
   ;STEP 19: Basic Statistics
-  
-  
+
+
   ; *******************************************************************************************************
   ; Counter
   ;nrlist=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19',$
   ;        '20','21','22','23','24','25']
   ;step='STEP'+nrlist
-  
+
   ; *******************************************************************************************************
   atxt=' '
   atxt1=' '
@@ -49,7 +49,7 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   staterror=strarr(6000)
   spec_stations=strarr(6000)
   ierror=0
-  
+
   ; *******************************************************************************************************
   ;*******************************************************************************************************
   ; Test on existence of directories
@@ -143,15 +143,15 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   endif
   printf,11,' '
   widget_control,labok(1),set_value=' *OK* '
-  
+
   leapyear=0
   if 4*(fix(year)/4) eq fix(year) then leapyear=1
   YearCheckWindow=year
   YearStartup=fix(year)
-  
+
   ; *******************************************************************************************************
   if itgen eq 1 then begin  ;startup
-  
+
     widget_control,labprog_txt,set_value='STEP 02'
     ; Test on existence of startup.ini
     printf,11,'***********************************************'
@@ -180,9 +180,9 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
     endelse
     printf,11,' '
     widget_control,labok(2),set_value=' *OK* '
-    
+
     ; *******************************************************************************************************
-    
+
     widget_control,labprog_txt,set_value='STEP 03'
     ; test on existence of sections SCALE/PARAMETERS/MONITORING in startup.ini
     printf,11,'*********************************************************'
@@ -194,7 +194,7 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
     check_MODEL=0
     check_PARAMETERS=0
     check_MONITORING=0
-    
+
     while ~eof(1) do begin
       atxt=discardComments(1)
       if atxt eq '[MODEL]' then begin
@@ -303,7 +303,7 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
         widget_control,labcom_txt,set_value=txtall
       endelse
     endif
-    
+
   endwhile
   if check_MODEL eq 0 then begin
     txt='STEP 03: STOP! No [MODEL] section in STARTUPfile file or check spelling'
@@ -345,9 +345,9 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
   ;
   widget_control,labprog_txt,set_value='STEP 04'
   ; Start read section PARAMETERS from startup.ini
-  
+
   readSpec
-  
+
   printf,11,'*************************************************************'
   printf,11,'***         STEP 04                                         *'
   printf,11,'*** Read Species from PARAMETERS section in STARTUPfile     *'
@@ -409,14 +409,14 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
     return
   endelse
   widget_control,labok(4),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
-  
+
   widget_control,labprog_txt,set_value='STEP 05'
   ;Start read section MONITORING from startupfile
-  
+
   readstatspec
-  
+
   printf,11,'*************************************************************'
   printf,11,'***         STEP 05                                         *'
   printf,11,'*** Read Stations from MONITORING section in STARTUPfile    *'
@@ -455,7 +455,7 @@ pro All_Steps, DOCDFCONVERSION=DOCDFCONVERSION, deltaMgr=deltaMgr
     ierror=1
     return
   endelse
-  
+
 endif   ; end itgen general
 
 ; *******************************************************************************************************
@@ -464,9 +464,9 @@ endif   ; end itgen general
 if itobs eq 1 then begin
 
   ReadSpec
-  
+
   ReadStatSpec
-  
+
   widget_control,labprog_txt,set_value='STEP 06'
   ;KeesC 18JAN2015 12 lines
   Nres0=sort(strupcase(statnames))
@@ -530,9 +530,9 @@ if itobs eq 1 then begin
   ;KeesC 18JAN2015 1 line
   printf,12,' '
   widget_control,labok(6),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
-  
+
   widget_control,labprog_txt,set_value='STEP 07'
   printf,11,'***************************************************************'
   printf,11,'***         STEP 07                                           *'
@@ -615,10 +615,10 @@ if itobs eq 1 then begin
   endelse
   printf,11,' '
   widget_control,labok(7),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ; consistency between station names and csv files
-  
+
   widget_control,labprog_txt,set_value='STEP 08'
   printf,11,'****************************************************'
   printf,11,'***         STEP 08                                *'
@@ -662,10 +662,10 @@ if itobs eq 1 then begin
   endelse
   printf,11,' '
   widget_control,labok(8),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ; species consistency startup.ini and OBSfiles
-  
+
   widget_control,labprog_txt,set_value='STEP 09'
   printf,11,'**************************************************************'
   printf,11,'***         STEP 09                                          *'
@@ -742,12 +742,12 @@ if itobs eq 1 then begin
   endelse
   printf,11,' '
   widget_control,labok(9),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
-  
-  widget_control,labprog_txt,set_value='STEP 10A'
+
+  widget_control,labprog_txt,set_value='STEP 10'
   printf,11,'*****************************************************************'
-  printf,11,'***         STEP 10A                                             *'
+  printf,11,'***         STEP 10                                             *'
   printf,11,'***  TimeLength OBSfiles [< 8760|8784 (Hourly), =1 (Yearly)]    *'
   printf,11,'*****************************************************************'
   print,'STEP 10'
@@ -825,7 +825,23 @@ if itobs eq 1 then begin
     ierror=1
     return
   endif
-  if iprob eq 0 and count_fileY eq 0 then begin
+  printf,11,'STEP 10 OK: TimeLength OBSfiles'
+  txt='STEP 10 OK: TimeLength OBSfiles'
+  txtall=[txt,txtall]
+  widget_control,labcom_txt,set_value=txtall
+  printf,11,' '
+  widget_control,labok(10),set_value=' *OK* '
+
+  ; *******************************************************************************************************
+
+  widget_control,labprog_txt,set_value='STEP 11'
+  printf,11,'*****************************************************************'
+  printf,11,'***         STEP 11                                             *'
+  printf,11,'***  OBS vsc to cdf conversion                                  *'
+  printf,11,'*****************************************************************'
+  print,'STEP 11'
+  iprob=0
+  if count_fileY eq 0 then begin
     csv2cdfInfo.inputDir=dir_obs
     csv2cdfInfo.startHour=0
     csv2cdfInfo.endHour=8760
@@ -835,14 +851,10 @@ if itobs eq 1 then begin
     csv2cdfInfo.stringStartHour=strcompress(year, /REMOVE)+'0101'
     csv2cdfInfo.stringEndHour=strcompress(year, /REMOVE)+'1231'
     csv2cdfInfo.PROGRESSBAR=0
-    printf,11,'STEP 10A OK: Number of TimeLines OBSfiles (in STARTUPfile) and Date format OK'
-    txt='STEP 10 OK: Number of TimeLines OBSfiles  and Date format(in STARTUPfile) OK'
+    txt='STEP 11 (Info): Init OBS csv to cdf conversion'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endif
-  printf,11,' '
-  widget_control,labok(10),set_value=' *OK* '
-  
   if count_fileY eq 0 and getenv('DO_OBS_CDF_CONVERSION') eq '1' then begin
     widget_control,labprog_txt,set_value='STEP 11'
     a=dialog_message('Now convert to cdf format the observations...', title='CDF conversion')
@@ -854,26 +866,24 @@ if itobs eq 1 then begin
       csv2cdfInfo.startHour, csv2cdfInfo.endHour, csv2cdfInfo.inputDir, csv2cdfInfo.outputDir, $
       csv2cdfInfo.prefixId, csv2cdfInfo.modelName, csv2cdfInfo.fulloutFileName, csv2cdfInfo.stringStartHour, $
       csv2cdfInfo.stringEndHour, $
-      logWin=labcom_txt, PROGRESSBAR=csv2cdfInfo.PROGRESSBAR
-    txt='STEP 11 OK: convert to cdf format the observations OK'
+      logWin=labcom_txt, PROGRESSBAR=csv2cdfInfo.PROGRESSBAR,ProgWin=labprog_txt
+    txt='STEP 11 OK: convert to cdf format the observations'
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
     printf,11,' '
     widget_control,labok(11),set_value=' *OK* '
   endif
   ; *******************************************************************************************************
-  ; checking observation availability per species
-  ;test 11
-  
-  widget_control,labprog_txt,set_value='STEP 11'
+
+  widget_control,labprog_txt,set_value='STEP 12'
   printf,11,'***********************************************************'
-  printf,11,'***           STEP 11                                     *'
+  printf,11,'***           STEP 12                                     *'
   printf,11,'*** OBS availability at stations (%), and Extreme Values  *'
   printf,11,'***********************************************************'
   printf,11,'See SummaryFile'
   ;  printf,11,' '
   printf,12,'***********************************************************'
-  printf,12,'***           STEP 11                                     *'
+  printf,12,'***           STEP 12                                     *'
   printf,12,'*** OBS availability at stations (%), and Extreme Values  *'
   printf,12,'***********************************************************'
   print,'STEP 11'
@@ -1039,15 +1049,17 @@ if itobs eq 1 then begin
     endfor
     printf,12,spec,'   Extr.Val.X',format='(18x,25a10)'
     for istat=0,n_elements(statnames)-1 do begin
-      ExV=''
-      for ip=0,n_elements(spec)-1 do begin
-        ExV=ExV+ipoll(istat,ip)
-      endfor
-      stravail=string(reform(avail(istat,*)))
+      stravail=strtrim(string(reform(avail(istat,*))),2)
+      Av=''
       for is=0,n_elements(spec)-1 do begin
         if avail(istat,is) eq 0. then stravail(is)='-'
+        Av=Av+stravail(is)+' '
       endfor
-      printf,12,fix(istat+1),[statnames(istat),stravail,ExV],format='(i4,3x,a12,25a10)'
+      txt=string(' ',format='(a100)')
+      strput,txt,fix(istat+1),0
+      strput,txt,statnames(istat),5
+      strput,txt,Av,20
+      printf,12,txt
     endfor
     widget_control,labprog_txt,set_value=''
     printf,12,' '
@@ -1060,11 +1072,12 @@ if itobs eq 1 then begin
     txtall=[txt,txtall]
     widget_control,labcom_txt,set_value=txtall
   endif
-  
+  printf,11,' '
+
   ; *******************************************************************************************************
   ; Check OBS equal to zero (real or novalue ?)
   ;test 12
-  
+
   widget_control,labprog_txt,set_value='STEP 13'
   printf,11,'********************************************************'
   printf,11,'***           STEP 13                                  *'
@@ -1173,11 +1186,15 @@ if itobs eq 1 then begin
     if nkc ge 1 then poll(kc)=-999
     printf,12,spec,'   Value=0',format='(18x,25a10)'
     for istat=0,n_elements(statnames)-1 do begin
+      txt=string(' ',format='(a100)')
       ExV=''
       for ip=0,n_elements(spec)-1 do begin
         ExV=ExV+ipoll(istat,ip)
       endfor
-      printf,12,fix(istat+1),[statnames(istat),ExV],format='(i4,3x,a12,25a10)'
+      strput,txt,fix(istat+1),0
+      strput,txt,statnames(istat),5
+      strput,txt,exV,20
+      printf,12,txt
     endfor
     widget_control,labprog_txt,set_value=''
     printf,12,' '
@@ -1235,13 +1252,13 @@ if itmod eq 1 then begin
   endelse
   printf,11,' '
   widget_control,labok(14),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ;test 14
-  
+
   readSpec
   readStatSpec
-  
+
   widget_control,labprog_txt,set_value='STEP 15'
   printf,11,'*****************************************************************'
   printf,11,'***         STEP 15                                             *'
@@ -1370,10 +1387,10 @@ if itmod eq 1 then begin
   endif
   printf,11,' '
   widget_control,labok(15),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ;check on length modeling data
-  
+
   widget_control,labprog_txt,set_value='STEP 16'
   printf,11,'**********************************************************************'
   printf,11,'***         STEP 16                                                  *'
@@ -1486,11 +1503,11 @@ if itmod eq 1 then begin
   endif
   printf,11,' '
   widget_control,labok(16),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ; checking mod extreme values
   ;test 16
-  
+
   widget_control,labprog_txt,set_value='STEP 17'
   printf,11,'**************************************************'
   printf,11,'***         STEP 17                              *'
@@ -1545,6 +1562,7 @@ if itmod eq 1 then begin
       endfor
     endfor
     ncdf_close,id
+    printf,12,' '
   endif
   if extension eq 'csv' then begin
     close,1 & openr,1,dir_mod+model
@@ -1589,6 +1607,7 @@ if itmod eq 1 then begin
       endif
     endfor
     close,1
+    printf,12,' '
   endif
   if iprob eq 1 then begin
     txt='STEP 17 (Info): NaN/Inf/Extreme MOD values at stations: see SummaryFile'
@@ -1603,7 +1622,8 @@ if itmod eq 1 then begin
   endelse
   printf,11,' '
   widget_control,labok(17),set_value=' *OK* '
-  
+
+
 endif   ;itmod
 
 ; *******************************************************************************************************
@@ -1613,9 +1633,9 @@ endif   ;itmod
 if itobsmod eq 1 then begin
 
   ReadSpec
-  
+
   ReadStatSpec
-  
+
   widget_control,labprog_txt,set_value='STEP 18'
   printf,11,'****************************************************************'
   printf,11,'***           STEP 18                                          *'
@@ -1681,10 +1701,10 @@ if itobsmod eq 1 then begin
     params=res(2:n_elements(res)-1)
     nparams=n_elements(params)
   endif
-  
+
   if extension eq 'cdf' then begin
     for i=0,n_elements(statnames)-1 do begin
-      widget_control,labprog_txt,set_value='STEP 18a: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+      widget_control,labprog_txt,set_value='STEP 18: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
       for is=0,n_elements(spec)-1 do begin
         if icase eq 0 then begin
           idname=statnames(i)+'_'+spec(is)
@@ -1738,7 +1758,7 @@ if itobsmod eq 1 then begin
     endwhile
     statvals=statvals(0:itel-1,*)
     for i=0,n_elements(statnames)-1 do begin
-      widget_control,labprog_txt,set_value='STEP 18a: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+      widget_control,labprog_txt,set_value='STEP 18: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
       statv1=reform(statvals[*,0])
       cc=where(statnames[i] eq statv1,ncc)
       statv2=reform(statvals(cc[0],1:nparams))
@@ -1755,7 +1775,7 @@ if itobsmod eq 1 then begin
       endfor
     endfor
   endif
-  
+
   ; if itobs ne 1 then begin
   fileYearly=file_search(dir_obs+'OBS_Yearly.csv',count=count_fileY)
   if count_fileY eq 1 then begin
@@ -1795,7 +1815,7 @@ if itobsmod eq 1 then begin
   if itobs ne 1 and count_fileY eq 0 then begin
     day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,365]
     for i=0,n_elements(statnames)-1 do begin
-      widget_control,labprog_txt,set_value='STEP 18b: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
+      widget_control,labprog_txt,set_value='STEP 18: '+string(fix(i+1))+'  / '+string(fix(n_elements(statnames)))
       if strupcase(spec_stations(i)) ne 'NOOBS' then begin
         fn=file_search(dir_obs+statnames(i)+'.csv',count=count)
         if count gt 0 then begin
@@ -1817,8 +1837,8 @@ if itobsmod eq 1 then begin
             while not(eof(1)) do begin
               readf,1,atxt
               res1=strsplit(atxt,';',/extract)
-              yearOBS=fix(datum(0))
               datum=res1(0:3)
+              yearOBS=fix(datum(0))
               k1=day_sum(fix(datum(1))-1)*24
               k2=(fix(datum(2))-1)*24
               k3=fix(datum(3))
@@ -1875,10 +1895,10 @@ if itobsmod eq 1 then begin
       endif
     endfor
   endif  ; itobs ne 1
-  
+
   if extension eq 'cdf' then ncdf_close,id
   if extension eq 'csv' then close,1
-  
+
   printf,12,strtrim(spec,2),format='(20x,25a8)'
   hlp=where(finite(sumfile) eq 0,nc)
   if nc ge 1 then sumfile(hlp)=-999
@@ -1890,7 +1910,7 @@ if itobsmod eq 1 then begin
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
   widget_control,labok(18),set_value=' *OK* '
-  
+
   ; *******************************************************************************************************
   ;
   widget_control,labprog_txt,set_value='STEP 19'
@@ -1913,7 +1933,8 @@ if itobsmod eq 1 then begin
     str=strcompress(fix(i+1),/remove_all)+'  '+strcompress(statnames(i),/remove_all)
     printf,12,str ;fix(i+1),statnames(i),form='(i4,2x,a15)'
     for ip=0,n_elements(spec)-1 do begin
-      if sumfile(i,ip,0) ne -999 and sumfile(i,ip,1) ne -999 and sumfile(i,ip,2) ne -999 then begin
+      if sumfile(i,ip,0) ne -999 or sumfile(i,ip,1) ne -999 or sumfile(i,ip,2) ne -999 or $
+        sumfile(i,ip,3) ne -999 or sumfile(i,ip,4) ne -999 or sumfile(i,ip,5) ne -999 then begin
         sumf1=reform(sumfile(i,ip,0:2))
         sumf2=reform(sumfile(i,ip,3:5))
         sep='   ** '
@@ -1926,7 +1947,7 @@ if itobsmod eq 1 then begin
   txtall=[txt,txtall]
   widget_control,labcom_txt,set_value=txtall
   widget_control,labok(19),set_value=' *OK* '
-  
+
 endif  ; itobsmod
 
 ; *******************************************************************************************************
