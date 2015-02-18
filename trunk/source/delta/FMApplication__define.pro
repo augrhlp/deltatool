@@ -237,7 +237,7 @@ PRO FMApplication::convertObsFromCSVtoCDF
   
   csv2cdf, startUpFile, $
     startHour, endHour, inputDir, outputDir, $
-    prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, logWin=logWin, progwin=progwin /PROGRESSBAR
+    prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, logWin=logWin, /PROGRESSBAR,progWIN=progWIN
   textMessage=[fulloutFileName+' created', 'please move csv files away']
   titel='Conversion done'
   a=self->dialogMessage(textMessage, title=title, /INFORMATION)
@@ -1511,7 +1511,8 @@ FUNCTION FMApplication::buildStationsStructs
   groups=self.entityDisplay->getSelectedGroupObsNames()
   codesOfGroups=self.entityDisplay->getObservedCodesGroupSelections()
   
-  statsInfo={code:'', name:'', group:'', single:'', altitude:0, longitude:0., latitude:0., $
+;KeesC 17FEB2015  
+  statsInfo={code:'', name:'', abbr:'', group:'', single:'', altitude:0, longitude:0., latitude:0., $
     gmtLag: '', region:'', stationType:'', areaType: '', siting: ''}
   singleElements=n_elements(singles)
   groupElements=n_elements(groups)
@@ -1526,6 +1527,8 @@ FUNCTION FMApplication::buildStationsStructs
     thisObs=self.observedList->getRecord(idx[0])
     bigStructs[k].code=thisObs.code
     bigStructs[k].name=thisObs.displayName
+;KeesC 17FEB2015 
+    bigStructs[k].abbr=thisObs.shortname
     bigStructs[k].group='N/A'
     bigStructs[k].single='X'
     bigStructs[k].altitude=thisObs.heightAboveSea
@@ -1548,6 +1551,8 @@ FUNCTION FMApplication::buildStationsStructs
       thisObs=self.observedList->getRecord(idx[0])
       bigStructs[k].code=thisObs.code
       bigStructs[k].name=thisObs.displayName
+;KeesC 17FEB2015
+      bigStructs[k].abbr=thisObs.shortname      
       bigStructs[k].group=group
       bigStructs[k].single='N/A'
       bigStructs[k].altitude=thisObs.heightAboveSea

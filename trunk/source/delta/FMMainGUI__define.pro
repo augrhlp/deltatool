@@ -492,7 +492,8 @@ PRO FMMainGUI::showObsDetails
   
   statsStructs=self.mgr->buildStationsStructs()
   
-  colLabels=['Station Code', 'Station Name', 'Group', 'Single', 'Altitude(m)', 'Lon', 'Lat', 'Region', 'Station Type', 'Area Type', 'Siting']
+;KeesC 17FEB2015  
+  colLabels=['Station Code', 'Station Name', 'Abbrev', 'Group', 'Single', 'Altitude(m)', 'Lon', 'Lat', 'GMT lag','Region', 'Station Type', 'Area Type', 'Siting']
   
   ; To make sure the table looks nice on all platforms,
   ; set all column widths to the width of the longest string
@@ -694,8 +695,7 @@ PRO FMMainGUI::build
   
   helpDescBtt=widget_Button(helpMenu, VALUE='Help file', UNAME='HELPBTT', UVALUE='OPENHELP_BTT', event_pro=self.eventPrefix+'helpMenuSelection')
   
-  mInfo=self.mgr->getModelInfo()
-  if strlowcase(mInfo.frequency) eq 'hour' then interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR)
+  interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR)
   ;autoFormatConversionBtt=widget_Button(helpMenu, VALUE='Convert observation (csv to cdf)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runBatchMenuSelection')
   
   if self.mgr->IsDeveloperUser() then testPlotIntegrityBtt=widget_Button(helpMenu, VALUE='Plot quality test integrity tool', UNAME='TESTPLOTQUALITYINTEGRITY', UVALUE='TESTQUALITYINTEGRITY_BTT', event_pro=self.eventPrefix+'testQualityMenuSelection', /SEPARATOR)
