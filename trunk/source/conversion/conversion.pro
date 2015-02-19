@@ -30,7 +30,8 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     ;  dir_log=dir+'log\'  ;fileMgr->getLogDir()
     dir_res=fileMgr->getResourceDir()
     dir_obs=fileMgr->getObservedDataDir()
-    dir_mod=fileMgr->getRunDataDir()
+    dir_mod_csv=fileMgr->getRunDataDir(/WITH)+'csv'
+    dir_mod_cdf=fileMgr->getRunDataDir()
     dir_log=fileMgr->getLogDir()
     
     modelInfo=deltaMgr->getModelList()
@@ -100,7 +101,7 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   spa='              '
   
   base = WIDGET_BASE(/ROW,title=spa+'DELTATOOL_MODcsv2cdf *** '+version, $
-    MBAR=WID_MENU,xsize=xw,ysize=yw,TLB_FRAME_ATTR=1,/TLB_KILL_REQUEST_EVENTS)
+    MBAR=WID_MENU,xsize=xw,ysize=yw,TLB_FRAME_ATTR=1,/TLB_KILL_REQUEST_EVENTS, NOTIFY_REALIZE='conversionConfig')
   base1=WIDGET_BASE(base,/column,space=10)
   labxx=widget_label(base1,value=' ',ysize=9)
   base1211=widget_base(base1,/row)
@@ -109,8 +110,8 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     /editable,/all_events,uvalue='HOMEDIR')
   labxx=widget_label(base1211,value=' ',xsize=2)
   basegn=widget_base(base1,/row,space=20)
-  butgo = WIDGET_BUTTON(basegn,VALUE=' ReadInfo >> ', UVALUE='READINFO',ysize=30,font='times Roman*18*bold', sensitive=0)
-  butdef = WIDGET_BUTTON(basegn,VALUE=' Default Setting ', UVALUE='DEFAULT',ysize=30,font='times Roman*18*bold', sensitive=0)
+  ;butgo = WIDGET_BUTTON(basegn,VALUE=' ReadInfo >> ', UVALUE='READINFO',ysize=30,font='times Roman*18*bold', sensitive=0)
+  ;butdef = WIDGET_BUTTON(basegn,VALUE=' Default Setting ', UVALUE='DEFAULT',ysize=30,font='times Roman*18*bold', sensitive=0)
   next02=widget_label(basegn,value=' ',xsize=250,font='times Roman*16*bold')
   baseleft=widget_base(base1)
   
@@ -155,11 +156,11 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     wid_save1:wid_save1, $
     wid_save2:wid_save2, $
     wid_save3:wid_save3, $
-    butgo: butgo, $
+    ;butgo: butgo, $
     butgo2: butgo2, $
     wid_exit2: wid_exit2, $
     modelBtt:bttWids[0], $
-    observedBtt:bttWids[1], $
+    ;observedBtt:bttWids[1], $
     startUpFile: startUpFile, $
     initRun: initRun, $
     endRun: endRun, $
@@ -179,7 +180,8 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     labWids:labWids, $
     version :version, $
     dir_obs: dir_obs, $
-    dir_mod: dir_mod $
+    dir_mod_csv: dir_mod_csv, $
+    dir_mod_cdf: dir_mod_cdf $
     }
     
   Widget_Control, base, SET_UVALUE=Ptr_New(pState, /NO_COPY)
@@ -189,6 +191,7 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   
   JUST_REG=0
   if obj_valid(deltaMgr) then JUST_REG=deltaMgr->isRunning()
+  
   XMANAGER, 'conversion', base, JUST_REG=JUST_REG
   ;XMANAGER, 'conversion', base, CATCH=0
   ; MM Fall 2014 End

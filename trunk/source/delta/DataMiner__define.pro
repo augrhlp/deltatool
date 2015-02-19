@@ -508,7 +508,7 @@ END
 
 PRO DataMiner::closeAllDesc
 
-  allDesc=getNetcdfFileDescStruct()
+  allDesc=self->getNetcdfDescriptor()
   for i=1, n_elements(allDesc)-1 do ncdf_close, allDesc[i].openUnit
   self->setNetcdfDescriptor, allDesc[0]
   

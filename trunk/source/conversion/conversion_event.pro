@@ -3,9 +3,10 @@ pro conversion_event, ev
 
   Widget_Control, ev.id,  GET_UVALUE=what
   Widget_Control, ev.top, GET_UVALUE=pState
-
+  prefixWid=WIDGET_INFO( ev.top, find_by_uname='INPUT_PREFIX')
+  
   IF TAG_NAMES(ev, /STRUCTURE_NAME) EQ 'WIDGET_KILL_REQUEST' THEN what='DONE'
-
+  
   pState=*(pstate)
   deltaMgr=pState.deltaMgr
   slash=path_sep()
@@ -115,24 +116,10 @@ pro conversion_event, ev
       fillConversionWids, pstate
     end
     'MODEL': begin
-      pState.observedFlag=0
-      pState.iread=0
-      pstate.dir_mod=deltaMgr->cleanPath(pstate.dir_mod)
-      pState.dirOut=pstate.dir_mod
-      pState.dirIn=pstate.dir_mod
-      pstate.prefixId=pstate.year
-      fillConversionWids, pstate
-      widget_control,pstate.butgo2,sensitive=1
+      pstate=conversionObsModelSetting(ev.top, pstate, /MODEL)
     end
     'OBSERVED': begin
-      pState.observedFlag=1
-      pState.iread=0
-      pstate.dir_obs=deltaMgr->cleanPath(pstate.dir_obs)
-      pstate.dirOut=pstate.dir_obs
-      pstate.dirIn=pstate.dir_obs
-      pstate.prefixId=''
-      fillConversionWids, pstate
-      widget_control,pstate.butgo2,sensitive=1
+      pstate=conversionObsModelSetting(ev.top, pstate, /OBS)
     end
     'initrun': begin
       widget_control,pState.infowids[1],get_value=initrun
@@ -267,7 +254,7 @@ pro conversion_event, ev
         goto,whatnow
       endif
       ;widget_control,/hourglass
-      widget_control,pstate.butgo,sensitive=0   ; readinfo button
+      ;widget_control,pstate.butgo,sensitive=0   ; readinfo button
       widget_control,pstate.wid_save1,sensitive=0  ; save file 3x
       widget_control,pstate.wid_save2,sensitive=0
       widget_control,pstate.wid_save3,sensitive=0
@@ -279,6 +266,11 @@ pro conversion_event, ev
       txt=['=====================================','DELTATOOL_MODcsv2cdf *** '+pstate.version]
       addLogText, pState.labcom_txt, txt
       outFileName=buildOutputFileName(pstate.dirOut, pstate.year, pstate.modelName, pstate.postFix, MODELTYPE=1-pstate.observedFlag)
+      fInfo=file_info(outFileName)
+      if not(fInfo.write) and fInfo.exists eq 1 then begin
+        a=dialog_message([[outFileName], ['Already in use, please change your output name or execute conversion as first action of the tool']], title='Error')
+        break
+      endif
       pstate.ierror=conversionFileTest(pstate.startupFile, pstate.dirIn, pstate.dirOut, $
         outFileName, pState.labcom_txt)
       ;pState.year, pState.modelName, pState.observedFlag, pState.labcom_txt)
@@ -286,22 +278,31 @@ pro conversion_event, ev
         txt=['=====================================','conversion_Test ---- ERROR',$
           '=====================================']
         addLogText, pState.labcom_txt, txt
-      endif
-      csv2cdf,  pstate.startUpFile, $
-        pstate.startHour, pstate.endHour, pstate.dirIn, pstate.dirOut,  $
-        pstate.prefixId, pstate.modelName, outFileName, pstate.initRun, pstate.endRun, logWin= pState.labcom_txt,progwin=pState.labcom_txt
-        
-      ;      if ierror eq 1 then txt=['=====================================','CDF_to_CDF ---- ERROR',$
-      ;        '=====================================']
-      txt=['conversion ---- DONE','=====================================']
-      addLogText, pState.labcom_txt, txt
-      print,txt
-      txt=systime()
-      addLogText, pState.labcom_txt, txt
+      endif else begin
+        convRes=csv2cdf(pstate.startUpFile, $
+          pstate.startHour, pstate.endHour, pstate.dirIn, pstate.dirOut,  $
+          pstate.prefixId, pstate.modelName, outFileName, pstate.initRun, pstate.endRun, logWin= pState.labcom_txt,progwin=pState.labcom_txt)
+          
+        ;      if ierror eq 1 then txt=['=====================================','CDF_to_CDF ---- ERROR',$
+        ;        '=====================================']
+        if convRes eq 1 then begin
+          txt=['conversion ---- DONE','=====================================']
+          addLogText, pState.labcom_txt, txt
+          print,txt
+          txt=systime()
+          addLogText, pState.labcom_txt, txt
+          txt=strarr(4)
+          txt[0]='A model file named '+outFileName+'was created or updated.'
+          txt[1]='Please close the application and start again'
+          txt[2]='new data set will be available at next launch of Delta'
+          txt[3]='manually remove input files from'+pstate.dirIn
+          a=dialog_message(txt, title='Model updating...', /INFO)
+        endif
+      endelse
       widget_control,pstate.wid_save1,sensitive=1  ; save file 3x
       widget_control,pstate.wid_save2,sensitive=1
       widget_control,pstate.wid_save3,sensitive=1
-      widget_control,pstate.butgo,sensitive=1   ; readinfo button
+      ;widget_control,pstate.butgo,sensitive=1   ; readinfo button
       widget_control,pstate.butgo2,sensitive=1  ; go button
       widget_control,pstate.wid_exit2,sensitive=1  ; exit button
     end
