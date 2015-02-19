@@ -160,8 +160,8 @@ PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
   testBatch=fm->getBatchTemplateFileName()
   
   ;reqs=strarr(1)
-  reqs=strarr(2)
-  postScriptRequest=fm->getRequestTemplateFileName(/POSTSCRIPT)
+  reqs=strarr(1)
+  ;postScriptRequest=fm->getRequestTemplateFileName(/POSTSCRIPT)
   rasterRequest=fm->getRequestTemplateFileName(/RASTER)
   
   ;copy all the templates in working dir
@@ -171,10 +171,11 @@ PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
   fm->fileCopy, templateFolder+testEnt, wDir+testEnt, /OVERWRITE
   fm->fileCopy, templateFolder+testRequest, wDir+testRequest, /OVERWRITE
   fm->fileCopy, templateFolder+testBatch, wDir+testBatch, /OVERWRITE
-  fm->fileCopy, templateFolder+postScriptRequest, wDir+postScriptRequest, /OVERWRITE
+  ;fm->fileCopy, templateFolder+postScriptRequest, wDir+postScriptRequest, /OVERWRITE
   fm->fileCopy, templateFolder+rasterRequest, wDir+rasterRequest, /OVERWRITE
   
-  reqs[0]=postScriptRequest & reqs[1]=rasterRequest
+  ;reqs[0]=postScriptRequest & reqs[1]=rasterRequest
+  reqs[0]=rasterRequest
   ;reqs[0]=rasterRequest
   ;copy elabFile to templateElab
   ;rename entityFile to templateEntity
@@ -235,12 +236,14 @@ PRO FMApplication::convertObsFromCSVtoCDF
   stringStartHour=strcompress(year, /REMOVE)+'0101'
   stringEndHour=strcompress(year, /REMOVE)+'1231'
   
-  csv2cdf, startUpFile, $
+  convRes=csv2cdf(startUpFile, $
     startHour, endHour, inputDir, outputDir, $
-    prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, logWin=logWin, /PROGRESSBAR,progWIN=progWIN
+    prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, logWin=logWin, /PROGRESSBAR,progWIN=progWIN)
   textMessage=[fulloutFileName+' created', 'please move csv files away']
-  titel='Conversion done'
-  a=self->dialogMessage(textMessage, title=title, /INFORMATION)
+  if convRes eq 1 then begin
+    title='Conversion done'
+    a=self->dialogMessage(textMessage, title=title, /INFORMATION)
+  endif
   
 END
 
@@ -505,6 +508,7 @@ END
 
 PRO FMApplication::dataFormatConversionUtility, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
 
+  self.dataMinerMgr->closeAllDesc
   if not(keyword_set(NOVIEW)) then self->disable
   conversion, state, self, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   
@@ -1511,7 +1515,7 @@ FUNCTION FMApplication::buildStationsStructs
   groups=self.entityDisplay->getSelectedGroupObsNames()
   codesOfGroups=self.entityDisplay->getObservedCodesGroupSelections()
   
-;KeesC 17FEB2015  
+  ;KeesC 17FEB2015
   statsInfo={code:'', name:'', abbr:'', group:'', single:'', altitude:0, longitude:0., latitude:0., $
     gmtLag: '', region:'', stationType:'', areaType: '', siting: ''}
   singleElements=n_elements(singles)
@@ -1527,7 +1531,7 @@ FUNCTION FMApplication::buildStationsStructs
     thisObs=self.observedList->getRecord(idx[0])
     bigStructs[k].code=thisObs.code
     bigStructs[k].name=thisObs.displayName
-;KeesC 17FEB2015 
+    ;KeesC 17FEB2015
     bigStructs[k].abbr=thisObs.shortname
     bigStructs[k].group='N/A'
     bigStructs[k].single='X'
@@ -1551,8 +1555,8 @@ FUNCTION FMApplication::buildStationsStructs
       thisObs=self.observedList->getRecord(idx[0])
       bigStructs[k].code=thisObs.code
       bigStructs[k].name=thisObs.displayName
-;KeesC 17FEB2015
-      bigStructs[k].abbr=thisObs.shortname      
+      ;KeesC 17FEB2015
+      bigStructs[k].abbr=thisObs.shortname
       bigStructs[k].group=group
       bigStructs[k].single='N/A'
       bigStructs[k].altitude=thisObs.heightAboveSea
@@ -1742,8 +1746,8 @@ PRO FMApplication::updateEntityDisplayInfo, entityDisplayInfo
 
   obj_destroy, self.entityDisplay
   self.entityDisplay=entityDisplayInfo
-  self.mainView->updateInfo
   self.executeOk[0]=1
+  self.mainView->updateInfo
 ;entityDisplayInfo->printStream
   
 END

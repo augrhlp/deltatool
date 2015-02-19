@@ -1,10 +1,20 @@
-pro csv2cdf, startUpFile, $
+function csv2cdf, startUpFile, $
     startHour, endHour, inputDir, outputDir, $
     prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, $
-; KeesC 17FEB2015    
+    ; KeesC 17FEB2015
     logWin=logWin, PROGRESSBAR=PROGRESSBAR,progWIN=progWIN
     
   ; change this value where you're sure that everything went good and a right cdf was created.
+  ERROR=0
+  catch, error_status
+
+  if error_status ne 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL
+    a=dialog_message([[fulloutFileName], ['Already in use, please change your output name or execute conversion as first action of the tool']], title='Error')
+    return, 0
+  endif
+  
   processOK=0
   checkInputDir=strpos(inputDir, path_sep(), /REVERSE_SEARCH)
   checkOutputDir=strpos(outputDir, path_sep(), /REVERSE_SEARCH)
@@ -27,7 +37,7 @@ pro csv2cdf, startUpFile, $
     txt=['STOP','Year from Input Window <> Year from Startup.ini']
     addLogText, logWin, txt
     ierror=1
-    return
+    return, 0
   endif
   
   if 4*(year/4) eq year then iyear=1
@@ -64,8 +74,8 @@ pro csv2cdf, startUpFile, $
     if strupcase(spec_stations(is)) ne 'NOOBS' and strupcase(spec_stations(is)) ne 'NOVAL' then begin
       hlp1=strtrim(is+1,2)
       hlp2=strtrim(nstat,2)
-; KeesC 17FEB2015 2 lines      
-;      addLogText, progWin, hlp1+' / '+hlp2+'  [ = nstat ]   ... '+statnames(is)
+      ; KeesC 17FEB2015 2 lines
+      ;      addLogText, progWin, hlp1+' / '+hlp2+'  [ = nstat ]   ... '+statnames(is)
       widget_control,progWIN,set_value=' '+hlp1+' / '+hlp2+'  [=nstat ]    '+statnames(is)
       wait,.0005
       if prefixId eq '' then begin
@@ -86,7 +96,7 @@ pro csv2cdf, startUpFile, $
           
           ierror=1
           break
-          return
+          return, 0
         endif
       endif
       openr, unit, fileName, /GET_LUN
@@ -153,16 +163,20 @@ pro csv2cdf, startUpFile, $
   ncdf_close,idout
   ; only if everything goes fine rename...
   if processOK then begin
+    ;close, /all
     file_move, tempFullOutFileName, fulloutFileName, /OVERWRITE
   endif else begin
     a=dialog_message(title='Wrong conversion', ['Delta can''t proceed, check your conversion settings.'], /ERROR)
     file_delete, tempFullOutFileName
+    return, 0
   endelse
   ;widget_control,labpr_txt,set_value=' '
   txt='End CSV_to_CDF'
   addLogText, logWin, txt
   print,'End CSV_to_CDF'
   if keyword_set(PROGRESS_BAR) then a=dialog_message(title='Csv to Cdf', 'Done')
+  return, 1
+  
 end
 
 
