@@ -1,9 +1,13 @@
+@conversion_cb
 @loadConversionSetting
 pro conversion_event, ev
 
+  common conv1
+  
   Widget_Control, ev.id,  GET_UVALUE=what
   Widget_Control, ev.top, GET_UVALUE=pState
   prefixWid=WIDGET_INFO( ev.top, find_by_uname='INPUT_PREFIX')
+  saveWid=WIDGET_INFO( ev.top, find_by_uname='SAVFILE')
   
   IF TAG_NAMES(ev, /STRUCTURE_NAME) EQ 'WIDGET_KILL_REQUEST' THEN what='DONE'
   
@@ -12,10 +16,10 @@ pro conversion_event, ev
   slash=path_sep()
   ;Widget_Control, ev.top,  GET_UVALUE=deltaMgr
   CASE what OF
-    'HOMEDIR':  begin
-      widget_control,labdir1_txt,get_value = dir
-      dir=deltaMgr.fileSystem->cleanPath(dir)
-      pState.homeDir=dir
+    'CONVDIR':  begin
+      widget_control,labdir1_txt,get_value = convDir
+      dir=deltaMgr.fileSystem->cleanPath(convDir)
+      pState.convDir=convDir
       ;dir=dir[0]
       ;dir=strcompress(dir,/remove_all)
       ;if strmid(dir,0,1,/reverse_offset) ne slash then dir=dir+slash
@@ -29,55 +33,36 @@ pro conversion_event, ev
     'READINFO': begin   ; Read Info from InfoXXXcsv2cdf file and display info
       if pState.observedFlag then typeFile='obs' else typeFile='mod'
       baseFileName='info'+typeFile+'csv2cdf'
+      ;convDir=pState.dir+path_sep()+'conversion'+path_sep()
+      convDir=pState.convDir
       if pState.iread eq 0 then begin   ; 1st time readinfo, check HomeDir, check InfoXXXcsv2cdf files
-        res=file_test(pState.dir,/directory)
+        res=file_test(convDir,/directory)
         if res eq 0 then begin
-          txt='==> STOP! HOME_DIR does not exist'
+          txt='==> STOP! CONV_DIR does not exist'
           addLogText, pState.labcom_txt, txt
           pstate.ierror=1
           goto, whatnow
         endif
-        res=file_search(pState.dir+baseFileName+'*.txt')
+        res=file_search(convDir+baseFileName+'*.txt', count=count)
         resSave=strcompress(res)
-        pstate.nsavefile=n_elements(resSave)
+        pstate.nsavefile=count
         if res[0] eq '' then pstate.nsavefile=0
+        thisFile=res[pState.isave]
         if pstate.nsavefile ge 1 then begin
-          txt=strtrim(pstate.nsavefile,2)+' '+baseFileName+'* files found in HOME_DIR:'
+          txt=strtrim(pstate.nsavefile,2)+' '+baseFileName+'* files found:'
           for i=0,pstate.nsavefile-1 do begin
             hlp1=strsplit(resSave(i),slash,/extract)
             hlp2=hlp1(n_elements(hlp1)-1)
             txt=[txt,strtrim(hlp2,2)]
           endfor
           addLogText, pState.labcom_txt, txt
-          savefile=pState.dir+baseFileName+'.txt'
+          ;savefile=convDir+baseFileName+'.txt'
           isave=0
-          widget_control,pstate.next02,set_value=baseFileName+'.txt'
-          ;storeConversionSetting, 0, pstate.strHelp, pState.dir+'InfoMODcsv2cdf.txt'
-          values=loadConversionSetting(pState.dir+baseFileName+'.txt')
-          pstate.startUpFile= values[0]
-          pstate.initRun= values[1]
-          pstate.endRun= values[2]
-          pstate.dirIn= values[3]
-          pstate.prefixId= values[4]
-          pstate.dirOut= values[5]
-          pstate.year= values[6]
-          pstate.modelName= values[7]
-          pstate.postfix= values[8]
-          pstate.observedFlag=fix(values[9])
-          pstate.startHour= values[10]
-          pstate.endHour= values[11]
-          fillConversionWids, pstate
-          ;pstate.prefixId, pstate.dirOut, pstate.modelId]
-          hlp1=strsplit(resSave(isave),slash,/extract)
-          hlp2=hlp1(n_elements(hlp1)-1)
-          widget_control,pstate.wid_save3,set_value=hlp2
-          savfile=hlp2
-          if pstate.ierror eq 1 then goto,whatnow
-          txt=['=====================================',baseFileName+'.txt    from HOME_DIR']
-          addLogText, pState.labcom_txt, txt
-          pstate.ierror=0
+          widget_control,pstate.next02,set_value=thisFile
+        ;storeConversionSetting, 0, pstate.strHelp, pState.dir+'InfoMODcsv2cdf.txt'
+        ;values=loadConversionSetting(convDir+baseFileName+'.txt')
         endif else begin
-          txt=['=====================================',baseFileName+'*.txt NOT found in HOME_DIR']
+          txt=['=====================================',baseFileName+'*.txt NOT found in CONV_DIR']
           addLogText, pState.labcom_txt, txt
           pstate.ierror=1
           goto,whatnow
@@ -90,19 +75,47 @@ pro conversion_event, ev
       if pState.iread eq 1 then begin ; Display InfoMODcsv2cdf
         widget_control,pstate.butgo2,sensitive=1
         pState.isave=(pState.isave+1) mod pstate.nsavefile
-        print,pState.isave,'  ',resSave
-        savefile=resSave(isave)
+        ;print,pState.isave,'  ',resSave
+        thisfile=resSave(pState.isave)
         ;SaveInfo,1,savefile
-        storeConversionSetting, buildStordeValues(), saveFile
-        hlp1=strsplit(savefile,slash,/extract)
+        ;storeConversionSetting, buildStoredValues(pstate), thisfile
+        hlp1=strsplit(thisfile,slash,/extract)
         hlp2=hlp1(n_elements(hlp1)-1)
         widget_control,pstate.next02,set_value=hlp2
         widget_control,pstate.wid_save3,set_value=hlp2
         savfile=hlp2
         if pstate.ierror eq 1 then goto,whatnow
-        txt=['=====================================',hlp2+'   from HOME_DIR']
+        txt=['=====================================',hlp2+'   from CONV_DIR']
         addLogText, pState.labcom_txt, txt
       endif
+      
+      namePos=strpos(thisfile, path_sep(), /REVERSE_SEARCH)
+      name=strmid(thisfile, namePos+1, strlen(thisfile))
+      widget_control,saveWid, set_value = name
+      
+      values=loadConversionSetting(thisFile)
+      pstate.startUpFile= values[0]
+      pstate.initRun= values[1]
+      pstate.endRun= values[2]
+      pstate.dirIn= values[3]
+      pstate.prefixId= values[4]
+      pstate.dirOut= values[5]
+      pstate.year= values[6]
+      pstate.modelName= values[7]
+      pstate.postfix= values[8]
+      pstate.observedFlag=fix(values[9])
+      pstate.startHour= values[10]
+      pstate.endHour= values[11]
+      fillConversionWids, pstate
+      ;pstate.prefixId, pstate.dirOut, pstate.modelId]
+      hlp1=strsplit(resSave(isave),slash,/extract)
+      hlp2=hlp1(n_elements(hlp1)-1)
+      ;widget_control,pstate.wid_save3,set_value=hlp2
+      savfile=hlp2
+      if pstate.ierror eq 1 then goto,whatnow
+      txt=['=====================================',baseFileName+'.txt    from CONV_DIR']
+      addLogText, pState.labcom_txt, txt
+      pstate.ierror=0
       if pState.iread eq 0 then pState.iread=1
       widget_control,pstate.wid_save1,sensitive=1  ; save file 3x
       widget_control,pstate.wid_save2,sensitive=1
@@ -206,11 +219,12 @@ pro conversion_event, ev
     end
     'SAVFILE':  begin ; event on new InfoMODcsv2cdf file names
       widget_control,ev.id,get_value = savfile
-      savfile=savfile[0]
       savfile=strcompress(savfile,/remove_all)
       print,savfile
     end
     'SAVE':    BEGIN  ;Save the InfoMODcsv2cdf file
+      widget_control,saveWid,get_value = savfile
+      savfile=strcompress(savfile,/remove_all)
       !p.position=0
       if savfile eq 'InfoMODcsv2cdf.txt' then begin
         txt='WARNING! This is the default Save File'
@@ -221,22 +235,24 @@ pro conversion_event, ev
         goto,whatnow
       endif
       ;SaveInfo,0,dir+savfile
-      storeConversionSetting, buildStordeValues(pState), dir+savfile
+      ;convDir=pState.dir+path_sep()+'conversion'+path_sep()
+      convDir=pState.convDir
+      storeConversionSetting, buildStoredValues(pState), convDir+savfile
       if pstate.ierror eq 1 then goto,whatnow
-      txt=savfile+'  saved in HOME_DIR'
+      txt=savfile+'  saved'
       txt=['=====================================',txt]
       addLogText, pState.labcom_txt, txt
       ;      WidgetHelp
       if pstate.ierror eq 1 then goto,whatnow
-      res=file_search(pState.dir+'InfoMODcsv2cdf*.txt')
+      res=file_search(convDir+'InfoMODcsv2cdf*.txt')
       resSave=strcompress(res)
       pstate.nsavefile=n_elements(resSave)
       widget_control,pstate.butgo2,sensitive=1
-      widget_control,pstate.next02,set_value=savfile
+      widget_control,pstate.next02,set_value=savfile[0]
     END
     'HELP': begin
       ;if obj_valid()
-      spawn,['notepad.exe',pState.dir+'MODcsv2cdfHelp.txt'], /noshell,/nowait
+      spawn,['notepad.exe',pState.helpDir+path_sep()+'MODcsv2cdfHelp.txt'], /noshell,/nowait
     end
     'GO': begin
       if fix(strmid(pState.initRun,0,4)) ne fix(strmid(pState.endRun,0,4)) then begin
@@ -254,7 +270,7 @@ pro conversion_event, ev
         goto,whatnow
       endif
       ;widget_control,/hourglass
-      ;widget_control,pstate.butgo,sensitive=0   ; readinfo button
+      widget_control,pstate.butgo,sensitive=0   ; readinfo button
       widget_control,pstate.wid_save1,sensitive=0  ; save file 3x
       widget_control,pstate.wid_save2,sensitive=0
       widget_control,pstate.wid_save3,sensitive=0
@@ -302,7 +318,7 @@ pro conversion_event, ev
       widget_control,pstate.wid_save1,sensitive=1  ; save file 3x
       widget_control,pstate.wid_save2,sensitive=1
       widget_control,pstate.wid_save3,sensitive=1
-      ;widget_control,pstate.butgo,sensitive=1   ; readinfo button
+      widget_control,pstate.butgo,sensitive=1   ; readinfo button
       widget_control,pstate.butgo2,sensitive=1  ; go button
       widget_control,pstate.wid_exit2,sensitive=1  ; exit button
     end

@@ -677,9 +677,9 @@ PRO FMMainGUI::build
   saveAsImageButton=widget_button(fileMenu, value='Save image', UNAME='SAVEIMG', event_pro=self.eventprefix+'saveImage')
   saveAsImageBlackBackGroundButton=widget_button(fileMenu, value='Save as image (Black Back)', UNAME='SAVEIMGBLK', event_pro=self.eventprefix+'saveImageBlack', sensitive=0)
   saveAsImageWhiteBackGroundButton=widget_button(fileMenu, value='Save as image (White Back)', UNAME='SAVEIMGWHT', event_pro=self.eventprefix+'saveImageWhite', sensitive=0)
-  createBatchButton=widget_button(fileMenu, value='BatchComposition', UNAME='CREATEBATCH', event_pro=self.eventprefix+'batchComposition', sensitive=self.mgr->getBenchmarkManagingEnabled())
-  saveAsBatchButton=widget_button(fileMenu, value='BatchSave', UNAME='SAVEBATCH', event_pro=self.eventprefix+'saveBatch', sensitive=self.mgr->getBenchmarkManagingEnabled())
-  restoreBatch=widget_button(fileMenu, value='BatchRestore', UNAME='RESTOREBATCH', event_pro=self.eventprefix+'restoreBatch', sensitive=self.mgr->getBenchmarkManagingEnabled())
+  if self.mgr->IsDeveloperUser() then createBatchButton=widget_button(fileMenu, value='BatchComposition', UNAME='CREATEBATCH', event_pro=self.eventprefix+'batchComposition', sensitive=self.mgr->getBenchmarkManagingEnabled())
+  if self.mgr->IsDeveloperUser() then saveAsBatchButton=widget_button(fileMenu, value='BatchSave', UNAME='SAVEBATCH', event_pro=self.eventprefix+'saveBatch', sensitive=self.mgr->getBenchmarkManagingEnabled())
+  if self.mgr->IsDeveloperUser() then restoreBatch=widget_button(fileMenu, value='BatchRestore', UNAME='RESTOREBATCH', event_pro=self.eventprefix+'restoreBatch', sensitive=self.mgr->getBenchmarkManagingEnabled())
   exitButton=widget_button(fileMenu, value='Exit', UNAME='EXIT', event_pro=self.eventprefix+'destroyWindow')
   
   modeBtt=widget_button(modeMenu, UVALUE=0, value='Select mode', UNAME='MODESELECT_BTT', event_pro=self.eventPrefix+'modeMenuSelection', sensitive=0)
@@ -696,7 +696,7 @@ PRO FMMainGUI::build
   helpDescBtt=widget_Button(helpMenu, VALUE='Help file', UNAME='HELPBTT', UVALUE='OPENHELP_BTT', event_pro=self.eventPrefix+'helpMenuSelection')
   
   mInfo=self.mgr->getModelInfo()
-  if strlowcase(mInfo.frequency) eq 'hour' then interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool (Model)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR)
+  if strlowcase(mInfo.frequency) eq 'hour' then interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool (Model)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR) 
   ;interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool (Model)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR)
   ;autoFormatConversionBtt=widget_Button(helpMenu, VALUE='Convert observation (csv to cdf)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runBatchMenuSelection')
   

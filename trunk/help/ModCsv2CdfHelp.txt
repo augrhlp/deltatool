@@ -1,0 +1,58 @@
+DELTATOOL_CSV2CDF 
+Version 3.0 (22SEP2014)
+
+The DELTATOOL_CSV2CDF is used to transform Model output in csv format into netCDF format for use in the DELTATOOL.
+
+1. The MODcsv2cdf.sav file and the InfoMODcsv2cdf_*.txt files have been put in a directory called 'Home_Dir'. 
+
+2. Click 'READInfo >>' to select the correct InfoMODcsv2cdf_*.txt file or the one that you want to change. All details are visualized under INPUT INFORMATION.
+
+3. For changes in the input information modify the lines in white within the frame.
+   - #STARTUP Full Path to Startup.ini file - See Description DELTATOOL
+     D:\DELTATOOL\resource\startup.ini
+   - #INIT_RUN    Starting date of the period to process (Starting hour is 0 on this day). 
+                  Leapyear are taken into account. 
+     20090225
+   - #END_RUN    End date of the period to process (End hour is 23 on this day). 
+                 Leapyear are taken into account. 
+     20090326
+   - #INPUT_DIR - Model output is input to the Preprocessor
+     D:\DELTATOOL\Input\
+   - FILE_ID - Model short name to be used in input file naming.
+     CHIM
+     The location and station-generic file names are indicated in grey. Format for these csv  
+     files is axactly the same as for the Observational stations.
+   - #OUTPUT_DIIR - Here to put the MODcsv2cdf output
+     D:\DELTATOOL\Output\
+   - #MODELNAME - structure is YEAR_MODEL_TIME.cdf 
+     2009_MODEL_TIME.cdf
+     Location and output file name are indicated in grey.
+
+4. Information in the frame can be saved into a file called InfoMODcsv2cdf_xxx.txt 
+
+5.  To start the process click 'GO', progress bar will be active
+
+6.  Follow the process in the COMMENTS panel.
+
+7.  The final result is the file YEAR_MODEL_TIME.cdf in OUTPUT_DIR with the  following example structure: 
+
+ 	netcdf  2009_CHIMERE_TIME {
+	 	dimensions: 	
+		  V = 6;
+		  T = 720;
+		  variables:
+		    float Station1(T,V) ;
+		    float Station2(T,V) ;
+		    … ;
+		  // global attributes:
+		    : Parameters =  87b, 83b, … , 32b ;
+                       : StartHour = 1320s ;
+                       : EndHour = 2039s  ;
+        }
+
+        where V is the number of variables, 
+              T number of hours in the period, 
+              Parameters the byte format of the variables, for example: WS TEMP O3 PPM-10 PM10 DNOx,
+              StartHour is the start hour in the period, 
+              EndHour the end hour in the period. 
+

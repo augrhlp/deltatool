@@ -1,6 +1,9 @@
-FUNCTION buildStordeValues, pstate
+FUNCTION buildStoredValues, pstate, filename
 
- return, [ pstate.starup, pstate.initRun, pstate.endRun, $
-    pstate.dirIn, pstate.prefixId, pstate.dirOut, pstate.modelId]
+; return, [ pstate.startupFile, pstate.initRun, pstate.endRun, $
+;    pstate.dirIn, pstate.prefixId, pstate.dirOut, pstate.modelName]
+ return, [ pstate.startupFile, pstate.initRun, pstate.endRun, $
+    pstate.dirIn, pstate.prefixId, pstate.dirOut, pstate.year, pstate.modelName, $
+    pstate.postfix, '0']
 
 END
