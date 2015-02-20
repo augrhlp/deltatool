@@ -190,7 +190,7 @@ PRO FMMainGUI::showDisclaimer
   ;getFairModeFileName
   if obj_valid(self.disclaimerGUI) then obj_destroy, self.disclaimerGUI
   logo=self.mgr->getSplashLogoImage()
-  self.disclaimerGUI=obj_new('FMDisclaimerGUI', mgr, logo, self.mgr->getVersionCode(), self.mgr->getVersionDate())
+  self.disclaimerGUI=obj_new('FMDisclaimerGUI', mgr, logo, self.mgr->getReleaseVersion(), self.mgr->getVersionDate())
   self.disclaimerGUI->realize
   self.disclaimerGUI->moveToCenterScreen
   self.disclaimerGUI->show
