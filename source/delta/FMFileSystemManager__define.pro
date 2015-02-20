@@ -54,7 +54,7 @@ FUNCTION FMFileSystemManager::getHelpFileName, FULLPATH=FULLPATH
 
   ;keyName='version'
   ;mainDir=self->readKeyFromInit(fileName, keyName, RT_APP=RT_APP)
-  fileName='DELTA_UserGuide_V'+self->getVersion()+'.pdf'
+  fileName='DELTA_UserGuide_V'+self->getReleaseVersion()+'.pdf'
   if keyword_set(FULLPATH) then fileName=self->getHelpDir(/WITH)+fileName
   return, fileName
   
