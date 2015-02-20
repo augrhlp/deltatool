@@ -842,6 +842,12 @@ if itobs eq 1 then begin
   printf,11,'*****************************************************************'
   print,'STEP 11'
   iprob=0
+  if strupcase(frequency) ne 'HOUR' then begin
+    txt='STEP 11: skip csv to cdf conversion (only on hourly data set)'
+    txtall=[txt,txtall]
+    widget_control,labcom_txt,set_value=txtall
+  endif
+
   if count_fileY eq 0 then begin
     csv2cdfInfo.inputDir=dir_obs
     csv2cdfInfo.startHour=0
@@ -858,7 +864,7 @@ if itobs eq 1 then begin
     widget_control,labcom_txt,set_value=txtall
   endif
   
-  if count_fileY eq 0 and getenv('DO_OBS_CDF_CONVERSION') eq '1' then begin
+  if count_fileY eq 0 and getenv('DO_OBS_CDF_CONVERSION') eq '1' and strupcase(frequency) eq 'HOUR' then begin
     widget_control,labprog_txt,set_value='STEP 11'
     a=dialog_message('Now convert to cdf format the observations...', title='CDF conversion')
     ; PHIL 14/02/15 Block below seems to belong to Mirko (3 lines)

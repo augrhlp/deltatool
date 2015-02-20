@@ -2245,8 +2245,8 @@ END
 
 FUNCTION FMFileSystemManager::getHelpDir, WITHSEPARATOR=WITHSEPARATOR
 
-  ;dir=self->getHomeDir(/WITH)
-  dir=self->getUserDataHome(/WITH)
+  dir=self->getHomeDir(/WITH)
+  ;dir=self->getUserDataHome(/WITH)
   dir=dir+"help"
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
@@ -2305,7 +2305,8 @@ END
 
 FUNCTION FMFileSystemManager::getConversionDir, WITHSEPARATOR=WITHSEPARATOR
 
-  dir=self.conversionDir
+  dir=self->getUserDataHome(/WITH)
+  dir=dir+'conversion'
   if keyword_set(WITHSEPARATOR) then dir=dir+self.oSDirSeparator
   return, dir
   

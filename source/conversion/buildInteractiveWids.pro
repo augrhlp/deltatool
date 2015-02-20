@@ -38,17 +38,17 @@
   info3=WIDGET_text(col2Base,uvalue='endrun',value=' ', /editable, font=secondColFont, /NO_NEWLINE)
     
   title4=widget_text(col1Base,value='INPUT_DIR', XSIZE=firstColWidth, font=firstColFont, EDITABLE=0, ALL_EVENTS=0, SENSITIVE=0, /NO_NEWLINE)
-  info4=WIDGET_text(col2Base,uvalue='inputdir', /editable, font=secondColFont, /NO_NEWLINE, sensitive=0)
+  info4=WIDGET_text(col2Base,uvalue='inputdir', /editable, font=secondColFont, /NO_NEWLINE)
     
   title5=widget_text(col1Base,value='INPUT_PREFIX', XSIZE=firstColWidth, font=firstColFont, EDITABLE=0, ALL_EVENTS=0, SENSITIVE=0, /NO_NEWLINE)
   info5=WIDGET_text(col2Base,uvalue='prefixid', /editable, font=secondColFont, /NO_NEWLINE, UNAME='INPUT_PREFIX')
   
 
   title6=WIDGET_text(col1Base,value='INPUT_FILE_TEMPLATE', XSIZE=firstColWidth, font=firstColFont, EDITABLE=0, ALL_EVENTS=0, SENSITIVE=0, /NO_NEWLINE)
-  info6=WIDGET_text(col2Base,uvalue='', sensitive=0, font=secondColFont, /NO_NEWLINE)
+  info6=WIDGET_text(col2Base,uvalue='', font=secondColFont, /NO_NEWLINE)
 
   title7=widget_text(col1Base,value='OUTPUT_DIR', XSIZE=firstColWidth, font=firstColFont, EDITABLE=0, ALL_EVENTS=0, SENSITIVE=0, /NO_NEWLINE)
-  info7=WIDGET_text(col2Base,uvalue='outputdir', /editable, font=secondColFont, /NO_NEWLINE, sensitive=0)
+  info7=WIDGET_text(col2Base,uvalue='outputdir', /editable, font=secondColFont, /NO_NEWLINE)
 
   title8=widget_text(col1Base,value='YEAR', XSIZE=firstColWidth, font=firstColFont, EDITABLE=0, ALL_EVENTS=0, SENSITIVE=0, /NO_NEWLINE)
   info8=WIDGET_text(col2Base,uvalue='year', /editable, font=secondColFont, /NO_NEWLINE)

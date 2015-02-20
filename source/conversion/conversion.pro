@@ -8,6 +8,7 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   startUpFile= ''
   initRun= ''
   endRun= ''
+  convDir=''
   dirIn= ''
   dirOut= ''
   prefixId= ''
@@ -23,39 +24,15 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   if obj_valid(deltaMgr) then begin
     fileMgr=deltaMgr->getFileSystemMgr()
     deltaMgr->closeAllFIles
-    dir=fileMgr->getHomeDir()
-    ;  dir_res=dir+'resource\'  ;fileMgr->getResourceDir()
-    ;  dir_obs=dir+'data\monitoring\'  ;fileMgr->getObservedDataDir()
-    ;  dir_mod=dir+'data\modeling\'  ;fileMgr->getRunDataDir()
-    ;  dir_log=dir+'log\'  ;fileMgr->getLogDir()
     dir_res=fileMgr->getResourceDir()
     dir_obs=fileMgr->getObservedDataDir()
     dir_mod_csv=fileMgr->getRunDataDir(/WITH)+'csv'
     dir_mod_cdf=fileMgr->getRunDataDir()
     dir_log=fileMgr->getLogDir()
-    
-    modelInfo=deltaMgr->getModelList()
-    modelNames=modelInfo->getDisplayNames()
-    modelCodes=modelInfo->getCodes()
-    
-    scenarioInfo=deltaMgr->getScenarioList()
-    scenarioNames=scenarioInfo->getDisplayNames()
-    scenarioCodes=scenarioInfo->getCodes()
-    fsm=deltaMgr->getFileSystemMgr()
-    dir=fsm->getConversionDir(/WITHSEPARATOR)+'MODcsv2cdf'+slash
-    dMgr=deltaMgr
-    fileMgr=deltaMgr->getFileSystemMgr()
-    startUpFile= fileMgr->getStartUpFileName()
-    dir=fileMgr->getHomeDir()
-    ;  dir_res=dir+'resource\'  ;fileMgr->getResourceDir()
-    ;  dir_obs=dir+'data\monitoring\'  ;fileMgr->getObservedDataDir()
-    ;  dir_mod=dir+'data\modeling\'  ;fileMgr->getRunDataDir()
-    ;  dir_log=dir+'log\'  ;fileMgr->getLogDir()
-    dir_res=fileMgr->getResourceDir(/WITH)
-    dir_obs=fileMgr->getObservedDataDir(/WITH)
+    convDir=fileMgr->getConversionDir(/WITH);+'MODcsv2cdf'+slash
     dirIn=fileMgr->getRunDataDir(/WITH)
     dirOut=fileMgr->getRunDataDir(/WITH)
-    dir_log=fileMgr->getLogDir(/WITH)
+    helpDir=fileMgr->getHelpDir()
     
     modelInfo=deltaMgr->getModelList()
     modelNames=modelInfo->getDisplayNames()
@@ -64,19 +41,22 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     scenarioInfo=deltaMgr->getScenarioList()
     scenarioNames=scenarioInfo->getDisplayNames()
     scenarioCodes=scenarioInfo->getCodes()
+
+    startUpFile= fileMgr->getStartUpFileName()
     
     year= scenarioNames[0]
     initRun= year+'0101';strtrim(0, 1)
     endRun= year+'1231';strtrim(8760, 1)
     prefixId= scenarioNames[0]
+    prefixId= ''
     observedFlag=0
-    ;modelId= '', $
     modelName= modelNames[0]
     postfix= 'TIME.cdf'
     startHour= strtrim(1, 1)
     endHour= strtrim(8760, 1)
+    dmgr=deltaMgr
   endif else begin
-    CD, CURRENT=dir
+    CD, CURRENT=convDir
     if strmid(dir,0,1,/reverse_offset) ne slash then dir=dir+slash
     dMgr=obj_new()
   endelse
@@ -105,13 +85,13 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   base1=WIDGET_BASE(base,/column,space=10)
   labxx=widget_label(base1,value=' ',ysize=9)
   base1211=widget_base(base1,/row)
-  labdir1=widget_label(base1211,value='HOME_DIR =             ',font='times Roman*14*bold')
-  labdir1_txt=WIDGET_text(base1211,XSIZE=91,ysize=0.3,value=dir,font='times Roman*16*bold',$
-    /editable,/all_events,uvalue='HOMEDIR')
+  labdir1=widget_label(base1211,value='CONV_DIR =             ',font='times Roman*14*bold')
+  labdir1_txt=WIDGET_text(base1211,XSIZE=91,ysize=0.3,value=convDir,font='times Roman*16*bold',$
+    /editable,/all_events,uvalue='CONVDIR', sensitive=0)
   labxx=widget_label(base1211,value=' ',xsize=2)
   basegn=widget_base(base1,/row,space=20)
-  ;butgo = WIDGET_BUTTON(basegn,VALUE=' ReadInfo >> ', UVALUE='READINFO',ysize=30,font='times Roman*18*bold', sensitive=0)
-  ;butdef = WIDGET_BUTTON(basegn,VALUE=' Default Setting ', UVALUE='DEFAULT',ysize=30,font='times Roman*18*bold', sensitive=0)
+  butgo = WIDGET_BUTTON(basegn,VALUE=' ReadInfo >> ', UVALUE='READINFO',ysize=30,font='times Roman*18*bold', sensitive=1)
+  ;butdef = WIDGET_BUTTON(basegn,VALUE=' Default Setting ', UVALUE='DEFAULT',ysize=30,font='times Roman*18*bold', sensitive=1)
   next02=widget_label(basegn,value=' ',xsize=250,font='times Roman*16*bold')
   baseleft=widget_base(base1)
   
@@ -124,7 +104,7 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   wid_save2=widget_label(basegn2,value='  in File  ',font='times Roman*16*bold')
   savfile='InfoMODcsv2cdf*.txt'
   wid_save3=WIDGET_text(basegn2,XSIZE=76,ysize=0.3,value=savfile,font='times Roman*16*bold',$
-    /editable,/all_events,uvalue='SAVFILE')
+    /editable,/all_events,uvalue='SAVFILE',uname='SAVFILE')
   widget_control,wid_save1,sensitive=0
   widget_control,wid_save2,sensitive=0
   widget_control,wid_save3,sensitive=0
@@ -149,14 +129,14 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     ierror:0,                       $
     iread:0,                       $
     deltaMgr:dMgr, $
-    dir:dir, $
+    convDir:convDir, $
     txtall:txtall, $
     labcom_txt:labcom_txt, $
     next02:next02, $
     wid_save1:wid_save1, $
     wid_save2:wid_save2, $
     wid_save3:wid_save3, $
-    ;butgo: butgo, $
+    butgo: butgo, $
     butgo2: butgo2, $
     wid_exit2: wid_exit2, $
     modelBtt:bttWids[0], $
@@ -181,6 +161,7 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     version :version, $
     dir_obs: dir_obs, $
     dir_mod_csv: dir_mod_csv, $
+    helpDir: helpDir, $
     dir_mod_cdf: dir_mod_cdf $
     }
     
