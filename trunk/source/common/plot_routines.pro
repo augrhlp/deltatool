@@ -2521,20 +2521,20 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   plots,[-plotRange,-xfac],[plotRange,xfac],/data,color=0,thick=2
   plots,[plotRange,xfac],[-plotRange,-xfac],/data,color=0,thick=2
   plots,[plotRange,xfac],[plotRange,xfac],/data,color=0,thick=2
-  xyouts, -plotRange*0.1, plotRange*0.85, 'BIAS > 0',charthick=2, color=0,/data,charsize=facSize*1.5
-  xyouts, -plotRange*0.1, -plotRange*0.95, 'BIAS < 0',charthick=2, color=0,/data,charsize=facSize*1.5
+  xyouts, -plotRange*0.1, plotRange*0.85, 'BIAS > 0',charthick=2, color=0,/data,charsize=facSize*1.
+  xyouts, -plotRange*0.1, -plotRange*0.95, 'BIAS < 0',charthick=2, color=0,/data,charsize=facSize*1.
   if elabcode eq 74 then begin  ;forecast
     xyouts, -plotRange*0.95, -plotRange*0.07, 'FA < MA',charthick=2, color=0,/data,charsize=facSize*1.5
     xyouts, plotRange*0.65, -plotRange*0.07,  'FA > MA',charthick=2, color=0,/data,charsize=facSize*1.5
   endif else begin
-    xyouts, -plotRange*0.95, -plotRange*0.07, 'R',charthick=2, color=0,/data,charsize=facSize*1.5
-    xyouts, plotRange*0.85, -plotRange*0.07, 'SD',charthick=2, color=0,/data,charsize=facSize*1.5
+    xyouts, -plotRange*0.95, -plotRange*0.07, 'R',charthick=2, color=0,/data,charsize=facSize*1.
+    xyouts, plotRange*0.85, -plotRange*0.07, 'SD',charthick=2, color=0,/data,charsize=facSize*1.
   endelse
 
   ;KeesC 17JAN2014
   posLabels=fltarr(4,2)
-  posLabels[0, *]=[0.02, 0.55]
-  posLabels[1, *]=[0.48,0.025]
+  posLabels[0, *]=[-plotrange*1.1, plotrange*0.05]
+  posLabels[1, *]=[-plotrange*0.05, -plotrange*1.1]
   posLabels[2, *]=[0.9,0.9]
   posLabels[3, *]=[-plotRange*0.35, -plotRange+plotRange*0.05]
 
@@ -2559,7 +2559,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
 
   for i=0, 1 do begin
     xyouts, posLabels[i,0], posLabels[i,1], fixedLabels[i], orient=orientLabels[i],$
-      charthick=thickLabels[i], color=0,/normal,charsize=facSize*1.2
+      charthick=thickLabels[i], color=0,/data,charsize=facSize*1.2
   endfor
 
   recognizeRange=plotRange*0.02
@@ -2618,9 +2618,11 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
       astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
       rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
-      xyouts,.83,.92,'U = '+ustr+' %',/normal,color=0
-      xyouts,.83,.89,'Alpha = '+astr,/normal,color=0
-      xyouts,.83,.86,'RV = '+rstr+' '+mus[0],/normal,color=0
+      
+      
+      xyouts,plotRange*0.50,plotRange*0.90,'U = '+ustr+' %',/data,color=0,charsize=0.8
+      xyouts,plotRange*0.50,plotRange*0.85,'Alpha = '+astr,/data,color=0, charsize=0.8
+      xyouts,plotRange*0.50,plotRange*0.80,'RV = '+rstr+' '+mus[0],/data,color=0,charsize=0.8
     endif
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
@@ -3751,7 +3753,7 @@ PRO FM_PlotTable2legend, plotter, request, result
   plots, coords[0], coords[1], psym=8, color=7, /NORM, symsize=1.25
   x00=coords[0]+0.025
   text1='Performance Criteria satisfied'
-  xyouts,x00, coords[1]-0.05,text1,/normal,color=0,charsize=1.25,charthick=1.25
+  xyouts,x00, coords[1]*.98,text1,/normal,color=0,charsize=1.,charthick=1.25
   mypsym,5,2
   startY=0.9-6.5*legoHeight
   coords=[thisStartX+(legoWidth/2), startY]
@@ -3764,25 +3766,25 @@ PRO FM_PlotTable2legend, plotter, request, result
   coords=plotter->legendNormalize(coords)
   plots, coords[0], coords[1], psym=8, color=4, /NORM, symsize=1.25
   text2='Performance Criteria satisfied; Error dominated by corresponding Indicator'
-  xyouts,x00, coords[1]-0.05,text2,/normal,color=0,charsize=1.25,charthick=2
+  xyouts,x00, coords[1]*0.95,text2,/normal,color=0,charsize=1.,charthick=2
   mypsym,9,2
   startY=0.9-11.5*legoHeight
   coords=[thisStartX+(legoWidth/2), startY]
   coords=plotter->legendNormalize(coords)
   plots, coords[0]+legoWidth, coords[1], psym=8, color=7, /NORM, symsize=1.25
   text3a='TIME: >90% of stations fulfills the Performance Criteria
-  xyouts,x00, coords[1]-0.05,text3a,/normal,color=0,charsize=1.25,charthick=2
+  xyouts,x00, coords[1]*.92,text3a,/normal,color=0,charsize=1.,charthick=2
   text3b='SPACE: Dot fulfills the Performance Criteria
-  xyouts,x00, coords[1]-0.2,text3b,/normal,color=0,charsize=1.25,charthick=2
+  xyouts,x00, coords[1]*.70,text3b,/normal,color=0,charsize=1.,charthick=2
   mypsym,9,2
   startY=1-25*legoHeight
   coords=[thisStartX+(legoWidth/2), startY]
   coords=plotter->legendNormalize(coords)
   plots, coords[0]+legoWidth, coords[1], psym=8, color=2, /NORM, symsize=1.25
   text4a='TIME: <90% of stations fulfills the Performance Criteria
-  xyouts,x00, coords[1]-0.05,text4a,/normal,color=0,charsize=1.25,charthick=2
+  xyouts,x00, coords[1]*.92,text4a,/normal,color=0,charsize=1,charthick=2
   text4b='SPACE: Dot does not fulfill the Performance Criteria
-  xyouts,x00, coords[1]-0.2,text4b,/normal,color=0,charsize=1.25,charthick=2
+  xyouts,x00, coords[1]*.50,text4b,/normal,color=0,charsize=1,charthick=2
 
   jumpEnd:
 
