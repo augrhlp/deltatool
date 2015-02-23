@@ -1,6 +1,8 @@
 DELTATOOL_CSV2CDF 
 Version 3.0 (22SEP2014)
 
+Important: User’s modifications in the widget input lines will only be considered if you type the “return” key after changes
+
 The DELTATOOL_CSV2CDF is used to transform Model output in csv format into netCDF format for use in the DELTATOOL.
 
 1. For changes in the input information modify the lines in white within the frame.
