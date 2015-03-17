@@ -1094,8 +1094,8 @@ FUNCTION FMApplication::isSuggestedDataIntegrity
     ;warningMessage=['Uhhmmm... You seem to have a new version of FairMode...', 'To prevent problems, it is strongly raccomended to run Check Integrity Tool.', 'You can ALWAYS run this tool under Help menu.']
     ;warningTitle='New FairMode Version'
     warningMessage=[['We detected that you are using a new dataset.'], $
-      ['We highly recomended that you perform an integrity check before proceeding to the delta tool'], $
-      ['This might require 5 minutes.'], $
+      ['We highly recomende that you perform an integrity check before proceeding to the delta tool'], $
+      ['This might require few minutes.'], $
       ['Note that you will always have the possibility to perform this integrity checks later on through the help menu'], $
       ['YES: Run Check'], $
       ['NO: Skip check and run delta tool']]

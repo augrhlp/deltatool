@@ -64,7 +64,7 @@ PRO FMElaborationSelectionGUI::buildAllAvailableCombination
   self.mgr->setUserType, 0
   self.mgr->updateElaborationDisplay, self.info
   self->configure
-
+  
   prevSilentMode=self.silentMode
   self.silentMode=1
   logFile=self.mgr->getLogDir(/WITH)+'elab.log'
@@ -110,7 +110,7 @@ PRO FMElaborationSelectionGUI::buildAllAvailableCombination
   self.mgr->logging, /OFF
   a=self.mgr->dialogMessage(['Magic done!','Look at '+textFile,'for details'], title='ELAB MAGIC DONE', /INFORMATION )
   obj_destroy, util
-
+  
   ;back to application user type
   self.mgr->setUserType, applicationUserType
   self.mgr->updateElaborationDisplay, self.info
@@ -285,19 +285,21 @@ PRO FMElaborationSelectionGUI::fillMultipleInfoText
   
 END
 
-PRO FMElaborationSelectionGUI::userElabSelection, elabIndex
+PRO FMElaborationSelectionGUI::userElabSelection, elabIndex, NODEPENDENCIES=NODEPENDENCIES
 
   widget_control, self.elaborationList, SET_LIST_SELECT=elabIndex
   self.info->setElabSelection, elabIndex
   widget_control, self.elaborationDescriptionText, set_value=self->getCurrentDescription()
   ;self->fillParameterList
   ;  self->fillAxisList
-  self->fillMultipleInfoText
-  self->configureExclusiveListStatus
-  self->configureReferenceValuesStatus
-  self->configureGCOCStatus
   ; New!! to be tested
-  self->configureExclusiveSelection
+  ;if not(keyword_set(NODEPENDENCIES)) then begin
+    self->fillMultipleInfoText
+    self->configureExclusiveListStatus
+    self->configureReferenceValuesStatus
+    self->configureGCOCStatus
+    self->configureExclusiveSelection
+  ;endif
 ; End
   
 END
@@ -554,10 +556,10 @@ END
 PRO FMElaborationSelectionGUI::fillElaborationList
 
   elabNames=self.info->getElabNamesBySelectedDiagram()
-  if elabNames[0] eq '' then if ~self.silentMode then a=dialog_message('No elabs for this diagram') else print, 'No elabs for this diagram' 
+  if elabNames[0] eq '' then if ~self.silentMode then a=dialog_message('No elabs for this diagram') else print, 'No elabs for this diagram'
   widget_control, self.elaborationList, set_value=elabNames
   
-  self->userElabSelection, 0
+  self->userElabSelection, 0, /NODEPENDENCIES
   
 END
 

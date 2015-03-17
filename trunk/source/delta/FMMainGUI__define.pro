@@ -566,7 +566,7 @@ END
 
 PRO FMMainGUI::execRequest, NODISPLAYCHECK=NODISPLAYCHECK
 
-  self.mgr->execRequest, NODISPLAYCHECK=NODISPLAYCHECK
+  if self->checkGUIChanges() then self.mgr->execRequest, NODISPLAYCHECK=NODISPLAYCHECK
   
 END
 
