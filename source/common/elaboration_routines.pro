@@ -300,7 +300,7 @@ PRO FM_Generic, request, result
     
   ; KeesC : Put into linear structure for input to PH plotroutines (i.e. diagramCode ne 0)
   nobs=numStatValid
-  if diagramCode ne 0 then begin
+  if diagramCode ne 0 and elabCode ne 85 then begin
     nmulti=npar*nmod*nsce*nobs
     legHlp=strarr(nmulti)
     statC=intarr(nmulti)
@@ -372,6 +372,7 @@ PRO SG_Computing, $
   statType=request->getGroupByStatInfo()
   iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
   extraValNumber=request->getExtraValuesNumber()
+  scenarioCodes=request->getScenarioCodes()
   if extraValNumber gt 0 then extraVal=request->getExtraValues()
   
   dimAll=(Index1)*(Index2)*(Index3)*(Index4)
@@ -756,9 +757,17 @@ PRO SG_Computing, $
           endif
           if elabcode eq 74 then begin ;OU Forecast
             ; MM workaround feb 2015
+            
             if n_elements(extraVal) eq 0 then extraVal=findgen(10)
             limitValue=extraVal(0)
             uncertainty=extraVal(1)/100.
+; Philippe 4/3/2015 Modif to discard stations where no exceedances (model or observed) occur            
+            ccE=where(obsTemp ge limitValue or runTemp ge limitValue, countE)
+            if countE eq 0 then begin
+              obsTemp(*)=!values.f_nan
+              runTemp(*)=!values.f_nan
+            endif
+            
             runOU=runTemp
             ;obshlp = obsTemp(sort(obsTemp))
             for ii=0,n_elements(obsTemp) -1 do begin
@@ -780,6 +789,23 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,2]=far
             statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp,statType)
           endif
+          
+          if elabcode eq 85 then begin  ;potency calculations
+            if i3 gt 0 then reductionpercentage=float(strmid(scenarioCodes(i3),3,2))/100.
+            percentileInTimeSeries=fix(n_elements(runTemp)*0.95)
+            sortRunTemp=runTemp(sort(runTemp))
+            if i3 eq 0 then begin
+               statXYResult[i1,i2,i3,i4,0]=mean(runTemp)
+               statXYResult[i1,i2,i3,i4,1]=mean(sortRunTemp(percentileInTimeSeries:n_elements(runTemp)-1))
+               statXYGroup[i1,i2,i3,i4]=mean(runTemp)
+            endif
+            if i3 gt 0 then begin
+               statXYResult[i1,i2,i3,i4,0]=-(mean(runTemp)-statXYResult[i1,i2,0,i4,0])/(statXYResult[i1,i2,0,i4,0]*reductionpercentage)
+               statXYResult[i1,i2,i3,i4,1]=-(mean(sortRunTemp(percentileInTimeSeries:n_elements(runTemp)-1))-statXYResult[i1,i2,0,i4,1])/(statXYResult[i1,i2,0,i4,1]*reductionpercentage)
+               statXYGroup[i1,i2,i3,i4]=-(mean(runTemp)-statXYResult[i1,i2,0,i4,0])/reductionpercentage
+            endif
+          endif
+          
         endfor  ;i4
       endfor  ;i3  nsce
     endfor  ;i2  nmod
@@ -1600,8 +1626,8 @@ if isSingleSelection then begin
     statXYResultS(i,2)=(mean(runTemp)-mean(obsTemp))/(2*CriteriaOU)
     ;    if elabCode eq 31 or elabCode eq 83 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
     ;    if elabCode eq 32 or elabCode eq 84 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
-    statXYResultS(i,3)=sqrt((1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(runTemp))/(2*CriteriaOU)
-    statXYResultS(i,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(2.*CriteriaOU)
+    statXYResultS(i,3)=((1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)^2)/(2*CriteriaOU^2)
+    statXYResultS(i,4)=(stddevOM(runTemp)-stddevOM(obsTemp))/(2.*CriteriaOU)
     
     if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=0.
     
