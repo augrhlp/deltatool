@@ -349,6 +349,12 @@ PRO FM_Generic, request, result
   result->setGenericPlotInfo, statXYResult, statSymbols, statColors, legendNames, legendColors,legendSymbols
   
 END
+function isnumeric,input   ;input is string
+  on_ioerror, false
+  test = double(input)
+  return, 1
+  false: return, 0
+end
 ;************************************************************************
 PRO SG_Computing, $
     request, result, Index1, Index2, Index3, Index4, nobsS, nobsG, $
@@ -385,6 +391,11 @@ PRO SG_Computing, $
   obsLatitudes=request->getSingleObsLatitudes()
   obsLongitudes=request->getSingleObsLongitudes()
   
+  if elabCode eq 85 and isnumeric(test3[0]) eq 0 then begin
+      notNum=dialogMsg(['The BaseYear does not exist','or its identifier is not numeric'], FORCELOG=FORCELOG,/error)
+      stop
+  endif
+  
   ;  close,12 & openw,12,'C:\DELTA_TOOL\dump\percent.dat'
   for i1=0, Index1-1 do begin   ;par
     for i2=0, Index2-1 do begin  ; mod
@@ -392,6 +403,11 @@ PRO SG_Computing, $
         for i4=0, Index4-1 do begin    ;obs
           choiceIdx1=(where(mChoice1run eq test1[i1] and mChoice2run eq test2[i2] and $
             mChoice3run eq test3[i3] and mChoice4run eq test4[i4]))[0]
+          
+          if nobsS gt 0 and nobsG gt 0 then begin
+            a=dialogMsg('This diagram is allowed either with single stations or with groups but not with both. Please modify your station selection', FORCELOG=FORCELOG, /ERROR)
+            return
+          endif
           if choiceIdx1 eq -1 then begin
             ans=dialogMsg(FORCELOG=FORCELOG, ['INCONSISTENT DATA:',$
               'Check availability of Parameter '+test1(i1)+' at Station '+test4(i4),$
@@ -1626,7 +1642,7 @@ if isSingleSelection then begin
     statXYResultS(i,2)=(mean(runTemp)-mean(obsTemp))/(2*CriteriaOU)
     ;    if elabCode eq 31 or elabCode eq 83 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
     ;    if elabCode eq 32 or elabCode eq 84 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
-    statXYResultS(i,3)=((1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)^2)/(2*CriteriaOU^2)
+    statXYResultS(i,3)=sqrt((1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(obsTemp))/(2*CriteriaOU)
     statXYResultS(i,4)=(stddevOM(runTemp)-stddevOM(obsTemp))/(2.*CriteriaOU)
     
     if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=0.
