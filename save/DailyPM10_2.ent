@@ -1,5 +1,5 @@
 #EntityDisplayInfo - Save File - Never change order of contents
-Version=3.1
+Version=3.2
 AllModelsFlag=0
 AllObservationsFlag=1
 AllScenariosFlag=0
@@ -9,9 +9,10 @@ RunSelections=-1
 ScenarioSelections=0
 ModelSelections=0
 CategorySelections=-1*-1*-1*-1
-ObservedQueryCodesSelections=AT0002R*AT0ILL1*AT0PIL1*AT0ZIL1*AT10001*AT30065*AT30201*AT30202*AT30301
+ObservedQueryCodesSelections=10000*100106*100114*100122*100601*100603*10402*10407*10501*10502*109602*109603*109604*109605*301216*301307*301314*301401*301403*301505*301518*301524*301527*301540*301543*301621*301702*301711*301713*309807*402201*402204*402206*402207*402210*502305*502404*502409*502604*502608*502717*502803*502902*502906*803620*803711*803805*999999
 ObservedCodesSelections=ALL
 ObservedGroupTitles=NONE
 ObservedCodesGroupSelections=NONE
 UseObservedModelFlag=0
+AllAvailableScenarioFlag=0
 ObservedGroupStatCodeSelection=0

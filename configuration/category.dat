@@ -1,4 +1,5 @@
 ["CATEGORY": Code,DisplayName,Description]
-0;Zone;Descr of:Zone
-1;Type;Descr of:Type
-2;Topo;Descr of:Topo
+0;Region;Descr of:Region
+1;Station Type;Descr of:Station Type
+2;Area Type;Descr of:Area Type
+3;Siting;Descr of:Siting

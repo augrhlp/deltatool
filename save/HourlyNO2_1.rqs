@@ -6,4 +6,4 @@ ElaborationFileName=HourlyNO2_1.elb
 PageBreak=FALSE
 PrintOrient=PORTRAIT
 RequestLocation=0.0500000*0.000000*0.950000*0.480000
-PlotDeviceName=PS
+PlotDeviceName=IMAGE

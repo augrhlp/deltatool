@@ -2,7 +2,6 @@
 0;Assessment;NONE;1;999
 1;Planning;NONE;1;999
 2;DailyPM10;DailyPM10.btc;2;0
-#3;YearlyPM10;YearlyPM10.btc;2;0
+3;DailyPM25;DailyPM25.btc;2;0
 4;HourlyNO2;HourlyNO2.btc;2;0
-#5;YearlyNO2;YearlyNO2.btc;2;0
-6;8HMaxO3;8HMaxO3.btc;2;0
+5;8HMaxO3;8HMaxO3.btc;2;0

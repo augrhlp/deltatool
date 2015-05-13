@@ -6,4 +6,4 @@ ElaborationFileName=DailyPM25_2.elb
 PageBreak=CLOSE
 PrintOrient=PORTRAIT
 RequestLocation=0.0500000*0.500000*0.950000*0.900000
-PlotDeviceName=PS
+PlotDeviceName=IMAGE

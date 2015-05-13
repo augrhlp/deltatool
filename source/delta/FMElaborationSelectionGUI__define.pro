@@ -293,13 +293,13 @@ PRO FMElaborationSelectionGUI::userElabSelection, elabIndex, NODEPENDENCIES=NODE
   ;self->fillParameterList
   ;  self->fillAxisList
   ; New!! to be tested
+  self->fillMultipleInfoText
+  self->configureReferenceValuesStatus
+  self->configureGCOCStatus
   ;if not(keyword_set(NODEPENDENCIES)) then begin
-    self->fillMultipleInfoText
-    self->configureExclusiveListStatus
-    self->configureReferenceValuesStatus
-    self->configureGCOCStatus
-    self->configureExclusiveSelection
-  ;endif
+  self->configureExclusiveListStatus;, NO_DEP=NO_DEP;NO_DEPENDENCIES=NO_DEPENDENCIES
+  self->configureExclusiveSelection;, NO_DEPENDENCIES=NO_DEPENDENCIES
+;endif
 ; End
   
 END
@@ -328,7 +328,7 @@ FUNCTION FMElaborationSelectionGUI::getGoalsCriteriaOCFlag
   
 END
 ; gui check/conf...
-PRO FMElaborationSelectionGUI::configureExclusiveSelection
+PRO FMElaborationSelectionGUI::configureExclusiveSelection, NO_DEPENDENCIES=NO_DEPENDENCIES
 
   self.radioSelections[0]=self.info->getGroupByTimeSelection()
   self.radioSelections[1]=self.info->getGroupByStatSelection()
@@ -423,7 +423,8 @@ END
 
 PRO FMElaborationSelectionGUI::configureReferenceValuesStatus
 
-  numberRefValues=self.info->getNumberReferenceValues()
+  ;numberRefValues=self.info->getNumberReferenceValues()
+  numberRefValues=self.mgr->getNumberReferenceValues(self.info)
   
   if numberRefValues ge 1 then begin
     widget_control, self.thresholdButton, sensitive=0, /set_button
@@ -437,17 +438,23 @@ PRO FMElaborationSelectionGUI::configureReferenceValuesStatus
   
 END
 
-PRO FMElaborationSelectionGUI::configureExclusiveListStatus
+;PRO FMElaborationSelectionGUI::configureExclusiveListStatus, NO_DEPENDECIES=NO_DEPENDECIES
+PRO FMElaborationSelectionGUI::configureExclusiveListStatus, NO_DEP=NO_DEP
 
   groupExclInfo=self.info->getExclusiveInfo()
+  print, groupExclInfo.gbStat, groupExclInfo.gbTime, groupExclInfo.season, groupExclInfo.dayPeriod
   conv=byte(groupExclInfo.gbStat)
-  if conv[0] ge 48 and conv[0] le 57 then self->userGroupByStatSelection, fix(groupExclInfo.gbStat) else self->userGroupByStatSelection, /NONE
+  ;if conv[0] ge 48 and conv[0] le 57 then self->userGroupByStatSelection, fix(groupExclInfo.gbStat) else self->userGroupByStatSelection, /NONE
+  if conv[0] ge 48 and conv[0] le 57 then self->userGroupByStatSelection, fix(groupExclInfo.gbStat) else self->userGroupByStatSelection, 0
   conv=byte(groupExclInfo.gbTime)
-  if conv[0] ge 48 and conv[0] le 57 then self->userGroupByTimeSelection, fix(groupExclInfo.gbTime) else self->userGroupByTimeSelection, /NONE
+  ;if conv[0] ge 48 and conv[0] le 57 then self->userGroupByTimeSelection, fix(groupExclInfo.gbTime) else self->userGroupByTimeSelection, /NONE
+  if conv[0] ge 48 and conv[0] le 57 then self->userGroupByTimeSelection, fix(groupExclInfo.gbTime) else self->userGroupByTimeSelection, 0
   conv=byte(groupExclInfo.season)
-  if conv[0] ge 48 and conv[0] le 57 then self->userSeasonSelection, fix(groupExclInfo.season) else self->userSeasonSelection, /NONE
+  ;if conv[0] ge 48 and conv[0] le 57 then self->userSeasonSelection, fix(groupExclInfo.season) else self->userSeasonSelection, /NONE
+  if conv[0] ge 48 and conv[0] le 57 then self->userSeasonSelection, fix(groupExclInfo.season) else self->userSeasonSelection, 0
   conv=byte(groupExclInfo.dayPeriod)
-  if conv[0] ge 48 and conv[0] le 57 then self->userDayPeriodSelection, fix(groupExclInfo.dayPeriod) else self->userDayPeriodSelection, /NONE
+  ;if conv[0] ge 48 and conv[0] le 57 then self->userDayPeriodSelection, fix(groupExclInfo.dayPeriod) else self->userDayPeriodSelection, /NONE
+  if conv[0] ge 48 and conv[0] le 57 then self->userDayPeriodSelection, fix(groupExclInfo.dayPeriod) else self->userDayPeriodSelection, 0
   
   ;print, '++++'
   ;print, groupExclInfo.gbStat
@@ -632,7 +639,7 @@ END
 
 FUNCTION FMElaborationSelectionGUI::getLabelYSize
 
-  return, 20
+  if strupcase(!version.os_family) eq 'WIN' then return, 20 else return, 35 
   
 END
 

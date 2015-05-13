@@ -97,9 +97,12 @@ FUNCTION ElaborationDisplayInfo::checkIntegrity, view, NODISPLAYCHECK=NODISPLAYC
     aa=view->dialogMessage('Select a specific -season-',title='Check your data')
     return, 0
   endif
+  mainMgr=view->getMainMgr()
   if ~keyword_set(NODISPLAYCHECK) then begin
+    ;refValueRequested=self->getNumberReferenceValues()
+    ;mgr=view->getMgr()
+    refValueRequested=mainMgr->getNumberReferenceValues(self)
     refValues=view->getReferenceValueContents()
-    refValueRequested=self->getNumberReferenceValues()
     if refValueRequested ne 0 then begin
       ;print, '+ di 0'
       refValues=strsplit(refValues, '#', /EXTRACT)
@@ -121,7 +124,6 @@ FUNCTION ElaborationDisplayInfo::checkIntegrity, view, NODISPLAYCHECK=NODISPLAYC
   ;KeesC leapyear
   ;year=2009
   ;MM summer 2012 Start
-  mainMgr=view->getMainMgr()
   mInfo=mainMgr->getModelInfo()
   year=mInfo.year
   ;MM summer 2012 End
@@ -1159,9 +1161,10 @@ PRO ElaborationDisplayInfo::setThresholdValues, list
   
 END
 
-FUNCTION ElaborationDisplayInfo::getThresholdValues
+FUNCTION ElaborationDisplayInfo::getThresholdValues, NODATA=NODATA
 
   if ptr_valid(self.thresholdValues) then return, *self.thresholdValues
+  NODATA=1
   return, -1
   
 END
@@ -1372,7 +1375,7 @@ FUNCTION ElaborationDisplayInfo::restoreData, filename
   versions=self->getCompatibleVersionList()
   idx=where((version) eq versions, count)
   if count eq 0 then message, 'File version not compatible'
-
+  
   ; Parameter section
   ;readf, unit, bufferString
   ;  data=self->getParameterTypeNames()

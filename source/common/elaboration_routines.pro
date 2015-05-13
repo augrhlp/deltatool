@@ -1,19 +1,51 @@
-PRO FM_Generic, request, result
+; MM (+PT) May 2015
+; Add here for each special elab thresholds the right function
+; function name is 'elab'+elabcode+'Threshold'
+FUNCTION elab86Threshold, entityInfo, elabInfo
+
+  scenCodes=entityInfo->getSelectedScenarioCodes()
+  elabCode=elabInfo->getSelectedElabCode()
+  ;thresholdVals=elabInfo->getThresholdValues(NODATA=NODATA)
+  ;if keyword_set(NODATA) then nThr=0 else nThr=n_elements(thresholdVals)
+  PollutantPlotOrig=strmid(scenCodes[(n_elements(scenCodes)-1)<1:n_elements(scenCodes)-1],0,3)
+  ahlp=PollutantPlotOrig(sort(PollutantPlotOrig))
+  PollutantPlot=ahlp[uniq(ahlp)]  ;scen86=getScenarioFor86(scenNames)
+  nPolls=n_elements(PollutantPlot)
+  return, nPolls
+
+END
+
+PRO FM_Generic, request, result, plotter
+
   startIndex=request->getStartIndex()
+  ; MM May 2015
+  ; set multiple title as a copy of file name!!!
+  fName=request->getFilename()
+  if fName ne '' then begin
+    fsm=obj_new('FMFileSystemManager')
+    title=fsm->getBaseFileName(fName)
+    idx=strpos(title, '_')
+    if idx gt 0 then title=strmid(title,0, idx)
+    obj_destroy, fsm
+    result->setMultipleDrawMainTitle, title
+  endif
+  ; end
   endIndex=request->getEndIndex()
   modelInfo=request->getModelInfo()
   year=modelInfo.year
-
+  
   ERROR=0
   catch, error_status
   
   if error_status NE 0 THEN BEGIN
     ERROR=1
     catch, /CANCEL
-    rsult=dialogMsg([['problem with FM_Generic routine, return and go ahead'], ['FM_Generic']],/error)
+    silentMode=plotter->getSilentMode()
+    FORCELOG=silentMode
+    rsult=dialogMsg([['problem with FM_Generic routine, return and go ahead'], ['FM_Generic']],/error,FORCELOG=FORCELOG)
     return
   endif
-
+  
   if 4*(fix(year)/4) ne fix(year) then begin  ; normal year
     Feb29start=59*24
     Feb29end=Feb29start+23
@@ -117,7 +149,7 @@ PRO FM_Generic, request, result
   print, 'OCStat->', OCStat
   print, 'OCTimeAvgName->', OCTimeAvgName
   
-  SG_Computing, request, result, npar, nmod, nsce, nobs, nobsS, nobsG, $
+  SG_Computing, request, result, plotter, npar, nmod, nsce, nobs, nobsS, nobsG, $
     mChoice1run, mChoice2run, mChoice3run, mChoice4run,$
     parCodes, modelCodes, ScenarioCodes, obsNames, $
     startIndex, endIndex, MonitIndexes, RunIndexes, RawData, $
@@ -127,7 +159,7 @@ PRO FM_Generic, request, result
   
   ; ****** DUMP FILE *****
   iprintnr=2 ; 2 values (OBS MOD) are dumped
-  if iUseObserveModel eq 1 then iprintnr=1
+  if iUseObserveModel eq 1 and elabCode ne 85 and elabCode ne 86 then iprintnr=1
   if total(where(elabCode eq [3,4,5,7,8,23,24,28,30,33,54])) ge 0 then iprintnr=1 ; 1 MOD value
   if elabCode eq 2 or elabCode eq 14 then iprintnr=3 ; Const CC Slope
   ; For groups only:  Const CC Slope Bias RMSE NMSD MeanO MeanM StdevO StdevM ==> set iprintnr=10
@@ -300,7 +332,7 @@ PRO FM_Generic, request, result
     
   ; KeesC : Put into linear structure for input to PH plotroutines (i.e. diagramCode ne 0)
   nobs=numStatValid
-  if diagramCode ne 0 and elabCode ne 85 then begin
+  if diagramCode ne 0 and elabCode ne 85 and elabCode ne 86 then begin
     nmulti=npar*nmod*nsce*nobs
     legHlp=strarr(nmulti)
     statC=intarr(nmulti)
@@ -357,7 +389,7 @@ function isnumeric,input   ;input is string
 end
 ;************************************************************************
 PRO SG_Computing, $
-    request, result, Index1, Index2, Index3, Index4, nobsS, nobsG, $
+    request, result, plotter, Index1, Index2, Index3, Index4, nobsS, nobsG, $
     mChoice1run, mChoice2run, mChoice3run, mChoice4run,$
     test1, test2, test3, test4, startIndex, endIndex,$
     MonitIndexes, RunIndexes, RawData, elabcode, statType, extraValues,statXYResult
@@ -381,6 +413,11 @@ PRO SG_Computing, $
   scenarioCodes=request->getScenarioCodes()
   if extraValNumber gt 0 then extraVal=request->getExtraValues()
   
+  if elabCode eq 86 then begin
+    PollutantPlotOrig=strmid(scenarioCodes[1:n_elements(scenarioCodes)-1],0,3)
+    ahlp=PollutantPlotOrig(sort(PollutantPlotOrig))
+    PollutantPlot=ahlp(uniq(ahlp))
+  endif
   dimAll=(Index1)*(Index2)*(Index3)*(Index4)
   ;KeesC 9NOV2013: 3 changed into 4
   statXYResult=fltarr(Index1,Index2,Index3,Index4,4)
@@ -391,24 +428,38 @@ PRO SG_Computing, $
   obsLatitudes=request->getSingleObsLatitudes()
   obsLongitudes=request->getSingleObsLongitudes()
   
-  if elabCode eq 85 and isnumeric(test3[0]) eq 0 then begin
-      notNum=dialogMsg(['The BaseYear does not exist','or its identifier is not numeric'], FORCELOG=FORCELOG,/error)
-      stop
+  if (elabCode eq 85 or elabCode eq 86) and isnumeric(test3[0]) eq 0 then begin
+    silentMode=plotter->getSilentMode()
+    FORCELOG=silentMode
+    notNum=dialogMsg(['The BaseYear does not exist','or its identifier is not numeric'], FORCELOG=FORCELOG,/error)
+    stop
+  endif
+  if elabCode eq 86 and where(strupcase(strmid(scenarioCodes,0,3)) eq 'ALL') ne -1 then begin
+    silentMode=plotter->getSilentMode()
+    FORCELOG=silentMode
+    notNum=dialogMsg(['The ALL scenarios should not be used with absolute potencies'], FORCELOG=FORCELOG,/error)
+    return
   endif
   
   ;  close,12 & openw,12,'C:\DELTA_TOOL\dump\percent.dat'
+  indicesPercentile=intarr(Index4,8784)
+  dimPercentile=intarr(Index4)
   for i1=0, Index1-1 do begin   ;par
     for i2=0, Index2-1 do begin  ; mod
       for i3=0, Index3-1 do begin  ;scen
         for i4=0, Index4-1 do begin    ;obs
           choiceIdx1=(where(mChoice1run eq test1[i1] and mChoice2run eq test2[i2] and $
             mChoice3run eq test3[i3] and mChoice4run eq test4[i4]))[0]
-          
+            
           if nobsS gt 0 and nobsG gt 0 then begin
+            silentMode=plotter->getSilentMode()
+            FORCELOG=silentMode
             a=dialogMsg('This diagram is allowed either with single stations or with groups but not with both. Please modify your station selection', FORCELOG=FORCELOG, /ERROR)
             return
           endif
           if choiceIdx1 eq -1 then begin
+            silentMode=plotter->getSilentMode()
+            FORCELOG=silentMode
             ans=dialogMsg(FORCELOG=FORCELOG, ['INCONSISTENT DATA:',$
               'Check availability of Parameter '+test1(i1)+' at Station '+test4(i4),$
               'in model '+test2[i2]+' for scenario '+test3(i3)],/error)
@@ -416,17 +467,19 @@ PRO SG_Computing, $
             ;1208_ent_21elab_28.btc
             close, /all
             return
-            ;stop
+          ;stop
           endif
           runTemp=*RawData[RunIndexes[choiceIdx1]].runData
           if iUseObserveModel eq 0 then begin
             choiceIdx1=(where(mChoice1run eq test1(i1) and mChoice4run eq test4(i4)))[0]
             if choiceIdx1 eq -1 then begin
+              silentMode=plotter->getSilentMode()
+              FORCELOG=silentMode
               ans=dialogMsg(FORCELOG=FORCELOG, ['INCONSISTENT DATA:',$
                 'Check availability of OBS-'+test1(i1)+' at Station '+test4(i4)],/error)
               close, /all
               return
-              ;stop
+            ;stop
             endif
             obsTemp=*RawData[MonitIndexes[choiceIdx1]].observedData
           endif else begin
@@ -435,9 +488,9 @@ PRO SG_Computing, $
           endelse
           
           ; comment or not next 3 lines...
-;          ccc=where(obsTemp eq 0, countCCC)
+          ;          ccc=where(obsTemp eq 0, countCCC)
           ; KeesC 8NOV2013: added elabCode=38
-;          if countCCC gt 0 and elabCode ne 38 then obsTemp(ccc)=-999.
+          ;          if countCCC gt 0 and elabCode ne 38 then obsTemp(ccc)=-999.
           
           
           if elabCode ne 71 and elabCode ne 72 and elabCode ne 73 then begin
@@ -773,11 +826,11 @@ PRO SG_Computing, $
           endif
           if elabcode eq 74 then begin ;OU Forecast
             ; MM workaround feb 2015
-            
+          
             if n_elements(extraVal) eq 0 then extraVal=findgen(10)
             limitValue=extraVal(0)
             uncertainty=extraVal(1)/100.
-; Philippe 4/3/2015 Modif to discard stations where no exceedances (model or observed) occur            
+            ; Philippe 4/3/2015 Modif to discard stations where no exceedances (model or observed) occur
             ccE=where(obsTemp ge limitValue or runTemp ge limitValue, countE)
             if countE eq 0 then begin
               obsTemp(*)=!values.f_nan
@@ -806,19 +859,30 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp,statType)
           endif
           
-          if elabcode eq 85 then begin  ;potency calculations
-            if i3 gt 0 then reductionpercentage=float(strmid(scenarioCodes(i3),3,2))/100.
-            percentileInTimeSeries=fix(n_elements(runTemp)*0.95)
-            sortRunTemp=runTemp(sort(runTemp))
+          if elabcode eq 85 or elabCode eq 86 then begin  ;potency calculations
+          
             if i3 eq 0 then begin
-               statXYResult[i1,i2,i3,i4,0]=mean(runTemp)
-               statXYResult[i1,i2,i3,i4,1]=mean(sortRunTemp(percentileInTimeSeries:n_elements(runTemp)-1))
-               statXYGroup[i1,i2,i3,i4]=mean(runTemp)
+              percentileInTimeSeries=fix(n_elements(runTemp)*0.95)
+              dimPercentile(i4)=n_elements(runTemp)-percentileInTimeSeries
+              sortRunTemp=sort(runTemp)
+              indicesPercentile(i4,0:dimPercentile(i4)-1)=sortRunTemp(percentileInTimeSeries:n_elements(runTemp)-1)
+              statXYResult[i1,i2,i3,i4,0]=mean(runTemp)
+              ;               statXYResult[i1,i2,i3,i4,1]=mean(sortRunTemp(percentileInTimeSeries:n_elements(runTemp)-1))
+              statXYResult[i1,i2,i3,i4,1]=mean(runTemp(indicesPercentile(i4,0:dimPercentile(i4)-1)))
+              statXYGroup[i1,i2,i3,i4]=mean(runTemp)
             endif
             if i3 gt 0 then begin
-               statXYResult[i1,i2,i3,i4,0]=-(mean(runTemp)-statXYResult[i1,i2,0,i4,0])/(statXYResult[i1,i2,0,i4,0]*reductionpercentage)
-               statXYResult[i1,i2,i3,i4,1]=-(mean(sortRunTemp(percentileInTimeSeries:n_elements(runTemp)-1))-statXYResult[i1,i2,0,i4,1])/(statXYResult[i1,i2,0,i4,1]*reductionpercentage)
-               statXYGroup[i1,i2,i3,i4]=-(mean(runTemp)-statXYResult[i1,i2,0,i4,0])/reductionpercentage
+              denom=statXYResult[i1,i2,0,i4,0]
+              reductionpercentage=float(strmid(scenarioCodes(i3),3,2))/100.
+              if elabCode eq 86 then begin
+                PollutantCh=strmid(scenarioCodes(i3),0,3)
+                indexPol=where(pollutantCh eq PollutantPlot)
+                denom=extraVal(indexPol)
+              endif
+              
+              statXYResult[i1,i2,i3,i4,0]=-(mean(runTemp)-statXYResult[i1,i2,0,i4,0])/(denom*reductionpercentage)
+              statXYResult[i1,i2,i3,i4,1]=-(mean(RunTemp(indicesPercentile(i4,0:dimPercentile(i4)-1)))-statXYResult[i1,i2,0,i4,1])/(denom*reductionpercentage)
+              statXYGroup[i1,i2,i3,i4]=-(mean(runTemp)-statXYResult[i1,i2,0,i4,0])/reductionpercentage
             endif
           endif
           
@@ -1177,7 +1241,7 @@ PRO PrepareLegends, request, result, ifree, npar, nmod, nsce, nobsS, nobs, obsNa
 END
 
 ;****************  insert FM_MeanTS using FM_StatTarget as a base*************
-pro FM_MeanTS, request, result
+pro FM_MeanTS, request, result, plotter
 
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
   startIndex=request->getStartIndex()
@@ -1444,9 +1508,21 @@ end
 
 
 
-pro FM_StatTable2, request, result
+pro FM_StatTable2, request, result, plotter
 
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
+  silentMode=plotter->getSilentMode()
+  FORCELOG=silentMode
+  ERROR=0
+  catch, error_status
+  
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL
+    rsult=dialogMsg([['problem with FM_StatTable2 routine, return and go ahead'], ['FM_StatTable2']],/error,FORCELOG=FORCELOG)
+    return
+  endif
+  
   startIndex=request->getStartIndex()
   endIndex=request->getEndIndex()
   modelInfo=request->getModelInfo()
@@ -1922,6 +1998,8 @@ PRO FM_GoogleEarth, request, result, plotter
   endif
   Sing=1
   if isGroupSelection eq 1 then begin
+    silentMode=plotter->getSilentMode()
+    FORCELOG=silentMode
     rsult=dialogMsg(FORCELOG=FORCELOG, ['GoogleEarth not available for current choice',$
       'GoogleEarth not available for groups',$
       'GoogleEarth only for individual stations',' ',$
@@ -1931,6 +2009,8 @@ PRO FM_GoogleEarth, request, result, plotter
       goto,endGE
     endif
     if isSingleSelection eq 0 then begin
+      silentMode=plotter->getSilentMode()
+      FORCELOG=silentMode
       rsult=dialogMsg(FORCELOG=FORCELOG, ['GoogleEarth not available for current choice',$
         'No individual stations selected'],/error)
       Sing=0
@@ -2147,7 +2227,7 @@ PRO FM_GoogleEarth, request, result, plotter
 END
 
 ;****************
-PRO FM_ConditionScatter, request, result
+PRO FM_ConditionScatter, request, result, plotter
   ;****************************************************************************************************
 
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
@@ -2263,6 +2343,8 @@ PRO FM_ConditionScatter, request, result
       statSymbols(*)=9
     end
     else:begin
+    ;silentMode=plotter->getSilentMode()
+    ;FORCELOG=silentMode
     a=dialogMsg('Selected multiple combination is not allowed. Check batch selection', FORCELOG=1)
     return
   end
@@ -2304,6 +2386,8 @@ if multipleChoicesNo eq 1 then begin
   varCond=fix(extraval(0))
   if varCond gt 1 then begin
     varCond=0
+    silentMode=plotter->getSilentMode()
+    FORCELOG=silentMode
     aa=dialogMsg('Changing extra value from:'+string(extraval(0))+'to :'+string(varCond)+'... in order to execute this elab.', FORCELOG=1)
   endif
   if varCond eq 0 then Varmain=1
@@ -2372,6 +2456,8 @@ if multipleChoicesNo ne 1 then begin
     varCond=fix(extraval(0))
     if varCond gt 1 then begin
       varCond=0
+      ;      silentMode=plotter->getSilentMode()
+      ;      FORCELOG=silentMode
       aa=dialogMsg('Changing extra value from:'+string(extraval(0))+'to :'+string(varCond)+'... in order to execute this elab.', FORCELOG=1)
     endif
     if varCond eq 0 then Varmain=1
@@ -2445,7 +2531,7 @@ endif
 result->setGenericPlotInfo, statXYResult, statSymbols, statColors, legendNames, legendColors, legendSymbols
 ; 2 multiple choices section **end**
 END
-PRO FM_MultiParModScatter, request, result
+PRO FM_MultiParModScatter, request, result, plotter
   ;****************************************************************************************************
 
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
@@ -2506,6 +2592,8 @@ PRO FM_MultiParModScatter, request, result
   
   ;for i=0, nobs-1 do print, obsCodes[i],'**', obsNames[i],'**', request->getRegionofObs(obsCodes[i]);regionCode=request->getRegionofObs(obsCodes[i])
   if n_elements(obsCodes) eq 0 then begin
+    silentMode=plotter->getSilentMode()
+    FORCELOG=silentMode
     aa=dialogMsg('elaboration not available without single obs selection', FORCELOG=1)
     return
   endif
@@ -2555,8 +2643,8 @@ PRO FM_MultiParModScatter, request, result
       print, '--> Only parameters are multiple'
       mChoice1run=SingleRawData[srunIndexes].parameterCode
       test1=parCodes
-;KeesC 06FEB2015 ==> je ne suis pas sure de ce changement ?? mais il y a un probleme avec par1 vs par2 scatter
-;      legendNames=['OBS vs OBS',modelCodes+' vs '+modelCodes]
+      ;KeesC 06FEB2015 ==> je ne suis pas sure de ce changement ?? mais il y a un probleme avec par1 vs par2 scatter
+      ;      legendNames=['OBS vs OBS',modelCodes+' vs '+modelCodes]
       legendNames=['PAR vs PAR',modelCodes+' vs '+modelCodes]
       legoNames=parCodes
       targetColors=intarr(2)
@@ -2592,6 +2680,8 @@ if multipleChoicesNo eq 1 then begin
   statColors(range:2*range-1)=1
   
   if n_elements(test1) ne 2 then begin
+    ;    silentMode=plotter->getSilentMode()
+    ;    FORCELOG=silentMode
     aa=dialogMsg('Check (batch) selections (multiple mandatory for this elab)', FORCELOG=1)
     return
   endif
@@ -2632,7 +2722,7 @@ result->setGenericPlotInfo, statXYResult, statSymbols, statColors, legendNames, 
 ; 2 multiple choices section **end**
 END
 
-pro FM_QQ_SC_ALLTIME, request, result
+pro FM_QQ_SC_ALLTIME, request, result, plotter
 
   ; start/end index -> first/last position of "time/data" user selection (datetime selection)
   startIndex=request->getStartIndex()

@@ -667,10 +667,10 @@ FUNCTION Plotter::getPosition
       position[0]=position[0]+0.1
       ;position[2]=position[2]+position[2]/10
       position[1]=self.legendSpaceYNorm*(position[3]-position[1])+position[1]
-      ;position[0]=
-      ;print, position
+    ;position[0]=
+    ;print, position
     endelse
-    ;print, 'position', position
+  ;print, 'position', position
   endif
   return, position
   
@@ -734,6 +734,7 @@ END
 
 PRO Plotter::opendevice, deviceName, fileName, orientation, pageBreak, location, WORKINGDIR=WORKINGDIR, BATCH=BATCH
 
+  self.position=location
   if deviceName eq 'PS' then begin
     ;self.previousPMulti=!P.MULTI[0:2]
     ;!P.MULTI=[0,1,2]
@@ -776,7 +777,6 @@ PRO Plotter::opendevice, deviceName, fileName, orientation, pageBreak, location,
       self->setLastPostScriptFileName, fullFileName
       device, /ENCAPSULATED, BITS_PER_PIXEL=24, file=fullFileName, /COLOR
     endif
-    self.position=location
     ;print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
     ;print, !D.NAME, self.currentDeviceName, self.previousDeviceName
     return
@@ -794,7 +794,121 @@ PRO Plotter::opendevice, deviceName, fileName, orientation, pageBreak, location,
   
 END
 
-PRO Plotter::closedevice, pageBreak, fileName, printOrientation, WORKINGDIR=WORKINGDIR
+PRO Plotter::mosaicImages, fileName, multipleDrawMainTitle
+
+  width=0
+  height=0
+  shiftLocW=0.
+  shiftLocX=0.
+  for i=0, n_elements(self.storedImage)-1 do begin
+    if ptr_valid(self.storedImage[i]) then begin
+      location=*(self.pageLocation[i])
+      image=*(self.storedImage[i])
+      dims=size(image, /DIM)
+      width=max(dims[1],width)
+      height=max(dims[2],height)
+      shiftLocW=max(location[0], shiftLocW)
+      shiftLocH=max(location[1], shiftLocH)
+    ;tv, image, true=1
+    ;print, location
+    endif
+  endfor
+  
+  half=where(shiftLocW ge 0.4 and shiftLocW le 0.6, count)
+  if count eq 1 then wMagn=2 else wMagn=1
+  half=where(shiftLocH ge 0.4 and shiftLocH le 0.6, count)
+  if count eq 1 then hMagn=2 else hMagn=1
+  destImg=bytarr(3, wMagn*width+5, hMagn*height+5)
+  for i=0, n_elements(self.storedImage)-1 do begin
+    if ptr_valid(self.storedImage[i]) then begin
+      location=*self.pageLocation[i]
+      sourceImg=*self.storedImage[i]
+      zero=where(location ge 0 and location lt 0.1, count)
+      if count gt 0 then location[zero]=0.
+      half=where(location ge 0.4 and location le 0.6, count)
+      if count gt 0 then location[half]=0.5
+      whole=where(location ge 0.85 and location le 1, count)
+      if count gt 0 then location[whole]=1
+      location[[0,2]]=location[[0,2]]*wMagn*width
+      location[[1,3]]=location[[1,3]]*hMagn*height
+      ; shifting a little bit to avoid collate effect
+      if location[0] gt 0 then location[[0,2]]=location[[0,2]]+2
+      if location[1] gt 0 then location[[1,3]]=location[[1,3]]+2
+      destImg[*, location[0]:location[2]-1, location[1]:location[3]-1]=sourceImg[*,*,*]
+      continue
+    endif
+    break
+  endfor
+  print, self.imageType
+  rasterFormat=getenv('RASTER_FORMAT')
+  if rasterFormat eq '' then rasterFormat='bmp'
+  fsm=obj_new('FMFileSystemManager')
+  findExt=strpos(fileName, '_', /REVERSE_SEARCH)
+  if findExt gt 1 then fileName=strmid(fileName, 0, findExt)
+  newFileName=fsm->setExtension(fileName, '.'+strlowcase(rasterFormat))
+  print, fileName
+  obj_destroy, fsm
+  dims=size(destImg, /DIM)
+  destImg=self->mapTitle(destImg, multipleDrawMainTitle)
+  write_image, newFileName, rasterFormat, destImg
+  msg=self.mainView->dialogMessage(['Image saved in:', '<'+newFileName+'> file.', 'format = '+rasterFormat], title=['Image'], /INFORMATION)
+;dialog... confirm
+  
+END
+
+FUNCTION Plotter::mapTitle, destImg, multipleDrawMainTitle
+
+  white=obj_new('Color', 200, 200, 200)
+  black=obj_new('Color', 0, 0, 0)
+  dims=size(destImg, /DIM)
+  font=self.mainView->getFontMgr()
+  fontDesc=font->getFontByIndex(0)
+  setUserFont, 'MainTitleFont'
+  titleHeight=50
+  shiftPos=get_screen_size()
+  window, 1, xsize=dims[1], xpos=shiftPos[0]+1, ysize=titleHeight, ypos=shiftPos[1]+1, /PIXMAP
+  erase, white->AsLongTrueColor()
+  xyouts, 0.5, 0.5, multipleDrawMainTitle, ALIGN=0.5, color=black->asLongTrueColor(), /NORM
+  titleImage=tvrd(/TRUE)
+  newImg=bytarr(3, dims[1], dims[2]+titleHeight)
+  newImg[*,*,0:dims[2]-1]=destImg[*,*,*]
+  newImg[*,*,dims[2]:dims[2]+titleHeight-1]=titleImage[0:2,0:dims[1]-1,0:titleHeight-1]
+  setUserFont, /RESET
+  obj_destroy, black
+  obj_destroy, white
+  return, newImg
+
+END
+
+
+PRO Plotter::addMultiPageRaster, image, location
+
+  for i=0, n_elements(self.pageLocation)-1 do begin
+    if not(ptr_valid(self.pageLocation[i])) then begin
+      self.pageLocation[i]=ptr_new(location, /NO_COPY)
+      self.storedImage[i]=ptr_new(image, /NO_COPY)
+      break
+    endif
+  endfor
+  
+END
+
+PRO Plotter::cleanMultiPageRaster
+
+  for i=0, n_elements(self.pageLocation)-1 do begin
+    ptr_free, self.pageLocation[i]
+    ptr_free, self.storedImage[i]
+  endfor
+  
+END
+
+FUNCTION Plotter::isMultiPageRaster
+
+  if ptr_valid(self.pageLocation[0]) then return, 1 else return, 0
+  
+END
+
+PRO Plotter::closedevice, pageBreak, fileName, printOrientation, multipleDrawMainTitle, WORKINGDIR=WORKINGDIR
 
   ;!p.position=[0.,0.,0.,0.]
   if self->currentDeviceIsPostscript() then begin
@@ -815,12 +929,22 @@ PRO Plotter::closedevice, pageBreak, fileName, printOrientation, WORKINGDIR=WORK
   endif
   
   if self.currentDeviceName eq 'IMAGE' then begin
+  
     if pageBreak eq 'CLOSE' or pageBreak eq 'TRUE' then begin
-      self.mainView->saveImage, fileName, self.imageType, /NO_CONFIRM, WORKINGDIR=WORKINGDIR
+      if self->isMultiPageRaster() then begin
+        self->addMultiPageRaster, self.mainView->getImageToSave(), self.position
+        self->mosaicImages, fileName, multipleDrawMainTitle
+      endif else begin
+        self.mainView->saveImage, fileName, self.imageType, /NO_CONFIRM, WORKINGDIR=WORKINGDIR
+      endelse
       self.deviceIsOpen=0
+      self->cleanMultiPageRaster
       ;set_plot, self.previousDeviceName
       self->setCurrentdevice, self.previousDeviceName
+      return
     endif
+    self->addMultiPageRaster, self.mainView->getImageToSave(), self.position
+    print, 'pageBreak:', pageBreak
     ;print, '!D.NAME', 'self.currentDeviceName', 'self.previousDeviceName'
     ;print, !D.NAME, self.currentDeviceName, self.previousDeviceName
     return
@@ -854,8 +978,23 @@ PRO Plotter::wsetMainDataDraw, PROGRESS=PROGRESS
   if ~self->currentDeviceIsPostscript() then begin
     self.mainView->wsetMainDataDraw
     if keyword_set(PROGRESS) then begin
+      ; only for test
       erase, 10
-      xyouts, 0.5, 0.5, 'Plot in progress', ALIGN=0.5, /NORM, CHARSIZE=3., CHARTHICK=3.
+      xyouts, 0.5, 0.5, 'Plot in progress', ALIGN=0.5, /NORM, CHARSIZE=3., CHARTHICK=3., FONT=0
+    ;      DEVICE, GET_FONTNAMES=fnames, SET_FONT='*'
+    ;      for i=0, n_elements(fnames)-1 do begin
+    ;        device, set_font=fnames[i]+'*15*LIGHT*ITALIC'
+    ;        erase, 10
+    ;        xyouts, 0.5, 0.5, 'Plot in progress', ALIGN=0.5, /NORM, CHARSIZE=3., CHARTHICK=3., FONT=0
+    ;        wait, 0.1
+    ;      endfor
+    ;      DEVICE, GET_FONTNAMES=fnames, SET_FONT='*', /TT_FONT
+    ;      for i=0, n_elements(fnames)-1 do begin
+    ;        device, set_font=fnames[i]+'*15*LIGHT*ITALIC'
+    ;        erase, 10
+    ;        xyouts, 0.5, 0.5, 'Plot in progress', ALIGN=0.5, /NORM, CHARSIZE=3., CHARTHICK=3., FONT=1
+    ;        wait, 0.1
+    ;      endfor
     endif
   endif
   device, /DECOMPOSE
@@ -1802,6 +1941,8 @@ PRO Plotter__Define
     symbolColorsIndex: 0, $
     legoColorsIndex: 0, $
     imageType: '', $
+    storedImage: ptrarr(4), $
+    pageLocation: ptrarr(4), $
     Inherits Object $
     }
     

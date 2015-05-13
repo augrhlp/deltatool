@@ -1,5 +1,11 @@
 @/check_io/checkcriteria
 ; MM jan 2015 start
+FUNCTION CompositeBatchManager::getNumberReferenceValues, elabInfo
+
+  return, self.mainMgr->getNumberReferenceValues(elabInfo)
+
+END
+
 FUNCTION CompositeBatchManager::dialogMessage, textMessage, title=title, INFORMATION=INFORMATION, error=error, question=question, WARNING=WARNING, CENTER=CENTER
 
  return, self.mainMgr->dialogMessage(textMessage, title=title, INFORMATION=INFORMATION, error=error, question=question, WARNING=WARNING, CENTER=CENTER)

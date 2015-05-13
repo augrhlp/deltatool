@@ -166,18 +166,20 @@ PRO FMBenchMarkCreationGUI::userUpdateGraphicTypeCode, code, widgetId
   if code ne 'PS' then begin
     pageCodes=self->getAllPageModeCodes()
     for i=0, n_elements(pageBtts)-1 do begin
-      widget_control, pageBtts[i], sensitive=0, set_button=0
+      ;Free page mode april 2015
+      ;widget_control, pageBtts[i], sensitive=0, set_button=0
       ;uname=widget_info(pageBtts[i], /UNAME)
-      widget_control, pageBtts[i], get_uvalue=uvalue
-      if uvalue eq 'MP' then self->userUpdatePageModeCode, uvalue, pageBtts[i]
+      ;widget_control, pageBtts[i], get_uvalue=uvalue
+      ;if uvalue eq 'MP' then self->userUpdatePageModeCode, uvalue, pageBtts[i]
     endfor
   endif else begin
     pageCodes=self->getAllPageModeCodes()
     for i=0, n_elements(pageBtts)-1 do begin
-      widget_control, pageBtts[i], sensitive=0, set_button=0
+      ;Free page mode april 2015
+      ;widget_control, pageBtts[i], sensitive=0, set_button=0
       ;uname=widget_info(pageBtts[i], /UNAME)
       widget_control, pageBtts[i], get_uvalue=uvalue
-      if uvalue eq 'SP' then self->userUpdatePageModeCode, uvalue, pageBtts[i]
+      ;if uvalue eq 'SP' then self->userUpdatePageModeCode, uvalue, pageBtts[i]
     endfor
   endelse
   self.mgr->setGraphCodeSelection, code

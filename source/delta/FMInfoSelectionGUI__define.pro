@@ -101,7 +101,8 @@ END
 
 FUNCTION FMInfoSelectionGUI::getSmallLabelYDim
 
-  return, 20
+  os=strupcase(!version.os_family)
+  if os eq 'X' then return, 20 else return, 30
   
 END
 
