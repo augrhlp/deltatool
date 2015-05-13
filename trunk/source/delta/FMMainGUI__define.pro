@@ -5,6 +5,12 @@ FUNCTION FMMainGUI::dialogMessage, textMessage, title=title, INFORMATION=INFORMA
   
 END
 
+FUNCTION FMMainGUI::getFontMgr
+
+  return, self.mgr->getFontMgr()
+  
+END
+
 PRO FMMainGUI::checkDataIntegrity
 
   self.mgr->checkDataIntegrity
@@ -155,7 +161,7 @@ PRO FMMainGUI::saveImage, filename, format, NO_CONFIRM=NO_CONFIRM, WORKINGDIR=WO
   endif else begin
     fsm=obj_new('FMFileSystemManager')
     onlyFileName=fsm->getFileName(imageFileName)
-    obj_destroy, fsm 
+    obj_destroy, fsm
     if keyword_set(WORKINGDIR) then fullFileName=WORKINGDIR+onlyFileName else fullFileName=imageFileName
     WRITE_IMAGE, fullFileName, predefFormat, imageToSave
   endelse
@@ -481,33 +487,6 @@ PRO FMMainGUI::unlockObsTable
   
 END
 
-PRO FMMainGUI::showObsDetails
-
-  self->disable
-  title='Selected monitoring details'
-  
-  base = WIDGET_BASE(/COLUMN, title=title, KILL_NOTIFY='fairmode_destroyObsTable', uvalue=self)
-  
-  mainBase = WIDGET_BASE(base, /ROW)
-  
-  statsStructs=self.mgr->buildStationsStructs()
-  
-;KeesC 17FEB2015  
-  colLabels=['Station Code', 'Station Name', 'Abbrev', 'Group', 'Single', 'Altitude(m)', 'Lon', 'Lat', 'GMT lag','Region', 'Station Type', 'Area Type', 'Siting']
-  
-  ; To make sure the table looks nice on all platforms,
-  ; set all column widths to the width of the longest string
-  ; that can be a header.
-  maxwidth = max(strlen(colLabels)) * !d.x_ch_size + 6   ; ... + 6 for padding
-  
-  stationsTable=widget_table(mainBase, COLUMN_LABELS=colLabels, /RESIZEABLE_COLUMNS, $
-    /SCROLL, scr_XSIZE=self.dimensions[0], /ROW_MAJOR, COLUMN_WIDTHS=maxwidth, $
-    value=statsStructs)
-    
-  widget_control, base, /REALIZE
-  
-END
-
 PRO FMMainGUI::changeStartDate, type, index
 
   ;print, type, index
@@ -580,22 +559,35 @@ FUNCTION FMMainGUI::checkGUIChanges
 
   ; extra values change from main gui
   elaborationDisp=self.mgr->getElaborationDisplay()
-  extraValNoMax=3
-  extraValsUNames='EXTRAVAL#'+strcompress(indgen(extraValNoMax)+1, /REMOVE)
+  ;extraValNoMax=3
+  ;extraValsUNames='EXTRAVAL#'+strcompress(indgen(extraValNoMax)+1, /REMOVE)
+  extraValsUName='EXTRAVAL'
   tFlag=elaborationDisp->getThresholdFlag()
-  extraValsWid=lonarr(extraValNoMax)
+  extraValsWid=widget_info(self->getTopBase(), FIND_BY_UNAME=extraValsUName)
+  ; MM May 2015 to avoid user typo
+  widget_control, extraValsWid, sensitive=0
+  ;extraValsWid=lonarr(extraValNoMax)
   values=0.
   ;disable all
   if tFlag eq 1 then begin
     refValues=elaborationDisp->getThresholdValues()
     extraValNo=n_elements(refValues)
+    widget_control, extraValsWid, get_value=refValue
+    refValueList=strsplit(refValue, '#', /EXTRACT)
+    if n_elements(refValueList) ne extraValNo then begin
+      msg=self->dialogMessage(['Check number of requested thresholds!'], title=['Main GUI'])
+      return, 0
+    endif
     for i=0, extraValNo-1 do begin
-      extraValsWid[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=extraValsUNames[i])
-      widget_control, extraValsWid[i], get_value=refValue
+      ;for i=0, extraValNo-1 do begin
+      ;extraValsWid[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=extraValsUNames[i])
+      ;widget_control, extraValsWid[i], get_value=refValue
+      refValue=refValueList[i]
       if self.utility->IsNumber(refValue) then begin
         values=[values, float(refValue)]
       endif else begin
-        widget_control, extraValsWid[i], set_value='**'
+        ;widget_control, extraValsWid[i], set_value='**'
+        widget_control, extraValsWid, set_value='**'
         msg=self->dialogMessage(['Check thresholds values!'], title=['Main GUI'])
         return, 0
       endelse
@@ -616,8 +608,13 @@ END
 
 PRO FMMainGUI::displayCompositeBatchGUI
 
-  ;benchmarkRoot=widget_info(self->getTopBase(), FIND='BENCHMARKSELECT_BTT')
-  self.mgr->displayCompositeBatchGUI;, benchmarkRoot
+  self.mgr->displayCompositeBatchGUI
+  
+END
+
+PRO FMMainGUI::displayFontEditGUI
+
+  self.mgr->displayFontEditGUI
   
 END
 
@@ -696,7 +693,7 @@ PRO FMMainGUI::build
   helpDescBtt=widget_Button(helpMenu, VALUE='Help file', UNAME='HELPBTT', UVALUE='OPENHELP_BTT', event_pro=self.eventPrefix+'helpMenuSelection')
   
   mInfo=self.mgr->getModelInfo()
-  if strlowcase(mInfo.frequency) eq 'hour' then interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool (Model)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR) 
+  if strlowcase(mInfo.frequency) eq 'hour' then interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool (Model)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR)
   ;interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool (Model)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR)
   ;autoFormatConversionBtt=widget_Button(helpMenu, VALUE='Convert observation (csv to cdf)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runBatchMenuSelection')
   
@@ -708,6 +705,7 @@ PRO FMMainGUI::build
   aboutBtt=widget_Button(helpMenu, VALUE='About...', UNAME='About', UVALUE='DISPMAP', event_pro=self.eventprefix+'aboutSplash')
   ;disclaimerBtt=widget_Button(helpMenu, VALUE='Disclaimer...', UNAME='Disclaimer', UVALUE='DISPMAP', event_pro=self.eventprefix+'disclaimer')
   foundExeBtt=widget_Button(helpMenu, VALUE='Find external applications paths...', UNAME='UpdateExe', UVALUE='DISPMAP', event_pro=self.eventprefix+'configureExecutable')
+  if self.mgr->IsDeveloperUser() then fontEditBtt=widget_Button(helpMenu, VALUE='Configure font(s)...', UNAME='ConfFonts', UVALUE='CONFFONTS', event_pro=self.eventprefix+'fontEdit')
   licenseBtt=widget_Button(helpMenu, VALUE='Licence...', UNAME='License', UVALUE='DISPMAP', event_pro=self.eventprefix+'license')
   mBase=WIDGET_BASE(mainbase,xpad=0, ypad=0,space=0,/COLUMN)
   logoBase= WIDGET_BASE(mBase,xpad=0, ypad=0,space=0,/ROW, /ALIGN_CENTER)
@@ -1105,38 +1103,45 @@ END
 
 PRO FMMainGUI::buildExtraValuesSubSection, base, prefixlabel, title, elements
 
-  smalltextX=self->xSummarySize()/(2*elements)
+  ;smalltextX=self->xSummarySize()/(2*elements)
+  smalltextX=self->xSummarySize()/2
   smallTextY=20
   
   captionSubTitle = Widget_Label(base, UNAME='WID_LABEL_0', $
-    SCR_XSIZE=self->xSummarySize() ,SCR_YSIZE=labelY ,/ALIGN_CENTER, $
+    SCR_XSIZE=self->xSummarySize() ,SCR_YSIZE=labelY ,/ALIGN_LEFT, $
     VALUE=Title, FONT=self.textFont)
     
   baseForElements = Widget_Base(base, UNAME='EXTRAVALSBASE', $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=1, /ROW)
     
-  UNAME='EXTRAVAL#'
-  for i=1, elements do begin
+  ;  UNAME='EXTRAVAL#'
+  ;  for i=1, elements do begin
+  UNAME='EXTRAVAL'
   
-    title=prefixlabel+strcompress(i, /REMOVE)
-    aBase = Widget_Base(baseForElements, UNAME='WID_BASE_3' ,XOFFSET=7, $
-      TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /ROW)
-      
-      
-    WID_LABEL_1 = Widget_Label(aBase, UNAME='', $
-      SCR_XSIZE=smalltextX ,SCR_YSIZE=self->getSubTitleYDim()*2 ,/ALIGN_RIGHT, $
-      ;SCR_XSIZE=smalltextX, /ALIGN_RIGHT, $
-      VALUE=title+':', font=self.labelFont)
-      
-      
-    WID_TEXT_0 = Widget_Text(aBase, UNAME=UNAME+strcompress(i, /REMOVE) ,XOFFSET=29, $
-      SCR_XSIZE=smallTextX-3 ,SCR_YSIZE=smallTextY*2 ,SENSITIVE=1 ,/ALL_EV $
-      ;SCR_XSIZE=smallTextX-3, SENSITIVE=1 ,/ALL_EV $
-      , font=self.textFont, value='**')
-  ;print, UNAME+strcompress(i, /REMOVE)
-      
-  endfor
-  
+  ;title=prefixlabel+strcompress(i, /REMOVE)
+  title=prefixlabel
+  aBase = Widget_Base(baseForElements, UNAME='WID_BASE_3' ,XOFFSET=7, $
+    TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /ROW)
+    
+    
+  WID_LABEL_1 = Widget_Label(aBase, UNAME='', $
+    SCR_XSIZE=self->getSubTitleXDim() ,SCR_YSIZE=self->getSubTitleYDim()*2, $
+    ;SCR_XSIZE=smalltextX, /ALIGN_RIGHT, $
+    VALUE=title+':', font=self.labelFont)
+    
+    
+;  WID_TEXT_0 = Widget_Text(aBase, UNAME=UNAME+strcompress(i, /REMOVE) ,XOFFSET=29, $
+;    SCR_XSIZE=smallTextX-3 ,SCR_YSIZE=smallTextY*2 ,SENSITIVE=1 ,/ALL_EV $
+;    ;SCR_XSIZE=smallTextX-3, SENSITIVE=1 ,/ALL_EV $
+;    , font=self.textFont, value='**')
+  WID_TEXT_0 = Widget_Text(aBase, UNAME=UNAME, $
+    SCR_XSIZE=self->getValueXDim() ,SCR_YSIZE=smallTextY*2 ,SENSITIVE=1 ,/ALL_EV $
+    ;SCR_XSIZE=smallTextX-3, SENSITIVE=1 ,/ALL_EV $
+    , font=self.textFont, value='**', /SCROLL, /WRAP)
+;print, UNAME+strcompress(i, /REMOVE)
+    
+;endfor
+
 END
 
 PRO FMMainGUI::buildElaborationParameterSection, base
@@ -1200,7 +1205,9 @@ PRO FMMainGUI::buildElaborationParameterSection, base
     SCR_XSIZE=self->getValueXDim() ,SCR_YSIZE=smallTextY ,SENSITIVE=1 ,/ALL_EV $
     , font=self.textFont)
     
-  baseThresholds = Widget_Base(baseFor5, UNAME='WID_BASE_3' ,XOFFSET=7, $
+;  baseThresholds = Widget_Base(baseFor5, UNAME='WID_BASE_3' ,XOFFSET=7, $
+;    TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
+  baseThresholds = Widget_Base(baseFor5, UNAME='WID_BASE_3' ,XOFFSET=0, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)
     
   self->buildExtraValuesSubSection, baseThresholds, thresholdTitle, thresholdPrefix, thresholdElements
@@ -1427,19 +1434,22 @@ FUNCTION FMMainGUI::getReferenceValueContents
 
   elaborationDisp=self.mgr->getElaborationDisplay()
   extraValNoMax=3
-  extraValsUNames='EXTRAVAL#'+strcompress(indgen(extraValNoMax)+1, /REMOVE)
+  ;extraValsUNames='EXTRAVAL#'+strcompress(indgen(extraValNoMax)+1, /REMOVE)
+  extraValsUName='EXTRAVAL'
+  extraValsWid=widget_info(self->getTopBase(), FIND_BY_UNAME=extraValsUName)
   tFlag=elaborationDisp->getThresholdFlag()
-  extraValsWid=lonarr(extraValNoMax)
+  ;extraValsWid=lonarr(extraValNoMax)
   stringValues=''
   ;disable all
   if tFlag eq 1 then begin
     refValues=elaborationDisp->getThresholdValues()
     extraValNo=n_elements(refValues)
-    for i=0, extraValNo-1 do begin
-      extraValsWid[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=extraValsUNames[i])
-      widget_control, extraValsWid[i], get_value=refValue
-      stringValues=stringValues+refValue+'#'
-    endfor
+    widget_control, extraValsWid, get_value=stringValues
+  ;    for i=0, extraValNo-1 do begin
+  ;      extraValsWid[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=extraValsUNames[i])
+  ;      widget_control, extraValsWid[i], get_value=refValue
+  ;      stringValues=stringValues+refValue+'#'
+  ;    endfor
   endif
   return, stringValues
   
@@ -1555,19 +1565,24 @@ PRO FMMainGUI::updateElaborationSection
     widget_control, widgets[4], set_value=groupByTimeName
     
     extraValNoMax=3
-    extraValsUNames='EXTRAVAL#'+strcompress(indgen(extraValNoMax)+1, /REMOVE)
+    ;extraValsUNames='EXTRAVAL#'+strcompress(indgen(extraValNoMax)+1, /REMOVE)
+    extraValsUName='EXTRAVAL'
+    extraValsWid=widget_info(self->getTopBase(), FIND_BY_UNAME=extraValsUName)
     tFlag=elaborationDisp->getThresholdFlag()
-    extraValsWid=lonarr(extraValNoMax)
+    ;extraValsWid=lonarr(extraValNoMax)
     ;disable all
-    for i=0, extraValNoMax-1 do begin
-      extraValsWid[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=extraValsUNames[i])
-      widget_control, extraValsWid[i], sensitive=0, EDITABLE=0, set_value=''
-    endfor
+    ;    for i=0, extraValNoMax-1 do begin
+    ;      extraValsWid[i]=widget_info(self->getTopBase(), FIND_BY_UNAME=extraValsUNames[i])
+    ;    endfor
+    widget_control, extraValsWid, sensitive=0, EDITABLE=0, set_value=''
     ;enable if ref values were set by user
     if tFlag eq 1 then begin
-      refValues=elaborationDisp->getThresholdValues()
+      refValues=strcompress(elaborationDisp->getThresholdValues(), /REMOVE)
       extraValNo=n_elements(refValues)
-      for i=0, extraValNo-1 do widget_control, extraValsWid[i], set_value=strcompress(refValues[i], /REMOVE), sensitive=1, /EDITABLE
+      stringValues=''
+      for i=0, extraValNo-1 do stringValues=stringValues+'#'+refValues[i]
+      stringValues=strmid(stringValues, 1, strlen(stringValues)-1)
+      widget_control, extraValsWid, set_value=strcompress(stringValues, /REMOVE);, sensitive=1, /EDITABLE
     endif
   endif
   

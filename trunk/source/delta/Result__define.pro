@@ -1,3 +1,15 @@
+PRO Result::setMultipleDrawMainTitle, value
+
+ self.multipleDrawMainTitle=value
+
+END
+
+FUNCTION Result::getMultipleDrawMainTitle, value
+
+ return, self.multipleDrawMainTitle
+
+END
+
 PRO Result::setGenericPlotInfo, XYs, symbols, colors, legendNames, legendColors, legendSymbols
 
   obj_destroy, self.genericPlotInfo
@@ -573,6 +585,7 @@ FUNCTION Result::init, filename, tempDataFile
   if n_elements(tempDataFile) eq 1 then self.tempDataFile = tempDataFile
   self.plotInfo=obj_new('PlotInfo')
   self.genericPlotInfo=obj_new('GenericPlotInfo')
+  self.multipleDrawMainTitle='fill the title with Result->multipleDrawMainTitle, yourText method'
   return, 1
   
 END
@@ -590,6 +603,7 @@ PRO Result__Define
     targetPlot: 0, $ ; true if output plot requested is "Target"
     scatterPlot: 0, $ ; true if output plot requested is "Scatter"
     soccerPlot: 0, $ ; true if output plot requested is "Soccer"
+    multipleDrawMainTitle: '', $
     xAxisLength: 0, $
     xValues: ptr_new(), $ ; pointer of multiple data array
     xTickMarks : ptr_new(), $ ; pointer of tickmarks

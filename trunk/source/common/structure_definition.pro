@@ -1,3 +1,15 @@
+PRO setCurrentFont, newFontList
+
+  COMMON lastFontSetting, fontList, fontType, fontName, charSize, charThick, fontSet, fontSelected
+  fontList=newFontList
+  fontType=!P.font
+  device, get_current_font=currFont
+  fontName=currFont
+  charSize=!P.charsize
+  charThick=!P.charthick
+  
+END
+
 FUNCTION getNetcdfFileDescStruct
 
   struct = { netcdfFileDesc, $
@@ -634,6 +646,32 @@ FUNCTION getFMGoalsCriteriaOC
     }
   ptr_free, struct.values
   
+  return, struct
+  
+END
+
+; *******************************************************
+; initialize a structure of "FMFont" type
+; *******************************************************
+
+;ELABORATION
+;code:0, $
+;displayName: '', $
+;type: 0, $
+;fontName: '', $
+;modifier: '', $
+;charSize: 0., $
+;charThick: 0. $
+FUNCTION getFMFont
+
+  struct = { code:0, $
+    displayName: '', $
+    type: 0, $
+    fontName: '', $
+    modifier: '', $
+    charSize: 0., $
+    charThick: 0. $
+    }
   return, struct
   
 END

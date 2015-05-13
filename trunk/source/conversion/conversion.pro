@@ -81,7 +81,7 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   spa='              '
   
   base = WIDGET_BASE(/ROW,title=spa+'DELTATOOL_MODcsv2cdf *** '+version, $
-    MBAR=WID_MENU,xsize=xw,ysize=yw,TLB_FRAME_ATTR=1,/TLB_KILL_REQUEST_EVENTS, NOTIFY_REALIZE='conversionConfig')
+    MBAR=WID_MENU,scr_xsize=xw,scr_ysize=yw,TLB_FRAME_ATTR=1,/TLB_KILL_REQUEST_EVENTS, NOTIFY_REALIZE='conversionConfig', /SCROLL)
   base1=WIDGET_BASE(base,/column,space=10)
   labxx=widget_label(base1,value=' ',ysize=9)
   base1211=widget_base(base1,/row)
@@ -112,7 +112,7 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   labxx=widget_label(base1,value=' ',ysize=3)
   basepr=widget_base(base1,/row)
   labpr=widget_label(basepr,value='Progress ',font='times Roman*16*bold')
-  labpr_txt=widget_text(basepr,xsize=102,ysize=0.3)
+  labpr_txt=widget_text(basepr,xsize=85,ysize=0.3)
   widget_control,labpr_txt,set_value='--'
   labxx=widget_label(base1,value=' ',ysize=3)
   ; MM fall 2014 Start
@@ -121,8 +121,8 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   buthelp = WIDGET_BUTTON(basegn2,VALUE='HELP', UVALUE='HELP',ysize=30,font='times Roman*18*bold')
   butgo2 = WIDGET_BUTTON(basegn2,VALUE='GO', UVALUE='GO',ysize=30,font='times Roman*18*bold')
   wid_exit2=Widget_Button(basegn2, VALUE='EXIT',ysize=30,UVALUE='DONE',font='times Roman*18*bold')
-  lab2=widget_label(base2,value='COMMENTS',font='times Roman*18*bold')
-  labcom_txt=WIDGET_TEXT(base2,XSIZE=68,ysize=48,/frame,/SCROLL)
+  lab2=widget_label(base2,value='COMMENTS',font='times Roman*18*bold',XSIZE=40)
+  labcom_txt=WIDGET_TEXT(base2,XSIZE=40,ysize=48,/frame,/SCROLL)
   widget_control,butgo2,sensitive=0
   
   pState = {                     $

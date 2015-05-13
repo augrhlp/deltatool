@@ -3,6 +3,38 @@
 @../check_io/checkcriteria
 ;********************
 
+FUNCTION FMApplication::getESpC, NODATA=NODATA
+
+  if ptr_valid(self.eSpC) then return, *self.eSpC
+  NODATA=1
+  return, -1
+  
+END
+
+FUNCTION FMApplication::getESpR, NODATA=NODATA
+
+  if ptr_valid(self.eSpR) then return, *self.eSpR
+  NODATA=1
+  return, -1
+  
+END
+
+FUNCTION FMApplication::getNumberReferenceValues, elabInfo
+
+  code=elabInfo->getSelectedElabCode()
+  specialElabList=self->getESpC(NODATA=NODATA)
+  if not(keyword_set(NODATA)) then begin
+    idx=where(fix(code) eq fix(specialElabList), count)
+    if count eq 1 then begin
+      routineList=self->getESpR()
+      refValuesFunct=routineList[idx]
+      return, call_function(refValuesFunct[0], self.entityDisplay, self.elaborationDisplay)
+    endif
+  endif
+  return, elabInfo->getNumberReferenceValues()
+  
+END
+
 FUNCTION FMApplication::cleanPath, path
 
   return, self.fileSystemMgr->cleanPath(path)
@@ -160,8 +192,8 @@ PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
   testBatch=fm->getBatchTemplateFileName()
   
   ;reqs=strarr(1)
-  reqs=strarr(1)
-  ;postScriptRequest=fm->getRequestTemplateFileName(/POSTSCRIPT)
+  reqs=strarr(2)
+  postScriptRequest=fm->getRequestTemplateFileName(/POSTSCRIPT)
   rasterRequest=fm->getRequestTemplateFileName(/RASTER)
   
   ;copy all the templates in working dir
@@ -171,11 +203,10 @@ PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
   fm->fileCopy, templateFolder+testEnt, wDir+testEnt, /OVERWRITE
   fm->fileCopy, templateFolder+testRequest, wDir+testRequest, /OVERWRITE
   fm->fileCopy, templateFolder+testBatch, wDir+testBatch, /OVERWRITE
-  ;fm->fileCopy, templateFolder+postScriptRequest, wDir+postScriptRequest, /OVERWRITE
+  fm->fileCopy, templateFolder+postScriptRequest, wDir+postScriptRequest, /OVERWRITE
   fm->fileCopy, templateFolder+rasterRequest, wDir+rasterRequest, /OVERWRITE
   
-  ;reqs[0]=postScriptRequest & reqs[1]=rasterRequest
-  reqs[0]=rasterRequest
+  reqs[0]=postScriptRequest & reqs[1]=rasterRequest
   ;reqs[0]=rasterRequest
   ;copy elabFile to templateElab
   ;rename entityFile to templateEntity
@@ -532,24 +563,24 @@ END
 
 PRO FMApplication::testPlotQuality
 
-  ERROR=0
-  catch, error_status
-  
-  if error_status NE 0 THEN BEGIN
-    ERROR=1
-    self->setTestMode, 0
-    self->setLogMode, 0
-    catch, /CANCEL & close, /ALL
-    if n_elements(applicationUserType) eq 1 then begin
-      self->setUserType, applicationUserType
-      self->setUserType, applicationUserType
-      self->updateElaborationDisplay, saveElab
-      self->updateEntityDisplay, saveEntity
-    endif
-    errMsg=self->dialogMessage(title='File(s) corrupted or missing', [['Something wrong with Magic files'], ['Repeat process using Magic button within Data selection and Analysis GUI']], /ERROR)
-    return
-  endif
-  
+  ;  ERROR=0
+  ;  catch, error_status
+  ;
+  ;  if error_status NE 0 THEN BEGIN
+  ;    ERROR=1
+  ;    self->setTestMode, 0
+  ;    self->setLogMode, 0
+  ;    catch, /CANCEL & close, /ALL
+  ;    if n_elements(applicationUserType) eq 1 then begin
+  ;      self->setUserType, applicationUserType
+  ;      self->setUserType, applicationUserType
+  ;      self->updateElaborationDisplay, saveElab
+  ;      self->updateEntityDisplay, saveEntity
+  ;    endif
+  ;    errMsg=self->dialogMessage(title='File(s) corrupted or missing', [['Something wrong with Magic files'], ['Repeat process using Magic button within Data selection and Analysis GUI']], /ERROR)
+  ;    return
+  ;  endif
+
   fm=self->getFileSystemMgr()
   elabMagicFile=self->getMagicElaborationList()
   entityMagicFile=self->getMagicEntityList()
@@ -741,13 +772,13 @@ END
 
 FUNCTION FMApplication::getAllSplitStyleNames
 
-  return, ['1', '2 - Horizontal', '2 - Vertical', '4']
+  return, ['1', '2 - H', '2 - V', '4']
   
 END
 
 FUNCTION FMApplication::getAllPageModeNames
 
-  return, ['Each graph in a single page/file', 'All graphs in the same page/file']
+  return, ['Split graphs', 'Group graphs']
   
 END
 
@@ -1094,8 +1125,8 @@ FUNCTION FMApplication::isSuggestedDataIntegrity
     ;warningMessage=['Uhhmmm... You seem to have a new version of FairMode...', 'To prevent problems, it is strongly raccomended to run Check Integrity Tool.', 'You can ALWAYS run this tool under Help menu.']
     ;warningTitle='New FairMode Version'
     warningMessage=[['We detected that you are using a new dataset.'], $
-      ['We highly recomende that you perform an integrity check before proceeding to the delta tool'], $
-      ['This might require few minutes.'], $
+      ['We highly recomended that you perform an integrity check before proceeding to the delta tool'], $
+      ['This might require 5 minutes.'], $
       ['Note that you will always have the possibility to perform this integrity checks later on through the help menu'], $
       ['YES: Run Check'], $
       ['NO: Skip check and run delta tool']]
@@ -1687,21 +1718,6 @@ PRO FMApplication::displayEntitySelectionGUI
   
 END
 
-; Oct 2 2011 MM End
-;PRO FMApplication::displayBatchMarkGUI
-;
-;  if obj_valid(self.lastView) then begin
-;    self.lastView->show
-;  endif else begin
-;    self.elaborationView=obj_new('FMElaborationSelectionGUI', self.elaborationDisplay->Clone(/DEEP), self)
-;    self.elaborationView->realize
-;    self.lastView=self.elaborationView
-;  endelse
-;  ;print, 'Open displayElaborationSelectionGUI'
-;  self->disable
-;
-;END
-
 PRO FMApplication::displayElaborationSelectionGUI
 
   if obj_valid(self.lastView) then begin
@@ -1722,20 +1738,35 @@ PRO FMApplication::displayCompositeBatchGUI
   if obj_valid(self.lastView) then begin
     self.lastView->show
   endif else begin
-    ;self.benchMarkView=obj_new('FMBenchMarkCreationGUI', self.benchMarkDisplay->Clone(/DEEP), self)
     applicationUserType=self->getUserType()
     ;standard (As request by JRC-Staff)
     self->setUserType, 0
     bEntityDI=obj_new('EntityDisplayInfo')
     self->initEntityDisplay, bEntityDI, self.mainConfig, self.categoryList, self.modelList, self.scenarioList, self.observedList, self.parameterTypeList, self.parameterList, self.monitoringGroupStatList
     bElabDI=obj_new('ElaborationDisplayInfo')
-    ;self->initElaborationDisplay, self.mainConfig, self.diagramList, self.axisTypeList, self.groupByStatList, self.groupByTimeList, self.seasonList, self.dayPeriodList
     self->initElaborationDisplay, bElabDI, self.mainConfig, self.diagramList, self.groupByStatList, self.groupByTimeList, self.seasonList, self.dayPeriodList
     self.compositeBatchMgr= obj_new('CompositeBatchManager', self, bEntityDI, bElabDI, applicationUserType)
     self.compositeBatchMgr->realize
-  ;    self.benchMarkView=obj_new('FMBenchMarkCreationGUI', obj_new(""), self, bEntityDI, bElabDI)
-  ;    self.benchMarkView->realize
-  ;    self.lastView=self.benchMarkView
+  endelse
+  ;print, 'displayBenchMarkCreationSelectionGUI'
+  self->disable
+  
+END
+
+FUNCTION FMApplication::getFontMgr
+
+  return, self.mainConfig->getFontList()
+  
+END
+
+PRO FMApplication::displayFontEditGUI
+
+  fontList=self.mainConfig->getFontList()
+  if obj_valid(self.lastView) then begin
+    self.lastView->show
+  endif else begin
+    self.fontEditMgr= obj_new('FontEditManager', self, fontList)
+    self.fontEditMgr->realize
   endelse
   ;print, 'displayBenchMarkCreationSelectionGUI'
   self->disable
@@ -1839,6 +1870,8 @@ FUNCTION FMApplication::checkRequest, entityDisplayInfo, elaborationDisplayInfo,
   if n_elements(elaborationDisplayInfo) eq 0 then checkElaboration=self.elaborationDisplay else checkElaboration=elaborationDisplayInfo
   if checkEntity->checkIntegrity(self.mainView) ne 1 then return, 0
   if checkElaboration->checkIntegrity(self.mainView, /NODISPLAYCHECK) ne 1 then return, 0
+  
+  ; End
   if not(self->checkMultiple(checkEntity, checkElaboration, multipleUserChoices=multipleUserChoices)) then return, 0b
   ;mChoiceI=self->getMultipleChoiceInfo()
   return, 1b
@@ -2116,17 +2149,27 @@ PRO FMApplication::doElaboration, request, multipleUserChoices, BATCH=BATCH, WOR
   widget_control, HOURGLASS=0
   ;elab data (fill result, fill .plotInfo result to manage plot behaviour)
   request->setGoogleEarthLocation, self->getGoogleEarthLocation()
-  call_procedure, request->getElaborationRoutine(), request, result
+  self.plotter->setSilentMode, keyword_set(BATCH)
+  call_procedure, request->getElaborationRoutine(), request, result, self.plotter
   
   targetInfo=result->getGenericPlotInfo()
   checkXY=targetInfo->getXYS()
   if ~keyword_set(outFileName) then outFileName=request->getFileName()
-  self.plotter->setSilentMode, keyword_set(BATCH)
   self.plotter->opendevice, request->getPlotDeviceName(), outFileName, $
     request->getPrintOrient(),request->getPageBreak(), request->getLocation(), BATCH=BATCH, WORKINGDIR=WORKINGDIR
   self.plotter->wsetMainDataDraw, /PROGRESS
   self.plotter->plotAll, request, result
-  self.plotter->closedevice, request->getPageBreak(), outFileName, request->getPrintOrient(), WORKINGDIR=WORKINGDIR
+  ;  ; set a valid multiple draw title
+  ;  fName=request->getFilename()
+  ;  if fName ne '' then begin
+  ;    fsm=obj_new('FMFileSystemManager')
+  ;    title=fsm->getBaseFileName(fName)
+  ;    idx=strpos(title, '_')
+  ;    if idx gt 0 then title=strmid(title,0, idx)
+  ;    obj_destroy, fsm
+  ;    result->setMultipleDrawMainTitle, title
+  ;  endif
+  self.plotter->closedevice, request->getPageBreak(), outFileName, request->getPrintOrient(), result->getMultipleDrawMainTitle(), WORKINGDIR=WORKINGDIR
   request->closeDataDumpFile
   self->updateRecognizeData, request, result, SILENT=BATCH
   ;  endif
@@ -2457,6 +2500,7 @@ PRO FMApplication::startUp
         'SEASON_FILE' : self.seasonList->fillDataFromFile, confDir+fileName
         'DAYPERIOD_FILE' : self.dayPeriodList->fillDataFromFile, confDir+fileName
         'PARAMETER_FILE' : parameterFileName=confDir+fileName ; Save parameter File Name for later use
+        ;'FONT_FILE' : parameterFileName=confDir+fileName ; Save parameter File Name for later use
         'OBSERVED_FILE' : observedFileName=confDir+fileName ; Save observed File Name for later use
         'TXT_PS_CHARSIZE_FACTOR' : self.psCharSizeFactor=float(varName) ; save
         ;'TXT_VERSION_DATE' : self->addVersionInfo, 'TXT_VERSION_DATE', varName  ;varName ; save
@@ -2801,13 +2845,21 @@ FUNCTION FMApplication :: init
   self.modeDisplay=obj_new('ModeDisplayInfo')
   self.entityDisplay=obj_new('EntityDisplayInfo')
   self.elaborationDisplay=obj_new('ElaborationDisplayInfo')
-  ;self.request=obj_new('Request')
   self.dataMinerMgr=obj_new('DataMiner')
   self.benchMarkMenuList=obj_new('MenuInfo')
   self.availableUserType=["STANDARD", "ADVANCED", "DEVELOPER"];, "BENCHMARK"]
   ;self.versionInfoCodes=ptr_new(['TXT_VERSION_DATE', 'TXT_VERSION_CODE'], /NO_COPY);, 'CONVERSION_DIR', 'PLANNING_DIR', 'NON_LINEAR_DIR']
   self.testMode=0
   self->setLogMode, 0
+  elabSpecialCode=strarr(1)
+  elabSpecialRoutine=strarr(1)
+  ; MM May 2015
+  ; Change and/or add elaborations that needs a special thresholds management
+  ;elabSpecialCode[0]=86
+  ;elabSpecialRoutine[0]='elab'+strcompress(elabSpecialCode[0], /REMOVE_ALL)+'Threshold'
+  ;self.eSpC=ptr_new(elabSpecialCode, /NO_COPY)
+  ;self.eSpR=ptr_new(elabSpecialRoutine, /NO_COPY)
+  ; MM May 2015 End
   ;self.magicFile='magic'
   return, 1
   
@@ -2844,8 +2896,11 @@ PRO FMApplication :: cleanUp
   obj_destroy, self.plotter
   obj_destroy, self.benchMarkMenuList
   obj_destroy, self.recognizeInfo
-  obj_destroy, self.benchmarkView
+  obj_destroy, self.compositeBatchMgr
+  obj_destroy, self.fontEditMgr
   ptr_free, self.versionInfoCodes
+  ptr_free, self.eSpC
+  ptr_free, self.eSpR
   self -> Object :: cleanUp
   journal
   
@@ -2854,9 +2909,7 @@ END
 PRO FMApplication__Define
 
   Struct = { FMApplication , $
-    ;lastUserType: 0, $
     mainView : obj_new(), $
-    benchmarkView: obj_new(), $
     entityView: obj_new(), $
     elaborationView: obj_new(), $
     entityBatchView: obj_new(), $
@@ -2884,6 +2937,7 @@ PRO FMApplication__Define
     elaborationBatchDisplay: obj_new(), $
     entityBatchDisplay: obj_new(), $
     compositeBatchMgr: obj_new(), $
+    fontEditMgr: obj_new(), $
     executeOk: intarr(2), $
     request: obj_new(), $
     plotter: obj_new(), $
@@ -2896,12 +2950,9 @@ PRO FMApplication__Define
     doDataCheck: 0b, $
     ;MM fall 2014 End
     ;MM summer 2012 Start
-    ;scaleInfo: '', $
     modelInfo: getFMModelInfoStruct(), $
     ;MM summer 2012 End
     availableUserType: strarr(3), $
-    ;versionDate : '', $
-    ;versionCode : '', $
     psCharSizeFactor: 0., $
     browserLocation: '', $
     googleEarthLocation: '', $
@@ -2912,6 +2963,8 @@ PRO FMApplication__Define
     testMode: 0, $
     logMode: 0, $
     logFile: '', $
+    eSpC: ptr_new(), $
+    eSpR: ptr_new(), $
     Inherits Object $
     }
     

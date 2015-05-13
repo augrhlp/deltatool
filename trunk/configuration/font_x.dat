@@ -1,0 +1,5 @@
+[FONT: Code,DisplayName,Type(-1/0/1),fontName;tt modifiers-weight(THIN/LIGHT/BOLD/HEAVY),Quality(DRAFT/PROOF),pitch(FIXED/VARIABLE),STRIKEOUT,UNDERLINE;charsize (vector apply);charthick (vector apply)]
+1;DiagramFont;0;9x15bold;32;1.30000;2.00000
+2;LegendFont;0;7x13euro;32;1.30000;2.00000
+3;MainTitleFont;0;9x15bold;32;3.00000;2.00000
+101;PSFont;-1;N/A;N/A;1.50000;1.00000

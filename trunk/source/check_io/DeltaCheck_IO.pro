@@ -331,7 +331,7 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   STEPS(17)= 'STEP 17: Check on MOD NaN/Inf/Extreme values'
   STEPS(18)= 'STEP 18: MOD availability at stations for STARTUP species (%)'
   STEPS(19)= 'STEP 19: Basic Statistics'
-
+  maxdims=getscreensize()
   ;count=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16']
   k=0
   nsteps=n_elements(STEPS)
@@ -339,7 +339,7 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   labok=lonarr(nsteps)
 ;KeesC 11FEB2015  
   base = WIDGET_BASE(/ROW,title='DELTACHECK_IO *** '+version, MBAR=WID_MENU, $
-    TLB_FRAME_ATTR=1, uvalue=deltaMgr, /TLB_KILL_REQUEST_EVENTS, event_pro='DeltaCheck_IO_event', /ROW,xsize=1200)
+    TLB_FRAME_ATTR=1, uvalue=deltaMgr, /TLB_KILL_REQUEST_EVENTS, event_pro='DeltaCheck_IO_event', /ROW,scr_xsize=maxdims[0]-30,scr_ysize=maxdims[1]-30, /SCROLL)
   base1=WIDGET_BASE(base,/row,space=0)
   base110=widget_base(base1,/column)
 
@@ -468,7 +468,7 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   widget_control,labprog_txt,set_value='---'
 
   lab13=widget_label(thirdColumn,value='COMMENTS [See Log/Summary Files]',font='times Roman*16*bold')
-  labcom_txt=WIDGET_TEXT(thirdColumn,scr_XSIZE=textXsize,scr_ysize=dims[1]*8/10,/frame, /SCROLL)
+  labcom_txt=WIDGET_TEXT(thirdColumn,scr_XSIZE=textXsize,scr_ysize=dims[1]*8/10,/frame);, /SCROLL)
   Widget_Control, base, /REALIZE
 
   fakeEvent={top:base}
