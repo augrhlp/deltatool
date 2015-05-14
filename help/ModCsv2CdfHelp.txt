@@ -54,4 +54,4 @@ The DELTATOOL_CSV2CDF is used to transform Model output in csv format into netCD
               StartHour is the start hour in the period, 
               EndHour the end hour in the period. 
 			  
-delete this line
+delete this line again
