@@ -1,4 +1,0 @@
-["RUN": Code,ScenarioCode,ModelCode,AreaCode,DisplayName,GridXStart (?),GridXStep (?),GridXStepNumber (?),GridYStart (?),GridYStep (?),GridYStepNumber (?),VerticalInterpolation,HorizontalInterpolation,ExecutionDate,FileName,Description]
-0;2005;MOD1;2;MOD1(2005);39.00;0.20;30;10.00;0.15;25;30.00;15.00;Tue Feb 24 00:45:44 2015;2005_MOD1.cdf;Descr of: MOD1(2005) (Tue Feb 24 00:45:44 2015)
-1;NOX20;MOD1;2;MOD1(NOX20);39.00;0.20;30;10.00;0.15;25;30.00;15.00;Tue Mar 10 16:54:42 2015;NOX20_MOD1.cdf;Descr of: MOD1(NOX20) (Tue Mar 10 16:54:42 2015)
-2;NOX50;MOD1;2;MOD1(NOX50);39.00;0.20;30;10.00;0.15;25;30.00;15.00;Tue Feb 24 00:45:49 2015;NOX50_MOD1.cdf;Descr of: MOD1(NOX50) (Tue Feb 24 00:45:49 2015)
