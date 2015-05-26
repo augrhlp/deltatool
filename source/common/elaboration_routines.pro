@@ -159,7 +159,7 @@ PRO FM_Generic, request, result, plotter
   
   ; ****** DUMP FILE *****
   iprintnr=2 ; 2 values (OBS MOD) are dumped
-  if iUseObserveModel eq 1 and elabCode ne 85 and elabCode ne 86 then iprintnr=1
+  if iUseObserveModel eq 1 and elabCode ne 85 and elabCode ne 86 and elabCode ne 87 then iprintnr=1
   if total(where(elabCode eq [3,4,5,7,8,23,24,28,30,33,54])) ge 0 then iprintnr=1 ; 1 MOD value
   if elabCode eq 2 or elabCode eq 14 then iprintnr=3 ; Const CC Slope
   ; For groups only:  Const CC Slope Bias RMSE NMSD MeanO MeanM StdevO StdevM ==> set iprintnr=10
@@ -332,7 +332,7 @@ PRO FM_Generic, request, result, plotter
     
   ; KeesC : Put into linear structure for input to PH plotroutines (i.e. diagramCode ne 0)
   nobs=numStatValid
-  if diagramCode ne 0 and elabCode ne 85 and elabCode ne 86 then begin
+  if diagramCode ne 0 and elabCode ne 85 and elabCode ne 86 and elabCode ne 87 then begin
     nmulti=npar*nmod*nsce*nobs
     legHlp=strarr(nmulti)
     statC=intarr(nmulti)
@@ -428,13 +428,15 @@ PRO SG_Computing, $
   obsLatitudes=request->getSingleObsLatitudes()
   obsLongitudes=request->getSingleObsLongitudes()
   
-  if (elabCode eq 85 or elabCode eq 86) and isnumeric(test3[0]) eq 0 then begin
+  if (elabCode eq 85 or elabCode eq 86 or elabCode eq 87) and isnumeric(test3[0]) eq 0 then begin
     silentMode=plotter->getSilentMode()
     FORCELOG=silentMode
     notNum=dialogMsg(['The BaseYear does not exist','or its identifier is not numeric'], FORCELOG=FORCELOG,/error)
-    stop
+    return
   endif
-  if elabCode eq 86 and where(strupcase(strmid(scenarioCodes,0,3)) eq 'ALL') ne -1 then begin
+  indexScenAll=where(strupcase(strmid(scenarioCodes,0,3)) eq 'ALL')
+  if n_elements(indexScenAll) gt 1 then indexScenAll=indexScenAll(0)
+  if elabCode eq 86 and indexScenAll ne -1 then begin
     silentMode=plotter->getSilentMode()
     FORCELOG=silentMode
     notNum=dialogMsg(['The ALL scenarios should not be used with absolute potencies'], FORCELOG=FORCELOG,/error)
@@ -859,7 +861,7 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp,statType)
           endif
           
-          if elabcode eq 85 or elabCode eq 86 then begin  ;potency calculations
+          if elabcode eq 85 or elabCode eq 86 or elabCode eq 87 then begin  ;potency calculations
           
             if i3 eq 0 then begin
               percentileInTimeSeries=fix(n_elements(runTemp)*0.95)
@@ -872,16 +874,22 @@ PRO SG_Computing, $
               statXYGroup[i1,i2,i3,i4]=mean(runTemp)
             endif
             if i3 gt 0 then begin
-              denom=statXYResult[i1,i2,0,i4,0]
+              denom1=statXYResult[i1,i2,0,i4,0]
+              denom2=statXYResult[i1,i2,0,i4,1]
               reductionpercentage=float(strmid(scenarioCodes(i3),3,2))/100.
               if elabCode eq 86 then begin
                 PollutantCh=strmid(scenarioCodes(i3),0,3)
                 indexPol=where(pollutantCh eq PollutantPlot)
-                denom=extraVal(indexPol)
+                denom1=extraVal(indexPol)
+                denom2=extraVal(indexPol)
+              endif
+              if elabCode eq 87 then begin
+                denom1=1.
+                denom2=1.
               endif
               
-              statXYResult[i1,i2,i3,i4,0]=-(mean(runTemp)-statXYResult[i1,i2,0,i4,0])/(denom*reductionpercentage)
-              statXYResult[i1,i2,i3,i4,1]=-(mean(RunTemp(indicesPercentile(i4,0:dimPercentile(i4)-1)))-statXYResult[i1,i2,0,i4,1])/(denom*reductionpercentage)
+              statXYResult[i1,i2,i3,i4,0]=-(mean(runTemp)-statXYResult[i1,i2,0,i4,0])/(denom1*reductionpercentage)
+              statXYResult[i1,i2,i3,i4,1]=-(mean(RunTemp(indicesPercentile(i4,0:dimPercentile(i4)-1)))-statXYResult[i1,i2,0,i4,1])/(denom2*reductionpercentage)
               statXYGroup[i1,i2,i3,i4]=-(mean(runTemp)-statXYResult[i1,i2,0,i4,0])/reductionpercentage
             endif
           endif

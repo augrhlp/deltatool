@@ -557,7 +557,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   endif
   
   
-  if elabCode ne 85 and elabCode ne 86 then begin  ; week-days, summer...
+  if elabCode ne 85 and elabCode ne 86 and elabCode ne 87 then begin  ; week-days, summer...
   
     nobs=n_elements(allDataXY(*,0))
     
@@ -679,7 +679,28 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
     
   endif
   
-  if elabCode eq 85 then begin ;potential calculations
+  if elabCode eq 85 or elabCode eq 87 then begin ;potential calculations
+  
+    if elabCode eq 85 then begin
+      xticks=['0.25','0','-0.25','-0.50','-0.75','-1']
+    endif
+    if elabcode eq 87 then begin
+       allData=reform(allDataXY(0,0,1:n_elements(scenarioCodes)-1,*,*))
+       maxAlldata=max(alldata)
+       if maxAlldata lt 10 then begin
+          allDataXY=allDataXY/10.
+          xticks=['2.5','0','-2.5','-5.0','-7.5','-10']
+       endif
+       if maxAlldata ge 10 and maxAlldata lt 20 then begin
+          allDataXY=allDataXY/20.
+          xticks=['5','0','-5','-10','-15','-20']
+       endif
+       if maxAlldata ge 20 then begin
+          allDataXY=allDataXY/100.
+          xticks=['25','0','-25','-50','-75','-100']
+       endif
+    endif
+    
   
     plot, indgen(1),color=255,/nodata,xrange=[0,1],xstyle=1,position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
     
@@ -700,6 +721,8 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
     mypsym,9,1
     fontFactor=3.
     ttThick=1.0
+    if elabCode eq 85 then xyouts,0.95,0.92,'%',/normal,color=colortest,charsize=0.75*fontFactor, charthick=ttThick ;, FONT=1
+    if elabCode eq 87 then xyouts,0.85,0.92,'ug/m3',/normal,color=colortest,charsize=0.75*fontFactor, charthick=ttThick ;, FONT=1
     for i=0,n_elements(ytitle)-1 do begin  ;overall display
       yval=0.90-i*0.12
       plots,[0.15,0.95],[yval,yval],/normal,color=colorTest
@@ -716,12 +739,12 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
       ; just set vector
       ;setUserFont, 'UserDef5', FORCELOG=FORCELOG
       if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'DiagramFont', FORCELOG=FORCELOG
-      xyouts,0.13,yval-0.11,'0.25',/normal,color=colortest,charsize=0.7*fontFactor, charthick=12. ;, FONT=1
-      xyouts,0.29,yval-0.11,'0',/normal,color=colortest,charsize=0.7*fontFactor, charthick=ttThick ;, FONT=1
-      xyouts,0.45,yval-0.11,'-0.25',/normal,color=colortest,charsize=0.7*fontFactor, charthick=ttThick ;, FONT=1
-      xyouts,0.61,yval-0.11,'-0.50',/normal,color=colortest,charsize=0.7*fontFactor, charthick=ttThick ;, FONT=1
-      xyouts,0.77,yval-0.11,'-0.75',/normal,color=colortest,charsize=0.7*fontFactor, charthick=ttThick ;, FONT=1
-      xyouts,0.95,yval-0.11,'-1',/normal,color=colortest,charsize=0.7*fontFactor, charthick=ttThick ;, FONT=1
+      xyouts,0.13,yval-0.11,xticks(0),/normal,color=colortest,charsize=0.7*fontFactor, charthick=12. ;, FONT=1
+      xyouts,0.29,yval-0.11,xticks(1),/normal,color=colortest,charsize=0.7*fontFactor, charthick=ttThick ;, FONT=1
+      xyouts,0.45,yval-0.11,xticks(2),/normal,color=colortest,charsize=0.7*fontFactor, charthick=ttThick ;, FONT=1
+      xyouts,0.61,yval-0.11,xticks(3),/normal,color=colortest,charsize=0.7*fontFactor, charthick=ttThick ;, FONT=1
+      xyouts,0.77,yval-0.11,xticks(4),/normal,color=colortest,charsize=0.7*fontFactor, charthick=ttThick ;, FONT=1
+      xyouts,0.92,yval-0.11,xticks(5),/normal,color=colortest,charsize=0.7*fontFactor, charthick=ttThick ;, FONT=1
       
       xyouts,0.02,yval-0.05,ytitle(i),/normal,color=colortest,charsize=0.8*fontFactor, charthick=ttThick ;, FONT=1
       xyouts,0.10,yval-0.025,'Year',/normal,color=colortest,charsize=0.75*fontFactor, charthick=ttThick ;, FONT=1
@@ -937,6 +960,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
     mypsym,9,1
     fontFactor=3.
     ttThick=1.0
+    xyouts,0.75,0.92,'(ng/m3)/(kT/km2)',/normal,color=colortest,charsize=0.75*fontFactor, charthick=ttThick ;, FONT=1
     for i=0,n_elements(ytitle)-1 do begin  ;overall display
       yval=0.90-i*0.12
       plots,[0.15,0.95],[yval,yval],/normal,color=colorTest
@@ -1031,7 +1055,7 @@ PRO FM_PLOTDYNAMICEVALUATIONLEGEND, plotter, request, result
   allDataXY=targetInfo->getXYS()
   if checkDataNan(allDataXY) then goto,jumpend
   elabcode=request->getElaborationCode()
-  if elabCode ne 85 then begin
+  if elabCode ne 85 and elabCode ne 86 and elabCode ne 87 then begin
     legendGenericBuild,request,result,plotter
   endif else begin
     legendGenericBuild85,request,result,plotter

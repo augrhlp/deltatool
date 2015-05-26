@@ -75,5 +75,7 @@
 83;7;8H Max (O3);10;1;2;FREE;NONE;0001*;1;YES;1*1*1*1*0;summary report: The threshold value is the limit value.;OU;8HMAX
 84;7;Hourly - Year (NO2...);10;0;0;FREE;FREE;0001*;1;YES;1*1*1*1*0;Summary report: The threshold value is the limit value.;OU;PP
 
+
+86;1;Abs Potency;12;FREE;FREE;FREE;FREE;0010*0011*;5;NO;1*0*0*1*0;Potency overview. Threshold values are the total emissions over the area expressed in kT/(1000km2). Numbers should be introduced for each precursor selected in alphabetic order;NONE;NONE
+87;1;Abs Potential;12;FREE;FREE;FREE;FREE;0010*0011*;0;NO;1*0*0*1*1;Potency overview;NONE;NONE
 85;1;Rel Potential;12;FREE;FREE;FREE;FREE;0010*0011*;0;NO;1*0*0*1*1;Potency overview;NONE;NONE
-86;1;Abs Potency;12;FREE;FREE;FREE;FREE;0010*0011*;5;NO;1*0*0*1*0;Potency overview;NONE;NONE
