@@ -191,9 +191,10 @@ PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
   testRequest=fm->getRequestTemplateFileName()
   testBatch=fm->getBatchTemplateFileName()
   
-  ;reqs=strarr(1)
-  reqs=strarr(2)
-  postScriptRequest=fm->getRequestTemplateFileName(/POSTSCRIPT)
+  ; change here for raster and/or postscript output
+  reqs=strarr(1)
+  ;reqs=strarr(2)
+  ;postScriptRequest=fm->getRequestTemplateFileName(/POSTSCRIPT)
   rasterRequest=fm->getRequestTemplateFileName(/RASTER)
   
   ;copy all the templates in working dir
@@ -203,11 +204,13 @@ PRO FMApplication::doTestBatch, batchFile, entFile, elabFile, wDir, resDir
   fm->fileCopy, templateFolder+testEnt, wDir+testEnt, /OVERWRITE
   fm->fileCopy, templateFolder+testRequest, wDir+testRequest, /OVERWRITE
   fm->fileCopy, templateFolder+testBatch, wDir+testBatch, /OVERWRITE
-  fm->fileCopy, templateFolder+postScriptRequest, wDir+postScriptRequest, /OVERWRITE
+  ; change here for raster and/or postscript output
+  ;fm->fileCopy, templateFolder+postScriptRequest, wDir+postScriptRequest, /OVERWRITE
   fm->fileCopy, templateFolder+rasterRequest, wDir+rasterRequest, /OVERWRITE
   
-  reqs[0]=postScriptRequest & reqs[1]=rasterRequest
-  ;reqs[0]=rasterRequest
+  ; change here for raster and/or postscript output
+  ;reqs[0]=postScriptRequest & reqs[1]=rasterRequest
+  reqs[0]=rasterRequest
   ;copy elabFile to templateElab
   ;rename entityFile to templateEntity
   for i=0, n_elements(reqs)-1 do begin
@@ -2851,16 +2854,17 @@ FUNCTION FMApplication :: init
   ;self.versionInfoCodes=ptr_new(['TXT_VERSION_DATE', 'TXT_VERSION_CODE'], /NO_COPY);, 'CONVERSION_DIR', 'PLANNING_DIR', 'NON_LINEAR_DIR']
   self.testMode=0
   self->setLogMode, 0
-  elabSpecialCode=strarr(1)
-  elabSpecialRoutine=strarr(1)
-  ; MM May 2015
-  ; Change and/or add elaborations that needs a special thresholds management
-  ;elabSpecialCode[0]=86
-  ;elabSpecialRoutine[0]='elab'+strcompress(elabSpecialCode[0], /REMOVE_ALL)+'Threshold'
-  ;self.eSpC=ptr_new(elabSpecialCode, /NO_COPY)
-  ;self.eSpR=ptr_new(elabSpecialRoutine, /NO_COPY)
+  elabSpecialCode=strarr(3)
+  elabSpecialRoutine=strarr(3)
+  elabSpecialCode[0]=85
+  elabSpecialCode[1]=86
+  elabSpecialCode[2]=87
+  elabSpecialRoutine[0]='elab'+strcompress(elabSpecialCode[0], /REMOVE_ALL)+'Threshold'
+  elabSpecialRoutine[1]='elab'+strcompress(elabSpecialCode[1], /REMOVE_ALL)+'Threshold'
+  elabSpecialRoutine[2]='elab'+strcompress(elabSpecialCode[2], /REMOVE_ALL)+'Threshold'
+  self.eSpC=ptr_new(elabSpecialCode, /NO_COPY)
+  self.eSpR=ptr_new(elabSpecialRoutine, /NO_COPY)
   ; MM May 2015 End
-  ;self.magicFile='magic'
   return, 1
   
 END

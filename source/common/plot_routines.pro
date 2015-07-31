@@ -699,6 +699,10 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
           allDataXY=allDataXY/100.
           xticks=['25','0','-25','-50','-75','-100']
        endif
+       if maxAlldata ge 50 then begin
+          allDataXY=allDataXY/140.
+          xticks=['35','0','-35','-70','-105','-140']
+       endif
     endif
     
   
@@ -942,7 +946,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
        xticks=['5','0','-5','-10','-15','-20']
     endif
     if maxAlldata ge 20 then begin
-       allDataXY=allDataXY/50.
+       allDataXY=allDataXY/100.
        xticks=['25','0','-25','-50','-75','-100']
     endif
   
@@ -960,7 +964,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
     mypsym,9,1
     fontFactor=3.
     ttThick=1.0
-    xyouts,0.75,0.92,'(ng/m3)/(kT/km2)',/normal,color=colortest,charsize=0.75*fontFactor, charthick=ttThick ;, FONT=1
+    xyouts,0.75,0.92,'(ug/m3)/(T/km2)',/normal,color=colortest,charsize=0.75*fontFactor, charthick=ttThick ;, FONT=1
     for i=0,n_elements(ytitle)-1 do begin  ;overall display
       yval=0.90-i*0.12
       plots,[0.15,0.95],[yval,yval],/normal,color=colorTest

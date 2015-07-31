@@ -1,17 +1,43 @@
 ; MM (+PT) May 2015
 ; Add here for each special elab thresholds the right function
 ; function name is 'elab'+elabcode+'Threshold'
+function isnumeric,input   ;input is string
+  on_ioerror, false
+  test = double(input)
+  return, 1
+  false: return, 0
+end
+;************************************************************************
+FUNCTION elab85Threshold, entityInfo, elabInfo
+
+  scenCodes=entityInfo->getSelectedScenarioCodes()
+  if not(isnumeric(scenCodes[0])) then a=dialog_message(['Base year is missing','Check entity selection GUI'])
+  return, 0
+
+END
+
 FUNCTION elab86Threshold, entityInfo, elabInfo
 
   scenCodes=entityInfo->getSelectedScenarioCodes()
+  if not(isnumeric(scenCodes[0])) then a=dialog_message(['Base year is missing','Check entity selection GUI'])
   elabCode=elabInfo->getSelectedElabCode()
   ;thresholdVals=elabInfo->getThresholdValues(NODATA=NODATA)
   ;if keyword_set(NODATA) then nThr=0 else nThr=n_elements(thresholdVals)
   PollutantPlotOrig=strmid(scenCodes[(n_elements(scenCodes)-1)<1:n_elements(scenCodes)-1],0,3)
   ahlp=PollutantPlotOrig(sort(PollutantPlotOrig))
   PollutantPlot=ahlp[uniq(ahlp)]  ;scen86=getScenarioFor86(scenNames)
+  checkAll=where(strupcase(ahlp) eq 'ALL', count)
+  if count gt 0 then a=dialog_message(['The scenario ''All'' is not allowed with this elaboration!','Remove from entity selection GUI'])
   nPolls=n_elements(PollutantPlot)
   return, nPolls
+
+END
+
+FUNCTION elab87Threshold, entityInfo, elabInfo
+
+  scenCodes=entityInfo->getSelectedScenarioCodes()
+  if not(isnumeric(scenCodes[0])) then a=dialog_message(['Base year is missing','Check entity selection GUI'])
+  return, 0
 
 END
 
@@ -381,13 +407,6 @@ PRO FM_Generic, request, result, plotter
   result->setGenericPlotInfo, statXYResult, statSymbols, statColors, legendNames, legendColors,legendSymbols
   
 END
-function isnumeric,input   ;input is string
-  on_ioerror, false
-  test = double(input)
-  return, 1
-  false: return, 0
-end
-;************************************************************************
 PRO SG_Computing, $
     request, result, plotter, Index1, Index2, Index3, Index4, nobsS, nobsG, $
     mChoice1run, mChoice2run, mChoice3run, mChoice4run,$
@@ -436,12 +455,12 @@ PRO SG_Computing, $
   endif
   indexScenAll=where(strupcase(strmid(scenarioCodes,0,3)) eq 'ALL')
   if n_elements(indexScenAll) gt 1 then indexScenAll=indexScenAll(0)
-  if elabCode eq 86 and indexScenAll ne -1 then begin
-    silentMode=plotter->getSilentMode()
-    FORCELOG=silentMode
-    notNum=dialogMsg(['The ALL scenarios should not be used with absolute potencies'], FORCELOG=FORCELOG,/error)
-    return
-  endif
+  ;if elabCode eq 86 and indexScenAll ne -1 then begin
+  ;  silentMode=plotter->getSilentMode()
+   ; FORCELOG=silentMode
+  ;  notNum=dialogMsg(['The ALL scenarios should not be used with absolute potencies'], FORCELOG=FORCELOG,/error)
+  ;  return
+  ;endif
   
   ;  close,12 & openw,12,'C:\DELTA_TOOL\dump\percent.dat'
   indicesPercentile=intarr(Index4,8784)
@@ -1773,6 +1792,8 @@ if isSingleSelection then begin
   
   if countFiniteS gt 1 then begin
     adummy=statXYResultS(cc,0)
+    ;Phil 04/07/2015
+    CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, adummy,alpha,criteriaOrig,LV
     ;KeesC 11SEP2014
     kees0=reform(statXYResultS(cc,0))
     kees6=reform(statXYResultS(cc,6))
