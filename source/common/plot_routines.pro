@@ -557,7 +557,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   endif
   
   
-  if elabCode ne 85 and elabCode ne 86 and elabCode ne 87 then begin  ; week-days, summer...
+  if elabCode ne 85 and elabCode ne 86 and elabCode ne 87 and elabcode ne 88 then begin  ; week-days, summer...
   
     nobs=n_elements(allDataXY(*,0))
     
@@ -1040,13 +1040,137 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
       endfor
     endfor
     
-    
-    
   endif  ; end elaboration 86
   
-  ;  !p.font=-1
-  ;  setDeviceFont, fontName='System', /STANDARD
-  ; device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
+  if elabCode eq 88 then begin ; dynamic potentials maps
+  
+  if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'DiagramFont', FORCELOG=FORCELOG
+  if checkDataNan(allDataXY) then  begin
+    plot,indgen(10),/nodata ,color=255,background=255
+    ;2015 April MM
+    ;lastUserFont=getUserFont()
+    ;xyouts,1,5,'No valid stations or groups selected',charsize=2,charthick=2,/data,color=0
+    xyouts,1,5,'No valid stations or groups selected',/data,color=0
+    ;setUserFont, lastUserFont
+    goto,jumpend
+  endif
+  erase
+
+  obsLongitudes=reform(allDataXy[0,0,1,*,2])
+  obsLatitudes =reform(allDataXy[0,0,1,*,3])
+  plotValues=reform(allDataXy[0,0,1,*,0])
+  nobs=n_elements(obsLatitudes)
+  elabName=request->getelaborationName()
+  modelInfo=request->getModelInfo()
+
+  rangeValLegend=[0,1]
+
+  device,DECOMPOSE=0
+  LOADCT,39
+
+  latmin=min(obsLatitudes)  ;resScale(3)
+  latmax=max(obsLatitudes)
+  lonmin=min(obsLongitudes)
+  lonmax=max(obsLongitudes)
+  dlon=max([lonmax-lonmin,1.])
+  dlat=max([latmax-latmin,1.])
+  if dlat ge 0.5*dlon then begin
+    dd=dlat-0.5*dlon
+    lonmin=lonmin-dd/2.
+    lonmax=lonmax+dd/2.
+  endif else begin
+    dd=0.5*dlon-dlat
+    latmin=latmin-dd/2.
+    latmax=latmax+dd/2.
+  endelse
+  latmin=latmin-dlat*0.05
+  latmax=latmax+dlat*0.05
+  lonmin=lonmin-dlon*0.05
+  lonmax=lonmax+dlon*0.05
+
+  map_set,10.,45.,0.,limit=[latmin,lonmin,latmax,lonmax],/continents,$
+    color=0,E_horizon={fill:255,color:255},/noerase,/noborder,title='GEO MAP '+elabName
+
+  recognizeRange=(lonmax-lonmin)*0.01
+  sizeSymbol=1
+  if nobs gt 100 then sizeSymbol=0.9
+  if nobs gt 500 then sizeSymbol=0.7
+
+  recognizeHighLight=bytarr(nobs)
+  recognizeRegionEdges=ptrarr(nobs) ; coords (normalized standard)
+  recognizeNames=strarr(nobs)
+  recognizeValues=strarr(nobs)
+  
+  varmax=max(plotValues)
+  color1=intarr(nobs)
+  color1(*)=250
+  cc1=where(plotValues gt 0.8*varmax,count1)
+  if count1 ge 1 then color1(cc1)=250
+  cc1=where(plotValues gt 0.6*varmax and plotValues le 0.8*varmax,count1)
+  if count1 ge 1 then color1(cc1)=210
+  cc1=where(plotValues gt 0.4*varmax and plotValues le 0.6*varmax,count1)
+  if count1 ge 1 then color1(cc1)=150
+  cc1=where(plotValues gt 0.2*varmax and plotValues le 0.4*varmax,count1)
+  if count1 ge 1 then color1(cc1)=100
+  cc1=where(plotValues le 0.2*varmax,count1)
+  if count1 ge 1 then color1(cc1)=40
+
+  for iobs=0,nobs-1 do begin
+    if finite(plotValues(iobs)) eq 1 then begin
+      mypsym,9,5*plotValues(iobs)/max(plotValues)
+      plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=color1(iobs), symsize=1*sizeSymbol
+    endif
+    recognizePoint=fltarr(4,2)
+    recognizePoint[0,*]=[obsLongitudes[iObs]-recognizeRange, obsLatitudes[iObs]-recognizeRange]
+    recognizePoint[1,*]=[obsLongitudes[iObs]-recognizeRange, obsLatitudes[iObs]+recognizeRange]
+    recognizePoint[2,*]=[obsLongitudes[iObs]+recognizeRange, obsLatitudes[iObs]+recognizeRange]
+    recognizePoint[3,*]=[obsLongitudes[iObs]+recognizeRange, obsLatitudes[iObs]-recognizeRange]
+    recognizePoint=transpose(recognizePoint)
+    normRecognizePoint=convert_coord(recognizePoint, /DATA, /TO_NORMAL)
+    normRecognizePoint=transpose(normRecognizePoint)
+    normRecognizePoint=normRecognizePoint[*, 0:1]
+    recognizePointPtr=ptr_new(normRecognizePoint, /NO_COPY)
+    recognizeHighLight[iObs]=0b
+    recognizeRegionEdges[iObs]=recognizePointPtr
+    recognizeNames[iObs]=legNames[iObs]
+    recognizeValues[iObs]=strtrim(plotvalues[iObs], 2)
+  endfor
+
+  map_continents,color=255,fill_continents=0,/overplot
+  map_continents,thick=2,color=0,/countries,/overplot
+  map_continents,thick=2,color=0,/overplot
+
+  ;  for i=0,1 do begin
+  ;    x=[0.05+i*0.1,0.05+(i+1)*0.1,0.05+(i+1)*0.1,0.05+i*0.1]
+  ;    y=[0.04,0.04,0.07,0.07]
+  ;    color=160
+  ;    if i eq 1 then color=250
+  ;    POLYFILL, X, Y, COLOR = color, /normal
+  ;    plots,[x(0),x(1)],[y(0),y(0)],/normal,color=0
+  ;    plots,[x(1),x(1)],[y(0),y(2)],/normal,color=0,/continue
+  ;    plots,[x(1),x(0)],[y(2),y(2)],/normal,color=0,/continue
+  ;    plots,[x(0),x(0)],[y(2),y(0)],/normal,color=0,/continue
+  ;    ;2015 April MM
+  ;    ;lastUserFont=getUserFont()
+  ;    ;setUserFont, 'UserDef12', FORCELOG=FORCELOG
+  ;    if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'DiagramFont', FORCELOG=FORCELOG
+  ;    ;    xyouts,x(0),y(2)+0.01,strmid(strtrim(i,2),0,4),/normal,alignment=0.5,color=0,charsize=1,$
+  ;    ;      charthick=1.5
+  ;    xyouts,x(0),y(2)+0.01,strmid(strtrim(i,2),0,4),/normal,alignment=0.5,color=0
+  ;    ;setUserFont, lastUserFont
+  ;  endfor
+
+  rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
+  plotInfo->setRecognizeInfo, rInfo
+  ;KeesC 14SEP2014
+
+  jumpend:
+  
+  endif
+  
+;    !p.font=-1
+;    setDeviceFont, fontName='System', /STANDARD
+;   device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
   setUserFont, /RESET
 END
 
@@ -1865,6 +1989,7 @@ PRO FM_PlotGeoMap, plotter, request, result
   legNames=targetInfo->getLegendNames()
   allDataXY=targetInfo->getXYS()
   ;KeesC 14SEP2014
+  
   if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'DiagramFont', FORCELOG=FORCELOG
   if checkDataNan(allDataXY) then  begin
     plot,indgen(10),/nodata ,color=255,background=255
@@ -1876,6 +2001,7 @@ PRO FM_PlotGeoMap, plotter, request, result
     goto,jumpend
   endif
   erase
+ 
   Bvalues=reform(allDataXy[*,0])  ; can be pos or neg
   Cvalues=reform(allDataXy[*,1])  ; + nmsd>R ; - nmsd<R
   obsLongitudes=reform(allDataXy[*,2])
@@ -2016,6 +2142,7 @@ PRO FM_PlotGeoMap, plotter, request, result
   rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
   plotInfo->setRecognizeInfo, rInfo
   ;KeesC 14SEP2014
+  
   jumpend:
 END
 

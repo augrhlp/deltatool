@@ -77,5 +77,7 @@
 
 
 86;1;Abs Potency;12;FREE;FREE;FREE;FREE;0010*0011*;5;NO;1*0*0*1*0;Potency overview. Threshold values are the total emissions over the area expressed in kT/(1000km2). Numbers should be introduced for each precursor selected in alphabetic order;NONE;NONE
-87;1;Abs Potential;12;FREE;FREE;FREE;FREE;0010*0011*;0;NO;1*0*0*1*1;Potency overview;NONE;NONE
-85;1;Rel Potential;12;FREE;FREE;FREE;FREE;0010*0011*;0;NO;1*0*0*1*1;Potency overview;NONE;NONE
+87;1;Abs Potential;12;FREE;FREE;FREE;FREE;0010*0011*;0;NO;1*0*0*1*1;Abs. Potential overview;NONE;NONE
+85;1;Rel Potential;12;FREE;FREE;FREE;FREE;0010*0011*;0;NO;1*0*0*1*1;Rel. Potential overview;NONE;NONE
+
+88;1;Potential 2D Map;12;FREE;FREE;FREE;FREE;0010*0011*;1;NO;1*0*0*1*1;Rel. - Abs. Potentials Maps (use threshold = 1 for Absolute, any other value for relative);NONE;NONE

@@ -2854,14 +2854,16 @@ FUNCTION FMApplication :: init
   ;self.versionInfoCodes=ptr_new(['TXT_VERSION_DATE', 'TXT_VERSION_CODE'], /NO_COPY);, 'CONVERSION_DIR', 'PLANNING_DIR', 'NON_LINEAR_DIR']
   self.testMode=0
   self->setLogMode, 0
-  elabSpecialCode=strarr(3)
-  elabSpecialRoutine=strarr(3)
+  elabSpecialCode=strarr(4)
+  elabSpecialRoutine=strarr(4)
   elabSpecialCode[0]=85
   elabSpecialCode[1]=86
   elabSpecialCode[2]=87
+  elabSpecialCode[3]=88
   elabSpecialRoutine[0]='elab'+strcompress(elabSpecialCode[0], /REMOVE_ALL)+'Threshold'
   elabSpecialRoutine[1]='elab'+strcompress(elabSpecialCode[1], /REMOVE_ALL)+'Threshold'
   elabSpecialRoutine[2]='elab'+strcompress(elabSpecialCode[2], /REMOVE_ALL)+'Threshold'
+  elabSpecialRoutine[3]='elab'+strcompress(elabSpecialCode[3], /REMOVE_ALL)+'Threshold'
   self.eSpC=ptr_new(elabSpecialCode, /NO_COPY)
   self.eSpR=ptr_new(elabSpecialRoutine, /NO_COPY)
   ; MM May 2015 End
