@@ -439,6 +439,7 @@ PRO SG_Computing, $
   iUseObserveModel=request->getUseObservedModel()  ; 0=0ld case; 1=no obs
   extraValNumber=request->getExtraValuesNumber()
   scenarioCodes=request->getScenarioCodes()
+  parCodes=request->getParameterCodes()
   if extraValNumber gt 0 then extraVal=request->getExtraValues()
   
   if elabCode eq 86 then begin
@@ -854,39 +855,100 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp1)-mean(runTemp2)
             statXYGroup[i1,i2,i3,i4]=nmb([obsTemp1,obsTemp2],[runTemp1,runTemp2])
           endif
-          if elabcode eq 74 then begin ;OU Forecast
+          if elabcode eq 74 or elabcode eq 89 or elabCode eq 90 or elabCode eq 91 or elabCode eq 92 then begin ;OU Forecast
             ; MM workaround feb 2015
-          
-            if n_elements(extraVal) eq 0 then extraVal=findgen(10)
+            ;if n_elements(extraVal) eq 0 then extraVal=findgen(10)
             limitValue=extraVal(0)
-            uncertainty=extraVal(1)/100.
+;            uncertainty=extraVal(1)/100.
+            DayDelta=fix(extraVal(2))
+            FlexOption=extraVal(3)
             ; Philippe 4/3/2015 Modif to discard stations where no exceedances (model or observed) occur
             ccE=where(obsTemp ge limitValue or runTemp ge limitValue, countE)
-            if countE eq 0 then begin
-              obsTemp(*)=!values.f_nan
-              runTemp(*)=!values.f_nan
+            if elabCode eq 74 then begin
+              if countE eq 0 then begin
+                obsTemp(*)=!values.f_nan
+                runTemp(*)=!values.f_nan
+              endif
             endif
             
             runOU=runTemp
             ;obshlp = obsTemp(sort(obsTemp))
             for ii=0,n_elements(obsTemp) -1 do begin
-              if runtemp(ii) lt obsTemp(ii) then runOU(ii)=min([runTemp(ii)*(1+uncertainty),obsTemp(ii)])
-              if runtemp(ii) ge obsTemp(ii) then runOU(ii)=max([runTemp(ii)*(1-uncertainty),obsTemp(ii)])
-            ;              if obsTemp(ii) le limitValue then runOU(ii)=runTemp(ii)*(1-uncertainty)
-            ;              if obsTemp(ii) gt limitValue then runOU(ii)=runTemp(ii)*(1+uncertainty)
-            endfor
-            runTemp=runOU
-            GA_plus=where (obsTemp ge limitValue and runOU ge limitValue,countGaplus)
-            MA=where (obsTemp ge limitValue and runOU lt limitValue,countMA)
-            FA=where (obsTemp lt limitValue and runOU ge limitValue,countFA)
-            if countMA+countFA gt 0 then far=float(countGAplus)/float((countMA+countFA))
-            if countMA+countFA eq 0 then far=1
-            if countFA ge countMA then sign=1
-            if countFA lt countMA then sign=-1  ;only for target
-            statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/resilience(obsTemp,statType)
-            statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/resilience(obsTemp,statType)
+               if extraVal(1) eq 999 then begin
+                  if parCodes eq 'PM10' then uncertainty=0.280*sqrt( (1.-0.018)*obsTemp(ii)^2+0.018*50.^2)
+                  if parCodes eq 'PM25' then uncertainty=0.360*sqrt( (1.-0.035)*obsTemp(ii)^2+0.035*25.^2)
+                  if parCodes eq 'O3'   then uncertainty=0.126*sqrt( (1.-0.620)*obsTemp(ii)^2+0.620*120.^2)
+                  if parCodes eq 'NO2'  then uncertainty=0.240*sqrt( (1.-0.040)*obsTemp(ii)^2+0.040*200.^2)
+               endif else begin
+                  uncertainty=obsTemp(ii)*extraval(1)/100.
+               endelse
+               if runtemp(ii) lt obsTemp(ii) then runOU(ii)=min([runTemp(ii)+uncertainty,obsTemp(ii)])
+               if runtemp(ii) ge obsTemp(ii) then runOU(ii)=max([runTemp(ii)-uncertainty,obsTemp(ii)])
+             endfor
+             runTemp=runOU
+            
+             CountGaPlus=0
+             CountGaMinus=0
+             CountFaAlarm=0
+             CountMiAlarm=0
+             countAlarm=0
+            
+             for ii=0,n_elements(obsTemp) -1 do begin
+            
+               oplus =obsTemp(ii)+uncertainty
+               ominus=obsTemp(ii)-uncertainty
+            
+               if oplus lt limitValue and runTemp(ii) lt limitValue then begin
+                 CountGaMinus++
+               endif
+               if oplus lt limitValue and runTemp(ii) ge limitValue then begin
+                 CountFaAlarm++
+               endif
+               if ominus ge limitValue and runTemp(ii) lt limitValue then begin
+                 CountMiAlarm++
+                 countAlarm++
+               endif
+               if ominus ge limitValue and runTemp(ii) ge limitValue then begin
+                 CountGAplus++
+                 countAlarm++
+               endif
+               if ominus lt limitValue and oplus ge limitValue and runTemp(ii) lt limitValue then begin
+                 if flexOption eq 1 then CountMiAlarm++
+                 if flexOption gt 1 then CountGaMinus++
+                 if flexOption eq 1 then CountAlarm++
+               endif
+               if ominus lt limitValue and oplus ge limitValue and runTemp(ii) ge limitValue then begin
+                 if flexOption eq 2 then CountFaAlarm++
+                 if flexOption ne 2 then CountGaPlus++
+                 if flexOption eq 1 then CountAlarm++
+               endif
+             endfor
+ 
+            if statType ge 1 then countAlarm=countAlarm/24.
+            if statType ge 1 then countFaAlarm=countFaAlarm/24.
+            if statType ge 1 then countMiAlarm=countMiAlarm/24.
+            if statType ge 1 then countGaplus=countGaplus/24.
+            if statType ge 1 then countGaminus=countGaminus/24. 
+            
+          endif
+
+          if elabCode eq 74 then begin
+
+            if countMiAlarm+countFaAlarm gt 0 then far=float(countGAplus)/float((CountGaPlus+countMiAlarm+countFaAlarm))
+            if countMiAlarm+countFaAlarm eq 0 then far=1
+            if countFaAlarm ge countMiAlarm then sign=1
+            if countFaAlarm lt countMiAlarm then sign=-1  ;only for target
+            statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/resilience(obsTemp,statType,DayDelta)
+            statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/resilience(obsTemp,statType,DayDelta)
             statXYResult[i1,i2,i3,i4,2]=far
-            statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp,statType)
+            statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp,statType,DayDelta)
+          endif
+          if elabcode eq 89 or elabCode eq 90 or elabCode eq 91 or elabCode eq 92 then begin
+            statXYResult[i1,i2,i3,i4,0]=CountAlarm
+            if elabCode eq 89 then statXYResult[i1,i2,i3,i4,1]=CountFaAlarm
+            if elabCode eq 90 then statXYResult[i1,i2,i3,i4,1]=CountMiAlarm
+            if elabCode eq 91 then statXYResult[i1,i2,i3,i4,1]=countGaPlus
+            if elabCode eq 92 then statXYResult[i1,i2,i3,i4,1]=countGaMinus
           endif
           
           if elabcode eq 85 or elabCode eq 86 or elabCode eq 87 or elabCode eq 88 then begin  ;potency calculations

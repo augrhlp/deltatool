@@ -1168,9 +1168,9 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   
   endif
   
-;    !p.font=-1
-;    setDeviceFont, fontName='System', /STANDARD
-;   device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
+  ;  !p.font=-1
+  ;  setDeviceFont, fontName='System', /STANDARD
+  ; device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
   setUserFont, /RESET
 END
 
@@ -1989,7 +1989,6 @@ PRO FM_PlotGeoMap, plotter, request, result
   legNames=targetInfo->getLegendNames()
   allDataXY=targetInfo->getXYS()
   ;KeesC 14SEP2014
-  
   if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'DiagramFont', FORCELOG=FORCELOG
   if checkDataNan(allDataXY) then  begin
     plot,indgen(10),/nodata ,color=255,background=255
@@ -2001,7 +2000,6 @@ PRO FM_PlotGeoMap, plotter, request, result
     goto,jumpend
   endif
   erase
- 
   Bvalues=reform(allDataXy[*,0])  ; can be pos or neg
   Cvalues=reform(allDataXy[*,1])  ; + nmsd>R ; - nmsd<R
   obsLongitudes=reform(allDataXy[*,2])
@@ -2142,7 +2140,6 @@ PRO FM_PlotGeoMap, plotter, request, result
   rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
   plotInfo->setRecognizeInfo, rInfo
   ;KeesC 14SEP2014
-  
   jumpend:
 END
 
@@ -3211,7 +3208,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   adummy=fltarr(10) & adummy(*)=1.
   CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
   
-  if elabcode eq 74 then criteria=1 ;for forecast no need of criteria
+  ;if elabcode eq 74 then criteria=1 ;for forecast no need of criteria
   ;  criteria=criteria/2.
   
   hourStat=request->getGroupByTimeInfo() ;HourType
@@ -3446,10 +3443,16 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
       if extraValNumber gt 0 then extraVal=request->getExtraValues()
-      ustr=strcompress(fix(extraVal[0]),/remove_all)
-      astr=strmid(strcompress(extraVal[1],/remove_all),0,3)
-      xyouts,.83,.92,'LV = '+ustr,/normal,color=0
-      xyouts,.83,.89,'OU = '+astr+' %',/normal,color=0
+      if extraVal[0] eq 999 then ustr='Obs Uncert'
+      if extraVal[0] ne 999 then ustr=strmid(strcompress(extraVal[0],/remove_all),0,3)+'%'
+      astr = strtrim(fix(extraVal[1]),2)
+      if extraVal[2] eq 1 then pstr='Conserv.'
+      if extraVal[2] eq 2 then pstr='Cautious'
+      if extraVal[2] eq 3 then pstr='Model'
+      xyouts,.83,.92,'LV = '+strtrim(fix(LV),2),/normal,color=0
+      xyouts,.83,.89,'OU = '+ustr,/normal,color=0
+      xyouts,.83,.86,'Day Forecast = '+astr,/normal,color=0
+      xyouts,.83,.83,'Exc. Opt. = '+pstr,/normal,color=0
     endif
   endif else begin
     print, 'Warning: Set right criteria for this elaboration...'
