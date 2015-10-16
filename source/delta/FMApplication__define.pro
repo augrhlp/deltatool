@@ -261,6 +261,8 @@ PRO FMApplication::convertObsFromCSVtoCDF
   year=self.modelInfo.year
   startHOur=0
   endHour=8759
+  ;KEES OCT 2015
+  if (fix(year) mod 4) eq 0 then endHour=8783
   inputDir=fm->getObservedDataDir()
   outputDir=fm->getObservedDataDir()
   prefixId=''

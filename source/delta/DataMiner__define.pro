@@ -335,18 +335,18 @@ for i=0, n_elements(runFiles)-1 do begin
         ;      print, parameters[k]
         ;      print, '--> Observed'
         ;tryNcdf first
-        print, 'Try to found data from cdf', singleMonitCdfFileName, singleMonits[j], parameters[k]
+       ; print, 'Try to find data from cdf', singleMonitCdfFileName, singleMonits[j], parameters[k]
         mParData=self->readMonitoringCdfData(request,singleMonitCdfFileName, singleMonits[j], parameters, k, NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL)
         if keyword_set(NOTPRESENT) eq 1 then begin
           ;tryNcdf first
           print, '...data not found in csv(year)...'
-          print, 'Try to found data from (year) csv', yearMonitCsvFileName, singleMonits[j], parameters[k]
+        ;  print, 'Try to found data from (year) csv', yearMonitCsvFileName, singleMonits[j], parameters[k]
           mParData=self->readMonitoringYearCsvData(request, yearMonitCsvFileName, singleMonits[j], parameters[k], NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL)
         endif
         if keyword_set(NOTPRESENT) then begin
           ;tryNcdf first
           print, '...data not found in cdf...'
-          print, 'Try to found data from csv', singleMonitCdfFileName, singleMonits[j], parameters[k]
+         ; print, 'Try to found data from csv', singleMonitCdfFileName, singleMonits[j], parameters[k]
           mParData=self->readMonitoringCsvData(request,singleMonitCsvFileName, parameters[k], NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL)
         endif
         if NOTPRESENT eq 1 then begin

@@ -851,7 +851,9 @@ if itobs eq 1 then begin
   if count_fileY eq 0 then begin
     csv2cdfInfo.inputDir=dir_obs
     csv2cdfInfo.startHour=0
-    csv2cdfInfo.endHour=8760
+    ;KEES OCT 2015
+    csv2cdfInfo.endHour=8759
+    if (fix(year) mod 4) eq 0 then csv2cdfInfo.endHour=8783
     csv2cdfInfo.prefixId=''
     csv2cdfInfo.modelName=''
     csv2cdfInfo.fulloutFileName=dir_obs+'OBS_TIME.cdf'
