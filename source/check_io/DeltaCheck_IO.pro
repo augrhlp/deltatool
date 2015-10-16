@@ -468,7 +468,7 @@ pro DeltaCheck_IO, state, DeltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   widget_control,labprog_txt,set_value='---'
 
   lab13=widget_label(thirdColumn,value='COMMENTS [See Log/Summary Files]',font='times Roman*16*bold')
-  labcom_txt=WIDGET_TEXT(thirdColumn,scr_XSIZE=textXsize,scr_ysize=dims[1]*8/10,/frame);, /SCROLL)
+  labcom_txt=WIDGET_TEXT(thirdColumn,scr_XSIZE=textXsize,scr_ysize=dims[1]*8/10,/frame, /SCROLL)
   Widget_Control, base, /REALIZE
 
   fakeEvent={top:base}

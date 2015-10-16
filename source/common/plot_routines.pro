@@ -108,7 +108,7 @@ PRO FM_PlotBars, plotter, request, result
   
   !y.range=[min([0,min(allDataXY,/nan)])*1.1, max([0,max(allDataXY,/nan)])*1.1]
   obsbar=1
-  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54])) ge 0 then begin
+  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,91])) ge 0 then begin
     allDataXY(*,*,*,*,0)=0.
     obsbar=0
     if ifree eq '1101' then begin
@@ -257,9 +257,10 @@ PRO FM_PlotBars, plotter, request, result
   if elabCode eq 2 or elabCode eq 14 then ytitle='[1] '
   if elabCode eq 9  then ytitle='[Number of days] '
   if elabCode eq 8  or elabCode eq 30 or elabCode eq 33 $
-    or elabCode eq 23 or elabCode eq 24 then ytitle='[%] '
+    or elabCode eq 23 or elabCode eq 24 or elabCode eq 91 then ytitle='[%] '
   if elabCode eq 26 then ytitle='[mg/m3*hrs] '
   if elabCode eq 27 then ytitle='[mg/m3*days] '
+  if elabCode eq 89 or elabCode eq 90 then ytitle='[Nb] '
   cumulstr=''
   if elabCode eq 38 then begin
     ytitle=musstr
@@ -314,12 +315,12 @@ PRO FM_PlotBars, plotter, request, result
         orientation=90
     endif
   endfor
-  xyouts,.005,.725,'Units:',/normal,color=0
+  xyouts,.005,.75,'Units:',/normal,color=0
   if elabCode eq 38 then begin
     xyouts,.01,.675,'1000*',/normal,color=0
     xyouts,.005,.64,ytitle,/normal,color=0
   endif else begin
-    xyouts,.005,.675,ytitle,/normal,color=0
+    xyouts,.005,.700,ytitle,/normal,color=0
   endelse
   
   colors[*]=15
@@ -695,7 +696,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
           allDataXY=allDataXY/20.
           xticks=['5','0','-5','-10','-15','-20']
        endif
-       if maxAlldata ge 20 then begin
+       if maxAlldata ge 20 and maxAlldata lt 50 then begin
           allDataXY=allDataXY/100.
           xticks=['25','0','-25','-50','-75','-100']
        endif
@@ -1072,8 +1073,8 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   latmax=max(obsLatitudes)
   lonmin=min(obsLongitudes)
   lonmax=max(obsLongitudes)
-  dlon=max([lonmax-lonmin,1.])
-  dlat=max([latmax-latmin,1.])
+  dlon=max([lonmax-lonmin,2.])
+  dlat=max([latmax-latmin,2.])
   if dlat ge 0.5*dlon then begin
     dd=dlat-0.5*dlon
     lonmin=lonmin-dd/2.
@@ -1112,12 +1113,14 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   if count1 ge 1 then color1(cc1)=150
   cc1=where(plotValues gt 0.2*varmax and plotValues le 0.4*varmax,count1)
   if count1 ge 1 then color1(cc1)=100
-  cc1=where(plotValues le 0.2*varmax,count1)
+  cc1=where(plotValues ge 0.2*varmax and plotValues le 0.2*varmax,count1)
   if count1 ge 1 then color1(cc1)=40
+  cc1=where(plotValues lt 0.0,count1)
+  if count1 ge 1 then color1(cc1)=0
 
   for iobs=0,nobs-1 do begin
     if finite(plotValues(iobs)) eq 1 then begin
-      mypsym,9,5*plotValues(iobs)/max(plotValues)
+      mypsym,9,3
       plots, obsLongitudes(iObs), obsLatitudes(iObs), psym=8, color=color1(iobs), symsize=1*sizeSymbol
     endif
     recognizePoint=fltarr(4,2)
@@ -3443,12 +3446,12 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
       if extraValNumber gt 0 then extraVal=request->getExtraValues()
-      if extraVal[0] eq 999 then ustr='Obs Uncert'
-      if extraVal[0] ne 999 then ustr=strmid(strcompress(extraVal[0],/remove_all),0,3)+'%'
-      astr = strtrim(fix(extraVal[1]),2)
-      if extraVal[2] eq 1 then pstr='Conserv.'
-      if extraVal[2] eq 2 then pstr='Cautious'
-      if extraVal[2] eq 3 then pstr='Model'
+      if extraVal[1] eq 999 then ustr='Obs Uncert'
+      if extraVal[1] ne 999 then ustr=strmid(strcompress(extraVal[1],/remove_all),0,3)+'%'
+      astr = strtrim(fix(extraVal[2]),2)
+      if extraVal[3] eq 1 then pstr='Conserv.'
+      if extraVal[3] eq 2 then pstr='Cautious'
+      if extraVal[3] eq 3 then pstr='Model'
       xyouts,.83,.92,'LV = '+strtrim(fix(LV),2),/normal,color=0
       xyouts,.83,.89,'OU = '+ustr,/normal,color=0
       xyouts,.83,.86,'Day Forecast = '+astr,/normal,color=0

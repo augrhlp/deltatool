@@ -44,7 +44,8 @@ function csv2cdf, startUpFile, $
   hour0=fix(startHour)
   hour1=fix(endHour)
   nspec=n_elements(species) & nstat=n_elements(statnames)
-  polls=strarr(nspec)
+  ;Kees 11 Sept 2015
+  polls=fltarr(nspec)
   
   ;tempFullOutFileName='temp_'+fulloutFileName
   fNamePos=strpos(fulloutFileName, path_sep(), /REVERSE_SEARCH)
@@ -68,7 +69,8 @@ function csv2cdf, startUpFile, $
   ncdf_attput,idout,'EndHour',hour1,/global
   ncdf_control,idout,/endef
   
-  polls=strarr(nspec)
+  ;Kees 11 sept 2015
+  polls=fltarr(nspec)
   for is=0,nstat-1 do begin
     storeData=fltarr(nspec,8785) & storeData(*,*)=-999  ;8760
     if strupcase(spec_stations(is)) ne 'NOOBS' and strupcase(spec_stations(is)) ne 'NOVAL' then begin
