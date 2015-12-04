@@ -657,7 +657,7 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
         endif else begin
           if strupcase(strcompress(info[0],/remove_all)) eq strupcase(statCode) then begin
             kpol=where(pollout eq parameterCodes[k],nc)
-            nr=1+kpol[0]
+            nr=4+kpol[0]
             if yearAVG eq 1 then begin
               storeData[0]=float(info(nr))
               goto,yAvg
