@@ -415,9 +415,12 @@ PRO Request::setModelInfo, value
   
 END
 
-FUNCTION Request::getModelInfo
+FUNCTION Request::getModelInfo, overwritefrequency=overwritefrequency
 
-  return, self.modelInfo
+  modelInfo=self.modelInfo
+  if keyword_set(overwritefrequency) then modelInfo.frequency=overwritefrequency
+  
+  return, modelInfo
   
 END
 
