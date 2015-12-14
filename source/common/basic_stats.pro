@@ -111,6 +111,54 @@ function crmse, obsValues, runValues
   return, statisticValue
 
 end
+function mycrmse, obsValues, runValues,flagTimeAverage
+
+  if flagTimeAverage ge 1 then flagMulti=24
+  if flagTimeAverage eq 0 then flagMulti=1
+  
+  valNum=n_elements(obsValues)/flagMulti
+  obsValues2=obsvalues([0+indgen(valNum)*flagMulti])
+  runValues2=runvalues([0+indgen(valNum)*flagMulti])
+  
+  statisticValue=sqrt(total((( (runValues2-mean(runValues2)) - (obsValues2-mean(obsValues2)))^2))/valNum)
+  return, statisticValue
+
+end
+function myrmse, obsValues, runValues,flagTimeAverage
+
+  if flagTimeAverage ge 1 then flagMulti=1
+  if flagTimeAverage eq 0 then flagMulti=1
+  
+  valNum=n_elements(obsValues)/flagMulti
+  obsValues2=obsvalues([0+indgen(valNum)*flagMulti])
+  runValues2=runvalues([0+indgen(valNum)*flagMulti])
+  statisticValue=sqrt(total(((runValues2-obsValues2)^2))/valNum)
+  return, statisticValue
+
+end
+function mystddevOM, obsValues, flagTimeAverage
+
+  if flagTimeAverage ge 1 then flagMulti=24
+  if flagTimeAverage eq 0 then flagMulti=1
+  
+  valNum=n_elements(obsValues)/flagMulti
+  obsValues2=obsvalues([0+indgen(valNum)*flagMulti])
+  statisticValue=sqrt( total(( (mean(obsvalues2)-obsValues2)^2)) /valNum)
+  return, statisticValue
+
+end
+function mycorrelate, obsValues, runValues, flagTimeAverage
+
+  if flagTimeAverage ge 1 then flagMulti=24
+  if flagTimeAverage eq 0 then flagMulti=1
+  
+  valNum=n_elements(obsValues)/flagMulti
+  obsValues2=obsvalues([0+indgen(valNum)*flagMulti])
+  runValues2=runvalues([0+indgen(valNum)*flagMulti])
+  statisticValue=correlate(obsvalues2,runValues2)
+  return, statisticValue
+
+end
 ;*******************
 function crmseWeigth, obsValues, runValues,weigth
 

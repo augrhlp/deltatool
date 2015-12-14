@@ -860,22 +860,22 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp1)-mean(runTemp2)
             statXYGroup[i1,i2,i3,i4]=nmb([obsTemp1,obsTemp2],[runTemp1,runTemp2])
           endif
-          if elabcode eq 74 or elabcode eq 89 or elabCode eq 90 or elabCode eq 91 then begin ;OU Forecast
+          if elabcode eq 74 or elabcode eq 92 or elabCode eq 89 or elabCode eq 90 or elabCode eq 91 then begin ;OU Forecast
             ; MM workaround feb 2015
             ;if n_elements(extraVal) eq 0 then extraVal=findgen(10)
             limitValue=extraVal(0)
 ;            uncertainty=extraVal(1)/100.
-            FlexOption=extraVal(2)
-            if elabcode eq 74 then DayDelta=fix(extraVal(3))
-            ; Philippe 4/3/2015 Modif to discard stations where no exceedances (model or observed) occur for counts of alarm
+            DayDelta=fix(extraVal(2))
+            FlexOption=extraVal(3)
+            ; Philippe 4/3/2015 Modif to discard stations where no exceedances (model or observed) occur
             ccE=where(obsTemp ge limitValue or runTemp ge limitValue, countE)
-            obsTempAlarm=obsTemp
-            runTempAlarm=runTemp
-            if countE eq 0 then begin
-              obsTempAlarm(*)=!values.f_nan
-              runTempAlarm(*)=!values.f_nan
+            if elabCode eq 74 then begin
+              if countE eq 0 then begin
+                obsTemp(*)=!values.f_nan
+                runTemp(*)=!values.f_nan
+              endif
             endif
-                        
+            
             runOU=runTemp
             ;obshlp = obsTemp(sort(obsTemp))
             for ii=0,n_elements(obsTemp) -1 do begin
@@ -896,6 +896,7 @@ PRO SG_Computing, $
              CountGaMinus=0
              CountFaAlarm=0
              CountMiAlarm=0
+             countAlarm=0
             
              for ii=0,n_elements(obsTemp) -1 do begin
             
@@ -910,20 +911,25 @@ PRO SG_Computing, $
                endif
                if ominus ge limitValue and runTemp(ii) lt limitValue then begin
                  CountMiAlarm++
+                 countAlarm++
                endif
                if ominus ge limitValue and runTemp(ii) ge limitValue then begin
                  CountGAplus++
+                 countAlarm++
                endif
                if ominus lt limitValue and oplus ge limitValue and runTemp(ii) lt limitValue then begin
                  if flexOption eq 1 then CountMiAlarm++
                  if flexOption gt 1 then CountGaMinus++
+                 if flexOption eq 1 then CountAlarm++
                endif
                if ominus lt limitValue and oplus ge limitValue and runTemp(ii) ge limitValue then begin
                  if flexOption eq 2 then CountFaAlarm++
                  if flexOption ne 2 then CountGaPlus++
+                 if flexOption eq 1 then CountAlarm++
                endif
              endfor
  
+            if statType ge 1 then countAlarm=countAlarm/24.
             if statType ge 1 then countFaAlarm=countFaAlarm/24.
             if statType ge 1 then countMiAlarm=countMiAlarm/24.
             if statType ge 1 then countGaplus=countGaplus/24.
@@ -942,14 +948,12 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,2]=far
             statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp,statType,DayDelta)
           endif
-          if elabcode eq 89 or elabCode eq 90 or elabCode eq 91 then begin
-            if elabCode eq 89 then statXYResult[i1,i2,i3,i4,0]=CountFaAlarm+countGaMinus
-            if elabCode eq 90 then statXYResult[i1,i2,i3,i4,0]=CountMiAlarm+countGaPlus
-            if elabCode eq 91 then statXYResult[i1,i2,i3,i4,0]=0.5*(CountMiAlarm/(CountMiAlarm+countGaPlus)+CountFaAlarm/(CountFaAlarm+countGaMinus))
-            
-            if elabCode eq 89 then statXYResult[i1,i2,i3,i4,1]=CountFaAlarm
-            if elabCode eq 90 then statXYResult[i1,i2,i3,i4,1]=CountMiAlarm
-            if elabCode eq 91 then statXYResult[i1,i2,i3,i4,1]=0.5*(CountMiAlarm/(CountMiAlarm+countGaPlus)+CountFaAlarm/(CountFaAlarm+countGaMinus))
+          if elabcode eq 92 or elabCode eq 89 or elabCode eq 90 or elabCode eq 91 then begin
+            statXYResult[i1,i2,i3,i4,0]=CountAlarm
+            if elabCode eq 92 then statXYResult[i1,i2,i3,i4,1]=CountFaAlarm
+            if elabCode eq 89 then statXYResult[i1,i2,i3,i4,1]=CountMiAlarm
+            if elabCode eq 90 then statXYResult[i1,i2,i3,i4,1]=countGaPlus
+            if elabCode eq 91 then statXYResult[i1,i2,i3,i4,1]=countGaMinus
           endif
           
           if elabcode eq 85 or elabCode eq 86 or elabCode eq 87 or elabCode eq 88 then begin  ;potency calculations
@@ -3126,7 +3130,7 @@ result->setGenericPlotInfo, statXYResult, statSymbols, statColors, legendNames, 
 ; 2 multiple choices section **end**
 end
 
-function strsplit, stringIn, pattern, _ref_extra=extra
+function strsplit1, stringIn, pattern, _ref_extra=extra
 
   ON_ERROR, 2  ; return to caller
   RETURN, (n_params() eq 1) ? STRTOK(stringIn, _STRICT_EXTRA=extra) : $

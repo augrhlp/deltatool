@@ -108,7 +108,7 @@ PRO FM_PlotBars, plotter, request, result
   
   !y.range=[min([0,min(allDataXY,/nan)])*1.1, max([0,max(allDataXY,/nan)])*1.1]
   obsbar=1
-  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,91])) ge 0 then begin
+  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,89,90,91,92])) ge 0 then begin
     allDataXY(*,*,*,*,0)=0.
     obsbar=0
     if ifree eq '1101' then begin
@@ -561,7 +561,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   endif
   
   
-  if elabCode ne 85 and elabCode ne 86 and elabCode ne 87 and elabcode ne 88 then begin  ; week-days, summer...
+  if elabCode ne 85 and elabCode ne 86 and elabCode ne 87 then begin  ; week-days, summer...
   
     nobs=n_elements(allDataXY(*,0))
     
@@ -1045,9 +1045,9 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
     endfor
     
   endif  ; end elaboration 86
-  
+    
   if elabCode eq 88 then begin ; dynamic potentials maps
-  
+    
   if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'DiagramFont', FORCELOG=FORCELOG
   if checkDataNan(allDataXY) then  begin
     plot,indgen(10),/nodata ,color=255,background=255
@@ -1059,7 +1059,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
     goto,jumpend
   endif
   erase
-
+  
   obsLongitudes=reform(allDataXy[0,0,1,*,2])
   obsLatitudes =reform(allDataXy[0,0,1,*,3])
   plotValues=reform(allDataXy[0,0,1,*,0])
@@ -3146,7 +3146,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     obj_destroy, fsm
   endif
   ;end
-  ;KeesC 17JAN2014
+    ;KeesC 17JAN2014
   plotter->wsetMainDataDraw
   silentMode=plotter->getSilentMode()
   FORCELOG=silentMode
@@ -3157,9 +3157,9 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     ;setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
     ;setUserFont, 'BigFont', FORCELOG=FORCELOG
     if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'LegendFont', FORCELOG=FORCELOG
-    ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
+  ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
   endif
-
+  
   device,DECOMPOSE=0
   LOADCT,38
   mytek_color;, 0, 32
@@ -3191,9 +3191,9 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   isGroupSelection=request->isGroupObsPresent()
   mus=request->getParameterMeasureUnits()
   modCodes=request->getModelCodes()
-
+  
   result->setMultipleDrawMainTitle, 'PERFORMANCE REPORT:   '+multipleTitle + ' ' + modCodes[0]
-
+  
   if elabCode eq 74 then begin
     no=n_elements(allDataSymbol)/nmod
     allDataSymbol(0:no-1)=9  ;mod1
@@ -3214,29 +3214,29 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     cc=where(far ge 0.8,count)
     if count gt 0 then allDataColor(cc)=7-2
   endif
-
+  
   npoints=n_elements(allDataXY(*,0))
-
+  
   cc=where(finite(allDataXY(*,0)) eq 1,countValidStations)
   countValidStations=countValidStations/(npar*nmod*nsce)
-
+  
   adummy=fltarr(10) & adummy(*)=1.
   CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
-
+  
   ;if elabcode eq 74 then criteria=1 ;for forecast no need of criteria
   ;  criteria=criteria/2.
-
+  
   hourStat=request->getGroupByTimeInfo() ;HourType
   flag_average=hourStat[0].value
-
+  
   recognizeHighLight=bytarr(npoints)   ; 8
   recognizeRegionEdges=ptrarr(npoints)
   recognizeNames=strarr(npoints)
   recognizeValues=strarr(npoints)
   recognizePoint=fltarr(4,2)
-
+  
   dims=get_screen_size(RESOLUTION=resolution)
-
+  
   if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'LegendFont', FORCELOG=FORCELOG
   if (criteria eq 0 or countValidStations eq 0) then begin
     plot,indgen(10),/nodata,color=255,background=255
@@ -3258,15 +3258,15 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     ;setUserFont, lastUserFont
     goto,jumpend
   endif
-
+  
   maxAxis=max([max(abs(allDataXY),/nan),1.5])
   if elabCode eq 74 then maxAxis=max([max(abs(allDataXY(*,0:1)),/nan),1.5])
   plotRange=maxAxis + maxAxis*.4
   if finite(maxAxis) eq 0 then plotRange=1
   if finite(maxAxis) eq 0 then maxAxis=1
-
+  
   facSize=min([plotRange*.45,1])
-
+  
   pars=parcodes[0]
   if n_elements(parCodes) ge 2 then begin
     for ipc=1,n_elements(parCodes)-1 do pars=pars+'*'+parCodes(ipc)
@@ -3277,7 +3277,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   fpr=fix(plotrange)
   xv=findgen(2*fpr+1)-fpr
   xtn=strcompress(fix(abs(xv)),/remove_all)
-
+  
   ;2015 April MM
   ;font properties are code derived
   ;lastUserFont=getUserFont()
@@ -3291,7 +3291,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     xticks=xt,xtickv=xv,xtickname=xtn,$
     position=plotter->getPosition(), noerase=plotter->getOverplotKeyword(0)
   ;setUserFont, lastUserFont
-
+    
   if criteria gt 0 then begin
     ;KeesC 29OCT2013: 8 changed into 135
     POLYFILL, CIRCLE(0, 0, 1), /data, thick=2, color=135  ;green
@@ -3317,12 +3317,12 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   xyouts,0.1,1.05,'T=1',color=0,/data,charsize=facSize*1.3
   if elabCode ne 74 then xyouts,0.1,0.5,'T=.5',color=0,/data,charsize=facSize*1.3
   ;setUserFont, lastUserFont
-
+  
   fixedLabels=strarr(4)
   fixedLabels[0]='BIAS'
   fixedLabels[1]='<- CRMSE ->'
   fixedLabels[2]='MU > OU'
-
+  
   ;if elabCode eq 81 then fixedLabels[3]='SigM > SigO          SigO > SigM'
   xfac=0.1
   ;PHILTH 27032012  Change of axis in test target diagram
@@ -3350,33 +3350,33 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     xyouts, plotRange*0.85, -plotRange*0.07, 'SD', color=0,/data,charsize=facSize*1.5
   endelse
   ;setUserFont, lastUserFont
-
+  
   ;KeesC 17JAN2014
   posLabels=fltarr(4,2)
   posLabels[0, *]=[0.02, 0.55]
   posLabels[1, *]=[0.48,0.025]
   posLabels[2, *]=[0.9,0.9]
   posLabels[3, *]=[-plotRange*0.35, -plotRange+plotRange*0.05]
-
+  
   ;KeesC 17JAN2014
   orientLabels=fltarr(4)
   orientLabels[0]=0
   orientLabels[1]=0
   orientLabels[2]=45
   orientLabels[3]=0
-
+  
   thickLabels=fltarr(4)
   thickLabels[0]=1.
   thickLabels[1]=1.
   thickLabels[2]=2.
   thickLabels[3]=2.
-
+  
   axisXLine=[[-plotRange,0], [plotRange,0]]
   axisYLine=[[0,-plotRange], [0,plotRange]]
-
+  
   plots, axisXLine, /data, color=0
   plots, axisYLine, /data, color=0
-
+  
   ;2015 April MM
   ;lastUserFont=getUserFont()
   ;setUserFont, 'UserDef2', FORCELOG=FORCELOG
@@ -3386,10 +3386,10 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       charthick=thickLabels[i], color=0,/normal,charsize=facSize*1.2
   endfor
   ;setUserFont, lastUserFont
-
+  
   recognizeRange=plotRange*0.02
-
-
+  
+  
   nobsStart=0
   for iObs=nobsStart, npoints-1 do begin
     mypsym,allDataSymbol[iObs],1
@@ -3407,7 +3407,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     recognizeNames[iobs]=legNames[iobs]
     recognizeValues[iobs]=strcompress(allDataXY(iObs, 0),/remove_all)+','+strcompress(allDataXY(iObs, 1),/remove_all)
   endfor
-
+  
   mypsym,4,1
   ;KeesC 14SEP2014
   if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
@@ -3442,14 +3442,14 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       endif
     endif
   endif
-
+  
   if n_elements(criteriaOrig) eq 5 then begin
-
+  
     ;KeesC 11SEP2014
     ; Check deeply MM february 2015
     if criteria gt 0. and elabcode ne 74 then begin
-
-
+    
+    
       ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
       astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
       rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
@@ -3460,12 +3460,12 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
       if extraValNumber gt 0 then extraVal=request->getExtraValues()
-      if extraVal[1] eq 999 then ustr='Obs Uncert'
-      if extraVal[1] ne 999 then ustr=strmid(strcompress(extraVal[1],/remove_all),0,3)+'%'
-      astr = strtrim(fix(extraVal[2]),2)
-      if extraVal[3] eq 1 then pstr='Conserv.'
-      if extraVal[3] eq 2 then pstr='Cautious'
-      if extraVal[3] eq 3 then pstr='Model'
+      if extraVal[0] eq 999 then ustr='Obs Uncert'
+      if extraVal[0] ne 999 then ustr=strmid(strcompress(extraVal[0],/remove_all),0,3)+'%'
+      astr = strtrim(fix(extraVal[1]),2)
+      if extraVal[2] eq 1 then pstr='Conserv.'
+      if extraVal[2] eq 2 then pstr='Cautious'
+      if extraVal[2] eq 3 then pstr='Model'
       xyouts,.83,.92,'LV = '+strtrim(fix(LV),2),/normal,color=0
       xyouts,.83,.89,'OU = '+ustr,/normal,color=0
       xyouts,.83,.86,'Day Forecast = '+astr,/normal,color=0
@@ -3477,7 +3477,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   endelse
   rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
   plotInfo->setRecognizeInfo, rInfo
-
+  
   jumpend:
   ;!p.font=-1
   ;setDeviceFont, fontName='System', /STANDARD
