@@ -809,6 +809,11 @@ PRO SG_Computing, $
               statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*2.)
               statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/(CriteriaOU*2.)
               statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)/(CriteriaOU*2.)
+;Phil 04/12/2015  attempt to introduce yearly evaluations              
+              CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV, overwritefrequency='YEAR'
+              statXYResult[i1,i2,i3,i4,2]=abs(mean(obsTemp)-mean(runTemp))/(CriteriaOU*2.)
+              CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV, overwritefrequency='HOUR'
+;Phil              
             endif else begin
               statXYResult[i1,i2,i3,i4,0]=!values.f_nan
               statXYResult[i1,i2,i3,i4,1]=!values.f_nan
@@ -1788,6 +1793,7 @@ if isSingleSelection then begin
   if strupcase(frequency) eq 'HOUR' then request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt MO MM SO SM R RMSE ExcO ExcM TargetOU OU'
   if strupcase(frequency) eq 'YEAR' then request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt MO MM TargetOU OU'
   statXYResultS=fltarr(forSLastIndex+1,nvar)
+  uncertaintyAverage=fltarr(forSLastIndex+1)
   
   for i=0, forSLastIndex do begin
   
@@ -1857,6 +1863,10 @@ if isSingleSelection then begin
     obstempThreshold(*)=obstempSort(percentileThreshold*timeLength)
     CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obstempThreshold,alpha,criteriaOrig,LV
     statXYResultS(i,5)=(runTempSort(indiceT)-obsTempSort(indiceT))/(2*CriteriaOU)
+;phil 04/12/2015
+    CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV, overwritefrequency='YEAR'
+    uncertaintyAverage(i)=criteriaOU
+    ;CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV, overwritefrequency='HOUR'
     
   endfor
   request->closeDataDumpFile
@@ -1864,17 +1874,16 @@ if isSingleSelection then begin
   
   if countFiniteS gt 1 then begin
     adummy=statXYResultS(cc,0)
-    ;Phil 04/07/2015
-    CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, adummy,alpha,criteriaOrig,LV
+    uncertaintyAverage=reform(uncertaintyAverage(cc))
+    ;Phil 04/12/2015
+    ;CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV, overwritefrequency='YEAR'
     ;KeesC 11SEP2014
     kees0=reform(statXYResultS(cc,0))
     kees6=reform(statXYResultS(cc,6))
     kc=where(finite(kees0) eq 1 and finite(kees6) eq 1,nc)
     if nc ge 2 then begin
-      statXYResultS(*,6)=(1.-correlate(kees0(kc),kees6(kc)))/(2*(CriteriaOU/stddevOM(kees0(kc)))^2)
-      statXYResultS(*,7)=(stddevOM(kees0(kc))-stddevOM(kees6(kc)))/(2.*CriteriaOU)
-    ;    statXYResultS(*,6)=(1.-correlate(statXYResultS(cc,0), statXYResultS(cc,6)))/(2*(CriteriaOU/stddevOM(statXYResultS(cc,0)))^2)
-    ;    statXYResultS(*,7)=(stddevOM(statXYResultS(cc,0))-stddevOM(statXYResultS(cc,6)))/(2.*CriteriaOU)
+      statXYResultS(*,6)=(1.-correlate(kees0(kc),kees6(kc)))/(2*(sqrt(sumsquare(uncertaintyAverage))/stddevOM(kees0(kc)))^2)
+      statXYResultS(*,7)=(stddevOM(kees0(kc))-stddevOM(kees6(kc)))/(2.*sqrt(sumsquare(uncertaintyAverage)))
     endif else begin
       statXYResultS(*,6)=!values.f_nan
       statXYResultS(*,7)=!values.f_nan
