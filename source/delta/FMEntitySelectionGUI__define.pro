@@ -1328,7 +1328,8 @@ PRO FMEntitySelectionGUI::buildModelSection, base
   self.runDescrText = widget_Text(descrListBase, UNAME='RUNDESCRTXT', XOFFSET=0, $
     SCR_XSIZE=self->getModelListBoxXSize()*2 ,SCR_YSIZE=self->getModelDescrYSize() ,SENSITIVE=1 ,/ALL_EV, $
     font=self.textFont, /SCROLL, /WRAP)
-    
+  
+  ;PHIL-MIRKO DEC2015  
   obsModelBase = widget_base(extraFlagBase, $
     XOFFSET=0 ,YOFFSET=0, /NONEXCLUSIVE, $
     TITLE='IDL' ,SPACE=0 ,XPAD=0 ,YPAD=0, /COLUMN)

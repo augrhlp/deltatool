@@ -108,7 +108,7 @@ PRO FM_PlotBars, plotter, request, result
   
   !y.range=[min([0,min(allDataXY,/nan)])*1.1, max([0,max(allDataXY,/nan)])*1.1]
   obsbar=1
-  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,89,90,91,92])) ge 0 then begin
+  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,91])) ge 0 then begin
     allDataXY(*,*,*,*,0)=0.
     obsbar=0
     if ifree eq '1101' then begin
@@ -257,7 +257,7 @@ PRO FM_PlotBars, plotter, request, result
   if elabCode eq 2 or elabCode eq 14 then ytitle='[1] '
   if elabCode eq 9  then ytitle='[Number of days] '
   if elabCode eq 8  or elabCode eq 30 or elabCode eq 33 $
-    or elabCode eq 23 or elabCode eq 24 or elabCode eq 91 then ytitle='[%] '
+    or elabCode eq 23 or elabCode eq 24 then ytitle='[%] '
   if elabCode eq 26 then ytitle='[mg/m3*hrs] '
   if elabCode eq 27 then ytitle='[mg/m3*days] '
   if elabCode eq 89 or elabCode eq 90 then ytitle='[Nb] '
@@ -561,7 +561,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
   endif
   
   
-  if elabCode ne 85 and elabCode ne 86 and elabCode ne 87 then begin  ; week-days, summer...
+  if elabCode ne 85 and elabCode ne 86 and elabCode ne 87 and elabCode ne 88 then begin  ; week-days, summer...
   
     nobs=n_elements(allDataXY(*,0))
     
@@ -3460,9 +3460,9 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
       if extraValNumber gt 0 then extraVal=request->getExtraValues()
-      if extraVal[0] eq 999 then ustr='Obs Uncert'
-      if extraVal[0] ne 999 then ustr=strmid(strcompress(extraVal[0],/remove_all),0,3)+'%'
-      astr = strtrim(fix(extraVal[1]),2)
+      if extraVal[1] ne 999 then ustr=strmid(strcompress(extraVal[1],/remove_all),0,2)+'%'
+      if extraVal[1] eq 999 then ustr='Observation U'
+      astr = strtrim(fix(extraVal[3]),2)
       if extraVal[2] eq 1 then pstr='Conserv.'
       if extraVal[2] eq 2 then pstr='Cautious'
       if extraVal[2] eq 3 then pstr='Model'
@@ -4653,10 +4653,15 @@ PRO FM_PlotTargetLegend, plotter, request, result
   FORCELOG=silentMode
   targetInfo=result->getGenericPlotInfo()
   allDataXY=targetInfo->getXYS()
+  elabcode=request->getElaborationCode()
   if checkDataNan(allDataXY) then begin
     goto,jumpend
   endif
-  legendGenericBuild,request,result,plotter
+  if elabCode eq 74 then begin
+    legendGenericBuild74,request,result,plotter
+  endif else begin
+    legendGenericBuild,request,result,plotter
+  endelse
   legendInfo,request,result,plotter
   jumpend:
 END
@@ -6078,6 +6083,75 @@ pro legendGenericBuild88,request,result,plotter
   noplot:
 end
 ;*****************************************
+pro legendGenericBuild74,request,result,plotter
+  plotter->wsetInfoDataDraw
+  silentMode=plotter->getSilentMode()
+  FORCELOG=silentMode
+  resPoscript=plotter->currentDeviceIsPostscript()
+  if resPoscript eq 0 then begin
+    if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'LegendFont', FORCELOG=FORCELOG
+  endif
+  psFact=plotter->getPSCharSizeFactor()
+  resPoscript=plotter->currentDeviceIsPostscript()
+  white=obj_new('Color', 200, 200, 200)
+  black=obj_new('Color', 0, 0, 0)
+  whiteL=white->AsLongTrueColor()
+  blackL=black->AsLongTrueColor()
+  obj_destroy, white
+  obj_destroy, black
+  device, DECOMPOSED=1
+  plotter->erase, whiteL
+  device,DECOMPOSE=0
+  LOADCT,39
+  mytek_color;, 0, 32
+  legoWidth=.012
+  legoHeight=.05
+  startX=.01
+  maxWidth=0
+  targetInfo=result->getGenericPlotInfo()
+  allDataXY=targetInfo->getXYS()
+  if finite(min(allDataXY,/nan)) eq 0 or  finite(max(allDataXY,/nan)) eq 0 then goto, noplot
+  allDataColor=targetInfo->getColors()
+  colors=targetInfo->getColors()
+  colors_balls=[2,4,16,8,7]
+  
+  symbols=targetInfo->getSymbols()
+  legColors=targetInfo->getLegendColors()
+  legNames=targetInfo->getLegendNames()   ;long names
+  legSyms=targetInfo->getLegendSymbols()
+  legoSequenceNo=n_elements(legNames)
+  modelCodes=request->getModelCodes()
+  obsNames=request->getSingleObsNames()
+  scenarioCodes=request->getScenarioCodes()
+  npar=request->getParameterNumber()
+  nmod=request->getModelNumber()
+  nsce=request->getScenarioNumber()
+  nobsS=request->getSingleObsNumber()
+  groupTitles=request->getGroupTitles()
+  gTstr=strcompress(groupTitles,/remove_all)
+  parCodes=request->getParameterCodes()
+  diagramCode=request->getDiagramCode()
+  elabcode=request->getElaborationCode()
+
+  startx =.03
+  startY=0.9
+  
+  mypsym,9,2
+  plots,startX,startY,psym=8,/normal,color=colors_balls(0),symsize=1.2
+  xyouts,startX+.02,startY-0.02,' FAR < 0.2 ',/normal,color=0,charsize=2.
+  plots,startX,startY-0.15,psym=8,/normal,color=colors_balls(1),symsize=1.2
+  xyouts,startX+.02,startY-0.17,' 0.2 < FAR < 0.4 ',/normal,color=0,charsize=2.
+  plots,startX,startY-0.30,psym=8,/normal,color=colors_balls(2),symsize=1.2
+  xyouts,startX+.02,startY-0.32,' 0.4 < FAR < 0.6 ',/normal,color=0,charsize=2.
+  plots,startX,startY-0.45,psym=8,/normal,color=colors_balls(3),symsize=1.2
+  xyouts,startX+.02,startY-0.47,' 0.6 < FAR < 0.8 ',/normal,color=0,charsize=2.
+  plots,startX,startY-0.60,psym=8,/normal,color=colors_balls(4),symsize=1.2
+  xyouts,startX+.02,startY-0.62,' 0.8 < FAR < 1.0 ',/normal,color=0,charsize=2.
+  
+  noplot:
+end
+;*****************************************
+;*****************************************
 pro legendGenericBuildDiag0,request,result,plotter
 
   plotter->wsetInfoDataDraw
@@ -6127,20 +6201,36 @@ pro legendGenericBuildDiag0,request,result,plotter
       legPrint=strarr(1)
       legPrint(0)=modelCodes+'-'+scenarioCodes+'-'+statName
       legColors2=legColors & legSyms2=legSyms & legPrint2=['OBS']
+      if elabcode eq 89 then legPrint(0)=legPrint(0) + '(MA)'
+      if elabcode eq 90 then legPrint(0)=legPrint(0) + '(FA)'
+      if elabcode eq 89 then legPrint2=['(MA+GA+)']
+      if elabcode eq 90 then legPrint2=['(FA+GA+)']
     endif
     if ifree eq '0100' then begin
       legPrint=modelCodes+'-'+parCodes+'-'+scenarioCodes+'-'+statName
       legColors2=legColors & legSyms2=legSyms & legPrint2=['OBS']
+      if elabcode eq 89 then legPrint(0)=legPrint(0) + '(MA)'
+      if elabcode eq 90 then legPrint(0)=legPrint(0) + '(FA)'
+      if elabcode eq 89 then legPrint2=['(MA+GA+)']
+      if elabcode eq 90 then legPrint2=['(FA+GA+)']
     endif
     if ifree eq '0010' then begin
       legPrint=strarr(1)
       legPrint(0)=parCodes+'-'+modelCodes+'-'+statName
       legColors2=legColors & legSyms2=legSyms & legPrint2=['']
+      if elabcode eq 89 then legPrint(0)=legPrint(0) + '(MA)'
+      if elabcode eq 90 then legPrint(0)=legPrint(0) + '(FA)'
+      if elabcode eq 89 then legPrint2=['(MA+GA+)']
+      if elabcode eq 90 then legPrint2=['(FA+GA+)']
     endif
     if ifree eq '0001' then begin
       legPrint=strarr(1)
       legPrint(0)=parCodes+'-'+modelCodes+'-'+scenarioCodes
       legColors2=legColors & legSyms2=[9] & legPrint2=['OBS']
+      if elabcode eq 89 then legPrint(0)=legPrint(0) + '(MA)'
+      if elabcode eq 90 then legPrint(0)=legPrint(0) + '(FA)'
+      if elabcode eq 89 then legPrint2=['(MA+GA+)']
+      if elabcode eq 90 then legPrint2=['(FA+GA+)']
     endif
     if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0  then legPrint2=['']
     ;    legprint=legprint(0:0)

@@ -860,13 +860,11 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp1)-mean(runTemp2)
             statXYGroup[i1,i2,i3,i4]=nmb([obsTemp1,obsTemp2],[runTemp1,runTemp2])
           endif
-          if elabcode eq 74 or elabcode eq 92 or elabCode eq 89 or elabCode eq 90 or elabCode eq 91 then begin ;OU Forecast
-            ; MM workaround feb 2015
-            ;if n_elements(extraVal) eq 0 then extraVal=findgen(10)
+          if elabcode eq 74 or elabCode eq 89 or elabCode eq 90 or elabCode eq 91 then begin ;OU Forecast
             limitValue=extraVal(0)
 ;            uncertainty=extraVal(1)/100.
-            DayDelta=fix(extraVal(2))
-            FlexOption=extraVal(3)
+            if elabCode eq 74 then DayDelta=fix(extraVal(3))
+            FlexOption=extraVal(2)
             ; Philippe 4/3/2015 Modif to discard stations where no exceedances (model or observed) occur
             ccE=where(obsTemp ge limitValue or runTemp ge limitValue, countE)
             if elabCode eq 74 then begin
@@ -948,12 +946,12 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,2]=far
             statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp,statType,DayDelta)
           endif
-          if elabcode eq 92 or elabCode eq 89 or elabCode eq 90 or elabCode eq 91 then begin
-            statXYResult[i1,i2,i3,i4,0]=CountAlarm
-            if elabCode eq 92 then statXYResult[i1,i2,i3,i4,1]=CountFaAlarm
-            if elabCode eq 89 then statXYResult[i1,i2,i3,i4,1]=CountMiAlarm
-            if elabCode eq 90 then statXYResult[i1,i2,i3,i4,1]=countGaPlus
-            if elabCode eq 91 then statXYResult[i1,i2,i3,i4,1]=countGaMinus
+          if elabCode eq 89 or elabCode eq 90 or elabCode eq 91 then begin
+            if elabCode eq 89 then statXYResult[i1,i2,i3,i4,0]=countGaPlus+CountMiAlarm
+            if elabCode eq 90 then statXYResult[i1,i2,i3,i4,0]=countGaPlus+countFaAlarm
+            if elabCode eq 89 or elabCode eq 90 then statXYResult[i1,i2,i3,i4,1]=countGaPlus
+            if elabCode eq 91 then statXYResult[i1,i2,i3,i4,1]=(1.-0.5)*countGaPlus/(countGaPlus+countFaAlarm)+0.5*countGaPlus/(countGaPlus+countMiAlarm)
+            
           endif
           
           if elabcode eq 85 or elabCode eq 86 or elabCode eq 87 or elabCode eq 88 then begin  ;potency calculations

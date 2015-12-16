@@ -61,7 +61,7 @@
 71;1;Day-Night ;12;FREE;FREE;FREE;1;*1000*0100*0001*1001*0101*;0;NO;1*1*1*1*1;Dynamic Evaluation (Day-Night), additional selection fixed: Year, Summer(JJA), Winter(DJF);NONE;NONE
 72;1;Summer-Winter;12;FREE;FREE;0;0;*1000*0100*0001*1001*0101*;0;NO;1*1*1*1*1;Dynamic Evaluation (Summer-Winter), additional selection fixed: Day(7-19), Night(0-6,19-24), WD(Mo-Fr), WE(Sa-Su);NONE;NONE
 73;1;Weekdays-WeekEnd;12;FREE;FREE;FREE;0;*1000*0100*0001*1001*0101*;0;NO;1*1*1*1*1;Dynamic Evaluation (WD-WE), additional selection fixed: Year, Summer(JJA), Winter(DJF);NONE;NONE
-74;1;Forecast;4;FREE;FREE;FREE;FREE;0100*0001*0101*;4;NO;1*0*1*1*1;Target diagram for forecast. First threshold is the limit value, second the observation uncertainty in percent (e.g. from 1 to 100 - if 999 then observation uncertainty is selected), third the time lag, fourth the flexibility option;NONE;NONE
+74;1;Forecast;4;FREE;FREE;FREE;FREE;0100*0001*0101*;4;NO;1*0*1*1*1;Target diagram for forecast. First threshold is the limit value, second the observation uncertainty in percent (e.g. from 1 to 100 - if 999 then real observation uncertainty is selected), third the flexibility option (1-Conservative 2-Cautious 3-Model), fourth the time lag (from 1 upward);NONE;NONE
 
 75;1;O3/NO2 Bias (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;1*0*1*1*1;Bias category plot. All stations Bias are normalized by the observation uncertainty and classified in terms of their category (first station selection filter);OU;ALL
 76;1;O3/NO2 Correlation (OU);7;FREE;FREE;FREE;FREE;0001*;0;YES;1*0*1*1*1;All stations R criteria (function of OU) are classified in terms of their category (first station selection filter);OU;ALL
@@ -81,7 +81,6 @@
 85;1;Rel Potential;12;FREE;FREE;FREE;FREE;0010*0011*;0;NO;1*0*0*1*1;Rel. Potential overview;NONE;NONE
 88;1;Potential 2D Map;12;FREE;FREE;FREE;FREE;0010*0011*;1;NO;1*0*0*1*1;Rel. - Abs. Potentials Maps (use threshold = 1 for Absolute, any other value for relative);NONE;NONE
 
-92;1;Forecast False Al.;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;4;NO;1*0*1*1*0;Barplots of false Alarms;NONE;NONE
-89;1;Forecast Missed Al.;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;4;NO;1*0*1*1*0;Barplots of Missed Alarms;NONE;NONE
-90;1;Forecast GAplus;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;4;NO;1*0*1*1*0;Barplots of Good Alarms plus;NONE;NONE
-91;1;Forecast GAminus;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*1100*1010*1001*0110*0101*0011*1101*1011*0111*;4;NO;1*0*1*1*0;Barplots of Good Alarms minus;NONE;NONE
+89;1;Probability of detection MA/(MA+GA+);0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*;3;NO;1*0*1*1*0; First threshold is the limit value, second the observation uncertainty in percent (e.g. from 1 to 100 - if 999 then real observation uncertainty is selected), third the flexibility option (1-Conservative 2-Cautious 3-Model);NONE;NONE
+90;1;False alarm ratio FA/(FA+GA+);0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*;3;NO;1*0*1*1*0;First threshold is the limit value, second the observation uncertainty in percent (e.g. from 1 to 100 - if 999 then real observation uncertainty is selected), third the flexibility option (1-Conservative 2-Cautious 3-Model);NONE;NONE
+91;1;Exceedance Composite Indicator;0;FREE;FREE;FREE;FREE;1000*0100*0010*0001*;3;NO;1*0*1*1*0;First threshold is the limit value, second the observation uncertainty in percent (e.g. from 1 to 100 - if 999 then real observation uncertainty is selected), third the flexibility option (1-Conservative 2-Cautious 3-Model);NONE;NONE

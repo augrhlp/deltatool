@@ -2162,7 +2162,7 @@ PRO FMApplication::doElaboration, request, multipleUserChoices, BATCH=BATCH, WOR
   if ~keyword_set(outFileName) then outFileName=request->getFileName()
   self.plotter->opendevice, request->getPlotDeviceName(), outFileName, $
     request->getPrintOrient(),request->getPageBreak(), request->getLocation(), BATCH=BATCH, WORKINGDIR=WORKINGDIR
-  self.plotter->wsetMainDataDraw, /PROGRESS
+  self.plotter->wsetMainDataDraw, request, result, /PROGRESS
   self.plotter->plotAll, request, result
   ;  ; set a valid multiple draw title
   ;  fName=request->getFilename()

@@ -973,14 +973,49 @@ PRO Plotter::wsetInfoDataDraw
   
 END
 
-PRO Plotter::wsetMainDataDraw, PROGRESS=PROGRESS
+PRO Plotter::wsetMainDataDraw, request, result, PROGRESS=PROGRESS
 
   if ~self->currentDeviceIsPostscript() then begin
     self.mainView->wsetMainDataDraw
     if keyword_set(PROGRESS) then begin
       ; only for test
       erase, 10
-      xyouts, 0.5, 0.5, 'Plot in progress', ALIGN=0.5, /NORM, CHARSIZE=3., CHARTHICK=3., FONT=0
+      xyouts, 0.5, 0.0, 'Plot in progress...', ALIGN=0.5, /NORM, CHARSIZE=3., CHARTHICK=3., FONT=0
+      if n_elements(request) eq 1 then begin
+        infoToShow=strarr(9)
+        infoToShow[0]='ElaborationCode: '+request->getElaborationCode()
+        ;infoToShow[1]='is Single Obs Present:'+request->isSingleObsPresent()
+        ;infoToShow[2]='isGroupObsPresent: '+request->isGroupObsPresent()
+        ;infoToShow[4]='ParameterCodes: '+request->getParameterCodes()
+        infoToShow[1]='ElaborationName: '+request->getElaborationName()
+        ;infoToShow[2]='ElaborationOCTimeAvgName: '+request->getElaborationOCTimeAvgName()
+        ;infoToShow[3]='ElaborationOCStat: '+request->getElaborationOCStat()
+        infoToShow[2]='Diagram Code: '+request->getDiagramCode()
+        infoToShow[3]='Diagram Name: '+request->getDiagramName()
+        multiple=request->getMultipleChoiceUserSelectionFlags()
+        mult=''
+        for j=0, 3 do mult=mult+strcompress(fix(multiple[j]), /REMOVE)
+        infoToShow[4]='getMultipleChoiceUserSelectionFlags: '+mult
+        infoToShow[5]='No single obs'
+        sobsnames=request->getSingleObsNames()
+        mult=''
+        for j=0, n_elements(sobsnames)-1 do mult=mult+strcompress(sobsnames[j], /REMOVE)+';'
+        infoToShow[5]='Obs: '+mult
+        infoToShow[6]='No groups'
+        if request->isGroupObsPresent() then begin
+          groupTitles=request->getGroupTitles()
+          ngroups=n_elements(groupTitles)
+          mult=''
+          for j=0, ngroups-1 do mult=mult+strcompress(groupTitles[j], /REMOVE)+';'
+          infoToShow[6]='Group Obs: '+mult
+        endif
+        ;infoToShow[6]='UseObservedModel: '+request->getUseObservedModel()  ; 0=0ld case; 1=no obs
+        infoToShow[7]='ModelCodes: '+request->getModelCodes()
+        infoToShow[8]='ScenarioCodes: '+request->getScenarioCodes()
+        for i=0, n_elements(infoToShow)-1 do begin
+          xyouts, 0.2, 0.2+float(i)/n_elements(infoToShow), infoToShow[i], ALIGN=0.5, /NORM, CHARSIZE=3., CHARTHICK=3., FONT=0
+        endfor
+      endif
     ;      DEVICE, GET_FONTNAMES=fnames, SET_FONT='*'
     ;      for i=0, n_elements(fnames)-1 do begin
     ;        device, set_font=fnames[i]+'*15*LIGHT*ITALIC'
