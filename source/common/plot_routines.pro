@@ -108,7 +108,7 @@ PRO FM_PlotBars, plotter, request, result
   
   !y.range=[min([0,min(allDataXY,/nan)])*1.1, max([0,max(allDataXY,/nan)])*1.1]
   obsbar=1
-  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,91])) ge 0 then begin
+  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,91,92])) ge 0 then begin
     allDataXY(*,*,*,*,0)=0.
     obsbar=0
     if ifree eq '1101' then begin

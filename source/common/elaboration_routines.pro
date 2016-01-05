@@ -8,6 +8,23 @@ function isnumeric,input   ;input is string
   false: return, 0
 end
 ;************************************************************************
+;FUNCTION elab74Threshold, entityInfo, elabInfo
+;
+;  parCodes=elabInfo->getselectedParameterCodes()
+;  statType=elabInfo->getselectedGroupByStatInfo()
+;  hourStat=elabInfo->getselectedGroupByTimeInfo()
+;  flag_average=hourStat[0].value
+;  if not(isnumeric(scenCodes[0])) then a=dialog_message(['Base year is missing','Check entity selection GUI'])
+;  return, 0
+;
+;END
+;FUNCTION elab74Threshold, entityInfo, elabInfo
+;
+;  scenCodes=entityInfo->getSelectedScenarioCodes()
+;  if not(isnumeric(scenCodes[0])) then a=dialog_message(['Base year is missing','Check entity selection GUI'])
+;  return, 0
+;
+;END
 FUNCTION elab85Threshold, entityInfo, elabInfo
 
   scenCodes=entityInfo->getSelectedScenarioCodes()
@@ -457,6 +474,21 @@ PRO SG_Computing, $
   obsLatitudes=request->getSingleObsLatitudes()
   obsLongitudes=request->getSingleObsLongitudes()
   
+  if total(where(elabCode eq [74,89,90,91,92])) ge 0 then begin
+    silentMode=plotter->getSilentMode()
+    FORCELOG=silentMode
+    notValidFlag=0
+    if strupcase(parCodes) eq 'PM10' and (statType ne 1 or flag_average ne 'preserve') then notValidFlag=1
+    if strupcase(parCodes) eq 'PM25' and (statType ne 1 or flag_average ne 'preserve') then notValidFlag=1
+    if strupcase(parCodes) eq 'NO2' and (statType ne 0 or flag_average ne 'preserve') then notValidFlag=1
+    if strupcase(parCodes) eq 'O3' and (statType ne 2 or flag_average ne '08') then notValidFlag=1 
+    if strupcase(parCodes) ne 'O3' and strupcase(parCodes) ne 'NO2' and strupcase(parCodes) ne 'PM10' and strupcase(parCodes) ne 'PM25' then notValidFlag=1
+    if notValidFlag eq 1 then begin
+       notValid=dialogMsg(['The forecast/exceedance diagrams are not designed for your selections','Please check time averages (e.g. daily mean for PM10, 8h max for O3...) or parameter (only implemented currently for O3, NO2, PM10 and PM25)'], FORCELOG=FORCELOG,/error)
+       return
+    endif
+  endif
+  
   if (elabCode eq 85 or elabCode eq 86 or elabCode eq 87 or elabCode eq 88) and isnumeric(test3[0]) eq 0 then begin
     silentMode=plotter->getSilentMode()
     FORCELOG=silentMode
@@ -860,7 +892,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp1)-mean(runTemp2)
             statXYGroup[i1,i2,i3,i4]=nmb([obsTemp1,obsTemp2],[runTemp1,runTemp2])
           endif
-          if elabcode eq 74 or elabCode eq 89 or elabCode eq 90 or elabCode eq 91 then begin ;OU Forecast
+          if elabcode eq 74 or elabCode eq 89 or elabCode eq 90 or elabCode eq 91 or elabCode eq 92 then begin ;OU Forecast
             limitValue=extraVal(0)
 ;            uncertainty=extraVal(1)/100.
             if elabCode eq 74 then DayDelta=fix(extraVal(3))
@@ -946,12 +978,22 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,2]=far
             statXYGroup[i1,i2,i3,i4]=rmse(obsTemp, runTemp)/resilience(obsTemp,statType,DayDelta)
           endif
-          if elabCode eq 89 or elabCode eq 90 or elabCode eq 91 then begin
+          if elabCode eq 89 or elabCode eq 90 or elabCode eq 91 or elabCode eq 92 then begin
             if elabCode eq 89 then statXYResult[i1,i2,i3,i4,0]=countGaPlus+CountMiAlarm
             if elabCode eq 90 then statXYResult[i1,i2,i3,i4,0]=countGaPlus+countFaAlarm
             if elabCode eq 89 or elabCode eq 90 then statXYResult[i1,i2,i3,i4,1]=countGaPlus
-            if elabCode eq 91 then statXYResult[i1,i2,i3,i4,1]=(1.-0.5)*countGaPlus/(countGaPlus+countFaAlarm)+0.5*countGaPlus/(countGaPlus+countMiAlarm)
-            
+            if elabCode eq 91 then begin
+               if (countGaPlus+countMiAlarm) eq 0 and countFaAlarm eq 0 then statXYResult[i1,i2,i3,i4,1]=1.
+               if (countGaPlus+countMiAlarm) eq 0 and countFaAlarm gt 0 then statXYResult[i1,i2,i3,i4,1]=0.
+               if (countGaPlus+countMiAlarm) eq 0 and (countGaPlus+countFaAlarm) gt 0 then statXYResult[i1,i2,i3,i4,1]=2.
+               if (countGaPlus+countMiAlarm) ne 0 then statXYResult[i1,i2,i3,i4,1]=(countGaPlus+countFaAlarm)/(countGaPlus+countMiAlarm)
+            endif
+            if elabCode eq 92 then begin
+               if (countGaPlus+countMiAlarm) eq 0 and countFaAlarm eq 0 then statXYResult[i1,i2,i3,i4,1]=1.
+               if (countGaPlus+countMiAlarm) eq 0 and countFaAlarm gt 0 then statXYResult[i1,i2,i3,i4,1]=0.
+               if (countGaPlus+countFaAlarm) eq 0 and countMiAlarm gt 0 then statXYResult[i1,i2,i3,i4,1]=0.
+               if (countGaPlus+countMiAlarm) ne 0 then statXYResult[i1,i2,i3,i4,1]=0.5*(countGaPlus/(countGaPlus+countMiAlarm)+countGaPlus/(countGaPlus+countFaAlarm))
+            endif
           endif
           
           if elabcode eq 85 or elabCode eq 86 or elabCode eq 87 or elabCode eq 88 then begin  ;potency calculations

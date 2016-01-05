@@ -2862,10 +2862,12 @@ FUNCTION FMApplication :: init
   elabSpecialCode[1]=86
   elabSpecialCode[2]=87
   elabSpecialCode[3]=88
+;  elabSpecialCode[4]=74
   elabSpecialRoutine[0]='elab'+strcompress(elabSpecialCode[0], /REMOVE_ALL)+'Threshold'
   elabSpecialRoutine[1]='elab'+strcompress(elabSpecialCode[1], /REMOVE_ALL)+'Threshold'
   elabSpecialRoutine[2]='elab'+strcompress(elabSpecialCode[2], /REMOVE_ALL)+'Threshold'
   elabSpecialRoutine[3]='elab'+strcompress(elabSpecialCode[3], /REMOVE_ALL)+'Threshold'
+;  elabSpecialRoutine[4]='elab'+strcompress(elabSpecialCode[4], /REMOVE_ALL)+'Threshold'
   self.eSpC=ptr_new(elabSpecialCode, /NO_COPY)
   self.eSpR=ptr_new(elabSpecialRoutine, /NO_COPY)
   ; MM May 2015 End
