@@ -589,13 +589,13 @@ PRO FMApplication::testPlotQuality
   fm=self->getFileSystemMgr()
   elabMagicFile=self->getMagicElaborationList()
   entityMagicFile=self->getMagicEntityList()
+  applicationUserType=0
   
   fInfo=file_info(elabMagicFile)
   if fInfo.read ne 1 then begin
     self->setTestMode, 0
     self->setLogMode, 0
     if n_elements(applicationUserType) eq 1 then begin
-      self->setUserType, applicationUserType
       self->setUserType, applicationUserType
       self->updateElaborationDisplay, saveElab
       self->updateEntityDisplay, saveEntity
@@ -609,7 +609,6 @@ PRO FMApplication::testPlotQuality
     self->setTestMode, 0
     self->setLogMode, 0
     if n_elements(applicationUserType) eq 1 then begin
-      self->setUserType, applicationUserType
       self->setUserType, applicationUserType
       self->updateElaborationDisplay, saveElab
       self->updateEntityDisplay, saveEntity

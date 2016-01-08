@@ -729,6 +729,7 @@ FUNCTION FMUtility::buildFileDataStream, dataName, datalist, sepChar, blockSepCh
     for i=1, n_elements(datalist)-1 do record=record+datalist[i]+separatorChar
     record=strmid(record, 0, strlen(record)-strlen(separatorChar))
   endelse
+  print, '-->', record
   return, record
   
 END

@@ -66,7 +66,8 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   !P.Multi = 0
   device, GET_SCREEN_SIZE=scr_size
   xw = 1200
-  yw = 625
+;KeesC 07JAN2016  
+  yw = 800 ;625
   ;  days=[0,31,28,31,30,31,30,31,31,30,31,30,31]
   
   ; BEGIN USER PART ********************************
@@ -121,8 +122,9 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   buthelp = WIDGET_BUTTON(basegn2,VALUE='HELP', UVALUE='HELP',ysize=30,font='times Roman*18*bold')
   butgo2 = WIDGET_BUTTON(basegn2,VALUE='GO', UVALUE='GO',ysize=30,font='times Roman*18*bold')
   wid_exit2=Widget_Button(basegn2, VALUE='EXIT',ysize=30,UVALUE='DONE',font='times Roman*18*bold')
-  lab2=widget_label(base2,value='COMMENTS',font='times Roman*18*bold',XSIZE=40)
-  labcom_txt=WIDGET_TEXT(base2,XSIZE=40,ysize=48,/frame,/SCROLL)
+; KeesC 07JAN2016  
+  lab2=widget_label(base2,value='COMMENTS',font='times Roman*18*bold',XSIZE=90)   ;40 -> 90
+  labcom_txt=WIDGET_TEXT(base2,XSIZE=40,ysize=45,/frame,/SCROLL)     ; 40 48 - 40 45
   widget_control,butgo2,sensitive=0
   
   pState = {                     $

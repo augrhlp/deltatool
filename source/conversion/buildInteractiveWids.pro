@@ -1,7 +1,8 @@
   FUNCTION buildInteractiveWids, refBase, labWids=labWids, bttWids=bttWids
   
-  firstColWidth=30
-  secondColWidth=70
+; KeesC 07JAN2016  
+  firstColWidth=42 ;30
+  secondColWidth=97 ;70
 
   firstColFont='times Roman*14*bold'
   secondColFont='times Roman*14*bold'
