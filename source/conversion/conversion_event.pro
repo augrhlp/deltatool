@@ -153,6 +153,8 @@ pro conversion_event, ev
       endif
       hrs=hrs+(dayInit-1)*24
       hour0=hrs
+; KeesC 09JAN2016   Add next line ??
+      pstate.initrun=initrun      
       fillConversionWids, pstate
       noinit:
     end
@@ -175,6 +177,8 @@ pro conversion_event, ev
       endif
       hrs=hrs+(dayEnd-1)*24 + 23
       hour1=hrs
+; KeesC 09JAN2016   Add next line ??
+      pstate.endrun=endrun
       fillConversionWids, pstate
       noend:
     end
@@ -297,8 +301,9 @@ pro conversion_event, ev
       endif else begin
         convRes=csv2cdf(pstate.startUpFile, $
           pstate.startHour, pstate.endHour, pstate.dirIn, pstate.dirOut,  $
-          pstate.prefixId, pstate.modelName, outFileName, pstate.initRun, pstate.endRun, logWin= pState.labcom_txt,progwin=pState.labcom_txt)
-          
+;KeesC 09JAN2016(2)         
+;          pstate.prefixId, pstate.modelName, outFileName, pstate.initRun, pstate.endRun, logWin= pState.labcom_txt,progwin=pState.labcom_txt)
+          pstate.prefixId, pstate.modelName, outFileName, pstate.initRun, pstate.endRun, logWin= pState.labcom_txt,progwin=pState.labpr_txt)         
         ;      if ierror eq 1 then txt=['=====================================','CDF_to_CDF ---- ERROR',$
         ;        '=====================================']
         if convRes eq 1 then begin
