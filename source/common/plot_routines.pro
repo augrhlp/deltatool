@@ -3259,7 +3259,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     goto,jumpend
   endif
   
-  maxAxis=max([max(abs(allDataXY),/nan),1.5])
+  maxAxis=max([max(abs(allDataXY(*,0:1)),/nan),1.5])
   if elabCode eq 74 then maxAxis=max([max(abs(allDataXY(*,0:1)),/nan),1.5])
   plotRange=maxAxis + maxAxis*.4
   if finite(maxAxis) eq 0 then plotRange=1
@@ -3614,7 +3614,7 @@ PRO FM_PlotTargetHDY, plotter, request, result, allDataXY, allDataColor, allData
     goto,jumpend
   endif
   
-  maxAxis=max([max(abs(allDataXY),/nan),1.5])
+  maxAxis=max([max(abs(allDataXY(*,0:1)),/nan),1.5])
   if elabCode eq 74 then maxAxis=max([max(abs(allDataXY(*,0:1)),/nan),1.5])
   plotRange=maxAxis + maxAxis*.4
   if finite(maxAxis) eq 0 then plotRange=1
@@ -3787,9 +3787,9 @@ PRO FM_PlotTargetHDY, plotter, request, result, allDataXY, allDataColor, allData
       if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'MainTitleFont', FORCELOG=FORCELOG
       ;      xyouts,0.18,0.88,strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,$
       ;        charthick=4,charsize=3*psFact
-      xyouts,0.10,0.88,'H='+strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,charsize=3*psFact
+      xyouts,0.10,0.88,'H/D='+strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,charsize=3*psFact
 ;Phil 04/12/2015
-      xyouts,0.25,0.88,'Y='+strtrim(percentageCritY,2)+'%',color=colorPerc,/normal,charsize=1.5*psFact
+      xyouts,0.35,0.88,'Y='+strtrim(percentageCritY,2)+'%',color=colorPerc,/normal,charsize=1.5*psFact
       ;setUserFont, lastUserFont
       if resPoscript eq 0 then begin
         ;!p.font=0
@@ -3806,14 +3806,18 @@ PRO FM_PlotTargetHDY, plotter, request, result, allDataXY, allDataColor, allData
     ;KeesC 11SEP2014
     ; Check deeply MM february 2015
     if criteria gt 0. and elabcode ne 74 then begin
-    
-    
+      dummy=fltarr(10) & dummy(*)=1.
+      CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, dummy,alpha,criteriaOrig,LV, overwritefrequency='YEAR'
       ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
       astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
       rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
+      ystr1=strcompress(fix(criteriaOrig[2]),/remove_all)
+      ystr2=strcompress(fix(criteriaOrig[3]),/remove_all)
       xyouts,.83,.92,'U = '+ustr+' %',/normal,color=0
       xyouts,.83,.89,'Alpha = '+astr,/normal,color=0
       xyouts,.83,.86,'RV = '+rstr+' '+mus[0],/normal,color=0
+      xyouts,.83,.83,'Np  = '+ystr1,/normal,color=0
+      xyouts,.83,.80,'Nnp = '+ystr2,/normal,color=0
     endif
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
