@@ -124,7 +124,7 @@ PRO Elaboration::setUserType, userType
     idxs=indgen(n_elements(thisList))
   endif
   
-  if userType gt 2 then essage, 'naaaaaa'
+  if userType gt 2 then message, 'naaaaaa'
 
 ;  print, '**userType**'
 ;  print, userType

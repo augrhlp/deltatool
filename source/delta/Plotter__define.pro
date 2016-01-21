@@ -1011,8 +1011,9 @@ PRO Plotter::wsetMainDataDraw, request, result, PROGRESS=PROGRESS
         endif
         ;infoToShow[6]='UseObservedModel: '+request->getUseObservedModel()  ; 0=0ld case; 1=no obs
         infoToShow[7]='ModelCodes: '+request->getModelCodes()
-        infoToShow[8]='ScenarioCodes: '+request->getScenarioCodes()
-        for i=0, n_elements(infoToShow)-1 do begin
+        ;infoToShow[8]='ScenarioCodes: '+request->getScenarioCodes()
+        for i=0, n_elements(infoToShow)-2 do begin
+          if i eq 5 and strlen(infoToShow[5]) gt 50 then infoToShow[5]=strmid(infoToShow[i],0,20) 
           xyouts, 0.2, 0.2+float(i)/n_elements(infoToShow), infoToShow[i], ALIGN=0.5, /NORM, CHARSIZE=3., CHARTHICK=3., FONT=0
         endfor
       endif

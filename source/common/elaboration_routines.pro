@@ -484,7 +484,7 @@ PRO SG_Computing, $
     if strupcase(parCodes) eq 'O3' and (statType ne 2 or flag_average ne '08') then notValidFlag=1 
     if strupcase(parCodes) ne 'O3' and strupcase(parCodes) ne 'NO2' and strupcase(parCodes) ne 'PM10' and strupcase(parCodes) ne 'PM25' then notValidFlag=1
     if notValidFlag eq 1 then begin
-       notValid=dialogMsg(['The forecast/exceedance diagrams are not designed for your selections','Please check time averages (e.g. daily mean for PM10, 8h max for O3...) or parameter (only implemented currently for O3, NO2, PM10 and PM25)'], FORCELOG=FORCELOG,/error)
+       notValid=dialogMsg(['The forecast/exceedance diagrams are not designed for your selections','Please check time averages and parameters. Currently implemented only for 8hMax O3, hourly NO2, and daily PM10 and PM25)'], FORCELOG=FORCELOG,/error)
        return
     endif
   endif
