@@ -313,10 +313,10 @@ pro conversion_event, ev
           txt=systime()
           addLogText, pState.labcom_txt, txt
           txt=strarr(4)
-          txt[0]='A model file named '+outFileName+'was created or updated.'
-          txt[1]='Please close the application and start again'
-          txt[2]='new data set will be available at next launch of Delta'
-          txt[3]='manually remove input files from'+pstate.dirIn
+          txt[0]='A file named '+outFileName+'has been created or updated.'
+          txt[1]='Please close the application and start it again'
+          txt[2]='The new dataset will then be available at the next launch of Delta'
+          txt[3]='Please remove the input files from'+pstate.dirIn
           a=dialog_message(txt, title='Model updating...', /INFO)
         endif
       endelse
