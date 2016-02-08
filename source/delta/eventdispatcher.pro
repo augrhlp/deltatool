@@ -302,6 +302,27 @@ PRO fairmode_checkDataIntegrityMenuSelection, ev
   
 END
 
+;KeesC 08FEB2016
+PRO fairmode_editDumpFile, ev
+  ERROR=0
+  catch, error_status
+
+  if error_status NE 0 THEN BEGIN
+    ERROR=1
+    catch, /CANCEL
+    errMsg=dialog_message([['Please check path to Notepad location'], fullString, [' Check existence or read permission'], [' and modify -HOME/resource/init.ini- accordingly.']], /ERROR)
+    return
+  endif
+  if size(ev, /TYPE) eq 8 then ev=ev.top
+  widget_control, ev, get_uvalue=view
+  print, 'fairmode_editDumpFile'
+  mgr=view->getMgr()
+  command=Mgr->getNotepadLocation()
+  fs=mgr->getFileSystemMgr()
+  dumpDir=fs->getDumpDir(/with)
+  spawn,[command,dumpDir+'DumpFile.txt'],/noshell,/nowait
+END
+
 PRO fairmode_helpMenuSelection, ev
 
   ERROR=0
@@ -981,6 +1002,13 @@ PRO fairmode_runListSelection, ev
   view->userRunSelection, index
   
 END
+
+;Kees 06FEB2016
+;pro fairMode_editDumpFile,ev
+;stop
+;util=obj_new('FMUtility')
+;dumpDir=self.fileSysMgr->getDumpDir(/WITH)
+;end
 
 PRO fairmode_saveImage, ev
 

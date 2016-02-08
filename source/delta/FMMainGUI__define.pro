@@ -691,6 +691,8 @@ PRO FMMainGUI::build
   elaborationRestoreButton=widget_button(elaborationMenu, UVALUE=0, value='Restore Analysis', UNAME='ELABORATIONLOAD_BTT', event_pro=self.eventprefix+'restoreElaboration')
   
   helpDescBtt=widget_Button(helpMenu, VALUE='Help file', UNAME='HELPBTT', UVALUE='OPENHELP_BTT', event_pro=self.eventPrefix+'helpMenuSelection')
+ ;KeesC 06FEB2016
+  saveDumpFileButton=widget_button(helpMenu, value='Edit DumpFile.dat',UNAME='EDITDUMP',event_pro=self.eventprefix+'editDumpFile')
   
   mInfo=self.mgr->getModelInfo()
   if strlowcase(mInfo.frequency) eq 'hour' then interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool (Model)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR)

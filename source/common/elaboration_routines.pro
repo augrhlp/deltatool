@@ -489,11 +489,21 @@ PRO SG_Computing, $
     endif
   endif
   
-  if (elabCode eq 85 or elabCode eq 86 or elabCode eq 87 or elabCode eq 88) and isnumeric(test3[0]) eq 0 then begin
-    silentMode=plotter->getSilentMode()
-    FORCELOG=silentMode
-    notNum=dialogMsg(['The BaseYear does not exist','or its identifier is not numeric'], FORCELOG=FORCELOG,/error)
-    return
+;KeesC 4FEB2016  
+  if (elabCode eq 85 or elabCode eq 86 or elabCode eq 87 or elabCode eq 88 or elabCode eq 89 or elabCode eq 90 or elabCode eq 91 $
+  or elabCode eq 92) then begin 
+    if isnumeric(test3[0]) eq 0 then begin
+      silentMode=plotter->getSilentMode()
+      FORCELOG=silentMode
+      notNum=dialogMsg(['The BaseYear does not exist','or its identifier is not numeric'], FORCELOG=FORCELOG,/error)
+      return
+    endif  
+    if nobsS gt 0 and nobsG gt 0 then begin
+      silentMode=plotter->getSilentMode()
+      FORCELOG=silentMode
+      a=dialogMsg('This diagram is allowed either with single stations or with groups but not with both. Please modify your station selection', FORCELOG=FORCELOG, /ERROR)
+      return
+    endif
   endif
   indexScenAll=where(strupcase(strmid(scenarioCodes,0,3)) eq 'ALL')
   if n_elements(indexScenAll) gt 1 then indexScenAll=indexScenAll(0)
@@ -513,13 +523,13 @@ PRO SG_Computing, $
         for i4=0, Index4-1 do begin    ;obs
           choiceIdx1=(where(mChoice1run eq test1[i1] and mChoice2run eq test2[i2] and $
             mChoice3run eq test3[i3] and mChoice4run eq test4[i4]))[0]
-            
-          if nobsS gt 0 and nobsG gt 0 then begin
-            silentMode=plotter->getSilentMode()
-            FORCELOG=silentMode
-            a=dialogMsg('This diagram is allowed either with single stations or with groups but not with both. Please modify your station selection', FORCELOG=FORCELOG, /ERROR)
-            return
-          endif
+;KeesC 4FEB2016            
+;          if nobsS gt 0 and nobsG gt 0 and elabCode 85 --- 88 then begin
+;            silentMode=plotter->getSilentMode()
+;            FORCELOG=silentMode
+;            a=dialogMsg('This diagram is allowed either with single stations or with groups but not with both. Please modify your station selection', FORCELOG=FORCELOG, /ERROR)
+;            return
+;          endif
           if choiceIdx1 eq -1 then begin
             silentMode=plotter->getSilentMode()
             FORCELOG=silentMode

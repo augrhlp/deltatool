@@ -12,9 +12,13 @@ FUNCTION ReadSpecStats, startupfile, logWin=logWin, statnames=statnames, spec_st
   close,1 & openr,1,startupfile
   while ~eof(1) do begin
     readf,1,atxt
+;KeesC 4FEB2016
+    atxt=strtrim(atxt,2)
     if atxt eq '[MODEL]' then begin
       for i=1,10 do begin
         readf,1,atxt
+;KeesC 4FEB2016        
+        atxt=strtrim(atxt,2)
         if strmid(atxt,0,1) ne ';' then begin
           year=fix(atxt)
           fileyear=year
@@ -29,10 +33,14 @@ FUNCTION ReadSpecStats, startupfile, logWin=logWin, statnames=statnames, spec_st
   i=0
   while ~eof(1) do begin
     readf,1,atxt
+;KeesC 4FEB2016
+    atxt=strtrim(atxt,2)
     if atxt eq '[PARAMETERS]' then begin
       readf,1,atxt
       for i=0,1000 do begin
         readf,1,atxt
+;KeesC 4FEB2016
+        atxt=strtrim(atxt,2)
         if atxt eq '[MONITORING]' then goto,jump2
         res=strsplit(atxt,';',/extract)
         spec(i)=res(0)
@@ -52,6 +60,8 @@ FUNCTION ReadSpecStats, startupfile, logWin=logWin, statnames=statnames, spec_st
       readf,1,atxt
       while ~eof(1) do begin
         readf,1,atxt
+;KeesC 4FEB2016
+        atxt=strtrim(atxt,2)
         firstchar=strmid(atxt,0,1)
         res=strsplit(atxt,';',/extract)
         if firstchar ne '[' and firstchar ne ';' and firstchar ne '#' and res(0) ne 'Station Code' and $
