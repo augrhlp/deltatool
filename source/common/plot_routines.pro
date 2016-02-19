@@ -689,7 +689,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
       xticks=['0.25','0','-0.25','-0.50','-0.75','-1']
     endif
     if elabcode eq 87 then begin
-       allData=reform(allDataXY(0,0,1:n_elements(scenarioCodes)-1,*,*))
+       allData=reform(allDataXY(0,0,1:n_elements(scenarioCodes)-1,*,0:1))
        maxAlldata=max(alldata)
        if maxAlldata lt 10 then begin
           allDataXY=allDataXY/10.
@@ -939,7 +939,7 @@ PRO FM_PlotDynamicEvaluation, plotter,request,result
     
     if elabCode eq 86 then begin ;absolute potency calculations
     
-    allData=reform(allDataXY(0,0,1:n_elements(scenarioCodes)-1,*,*))
+    allData=reform(allDataXY(0,0,1:n_elements(scenarioCodes)-1,*,0:1))
     maxAlldata=max(alldata)
     if maxAlldata lt 10 then begin
        allDataXY=allDataXY/10.
