@@ -208,6 +208,7 @@ FUNCTION DataMiner::readMonitoringYearCsvData, request, fileName, statCode, para
 
   NOTPRESENT=0
   
+  if ~file_test(fileName) then return,0
   openr, unit, fileName, /GET_LUN
   bufferString=''
   RowNr=0
@@ -339,14 +340,14 @@ for i=0, n_elements(runFiles)-1 do begin
         mParData=self->readMonitoringCdfData(request,singleMonitCdfFileName, singleMonits[j], parameters, k, NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL)
         if keyword_set(NOTPRESENT) eq 1 then begin
           ;tryNcdf first
-          print, '...data not found in csv(year)...'
-        ;  print, 'Try to found data from (year) csv', yearMonitCsvFileName, singleMonits[j], parameters[k]
+          print, '...data not found in cdf...'
+        ;  print, 'Try to find data from (year) csv', yearMonitCsvFileName, singleMonits[j], parameters[k]
           mParData=self->readMonitoringYearCsvData(request, yearMonitCsvFileName, singleMonits[j], parameters[k], NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL)
         endif
         if keyword_set(NOTPRESENT) then begin
           ;tryNcdf first
-          print, '...data not found in cdf...'
-         ; print, 'Try to found data from csv', singleMonitCdfFileName, singleMonits[j], parameters[k]
+          print, '...data not found in csv...'
+         ; print, 'Try to find data from csv', singleMonitCdfFileName, singleMonits[j], parameters[k]
           mParData=self->readMonitoringCsvData(request,singleMonitCsvFileName, parameters[k], NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL)
         endif
         if NOTPRESENT eq 1 then begin
@@ -657,7 +658,7 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
         endif else begin
           if strupcase(strcompress(info[0],/remove_all)) eq strupcase(statCode) then begin
             kpol=where(pollout eq parameterCodes[k],nc)
-            nr=4+kpol[0]
+            nr=1+kpol[0]
             if yearAVG eq 1 then begin
               storeData[0]=float(info(nr))
               goto,yAvg
@@ -696,6 +697,7 @@ FUNCTION DataMiner::readMonitoringCdfData, request,fileName, statCode, parameter
     ERROR=1
     catch, /CANCEL
     NOTPRESENT=1
+    ;close
     return, -1
   endif
   NOTPRESENT=0

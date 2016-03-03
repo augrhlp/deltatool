@@ -122,7 +122,7 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
   buthelp = WIDGET_BUTTON(basegn2,VALUE='HELP', UVALUE='HELP',ysize=30,font='times Roman*18*bold')
   butgo2 = WIDGET_BUTTON(basegn2,VALUE='GO', UVALUE='GO',ysize=30,font='times Roman*18*bold')
   wid_exit2=Widget_Button(basegn2, VALUE='EXIT',ysize=30,UVALUE='DONE',font='times Roman*18*bold')
-; KeesC 07JAN2016  2 lines
+; KeesC 07JAN2016  
   lab2=widget_label(base2,value='COMMENTS',font='times Roman*18*bold',XSIZE=90)   ;40 -> 90
   labcom_txt=WIDGET_TEXT(base2,XSIZE=40,ysize=45,/frame,/SCROLL)     ; 40 48 - 40 45
   widget_control,butgo2,sensitive=0
@@ -134,7 +134,6 @@ pro conversion, state, deltaMgr, NOVIEW=NOVIEW, AUTOCHECK=AUTOCHECK
     convDir:convDir, $
     txtall:txtall, $
     labcom_txt:labcom_txt, $
-;KeesC 09JAN2016(2)  
     labpr_txt:labpr_txt, $
     next02:next02, $
     wid_save1:wid_save1, $
