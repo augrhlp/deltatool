@@ -1668,7 +1668,9 @@ PRO FM_PlotScatter, plotter, request, result
       Neff=criteriaOrig(2)
       Nnp=criteriaOrig(3)
       LV=criteriaOrig(4)
+      gammaV=criteriaOrig(5)
     endif
+    gammafac=sqrt(1.+gammaV^2)
     
   endif else begin
     criteria=0
@@ -1735,9 +1737,9 @@ PRO FM_PlotScatter, plotter, request, result
     crit_ii=fltarr(1000)
     for ii=0,999 do begin
       iix=float(ii)*float(maxAxis)/1000.
-      crit_ii(ii)=UrLV/100.*sqrt( (1.-alpha)*float(iix)^2/float(Neff) +alpha*LV^2/float(Nnp))
-      critPolyfill(ii,1)=min([iix+2.*crit_ii(ii),MaxAxis])
-      critPolyfill(ii,0)=max([iix-2.*crit_ii(ii),MinAxis])
+      crit_ii(ii)=UrLV/100.*sqrt( (1.-alpha^2)*float(iix)^2/float(Neff) +alpha^2*LV^2/float(Nnp))
+      critPolyfill(ii,1)=min([iix+gammafac*crit_ii(ii),MaxAxis])
+      critPolyfill(ii,0)=max([iix-gammafac*crit_ii(ii),MinAxis])
       ;KeesC 21OCT2013
       critPolyfillsqrt05(ii,1)=min([iix+2.*sqrt(.5)*crit_ii(ii),MaxAxis])
       critPolyfillsqrt05(ii,0)=max([iix-2.*sqrt(.5)*crit_ii(ii),MinAxis])
@@ -1940,13 +1942,15 @@ PRO FM_PlotScatter, plotter, request, result
   if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'LegendFont', FORCELOG=FORCELOG
   if criteria gt 0. then begin
     ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
-    astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
+    astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,4)
+    gstr=strmid(strcompress(criteriaOrig[5],/remove_all),0,4)
     rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
     npstr=strcompress(fix(criteriaOrig[2]),/remove_all)
     nnpstr=strcompress(fix(criteriaOrig[3]),/remove_all)
-    xyouts,.81,.90,'U = '+ustr+' %',/normal,color=0
+    xyouts,.81,.90,'Urv = '+ustr+' %',/normal,color=0
     xyouts,.81,.87,'Alpha = '+astr,/normal,color=0
     xyouts,.81,.84,'RV = '+rstr+' '+mus[0],/normal,color=0
+    xyouts,.81,.81,'Gamma = '+gstr,/normal,color=0
     if strupcase(frequency) eq 'YEAR' then begin
       xyouts,.81,.81,'Np = '+npstr,/normal,color=0
       xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0
@@ -3303,7 +3307,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     ;    endif
     ; end Phil 14/09/2014
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
-    if elabcode ne 74 then plots, CIRCLE(0, 0, 0.5), /data, thick=2, color=0,linestyle=2
+    if elabcode ne 74 then plots, CIRCLE(0, 0, 1./sqrt(1.+criteriaOrig(5)^2)), /data, thick=2, color=0,linestyle=2
   endif else begin
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
   endelse
@@ -3315,7 +3319,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   ;  if elabCode ne 74 then xyouts,0.1,0.5,'T=.5',color=0,/data,charthick=3,charsize=facSize*1.3
   ;  if elabCode ne 74 then xyouts,0.1,0.5,'T=.5',color=0,/data,charthick=3,charsize=facSize*1.3
   xyouts,0.1,1.05,'T=1',color=0,/data,charsize=facSize*1.3
-  if elabCode ne 74 then xyouts,0.1,0.5,'T=.5',color=0,/data,charsize=facSize*1.3
+  ;if elabCode ne 74 then xyouts,0.1,0.5,'T=.5',color=0,/data,charsize=facSize*1.3
   ;setUserFont, lastUserFont
   
   fixedLabels=strarr(4)
@@ -3443,7 +3447,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     endif
   endif
   
-  if n_elements(criteriaOrig) eq 5 then begin
+  if n_elements(criteriaOrig) eq 6 then begin
   
     ;KeesC 11SEP2014
     ; Check deeply MM february 2015
@@ -3451,11 +3455,13 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     
     
       ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
-      astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
+      gam=strmid(strcompress(criteriaOrig[5],/remove_all),0,4)
+      astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,4)
       rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
-      xyouts,.83,.92,'U = '+ustr+' %',/normal,color=0
-      xyouts,.83,.89,'Alpha = '+astr,/normal,color=0
-      xyouts,.83,.86,'RV = '+rstr+' '+mus[0],/normal,color=0
+      xyouts,.83,.90,'Urv = '+ustr+' %',/normal,color=0
+      xyouts,.83,.87,'Alpha = '+astr,/normal,color=0
+      xyouts,.83,.84,'RV = '+rstr+' '+mus[0],/normal,color=0
+      xyouts,.83,.81,'Gamma = '+gam,/normal,color=0
     endif
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
@@ -3656,7 +3662,7 @@ PRO FM_PlotTargetHDY, plotter, request, result, allDataXY, allDataColor, allData
     ;    endif
     ; end Phil 14/09/2014
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
-    if elabcode ne 74 then plots, CIRCLE(0, 0, 0.5), /data, thick=2, color=0,linestyle=2
+    if elabcode ne 74 then plots, CIRCLE(0, 0, 1./sqrt(1.+criteriaOrig(5)^2)), /data, thick=2, color=0,linestyle=2
   endif else begin
     plots, CIRCLE(0, 0, 1), /data, thick=2, color=0
   endelse
@@ -3668,7 +3674,7 @@ PRO FM_PlotTargetHDY, plotter, request, result, allDataXY, allDataColor, allData
   ;  if elabCode ne 74 then xyouts,0.1,0.5,'T=.5',color=0,/data,charthick=3,charsize=facSize*1.3
   ;  if elabCode ne 74 then xyouts,0.1,0.5,'T=.5',color=0,/data,charthick=3,charsize=facSize*1.3
   xyouts,0.1,1.05,'T=1',color=0,/data,charsize=facSize*1.3
-  if elabCode ne 74 then xyouts,0.1,0.5,'T=.5',color=0,/data,charsize=facSize*1.3
+  ;if elabCode ne 74 then xyouts,0.1,0.5,'T=.5',color=0,/data,charsize=facSize*1.3
   ;setUserFont, lastUserFont
   
   fixedLabels=strarr(4)
@@ -4751,6 +4757,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 then begin  ;NMSD
   
     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
+    gammafac=sqrt(1.+criteriaOrig(5)^2)
     
     maxxAxis=max(allDataXY(*,0),/nan)*1.1
     if finite(maxxAxis) eq 0 then maxxAxis=100
@@ -4780,12 +4787,12 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
       & yy1_05s=fltarr(101) & yy2_05s=fltarr(101)
       for i=0,100 do begin
         xx(i)=minxAxis+i*(maxxAxis-minxAxis)/100.
-        yy1(i)= min([ 200.*xx(i), ymax])
-        yy2(i)= max([-200.*xx(i),-ymax])
-        yy1_05(i)= min([ 100.*xx(i), ymax])
-        yy2_05(i)= max([-100.*xx(i),-ymax])
-        yy1_05s(i)= min([ sqrt(.5)*200.*xx(i), ymax])
-        yy2_05s(i)= max([-sqrt(.5)*200.*xx(i),-ymax])
+        yy1(i)= min([ 200.*(1./gammafac)*xx(i), ymax])
+        yy2(i)= max([-200.*(1./gammafac)*xx(i),-ymax])
+        yy1_05(i)= min([ 100.*(1./gammafac)*xx(i), ymax])
+        yy2_05(i)= max([-100.*(1./gammafac)*xx(i),-ymax])
+        yy1_05s(i)= min([ sqrt(.5)*200.*(1./gammafac)*xx(i), ymax])
+        yy2_05s(i)= max([-sqrt(.5)*200.*(1./gammafac)*xx(i),-ymax])
       endfor
       ; KeesC 14SEP2014
       polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=4
@@ -4818,6 +4825,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   if elabcode eq 15 or elabCode eq 78 or elabCode eq 16 then begin  ;R
   
     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
+    gammafac=sqrt(1.+criteriaOrig(5)^2)
     
     maxxAxis=max(allDataXY(*,0),/nan)*1.1
     if finite(maxxAxis) eq 0 then maxxAxis=1
@@ -4846,7 +4854,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
       for i=0,100 do begin
         xx(i)=minxAxis+i*(maxxAxis-minxAxis)/100.
         yy(i)=1.-2.*xx(i)^2
-        yy05(i)=1.-0.5*xx(i)^2
+        yy05(i)=1.-(1./gammafac)*xx(i)^2
         ; KeesC 1OCT2013
         yy05s(i)=1.-sqrt(0.5)*xx(i)^2
         if yy(i) lt ymin then yy(i)=ymin
@@ -4912,11 +4920,13 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
     if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'LegendFont', FORCELOG=FORCELOG
     
       ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
-      astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
+      astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,4)
       rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
-      xyouts,.83,.92,'U = '+ustr+' %',/normal,color=0
+      gstr=strmid(strcompress(criteriaOrig[5],/remove_all),0,4)
+      xyouts,.83,.92,'Urv = '+ustr+' %',/normal,color=0
       xyouts,.83,.89,'Alpha = '+astr,/normal,color=0
       xyouts,.83,.86,'RV = '+rstr+' '+mus[0],/normal,color=0
+      xyouts,.83,.83,'Gamma = '+gstr,/normal,color=0
       if strupcase(frequency) eq 'YEAR' then begin
         xyouts,.81,.81,'Np = '+npstr,/normal,color=0
         xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0
@@ -5585,6 +5595,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   criteria=0
   Neff=1
   Nnp=1
+  gamma=1.75
   
   ;if more than one pollutant or group mode statistic ne 90 percentile, no criteria found
   if n_elements(parCodes) gt 1 or GroupModeOKmode ne 1 then begin
@@ -5633,6 +5644,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
     Neff=criteria(2)
     Nnp=criteria(3)
     LV=criteria(4)
+    gammaV=criteria(5)
     if strupcase(frequency) eq 'HOUR' then criteria(2:3)=1
   endif
   CriteriaOrig=criteria
@@ -5647,10 +5659,10 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   ;  if frequency eq 'HOUR' then nobsAv=1
   
   if statistics eq 'OU' and criteria(0) ne -1 then begin
-    if strupcase(frequency) eq 'HOUR' then criteria=UrLV/100.*sqrt( (1.-alpha)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)+alpha*LV^2)
+    if strupcase(frequency) eq 'HOUR' then criteria=UrLV/100.*sqrt( (1.-alpha^2)*(stddevOM(obsTimeSeries)^2+mean(obsTimeSeries)^2)+alpha^2*LV^2)
     ;     criteria=0.15*mean(obsTimeSeries)
     ;print,'crit',criteria
-    if strupcase(frequency) eq 'YEAR' then criteria=UrLV/100.*sqrt( (1.-alpha)*(mean(obsTimeSeries)^2)/Neff +alpha*LV^2/Nnp)
+    if strupcase(frequency) eq 'YEAR' then criteria=UrLV/100.*sqrt( (1.-alpha^2)*(mean(obsTimeSeries)^2)/Neff +alpha^2*LV^2/Nnp)
     if (Neff eq -999 or Nnp eq -999) and strupcase(frequency) eq 'YEAR' then criteria=-1
   ;if parcodes[0] eq 'O3' and strupcase(frequency) eq 'HOUR' then criteria=criteria/1.43
   endif
