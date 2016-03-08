@@ -1669,11 +1669,13 @@ PRO FM_PlotScatter, plotter, request, result
       Nnp=criteriaOrig(3)
       LV=criteriaOrig(4)
       gammaV=criteriaOrig(5)
+      gammafac=sqrt(1.+gammaV^2)
     endif
-    gammafac=sqrt(1.+gammaV^2)
+    
     
   endif else begin
     criteria=0
+    gammafac=1.
   endelse
   
   musstr=''
@@ -1741,8 +1743,8 @@ PRO FM_PlotScatter, plotter, request, result
       critPolyfill(ii,1)=min([iix+gammafac*crit_ii(ii),MaxAxis])
       critPolyfill(ii,0)=max([iix-gammafac*crit_ii(ii),MinAxis])
       ;KeesC 21OCT2013
-      critPolyfillsqrt05(ii,1)=min([iix+2.*sqrt(.5)*crit_ii(ii),MaxAxis])
-      critPolyfillsqrt05(ii,0)=max([iix-2.*sqrt(.5)*crit_ii(ii),MinAxis])
+      critPolyfillsqrt05(ii,1)=min([iix+gammafac*sqrt(.5)*crit_ii(ii),MaxAxis])
+      critPolyfillsqrt05(ii,0)=max([iix-gammafac*sqrt(.5)*crit_ii(ii),MinAxis])
       critPolyfill05(ii,1)=min([iix+crit_ii(ii),MaxAxis])
       critPolyfill05(ii,0)=max([iix-crit_ii(ii),MinAxis])
     endfor
@@ -1952,8 +1954,8 @@ PRO FM_PlotScatter, plotter, request, result
     xyouts,.81,.84,'RV = '+rstr+' '+mus[0],/normal,color=0
     xyouts,.81,.81,'Gamma = '+gstr,/normal,color=0
     if strupcase(frequency) eq 'YEAR' then begin
-      xyouts,.81,.81,'Np = '+npstr,/normal,color=0
-      xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0
+      xyouts,.81,.78,'Np = '+npstr,/normal,color=0
+      xyouts,.81,.75,'Nnp = '+nnpstr,/normal,color=0
     endif
   endif
   
@@ -4787,12 +4789,12 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
       & yy1_05s=fltarr(101) & yy2_05s=fltarr(101)
       for i=0,100 do begin
         xx(i)=minxAxis+i*(maxxAxis-minxAxis)/100.
-        yy1(i)= min([ 200.*(1./gammafac)*xx(i), ymax])
-        yy2(i)= max([-200.*(1./gammafac)*xx(i),-ymax])
-        yy1_05(i)= min([ 100.*(1./gammafac)*xx(i), ymax])
-        yy2_05(i)= max([-100.*(1./gammafac)*xx(i),-ymax])
-        yy1_05s(i)= min([ sqrt(.5)*200.*(1./gammafac)*xx(i), ymax])
-        yy2_05s(i)= max([-sqrt(.5)*200.*(1./gammafac)*xx(i),-ymax])
+        yy1(i)= min([ gammafac*100.*xx(i), ymax])
+        yy2(i)= max([-gammafac*100.*xx(i),-ymax])
+        yy1_05(i)= min([ 100.*xx(i), ymax])
+        yy2_05(i)= max([-100.*xx(i),-ymax])
+        yy1_05s(i)= min([ sqrt(.5)*gammafac*100.*xx(i), ymax])
+        yy2_05s(i)= max([-sqrt(.5)*gammafac*100.*xx(i),-ymax])
       endfor
       ; KeesC 14SEP2014
       polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=4
@@ -4853,10 +4855,9 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
       xx=fltarr(101) & yy=fltarr(101) & yy05=fltarr(101) & yy05s=fltarr(101)
       for i=0,100 do begin
         xx(i)=minxAxis+i*(maxxAxis-minxAxis)/100.
-        yy(i)=1.-2.*xx(i)^2
-        yy05(i)=1.-(1./gammafac)*xx(i)^2
-        ; KeesC 1OCT2013
-        yy05s(i)=1.-sqrt(0.5)*xx(i)^2
+        yy(i)=1.-0.5*gammafac^2*xx(i)^2
+        yy05(i)=1.-0.5*xx(i)^2  ;uncertainty limit
+        yy05s(i)=1.-0.25*gammafac^2*xx(i)^2
         if yy(i) lt ymin then yy(i)=ymin
         ; KeesC 29SEP2013
         if yy05(i) lt ymin then yy05(i)=ymin
