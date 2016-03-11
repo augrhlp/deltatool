@@ -670,7 +670,7 @@ PRO SG_Computing, $
             ;            statXYResult[i1,i2,i3,i4,9]=stddevOM(runTemp)
             statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
           endif
-          if elabcode eq 15 or elabCode eq 78 or elabCode eq 16 then begin ; R buggle
+          if elabcode eq 15 or elabCode eq 78 or elabCode eq 18 or elabCode eq 93 then begin ; R buggle
             statXYResult[i1,i2,i3,i4,0]=criteriaOU/stddevOM(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=correlate(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=abs(correlate(obsTemp, runTemp))
@@ -695,7 +695,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=rmse(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=(rmse(obsTemp, runTemp)^2+bias(obsTemp, runTemp)^2)
           endif
-          if elabcode eq 18 or elabCode eq 77 then begin ;category NMSD
+          if elabcode eq 16 or elabCode eq 77 then begin ;category NMSD
             if criteriaOU*mean(obsTemp) ne 0 then statXYResult[i1,i2,i3,i4,0]=(stddevOM(runTemp) - stddevOM(obsTemp))/(2.*criteriaOU)
             if criteriaOU*mean(obsTemp) eq 0 then statXYResult[i1,i2,i3,i4,0]=!values.f_nan
             statXYResult[i1,i2,i3,i4,1]=i4  ;not used
@@ -724,7 +724,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=mfe(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=mfe(obsTemp, runTemp)
           endif
-          if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 then begin  ;NMSD Bugle
+          if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 or elabCode eq 94 then begin  ;NMSD Bugle
             if stddevOM(obsTemp) ne 0 then statXYResult[i1,i2,i3,i4,0]=criteriaOU/stddevOM(obsTemp)
             if stddevOM(obsTemp) eq 0 then statXYResult[i1,i2,i3,i4,0]=!values.f_nan
             statXYResult[i1,i2,i3,i4,1]=nmb(stddevOM(obsTemp), stddevOM(runTemp))
@@ -1185,7 +1185,7 @@ PRO SG_Computing, $
                 run2GroupStatResult=reform(statXY2(ccFin))
                 GroupStatResult=reform(statXYGroupHlp(ccFin))
                 resSort=sort(GroupStatResult)
-                if total(where(elabCode eq [2,7,11,15,78,16,33,76])) ge 0 then resSort=reverse(resSort)
+                if total(where(elabCode eq [2,7,11,15,78,18,33,76])) ge 0 then resSort=reverse(resSort)
                 ; PHIL change (-1) which means that for groups having less than 10 stations, 1 station is left out. For groups
                 ; between 10 and 20 two stations are left out...
                 medIdx=resSort[fix(0.9*n_elements(resSort))]
@@ -1258,7 +1258,7 @@ PRO PrepareLegends, request, result, ifree, npar, nmod, nsce, nobsS, nobs, obsNa
     regNames = regNamesAll[UNIQ(regNamesAll, SORT(regNamesAll))]
     nreg=n_elements(regNames)
     legendNames(0:nobsS-1,3)=obsNames[0:nobsS-1]
-    if total(where(elabCode eq [10,11,18,75,76,77])) ge 0 then legendNames(0:nobsS-1,3)=$
+    if total(where(elabCode eq [10,11,16,75,76,77])) ge 0 then legendNames(0:nobsS-1,3)=$
       regnamesAll+'&'+obsNames[0:nobsS-1]
   endif
   

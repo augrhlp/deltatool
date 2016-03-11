@@ -1315,7 +1315,7 @@ PRO FM_PlotCategory, plotter, request, result
     ;    recognizeRangeX=1
     xtitle='Bias/2U'
   endif
-  if elabcode eq 18 or elabcode eq 77 then begin
+  if elabcode eq 16 or elabcode eq 77 then begin
     title='Standard Deviation Indicator'
     criteria=1.
     !x.range=[-3,3]
@@ -4756,7 +4756,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   modelInfo=request->getModelInfo()
   frequency=modelInfo.frequency  ; hour year
   
-  if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 then begin  ;NMSD
+  if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 or elabcode eq 94 then begin  ;NMSD
   
     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
     gammafac=sqrt(1.+criteriaOrig(5)^2)
@@ -4824,7 +4824,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
     
   endif
   
-  if elabcode eq 15 or elabCode eq 78 or elabCode eq 16 then begin  ;R
+  if elabcode eq 15 or elabCode eq 78 or elabCode eq 18 or elabcode eq 93 then begin  ;R
   
     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
     gammafac=sqrt(1.+criteriaOrig(5)^2)
