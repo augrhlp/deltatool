@@ -208,7 +208,8 @@ FUNCTION DataMiner::readMonitoringYearCsvData, request, fileName, statCode, para
 
   NOTPRESENT=0
   
-  if ~file_test(fileName) then return,0
+; KeesC 03MAR2016  
+  if ~file_test(filename) then return,0
   openr, unit, fileName, /GET_LUN
   bufferString=''
   RowNr=0
@@ -658,7 +659,8 @@ FUNCTION DataMiner::readRunData, request,fileName, statCode, parameterCodes,k, N
         endif else begin
           if strupcase(strcompress(info[0],/remove_all)) eq strupcase(statCode) then begin
             kpol=where(pollout eq parameterCodes[k],nc)
-            nr=1+kpol[0]
+;KeesC 13FEB2016            
+            nr=1+kpol[0]   ;4+kpol[0]
             if yearAVG eq 1 then begin
               storeData[0]=float(info(nr))
               goto,yAvg
@@ -697,7 +699,6 @@ FUNCTION DataMiner::readMonitoringCdfData, request,fileName, statCode, parameter
     ERROR=1
     catch, /CANCEL
     NOTPRESENT=1
-    ;close
     return, -1
   endif
   NOTPRESENT=0

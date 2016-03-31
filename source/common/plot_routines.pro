@@ -305,8 +305,8 @@ PRO FM_PlotBars, plotter, request, result
     colors[*]=15-isubbar
     bo=.5+isubbar
     ; KeesC 26OCT2015
-    ;    barnames=strmid(longBarNames1,0,7)
-    barnames=strmid(longBarNames1,0,2)+strmid(longBarNames1,4,2)
+    barnames=strmid(longBarNames1,0,3)
+;    barnames=strmid(longBarNames1,0,2)+strmid(longBarNames1,4,2)
     mybar_plot,plotHlp,nsubbars,request,result,plotter,barnames=barnames,colors=colors,background=255,$
       ytitle='  ',outline=1,tickV0,title=elabname+'   '+pars+cumulstr,$
       baroffset=bo,overplot=(isubbar gt 0),xtitle=xtitle
@@ -1461,8 +1461,8 @@ PRO FM_PlotTimeSeries, plotter, request, result, allDataXY, allDataColor, allDat
   if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'diagramFont', FORCELOG=FORCELOG
   plot,xr,alldataXY(0,*),color=0,background=255,xrange=startIndex+[0,n_elements(alldataXY(0,*))],$
     xstyle=1,yrange=yrange, position=plotter->getPosition(),xtitle='Hours',$
-    ytitle=' ',title='TimeSeries'+'   '+pars
-  for i=0,n_elements(allDataXY(*,0))-2 do oplot,xr,alldataXY(i+1,*),color=alldataColor(i+1)+2
+    ytitle=' ',title='TimeSeries'+'   '+pars, thick=2
+  for i=0,n_elements(allDataXY(*,0))-2 do oplot,xr,alldataXY(i+1,*),color=alldataColor(i+1)+2,thick=2
   xyouts,.025,.725,'Units:',/normal,color=0
   xyouts,.025,.675,mus,/normal,color=0
   ;KeesC 17JAN2013
@@ -3460,10 +3460,10 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       gam=strmid(strcompress(criteriaOrig[5],/remove_all),0,4)
       astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,4)
       rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
-      xyouts,.83,.90,'Urv = '+ustr+' %',/normal,color=0
-      xyouts,.83,.87,'Alpha = '+astr,/normal,color=0
-      xyouts,.83,.84,'RV = '+rstr+' '+mus[0],/normal,color=0
-      xyouts,.83,.81,'Gamma = '+gam,/normal,color=0
+      xyouts,.83,.90,'Urv = '+ustr+' %',/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.87,'Alpha = '+astr,/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.84,'RV = '+rstr+' '+mus[0],/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.81,'Gamma = '+gam,/normal,color=0,charsize=1.5,charthick=1.5
     endif
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
@@ -3808,34 +3808,32 @@ PRO FM_PlotTargetHDY, plotter, request, result, allDataXY, allDataColor, allData
       endif
     endif
   endif
-  
-  if n_elements(criteriaOrig) eq 5 then begin
+
+if n_elements(criteriaOrig) eq 6 then begin
   
     ;KeesC 11SEP2014
     ; Check deeply MM february 2015
     if criteria gt 0. and elabcode ne 74 then begin
-      dummy=fltarr(10) & dummy(*)=1.
-      CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, dummy,alpha,criteriaOrig,LV, overwritefrequency='YEAR'
+    
+    
       ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
-      astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,5)
+      gam=strmid(strcompress(criteriaOrig[5],/remove_all),0,4)
+      astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,4)
       rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
-      ystr1=strcompress(fix(criteriaOrig[2]),/remove_all)
-      ystr2=strcompress(fix(criteriaOrig[3]),/remove_all)
-      xyouts,.83,.92,'U = '+ustr+' %',/normal,color=0
-      xyouts,.83,.89,'Alpha = '+astr,/normal,color=0
-      xyouts,.83,.86,'RV = '+rstr+' '+mus[0],/normal,color=0
-      xyouts,.83,.83,'Np  = '+ystr1,/normal,color=0
-      xyouts,.83,.80,'Nnp = '+ystr2,/normal,color=0
+      xyouts,.83,.90,'Urv = '+ustr+' %',/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.87,'Alpha = '+astr,/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.84,'RV = '+rstr+' '+mus[0],/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.81,'Gamma = '+gam,/normal,color=0,charsize=1.5,charthick=1.5
     endif
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
       if extraValNumber gt 0 then extraVal=request->getExtraValues()
-      if extraVal[1] eq 999 then ustr='Obs Uncert'
-      if extraVal[1] ne 999 then ustr=strmid(strcompress(extraVal[1],/remove_all),0,3)+'%'
-      astr = strtrim(fix(extraVal[2]),2)
-      if extraVal[3] eq 1 then pstr='Conserv.'
-      if extraVal[3] eq 2 then pstr='Cautious'
-      if extraVal[3] eq 3 then pstr='Model'
+      if extraVal[1] ne 999 then ustr=strmid(strcompress(extraVal[1],/remove_all),0,2)+'%'
+      if extraVal[1] eq 999 then ustr='Observation U'
+      astr = strtrim(fix(extraVal[3]),2)
+      if extraVal[2] eq 1 then pstr='Conserv.'
+      if extraVal[2] eq 2 then pstr='Cautious'
+      if extraVal[2] eq 3 then pstr='Model'
       xyouts,.83,.92,'LV = '+strtrim(fix(LV),2),/normal,color=0
       xyouts,.83,.89,'OU = '+ustr,/normal,color=0
       xyouts,.83,.86,'Day Forecast = '+astr,/normal,color=0
@@ -3845,6 +3843,8 @@ PRO FM_PlotTargetHDY, plotter, request, result, allDataXY, allDataColor, allData
     print, 'Warning: Set right criteria for this elaboration...'
     return
   endelse
+  
+
   rInfo = obj_new("RecognizeInfo", recognizeNames, recognizeValues, recognizeHighLight, recognizeRegionEdges)
   plotInfo->setRecognizeInfo, rInfo
   
@@ -4924,10 +4924,10 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
       astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,4)
       rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
       gstr=strmid(strcompress(criteriaOrig[5],/remove_all),0,4)
-      xyouts,.83,.92,'Urv = '+ustr+' %',/normal,color=0
-      xyouts,.83,.89,'Alpha = '+astr,/normal,color=0
-      xyouts,.83,.86,'RV = '+rstr+' '+mus[0],/normal,color=0
-      xyouts,.83,.83,'Gamma = '+gstr,/normal,color=0
+      xyouts,.83,.92,'Urv = '+ustr+' %',/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.89,'Alpha = '+astr,/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.86,'RV = '+rstr+' '+mus[0],/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.83,'Gamma = '+gstr,/normal,color=0,charsize=1.5,charthick=1.5
       if strupcase(frequency) eq 'YEAR' then begin
         xyouts,.81,.81,'Np = '+npstr,/normal,color=0
         xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0

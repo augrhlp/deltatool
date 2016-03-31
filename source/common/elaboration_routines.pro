@@ -1842,11 +1842,13 @@ if isSingleSelection then begin
   for i=0, nobsS-1 do regNamesAll[i]=request->getRegionofObs(obsCodes[i]);regionCode=request->getRegionofObs(obsCodes[i])
   ;  obsFact=1
   
-  fileName=  modelCodes(0)+'_'+parcodes(0)+'.dat'  ;Printing only in case of single stations choice
+;  fileName=  modelCodes(0)+'_'+parcodes(0)+'.dat'  ;Printing only in case of single stations choice
+;KeesC 08FRB2016
+  fileName='Summary_Report.csv'  
   request->openDataDumpFile, fileName;/ADDSYSTIME; --> filename=StatisticName+systime+.txt
   
-  if strupcase(frequency) eq 'HOUR' then request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt MO MM SO SM R RMSE ExcO ExcM TargetOU OU'
-  if strupcase(frequency) eq 'YEAR' then request->writeDataDumpFileRecord, 'Name Obscode Region Type lon lat alt MO MM TargetOU OU'
+  if strupcase(frequency) eq 'HOUR' then request->writeDataDumpFileRecord, 'Name,Obscode,Region,Type,lon,lat,alt,MO,MM,SO,SM,R,RMSE,ExcO,ExcM,TargetOU,OU'
+  if strupcase(frequency) eq 'YEAR' then request->writeDataDumpFileRecord, 'Name,Obscode,Region,Type,lon,lat,alt,MO,MM,TargetOU,OU'
   statXYResultS=fltarr(forSLastIndex+1,nvar)
   uncertaintyAverage=fltarr(forSLastIndex+1)
   
@@ -1883,22 +1885,27 @@ if isSingleSelection then begin
     statXYResultS(i,4)=(stddevOM(runTemp)-stddevOM(obsTemp))/(facGamma*CriteriaOU)
     
     if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=0.
-    
+
+;KeesC 08FEB2016    
     if strupcase(frequency) eq 'HOUR' then begin
       ; Name Obscode Region Type lon lat alt MO MM SO SM R RMSE ExcO ExcM TargOU OU'
-      txt=string(obsnames(i),obsCodes(i), regNamesAll(i),categoryInfo(1,i),$
-        obsLongitudes(i), obsLatitudes(i), obsAltitudes(i),$
-        mean(obsTemp),mean(runTemp),stddevOM(obsTemp),stddevOM(runTemp),$
-        correlate(obsTemp, runTemp),rmse(obsTemp, runTemp),statXYResultS(i,1),statXYResultS(i,5),$
-        rmse(obsTemp, runTemp)/(facGamma*CriteriaOU(0)),CriteriaOU(0),$
-        format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
+      txt=string(obsnames(i),',',obsCodes(i),',',regNamesAll(i),',',categoryInfo(1,i),',',$
+        obsLongitudes(i),',',obsLatitudes(i),',',obsAltitudes(i),',',$
+        mean(obsTemp),',',mean(runTemp),',',stddevOM(obsTemp),',',stddevOM(runTemp),',',$
+        correlate(obsTemp, runTemp),',',rmse(obsTemp,runTemp),',',statXYResultS(i,1),',',statXYResultS(i,5),',',$
+        rmse(obsTemp, runTemp)/(facGamma*CriteriaOU(0)),',',CriteriaOU(0),$
+;        format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
+      format='(a'+string(strlen(obsnames(i)))+',a1,a10,a1,a10,a1,a20,21(a1,f8.3))')
+      txt=strcompress(txt,/remove_all)  
       request->writeDataDumpFileRecord, txt
     endif else begin
       ; Name Obscode Region Type lon lat alt MO MM TargetOU OU'
-      txt=string(obsnames(i),obsCodes(i), regNamesAll(i),categoryInfo(1,i),$
-        obsLongitudes(i), obsLatitudes(i), obsAltitudes(i),$
-        mean(obsTemp),mean(runTemp),bias(obsTemp, runTemp)/(facGamma*CriteriaOU(0)),CriteriaOU(0),$
-        format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
+      txt=string(obsnames(i),',',obsCodes(i),',',regNamesAll(i),',',categoryInfo(1,i),',',$
+        obsLongitudes(i),',', obsLatitudes(i),',',obsAltitudes(i),',',$
+        mean(obsTemp),',',mean(runTemp),',',bias(obsTemp, runTemp)/(facGamma*CriteriaOU(0)),',',CriteriaOU(0),$
+;        format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
+        format='(a'+string(strlen(obsnames(i)))+',a1,a10,a1,a10,a1,a20,21(a1,f8.3))')
+        txt=strcompress(txt,/remove_all)
       request->writeDataDumpFileRecord, txt
     endelse
     

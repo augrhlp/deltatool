@@ -692,8 +692,9 @@ PRO FMMainGUI::build
   
   helpDescBtt=widget_Button(helpMenu, VALUE='Help file', UNAME='HELPBTT', UVALUE='OPENHELP_BTT', event_pro=self.eventPrefix+'helpMenuSelection')
  ;KeesC 06FEB2016
-  saveDumpFileButton=widget_button(helpMenu, value='Edit DumpFile.dat',UNAME='EDITDUMP',event_pro=self.eventprefix+'editDumpFile')
-  
+  editDumpFileButton=widget_button(helpMenu, value='Edit DumpFile',UNAME='EDITDUMP',event_pro=self.eventprefix+'editDumpFile')
+  editSummRepButton=widget_button(helpMenu, value='Edit Summary_Report',UNAME='EDITSUMMREP',event_pro=self.eventprefix+'editSummaryReport')
+
   mInfo=self.mgr->getModelInfo()
   if strlowcase(mInfo.frequency) eq 'hour' then interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool (Model)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR)
   ;interactiveFormatConversionBtt=widget_Button(helpMenu, VALUE='Interactive format conversion tool (Model)', UNAME='FORMATCONVERSION', UVALUE='FORMATCONVERSION_BTT', event_pro=self.eventPrefix+'runInteractiveMenuSelection', /SEPARATOR)
