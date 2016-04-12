@@ -1668,14 +1668,13 @@ PRO FM_PlotScatter, plotter, request, result
       Neff=criteriaOrig(2)
       Nnp=criteriaOrig(3)
       LV=criteriaOrig(4)
-      gammaV=criteriaOrig(5)
-      gammafac=sqrt(1.+gammaV^2)
+      betafac=criteriaOrig(5)
     endif
     
     
   endif else begin
     criteria=0
-    gammafac=1.
+    betafac=2.
   endelse
   
   musstr=''
@@ -1740,11 +1739,11 @@ PRO FM_PlotScatter, plotter, request, result
     for ii=0,999 do begin
       iix=float(ii)*float(maxAxis)/1000.
       crit_ii(ii)=UrLV/100.*sqrt( (1.-alpha^2)*float(iix)^2/float(Neff) +alpha^2*LV^2/float(Nnp))
-      critPolyfill(ii,1)=min([iix+gammafac*crit_ii(ii),MaxAxis])
-      critPolyfill(ii,0)=max([iix-gammafac*crit_ii(ii),MinAxis])
+      critPolyfill(ii,1)=min([iix+betafac*crit_ii(ii),MaxAxis])
+      critPolyfill(ii,0)=max([iix-betafac*crit_ii(ii),MinAxis])
       ;KeesC 21OCT2013
-      critPolyfillsqrt05(ii,1)=min([iix+gammafac*sqrt(.5)*crit_ii(ii),MaxAxis])
-      critPolyfillsqrt05(ii,0)=max([iix-gammafac*sqrt(.5)*crit_ii(ii),MinAxis])
+      critPolyfillsqrt05(ii,1)=min([iix+betafac*sqrt(.5)*crit_ii(ii),MaxAxis])
+      critPolyfillsqrt05(ii,0)=max([iix-betafac*sqrt(.5)*crit_ii(ii),MinAxis])
       critPolyfill05(ii,1)=min([iix+crit_ii(ii),MaxAxis])
       critPolyfill05(ii,0)=max([iix-crit_ii(ii),MinAxis])
     endfor
@@ -1838,11 +1837,24 @@ PRO FM_PlotScatter, plotter, request, result
           if strupcase(frequency) eq 'YEAR' then begin
             ;            polyfill,[0.15,0.54,0.54,0.15],[0.85,0.85,0.92,0.92],color=14,/normal
             ;            ;add Phil 22/04/2014
-            crit=UrLV/100.*sqrt( (1.-alpha)*(abs(allDataXY[cc,0])^2)/Neff +alpha*LV^2/Nnp)
-            cctest=where(abs(allDataXY[cc,0] - allDataXY[cc,1])/(2.*crit) le 1.,nctest)
-            percentageCrit=fix(100.*float(nctest)/float(countValidStations))
-            if percentageCrit ge 90 then colorPerc=7   ;green
-            if percentageCrit lt 90 then colorPerc=2   ;red
+            crit=UrLV/100.*sqrt( (1.-alpha^2)*(abs(allDataXY[cc,0])^2)/Neff +alpha^2*LV^2/Nnp)
+            MQOtest=abs(allDataXY[cc,0] - allDataXY[cc,1])/(betafac*crit)
+            gammaV=sqrt((abs(allDataXY[cc,0] - allDataXY[cc,1])/(crit))^2-1)
+            result1=sort(MQOtest)
+            MQOtest=MQOtest(result1)
+            gammaV=gammaV(result1)
+            nThreshold=countValidStations*0.9
+            if nthreshold lt 1 then begin
+                MQO90thperc=MQOtest(0)*0.9
+                gammaValue=gammaV(0)*0.9
+            endif else begin
+                MQO90thperc=MQOtest(fix(countValidStations*0.9)-1)+(MQOtest(fix(countValidStations*0.9))-MQOtest(fix(countValidStations*0.9)-1))*(countValidStations*0.9-fix(countValidStations*0.9))
+                gammaValue=gammaV(fix(countValidStations*0.9)-1)+(gammaV(fix(countValidStations*0.9))-gammaV(fix(countValidStations*0.9)-1))*(countValidStations*0.9-fix(countValidStations*0.9))   
+            endelse
+            
+            
+            if MQO90thperc lt 1. then colorPerc=7   ;green
+            if MQO90thperc ge 1. then colorPerc=2   ;red
             ;            xyouts,0.16,0.87,'Stations within Crit (T=1): ',$
             ;              color=0,/normal,charthick=2,charsize=1.5*psFact
             ;!p.font=-1
@@ -1855,8 +1867,7 @@ PRO FM_PlotScatter, plotter, request, result
             if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'MainTitleFont', FORCELOG=FORCELOG
             ;            xyouts,0.16,0.86,strtrim(percentageCrit,2)+'%',$
             ;              color=colorPerc,/normal,charthick=4,charsize=3*psFact
-            xyouts,0.16,0.86,strtrim(percentageCrit,2)+'%',$
-              color=colorPerc,/normal,charsize=3*psFact
+            xyouts,0.15,0.86,'MQO = '+strtrim(strmid(MQO90thperc,4,6),2),color=colorPerc,/normal,charsize=3*psFact
             ;setUserFont, lastUserFont
             if resPoscript eq 0 then begin
               ;!p.font=0
@@ -1945,17 +1956,17 @@ PRO FM_PlotScatter, plotter, request, result
   if criteria gt 0. then begin
     ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
     astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,4)
-    gstr=strmid(strcompress(criteriaOrig[5],/remove_all),0,4)
+    gstr=strmid(strcompress(gammaValue*criteriaOrig[0],/remove_all),0,4)
     rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
     npstr=strcompress(fix(criteriaOrig[2]),/remove_all)
-    nnpstr=strcompress(fix(criteriaOrig[3]),/remove_all)
+    nnpstr=strmid(strcompress(criteriaOrig[3],/remove_all),0,4)
     xyouts,.81,.90,'Urv = '+ustr+' %',/normal,color=0
     xyouts,.81,.87,'Alpha = '+astr,/normal,color=0
     xyouts,.81,.84,'RV = '+rstr+' '+mus[0],/normal,color=0
-    xyouts,.81,.81,'Gamma = '+gstr,/normal,color=0
+    xyouts,.81,.75,'Umod = '+gstr+' %',/normal,color=3
     if strupcase(frequency) eq 'YEAR' then begin
-      xyouts,.81,.78,'Np = '+npstr,/normal,color=0
-      xyouts,.81,.75,'Nnp = '+nnpstr,/normal,color=0
+      xyouts,.81,.81,'Np = '+npstr,/normal,color=0
+      xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0
     endif
   endif
   
@@ -3154,6 +3165,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
   ;end
     ;KeesC 17JAN2014
   plotter->wsetMainDataDraw
+  
   silentMode=plotter->getSilentMode()
   FORCELOG=silentMode
   resPoscript=plotter->currentDeviceIsPostscript()
@@ -3414,18 +3426,76 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     recognizeValues[iobs]=strcompress(allDataXY(iObs, 0),/remove_all)+','+strcompress(allDataXY(iObs, 1),/remove_all)
   endfor
   
+;  mypsym,4,1
+;  ;KeesC 14SEP2014
+;  if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
+;    psFact=plotter->getPSCharSizeFactor()
+;    cc=where(finite(allDataXY[*, 0]) eq 1,countValidStations)
+;    if countValidStations gt 0 then begin
+;      radius = sqrt(allDataXY[cc, 0]^2+allDataXY[cc, 1]^2)
+;      ccCrit=where(radius le 1,countCritPerc)
+;      ;Phil 04/12/2015
+;      ccCritY=where(allDataXY[cc, 2] le 1,countCritPercY)
+;      percentageCrit=fix(100.*float(countCritPerc)/float(countValidStations))
+;      ;Phil 04/12/2015
+;      percentageCritY=fix(100.*float(countCritPercY)/float(countValidStations))
+;      if percentageCrit ge 90 then colorPerc=7   ;green
+;      ;      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=210  ;16   ;orange
+;      if percentageCrit lt 90 then colorPerc=2   ;red
+;      ;!p.font=-1
+;      ;setDeviceFont, fontName='System', /STANDARD
+;      ;setUserFont, /RESET
+;      ;device,set_font=getBestFont(fontName='System', /STANDARD), /TT_FONT
+;      ;2015 April MM
+;      ;lastUserFont=getUserFont()
+;      ;setUserFont, 'UserDef9', FORCELOG=FORCELOG
+;      if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'MainTitleFont', FORCELOG=FORCELOG
+;      ;      xyouts,0.18,0.88,strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,$
+;      ;        charthick=4,charsize=3*psFact
+;      xyouts,0.10,0.88,'H/D='+strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,charsize=3*psFact
+;      ;Phil 04/12/2015
+;      xyouts,0.35,0.88,'Y='+strtrim(percentageCritY,2)+'%',color=colorPerc,/normal,charsize=1.5*psFact
+;      ;setUserFont, lastUserFont
+;      if resPoscript eq 0 then begin
+;        ;!p.font=0
+;        ;setDeviceFont, fontName='Arial', fontSize='18', fontType='bold', /FINE
+;        ;device,set_font=getBestFont(fontName='Arial', fontSize='18', fontType='bold', /FINE), /TT_FONT
+;        ;setUserFont, 'BigFont', FORCELOG=FORCELOG
+;        if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'LegendFont', FORCELOG=FORCELOG
+;      endif
+;    endif
+;  endif
+;  
   mypsym,4,1
   ;KeesC 14SEP2014
   if criteria gt 0 and nmod eq 1 and isGroupSelection eq 0 then begin
     psFact=plotter->getPSCharSizeFactor()
     cc=where(finite(allDataXY[*, 0]) eq 1,countValidStations)
     if countValidStations gt 0 then begin
-      radius = sqrt(allDataXY[cc, 0]^2+allDataXY[cc, 1]^2)
-      ccCrit=where(radius le 1,countCritPerc)
-      percentageCrit=fix(100.*float(countCritPerc)/float(countValidStations))
-      if percentageCrit ge 90 then colorPerc=7   ;green
+      gammaV = sqrt(4.*sqrt(allDataXY[cc, 0]^2+allDataXY[cc, 1]^2)-1.)
+      MQOtest=sqrt(allDataXY[cc,0]^2+allDataXY[cc,1]^2)
+      MQOtestYear=abs(allDataXY[cc,2])
+      result2=sort(MQOtestYear)
+      result1=sort(gammaV)
+      gammaV=gammaV(result1)
+      MQOtest=MQOtest(result1)
+      MQOtestYear=MQOtestYear(result2)
+      nThreshold=countValidStations*0.9
+      if nthreshold lt 1 then begin
+        MQO90thperc=MQOtest(0)*0.9
+        MQO90thpercYear=MQOtestYear(0)*0.9
+        gammaValue=gammaV(0)*0.9
+      endif else begin
+        MQO90thperc=MQOtest(fix(countValidStations*0.9)-1)+(MQOtest(fix(countValidStations*0.9))-MQOtest(fix(countValidStations*0.9)-1))*(countValidStations*0.9-fix(countValidStations*0.9))
+        MQO90thpercYear=MQOtestYear(fix(countValidStations*0.9)-1)+(MQOtestYear(fix(countValidStations*0.9))-MQOtestYear(fix(countValidStations*0.9)-1))*(countValidStations*0.9-fix(countValidStations*0.9))
+        gammaValue=gammaV(fix(countValidStations*0.9)-1)+(gammaV(fix(countValidStations*0.9))-gammaV(fix(countValidStations*0.9)-1))*(countValidStations*0.9-fix(countValidStations*0.9))
+      endelse
+      
+      if MQO90thperc lt 1 then colorPerc=7   ;green
+      if MQO90thpercYear lt 1 then colorPercYear=7   ;green
       ;      if percentageCrit lt 90 and percentageCrit ge 75 then colorPerc=210  ;16   ;orange
-      if percentageCrit lt 90 then colorPerc=2   ;red
+      if MQO90thperc ge 1 then colorPerc=2   ;red
+      if MQO90thpercYear ge 1 then colorPercYear=2   ;red
       ;!p.font=-1
       ;setDeviceFont, fontName='System', /STANDARD
       ;setUserFont, /RESET
@@ -3436,8 +3506,8 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'MainTitleFont', FORCELOG=FORCELOG
       ;      xyouts,0.18,0.88,strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,$
       ;        charthick=4,charsize=3*psFact
-      xyouts,0.18,0.88,strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,$
-        charsize=3*psFact
+      xyouts,0.10,0.88,'MQO = '+strtrim(strmid(MQO90thperc,4,6),2),color=colorPerc,/normal,charsize=3*psFact
+      xyouts,0.20,0.84,'Y='+strtrim(strmid(MQO90thpercYear,4,6),2),color=colorPercYear,/normal,charsize=1.5*psFact
       ;setUserFont, lastUserFont
       if resPoscript eq 0 then begin
         ;!p.font=0
@@ -3457,13 +3527,13 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     
     
       ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
-      gam=strmid(strcompress(criteriaOrig[5],/remove_all),0,4)
+      gam=strmid(strcompress(gammaValue*criteriaOrig[0],/remove_all),0,4)
       astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,4)
       rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
       xyouts,.83,.90,'Urv = '+ustr+' %',/normal,color=0,charsize=1.5,charthick=1.5
       xyouts,.83,.87,'Alpha = '+astr,/normal,color=0,charsize=1.5,charthick=1.5
       xyouts,.83,.84,'RV = '+rstr+' '+mus[0],/normal,color=0,charsize=1.5,charthick=1.5
-      xyouts,.83,.81,'Gamma = '+gam,/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.81,'Umod = '+gam+' %',/normal,color=3,charsize=1.5,charthick=1.5
     endif
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
@@ -4759,7 +4829,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 or elabcode eq 94 then begin  ;NMSD
   
     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
-    gammafac=sqrt(1.+criteriaOrig(5)^2)
+    betafac=criteriaOrig(5)
     
     maxxAxis=max(allDataXY(*,0),/nan)*1.1
     if finite(maxxAxis) eq 0 then maxxAxis=100
@@ -4789,12 +4859,12 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
       & yy1_05s=fltarr(101) & yy2_05s=fltarr(101)
       for i=0,100 do begin
         xx(i)=minxAxis+i*(maxxAxis-minxAxis)/100.
-        yy1(i)= min([ gammafac*100.*xx(i), ymax])
-        yy2(i)= max([-gammafac*100.*xx(i),-ymax])
+        yy1(i)= min([ betafac*100.*xx(i), ymax])
+        yy2(i)= max([-betafac*100.*xx(i),-ymax])
         yy1_05(i)= min([ 100.*xx(i), ymax])
         yy2_05(i)= max([-100.*xx(i),-ymax])
-        yy1_05s(i)= min([ sqrt(.5)*gammafac*100.*xx(i), ymax])
-        yy2_05s(i)= max([-sqrt(.5)*gammafac*100.*xx(i),-ymax])
+        yy1_05s(i)= min([ sqrt(.5)*betafac*100.*xx(i), ymax])
+        yy2_05s(i)= max([-sqrt(.5)*betafac*100.*xx(i),-ymax])
       endfor
       ; KeesC 14SEP2014
       polyfill,[xx,reverse(xx)],[yy2,reverse(yy1)],/data,color=4
@@ -4827,7 +4897,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
   if elabcode eq 15 or elabCode eq 78 or elabCode eq 18 or elabcode eq 93 then begin  ;R
   
     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
-    gammafac=sqrt(1.+criteriaOrig(5)^2)
+    betafac=criteriaOrig(5)
     
     maxxAxis=max(allDataXY(*,0),/nan)*1.1
     if finite(maxxAxis) eq 0 then maxxAxis=1
@@ -4855,9 +4925,9 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
       xx=fltarr(101) & yy=fltarr(101) & yy05=fltarr(101) & yy05s=fltarr(101)
       for i=0,100 do begin
         xx(i)=minxAxis+i*(maxxAxis-minxAxis)/100.
-        yy(i)=1.-0.5*gammafac^2*xx(i)^2
+        yy(i)=1.-0.5*betafac^2*xx(i)^2
         yy05(i)=1.-0.5*xx(i)^2  ;uncertainty limit
-        yy05s(i)=1.-0.25*gammafac^2*xx(i)^2
+        yy05s(i)=1.-0.25*betafac^2*xx(i)^2
         if yy(i) lt ymin then yy(i)=ymin
         ; KeesC 29SEP2013
         if yy05(i) lt ymin then yy05(i)=ymin
@@ -5596,7 +5666,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   criteria=0
   Neff=1
   Nnp=1
-  gamma=1.75
+  beta=2.0
   
   ;if more than one pollutant or group mode statistic ne 90 percentile, no criteria found
   if n_elements(parCodes) gt 1 or GroupModeOKmode ne 1 then begin
@@ -5628,7 +5698,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
     cc=where(parcodes[0] eq YearPMSpec, countCC)
     if countCC eq 1 then dailyStatOp='PMEAN'
     if parcodes[0] eq 'NO2' or parcodes[0] eq 'NOX'  then dailyStatOp='PP'
-    if parcodes[0] eq 'O3'   then dailyStatOp='N/A'
+    if parcodes[0] eq 'O3'   then dailyStatOp='8HMAX'
   endif
   
   FlagAll=0
@@ -5645,7 +5715,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
     Neff=criteria(2)
     Nnp=criteria(3)
     LV=criteria(4)
-    gammaV=criteria(5)
+    beta=criteria(5)
     if strupcase(frequency) eq 'HOUR' then criteria(2:3)=1
   endif
   CriteriaOrig=criteria

@@ -574,7 +574,7 @@ PRO SG_Computing, $
           longshort=0
           ;          if elabCode eq 10 or elabCode eq 75 then longshort=1
           CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
-          if criteriaOU ne -1 then facGamma=sqrt(1.+criteriaOrig(5)^2)
+          if criteriaOU ne -1 then betafac=criteriaOrig(5)
           if elabcode eq 0 then begin
             statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp)
@@ -644,13 +644,13 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=statXYResult[i1,i2,i3,i4,0]
           endif
           if elabcode eq 10 or elabCode eq 75 then begin ;category NMB
-            statXYResult[i1,i2,i3,i4,0]=(mean(runTemp)-mean(obsTemp))/(facGamma*criteriaOU)
+            statXYResult[i1,i2,i3,i4,0]=(mean(runTemp)-mean(obsTemp))/(betafac*criteriaOU)
             statXYResult[i1,i2,i3,i4,1]=i4  ;not used
             statXYGroup[i1,i2,i3,i4]=abs(statXYResult[i1,i2,i3,i4,0])
           endif
           if elabcode eq 11 or elabCode eq 76 then begin ;category R
             if finite(mean(obsTemp)) eq 1 then begin
-              statXYResult[i1,i2,i3,i4,0]=(1.-correlate(obsTemp,runTemp))/(facGamma*(criteriaOU/stddevOM(obsTemp))^2)
+              statXYResult[i1,i2,i3,i4,0]=(1.-correlate(obsTemp,runTemp))/(betafac*(criteriaOU/stddevOM(obsTemp))^2)
             endif else begin
               statXYResult[i1,i2,i3,i4,0]=!values.f_nan
             endelse
@@ -683,8 +683,8 @@ PRO SG_Computing, $
               if signNum le signDen then sign=1 ;Error dominated by NMSD
             endif
             if criteriaOU gt 0 then begin
-              statXYResult[i1,i2,i3,i4,2]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*facGamma)
-              statXYResult[i1,i2,i3,i4,3]=bias(obsTemp, runTemp)/(CriteriaOU*facGamma)
+              statXYResult[i1,i2,i3,i4,2]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*betafac)
+              statXYResult[i1,i2,i3,i4,3]=bias(obsTemp, runTemp)/(CriteriaOU*betafac)
             endif else begin
               statXYResult[i1,i2,i3,i4,2]=!values.f_nan
               statXYResult[i1,i2,i3,i4,3]=!values.f_nan
@@ -707,11 +707,11 @@ PRO SG_Computing, $
             statXYGroup[i1,i2,i3,i4]=crmse(obsTemp,runTemp)
           endif
           if elabcode eq 20 or elabCode eq 22 or elabCode eq 34 then begin  ;Soccer AQ
-            ahlp=abs(stddevOM(runTemp)-stddevOM(obsTemp))/(facGamma*criteriaOU)
+            ahlp=abs(stddevOM(runTemp)-stddevOM(obsTemp))/(betafac*criteriaOU)
             sign=-1.
             if ahlp le 1 then sign=1.
-            statXYResult[i1,i2,i3,i4,0]=sign*(1.-correlate(obsTemp,runTemp))/(facGamma*(criteriaOU/stddevOM(obsTemp))^2)
-            statXYResult[i1,i2,i3,i4,1]=(mean(runTemp)-mean(obsTemp))/(facGamma*criteriaOU)
+            statXYResult[i1,i2,i3,i4,0]=sign*(1.-correlate(obsTemp,runTemp))/(betafac*(criteriaOU/stddevOM(obsTemp))^2)
+            statXYResult[i1,i2,i3,i4,1]=(mean(runTemp)-mean(obsTemp))/(betafac*criteriaOU)
             statXYGroup[i1,i2,i3,i4]=sign*rmse(obsTemp, runTemp)
           endif
           if elabcode eq 23 then begin
@@ -738,8 +738,8 @@ PRO SG_Computing, $
               if signNum le signDen then sign=1 ;Error dominated by NMSD
             endif
             if criteriaOU gt 0 then begin
-              statXYResult[i1,i2,i3,i4,2]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*facGamma)
-              statXYResult[i1,i2,i3,i4,3]=bias(obsTemp, runTemp)/(CriteriaOU*facGamma)
+              statXYResult[i1,i2,i3,i4,2]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*betafac)
+              statXYResult[i1,i2,i3,i4,3]=bias(obsTemp, runTemp)/(CriteriaOU*betafac)
             endif else begin
               statXYResult[i1,i2,i3,i4,2]=!values.f_nan
               statXYResult[i1,i2,i3,i4,3]=!values.f_nan
@@ -810,11 +810,11 @@ PRO SG_Computing, $
               if signNum le signDen then sign=1 ;Error dominated by NMSD
             endif
             if criteriaOU gt 0 then begin
-              statXYResult[i1,i2,i3,i4,0]=bias(obsTemp, runTemp)/(CriteriaOU*facGamma)
-              statXYResult[i1,i2,i3,i4,1]=sign*crmse(obsTemp,runTemp)/(CriteriaOU*facGamma)
+              statXYResult[i1,i2,i3,i4,0]=bias(obsTemp, runTemp)/(CriteriaOU*betafac)
+              statXYResult[i1,i2,i3,i4,1]=sign*crmse(obsTemp,runTemp)/(CriteriaOU*betafac)
               statXYResult[i1,i2,i3,i4,2]=obsLongitudes(i4)
               statXYResult[i1,i2,i3,i4,3]=obsLatitudes(i4)
-              statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)/(CriteriaOU*facGamma)
+              statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)/(CriteriaOU*betafac)
             endif else begin
               statXYResult[i1,i2,i3,i4,*]=!values.f_nan
               statXYGroup[i1,i2,i3,i4]=!values.f_nan
@@ -849,12 +849,12 @@ PRO SG_Computing, $
               if signNum le signDen then sign=1 ;Error dominated by NMSD
             endif
             if criteriaOU gt 0 then begin
-              statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*facGamma)
-              statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/(CriteriaOU*facGamma)
-              statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)/(CriteriaOU*facGamma)
+              statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*betafac)
+              statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/(CriteriaOU*betafac)
+              statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)/(CriteriaOU*betafac)
 ;Phil 04/12/2015  attempt to introduce yearly evaluations              
               CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV, overwritefrequency='YEAR'
-              statXYResult[i1,i2,i3,i4,2]=abs(mean(obsTemp)-mean(runTemp))/(CriteriaOU*facGamma)
+              statXYResult[i1,i2,i3,i4,2]=abs(mean(obsTemp)-mean(runTemp))/(CriteriaOU*betafac)
               CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV, overwritefrequency='HOUR'
 ;Phil              
             endif else begin
@@ -873,9 +873,9 @@ PRO SG_Computing, $
             sign=stddevOM(obsTemp)-stddevOM(runTemp)  ;only for target
             if finite(sign) eq 1 then sign=sign/abs(sign)   ;only for target
             if criteriaOU gt 0 then begin
-              statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*facGamma)
-              statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/(CriteriaOU*facGamma)
-              statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)/(CriteriaOU*facGamma)
+              statXYResult[i1,i2,i3,i4,0]=sign*crmse(obsTemp, runTemp)/(CriteriaOU*betafac)
+              statXYResult[i1,i2,i3,i4,1]=bias(obsTemp, runTemp)/(CriteriaOU*betafac)
+              statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)/(CriteriaOU*betafac)
             endif else begin
               statXYResult[i1,i2,i3,i4,0]=!values.f_nan
               statXYResult[i1,i2,i3,i4,1]=!values.f_nan
@@ -1864,7 +1864,7 @@ if isSingleSelection then begin
     ; Replace hard coded 'OU' with specific parameter from elaboration.dat
     ;request->getElaborationOCStat()
     CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
-    facGamma=sqrt(1.+criteriaOrig(5)^2)
+    betafac=criteriaOrig(5)
     ;MM summer 2012 End
     
     if strupcase(frequency) eq 'YEAR' then obsTemp(*)=mean(obsTemp)
@@ -1878,11 +1878,11 @@ if isSingleSelection then begin
     statXYResultS(i,5)=countExcMod
     if statType gt 0 then statXYResultS(i,5)=statXYResultS(i,5)/24.
     if statType gt 0 then statXYResultS(i,1)=statXYResultS(i,1)/24.
-    statXYResultS(i,2)=(mean(runTemp)-mean(obsTemp))/(facGamma*CriteriaOU)
+    statXYResultS(i,2)=(mean(runTemp)-mean(obsTemp))/(betafac*CriteriaOU)
     ;    if elabCode eq 31 or elabCode eq 83 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
     ;    if elabCode eq 32 or elabCode eq 84 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
-    statXYResultS(i,3)=sqrt((1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(obsTemp))/(facGamma*CriteriaOU)
-    statXYResultS(i,4)=(stddevOM(runTemp)-stddevOM(obsTemp))/(facGamma*CriteriaOU)
+    statXYResultS(i,3)=sqrt((1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(obsTemp))/(betafac*CriteriaOU)
+    statXYResultS(i,4)=(stddevOM(runTemp)-stddevOM(obsTemp))/(betafac*CriteriaOU)
     
     if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=0.
 
@@ -1893,7 +1893,7 @@ if isSingleSelection then begin
         obsLongitudes(i),',',obsLatitudes(i),',',obsAltitudes(i),',',$
         mean(obsTemp),',',mean(runTemp),',',stddevOM(obsTemp),',',stddevOM(runTemp),',',$
         correlate(obsTemp, runTemp),',',rmse(obsTemp,runTemp),',',statXYResultS(i,1),',',statXYResultS(i,5),',',$
-        rmse(obsTemp, runTemp)/(facGamma*CriteriaOU(0)),',',CriteriaOU(0),$
+        rmse(obsTemp, runTemp)/(betafac*CriteriaOU(0)),',',CriteriaOU(0),$
 ;        format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
       format='(a'+string(strlen(obsnames(i)))+',a1,a10,a1,a10,a1,a20,21(a1,f8.3))')
       txt=strcompress(txt,/remove_all)  
@@ -1902,7 +1902,7 @@ if isSingleSelection then begin
       ; Name Obscode Region Type lon lat alt MO MM TargetOU OU'
       txt=string(obsnames(i),',',obsCodes(i),',',regNamesAll(i),',',categoryInfo(1,i),',',$
         obsLongitudes(i),',', obsLatitudes(i),',',obsAltitudes(i),',',$
-        mean(obsTemp),',',mean(runTemp),',',bias(obsTemp, runTemp)/(facGamma*CriteriaOU(0)),',',CriteriaOU(0),$
+        mean(obsTemp),',',mean(runTemp),',',bias(obsTemp, runTemp)/(betafac*CriteriaOU(0)),',',CriteriaOU(0),$
 ;        format='(a'+string(strlen(obsnames(i)))+',1x,a10,1x,a10,1x,a20,21(1x,f8.3))')
         format='(a'+string(strlen(obsnames(i)))+',a1,a10,a1,a10,a1,a20,21(a1,f8.3))')
         txt=strcompress(txt,/remove_all)
@@ -1925,8 +1925,8 @@ if isSingleSelection then begin
     obstempThreshold=obstemp
     obstempThreshold(*)=obstempSort(percentileThreshold*timeLength)
     CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obstempThreshold,alpha,criteriaOrig,LV
-    facGamma=sqrt(1.+criteriaOrig(5)^2)
-    statXYResultS(i,5)=(runTempSort(indiceT)-obsTempSort(indiceT))/(facGamma*CriteriaOU)
+    betafac=criteriaOrig(5)
+    statXYResultS(i,5)=(runTempSort(indiceT)-obsTempSort(indiceT))/(betafac*CriteriaOU)
 ;phil 04/12/2015
     CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV, overwritefrequency='YEAR'
     uncertaintyAverage(i)=criteriaOU
@@ -1996,7 +1996,7 @@ if isGroupSelection then begin
       ; request->getElaborationOCStat()
       ; CheckCriteria, request, result, 'OU', criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
       CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
-      facGamma=sqrt(1.+criteriaOrig(5)^2)
+      betafac=criteriaOrig(5)
       ;MM summer 2012 End
       
       statXYResultInt(j,0)=mean(obsTemp)
@@ -2008,9 +2008,9 @@ if isGroupSelection then begin
       statXYResultInt(j,5)=countExcMod
       if statType gt 0 then statXYResultInt(j,5)=statXYResultInt(j,5)/24.
       if statType gt 0 then statXYResultInt(j,1)=statXYResultInt(j,1)/24.
-      statXYResultInt(j,2)=(mean(runTemp)-mean(obsTemp))/(facGamma*CriteriaOU)
-      statXYResultInt(j,3)=(1.-correlate(obsTemp, runTemp))/(facGamma*(CriteriaOU/stddevOM(obsTemp))^2)
-      statXYResultInt(j,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(facGamma*CriteriaOU)
+      statXYResultInt(j,2)=(mean(runTemp)-mean(obsTemp))/(betafac*CriteriaOU)
+      statXYResultInt(j,3)=(1.-correlate(obsTemp, runTemp))/(betafac*(CriteriaOU/stddevOM(obsTemp))^2)
+      statXYResultInt(j,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(betafac*CriteriaOU)
       
       obsTempSort=obsTemp(sort(obsTemp))
       runTempSort=runTemp(sort(runTemp))
@@ -2020,8 +2020,8 @@ if isGroupSelection then begin
       obstempThreshold=obstemp
       obstempThreshold(*)=obstempSort(percentileThreshold*timeLength)
       CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obstempThreshold,alpha,criteriaOrig,LV
-      facGamma=sqrt(1.+criteriaOrig(5)^2)
-      statXYResultS(i,5)=(runTempSort(indiceT)-obsTempSort(indiceT))/(facGamma*CriteriaOU)
+      betafac=criteriaOrig(5)
+      statXYResultS(i,5)=(runTempSort(indiceT)-obsTempSort(indiceT))/(betafac*CriteriaOU)
       if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=0.
     endfor
     
@@ -2063,8 +2063,8 @@ if isGroupSelection then begin
       ;CheckCriteria, request, result, request->getElaborationOCStat(), criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv
       ;CheckCriteria, request, result, 'OU', criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv
       ;MM summer 2012 End
-      statXYResultG(*,6)=(1.-correlate(statXYResultInt(ccFin,0), statXYResultInt(ccFin,6)))/(facGamma*(CriteriaOU/stddevOM(statXYResultInt(ccFin,0)))^2)
-      statXYResultG(*,7)=(stddevOM(statXYResultInt(ccFin,0))-stddevOM(statXYResultInt(ccFin,6)))/(facGamma*CriteriaOU)
+      statXYResultG(*,6)=(1.-correlate(statXYResultInt(ccFin,0), statXYResultInt(ccFin,6)))/(betafac*(CriteriaOU/stddevOM(statXYResultInt(ccFin,0)))^2)
+      statXYResultG(*,7)=(stddevOM(statXYResultInt(ccFin,0))-stddevOM(statXYResultInt(ccFin,6)))/(betafac*CriteriaOU)
     endif else begin
       statXYResultG(i,6)=!values.f_nan
       statXYResultG(i,7)=!values.f_nan
