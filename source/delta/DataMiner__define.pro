@@ -196,16 +196,16 @@ END
 FUNCTION DataMiner::readMonitoringYearCsvData, request, fileName, statCode, parameterCode, NOTPRESENT=NOTPRESENT, ONLYMODEL=ONLYMODEL
 
   ERROR=0
+  ;print, systime()
+  ; MM 01APR2016 restore error raising
   catch, error_status
   ;print, systime()
   if error_status NE 0 THEN BEGIN
     ERROR=1
-    catch, /CANCEL 
-    ;print, 'problem with file: <'+fileName+'> check existence or read permission.', /ERROR)
-    NOTPRESENT=1
-    return, -1
+    catch, /CANCEL
+    errMsg=dialog_message('problem with file: <'+fileName+'> check existence or read permission.', /ERROR)
   endif
-
+  
   NOTPRESENT=0
   
 ; KeesC 03MAR2016  
