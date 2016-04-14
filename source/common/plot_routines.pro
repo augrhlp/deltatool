@@ -1956,7 +1956,6 @@ PRO FM_PlotScatter, plotter, request, result
   if criteria gt 0. then begin
     ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
     astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,4)
-    gstr=strmid(strcompress(gammaValue*criteriaOrig[0],/remove_all),0,4)
     betastr=strmid(strcompress(criteriaOrig[5],/remove_all),0,4)
     rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
     npstr=strcompress(fix(criteriaOrig[2]),/remove_all)
@@ -1965,10 +1964,11 @@ PRO FM_PlotScatter, plotter, request, result
     xyouts,.81,.87,'Alpha = '+astr,/normal,color=0
     xyouts,.81,.84,'RV = '+rstr+' '+mus[0],/normal,color=0
     xyouts,.81,.81,'Beta = '+betastr,/normal,color=0
-    xyouts,.81,.69,'Umod = '+gstr+' %',/normal,color=3
     if strupcase(frequency) eq 'YEAR' then begin
+      gstr=strmid(strcompress(gammaValue*criteriaOrig[0],/remove_all),0,4)
       xyouts,.81,.78,'Np = '+npstr,/normal,color=0
       xyouts,.81,.75,'Nnp = '+nnpstr,/normal,color=0
+      xyouts,.81,.69,'Umod = '+gstr+' %',/normal,color=3
     endif
   endif
   
