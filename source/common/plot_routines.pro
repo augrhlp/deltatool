@@ -3529,7 +3529,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     
     
       ustr=strcompress(fix(criteriaOrig[0]),/remove_all)
-      gam=strmid(strcompress(gammaValue*criteriaOrig[0],/remove_all),0,4)
+      if nmod eq 1 then gam=strmid(strcompress(gammaValue*criteriaOrig[0],/remove_all),0,4)
       astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,4)
       rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
       betastr=strmid(strcompress(criteriaOrig[5],/remove_all),0,4)
@@ -3537,7 +3537,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       xyouts,.83,.87,'Alpha = '+astr,/normal,color=0,charsize=1.5,charthick=1.5
       xyouts,.83,.84,'RV = '+rstr+' '+mus[0],/normal,color=0,charsize=1.5,charthick=1.5
       xyouts,.83,.81,'Beta = '+betastr,/normal,color=0,charsize=1.5,charthick=1.5
-      xyouts,.83,.76,'Umod = '+gam+' %',/normal,color=3,charsize=1.5,charthick=1.5
+      if nmod eq 1 then xyouts,.83,.76,'Umod = '+gam+' %',/normal,color=3,charsize=1.5,charthick=1.5
     endif
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
