@@ -212,7 +212,7 @@ PRO FM_Generic, request, result, plotter
   ; ****** DUMP FILE *****
   iprintnr=2 ; 2 values (OBS MOD) are dumped
   if iUseObserveModel eq 1 and elabCode ne 85 and elabCode ne 86 and elabCode ne 87 and elabCode ne 88 then iprintnr=1
-  if total(where(elabCode eq [3,4,5,7,8,23,24,28,30,33,54])) ge 0 then iprintnr=1 ; 1 MOD value
+  if total(where(elabCode eq [3,4,5,7,8,23,24,28,30,33,54,93,94,95])) ge 0 then iprintnr=1 ; 1 MOD value
   if elabCode eq 2 or elabCode eq 14 then iprintnr=3 ; Const CC Slope
   ; For groups only:  Const CC Slope Bias RMSE NMSD MeanO MeanM StdevO StdevM ==> set iprintnr=10
   ;                   Decomment the lines with '10xdump'
@@ -600,6 +600,23 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=mean(runTemp)-mean(obsTemp)
             statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
           endif
+          if elabcode eq 93 or elabCode eq 94 or elabCode eq 95 then begin
+            obsTempSort=obsTemp(sort(obsTemp))
+            runTempSort=runTemp(sort(runTemp))
+            percentileThreshold=0.95
+            if strupcase(parCodes) eq 'NO2' then percentileThreshold=0.998
+            if strupcase(parCodes) eq 'O3' then percentileThreshold=0.929
+            if strupcase(parCodes) eq 'PM10' then percentileThreshold=0.901
+            if strupcase(parCodes) eq 'PM25' then percentileThreshold=0.901
+            timeLength=n_elements(obsTemp)
+            indiceT=fix(percentileThreshold*timeLength)
+            obstempThreshold=obstemp
+            obstempThreshold(*)=obstempSort(percentileThreshold*timeLength)
+            CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obstempThreshold,alpha,criteriaOrig,LV
+            statXYResult[i1,i2,i3,i4,0]=abs(runTempSort(indiceT)-obsTempSort(indiceT))/(extraValues(0)*criteriaOU)
+            statXYResult[i1,i2,i3,i4,1]=abs(runTempSort(indiceT)-obsTempSort(indiceT))/(extraValues(0)*criteriaOU)
+            statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
+          endif
           if elabcode eq 4 then begin
             statXYResult[i1,i2,i3,i4,0]=rmse(obsTemp,runTemp)
             statXYResult[i1,i2,i3,i4,1]=rmse(obsTemp,runTemp)
@@ -670,7 +687,7 @@ PRO SG_Computing, $
             ;            statXYResult[i1,i2,i3,i4,9]=stddevOM(runTemp)
             statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
           endif
-          if elabcode eq 15 or elabCode eq 78 or elabCode eq 18 or elabCode eq 93 then begin ; R buggle
+          if elabcode eq 15 or elabCode eq 78 or elabCode eq 18 then begin ; R buggle
             statXYResult[i1,i2,i3,i4,0]=criteriaOU/stddevOM(obsTemp)
             statXYResult[i1,i2,i3,i4,1]=correlate(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=abs(correlate(obsTemp, runTemp))
@@ -724,7 +741,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=mfe(obsTemp, runTemp)
             statXYGroup[i1,i2,i3,i4]=mfe(obsTemp, runTemp)
           endif
-          if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 or elabCode eq 94 then begin  ;NMSD Bugle
+          if elabcode eq 25 or elabCode eq 79 or elabCode eq 32 then begin  ;NMSD Bugle
             if stddevOM(obsTemp) ne 0 then statXYResult[i1,i2,i3,i4,0]=criteriaOU/stddevOM(obsTemp)
             if stddevOM(obsTemp) eq 0 then statXYResult[i1,i2,i3,i4,0]=!values.f_nan
             statXYResult[i1,i2,i3,i4,1]=nmb(stddevOM(obsTemp), stddevOM(runTemp))

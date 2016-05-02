@@ -108,7 +108,7 @@ PRO FM_PlotBars, plotter, request, result
   
   !y.range=[min([0,min(allDataXY,/nan)])*1.1, max([0,max(allDataXY,/nan)])*1.1]
   obsbar=1
-  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,91,92])) ge 0 then begin
+  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,91,92,93,94,95])) ge 0 then begin
     allDataXY(*,*,*,*,0)=0.
     obsbar=0
     if ifree eq '1101' then begin
@@ -170,7 +170,7 @@ PRO FM_PlotBars, plotter, request, result
     plotVarMod=transpose(plotVarMod)
     nBars=nstat & nSubBars=npar & nDots=1
     ntxt1=3 & ntxt2=0 & ntxt3=0
-    if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54])) ge 0 then begin
+    if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,93,94,95])) ge 0 then begin
       nBars=nstat & nSubBars=1 & nDots=npar
       ntxt1=3 & ntxt2=0 & ntxt3=0
     endif
@@ -191,7 +191,7 @@ PRO FM_PlotBars, plotter, request, result
     plotVarMod=transpose(plotVarMod)
     nBars=nstat & nSubBars=1 & nDots=nmod
     ntxt1=3 & ntxt2=0 & ntxt3=1
-    if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54])) ge 0 then begin
+    if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,93,94,95])) ge 0 then begin
       nBars=nstat & nSubBars=1 & nDots=nmod
       ntxt1=3 & ntxt2=0 & ntxt3=1
     endif
@@ -382,7 +382,7 @@ PRO FM_PlotBars, plotter, request, result
         if nchlp ge 1 then colarr(chlp)=1
         plots,tickV(isubbar*nBars:isubbar*nBars+nBars-1),plotHlp,psym=8,symsize=2,color=colarr  ; isubbar+2
         if obsbar eq 0 or ifree eq '1011' or ifree eq '0111' or $
-          (ifree eq '1101' and total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0) then begin
+          (ifree eq '1101' and total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54,93,94,95])) ge 0) then begin
           if ifree eq '1101' or ifree eq '1011' or ifree eq '1110' or ifree eq '0111' then begin
             col2=15-isubbar
           endif else begin
@@ -1867,7 +1867,7 @@ PRO FM_PlotScatter, plotter, request, result
             if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'MainTitleFont', FORCELOG=FORCELOG
             ;            xyouts,0.16,0.86,strtrim(percentageCrit,2)+'%',$
             ;              color=colorPerc,/normal,charthick=4,charsize=3*psFact
-            xyouts,0.15,0.86,'MQO = '+strtrim(strmid(MQO90thperc,4,6),2),color=colorPerc,/normal,charsize=3*psFact
+            xyouts,0.15,0.86,'MQI = '+strtrim(strmid(MQO90thperc,4,6),2),color=colorPerc,/normal,charsize=3*psFact
             ;setUserFont, lastUserFont
             if resPoscript eq 0 then begin
               ;!p.font=0
@@ -3508,7 +3508,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       if plotter->currentDeviceIsPostscript() then setUserFont, 'PSFont', FORCELOG=FORCELOG else setUserFont, 'MainTitleFont', FORCELOG=FORCELOG
       ;      xyouts,0.18,0.88,strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,$
       ;        charthick=4,charsize=3*psFact
-      xyouts,0.10,0.88,'MQO = '+strtrim(strmid(MQO90thperc,4,6),2),color=colorPerc,/normal,charsize=3*psFact
+      xyouts,0.10,0.88,'MQI = '+strtrim(strmid(MQO90thperc,4,6),2),color=colorPerc,/normal,charsize=3*psFact
       xyouts,0.20,0.84,'Y='+strtrim(strmid(MQO90thpercYear,4,6),2),color=colorPercYear,/normal,charsize=1.5*psFact
       ;setUserFont, lastUserFont
       if resPoscript eq 0 then begin
@@ -4536,7 +4536,7 @@ PRO FM_PlotBugle, plotter, request, result, allDataXY, allDataColor, allDataSymb
     
   endif
   
-  if elabcode eq 15 or elabCode eq 78 or elabCode eq 18 or elabcode eq 93 then begin  ;R
+  if elabcode eq 15 or elabCode eq 78 or elabCode eq 18 or elabcode eq 93 or elabCode eq 94 or elabCode eq 95 then begin  ;R
   
     CheckCriteria, request, result, 'OU', criteria, adummy,alpha,criteriaOrig,LV
     betafac=criteriaOrig(5)
@@ -5961,11 +5961,11 @@ pro legendGenericBuildDiag0,request,result,plotter
       if elabcode eq 89 then legPrint2=['(MA+GA+)']
       if elabcode eq 90 then legPrint2=['(FA+GA+)']
     endif
-    if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0  then legPrint2=['']
+    if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54,93,94,95])) ge 0  then legPrint2=['']
     ;    legprint=legprint(0:0)
     if ifree eq '1100' then begin
       legPrint=modelCodes & legColors2=legColors(0,*) & legSyms2=legSyms(0,*) & legPrint2=['OBS']
-      if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0  then legPrint2=['']
+      if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54,93,94,95])) ge 0  then legPrint2=['']
     endif
     if ifree eq '1010' then begin
       legPrint=scenarioCodes  & legColors2=legColors(0,*) & legSyms2=legSyms(0,*) & legPrint2=['OBS']
@@ -5973,7 +5973,7 @@ pro legendGenericBuildDiag0,request,result,plotter
     endif
     if ifree eq '1001' then begin
       legPrint=parCodes & legColors2=legColors(*,0) & legSyms2=legSyms(*,0) & legPrint2='OBS-'+legPrint
-      if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0  then legPrint2=['']
+      if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54,93,94,95])) ge 0  then legPrint2=['']
     endif
     if ifree eq '0110' then begin
       legPrint=modelCodes & legColors2=legColors(0,*) & legSyms2=legSyms(0,*) & legPrint2='OBS-2009'
@@ -5981,7 +5981,7 @@ pro legendGenericBuildDiag0,request,result,plotter
     endif
     if ifree eq '0101' then begin
       legPrint=modelCodes & legColors2=legColors(*,0) & legSyms2=legSyms(*,0) & legPrint2='OBS'
-      if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0  then legPrint2=['']
+      if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54,93,94,95])) ge 0  then legPrint2=['']
     endif
     if ifree eq '0011' then begin
       legPrint=scenarioCodes & legColors2=legColors(*,0) & legSyms2=legSyms(*,0) & legPrint2='OBS'
@@ -5992,7 +5992,7 @@ pro legendGenericBuildDiag0,request,result,plotter
     endif
     if ifree eq '1101' then begin
       legPrint=modelCodes & legColors2=legColors(0,*,0,0) & legSyms2=legSyms(0,*,0,0) & legPrint2=parCodes+'-OBS'
-      if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54])) ge 0 then legPrint2=parCodes
+      if total(where(elabCode eq [2,3,4,5,7,8,23,24,28,30,33,54,93,94,95])) ge 0 then legPrint2=parCodes
     endif
     if ifree eq '0111' then begin
       legPrint=modelCodes & legColors2=legColors(0,*,0,0) & legSyms2=legSyms(0,*,0,0) & legPrint2=scenarioCodes
