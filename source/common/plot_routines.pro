@@ -1960,14 +1960,15 @@ PRO FM_PlotScatter, plotter, request, result
     rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
     npstr=strcompress(fix(criteriaOrig[2]),/remove_all)
     nnpstr=strmid(strcompress(criteriaOrig[3],/remove_all),0,4)
-    xyouts,.81,.90,'Urv = '+ustr+' %',/normal,color=0
+    if strupcase(frequency) eq 'HOUR' then xyouts,.81,.81,'Urv = '+ustr+' %',/normal,color=0
     xyouts,.81,.87,'Alpha = '+astr,/normal,color=0
     xyouts,.81,.84,'RV = '+rstr+' '+mus[0],/normal,color=0
-    xyouts,.81,.81,'Beta = '+betastr,/normal,color=0
+    xyouts,.81,.90,'Beta = '+betastr,/normal,color=0
     if strupcase(frequency) eq 'YEAR' then begin
       gstr=strmid(strcompress(gammaValue*criteriaOrig[0],/remove_all),0,4)
-      xyouts,.81,.78,'Np = '+npstr,/normal,color=0
-      xyouts,.81,.75,'Nnp = '+nnpstr,/normal,color=0
+      xyouts,.81,.81,'Np = '+npstr,/normal,color=0
+      xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0
+      xyouts,.81,.75,'Urv = '+ustr+' %',/normal,color=0
       xyouts,.81,.69,'Umod = '+gstr+' %',/normal,color=3
     endif
   endif
@@ -3533,10 +3534,10 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       astr=strmid(strcompress(criteriaOrig[1],/remove_all),0,4)
       rstr=strcompress(fix(criteriaOrig[4]),/remove_all)
       betastr=strmid(strcompress(criteriaOrig[5],/remove_all),0,4)
-      xyouts,.83,.90,'Urv = '+ustr+' %',/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.81,'Urv = '+ustr+' %',/normal,color=0,charsize=1.5,charthick=1.5
       xyouts,.83,.87,'Alpha = '+astr,/normal,color=0,charsize=1.5,charthick=1.5
       xyouts,.83,.84,'RV = '+rstr+' '+mus[0],/normal,color=0,charsize=1.5,charthick=1.5
-      xyouts,.83,.81,'Beta = '+betastr,/normal,color=0,charsize=1.5,charthick=1.5
+      xyouts,.83,.90,'Beta = '+betastr,/normal,color=0,charsize=1.5,charthick=1.5
       if nmod eq 1 then xyouts,.83,.76,'Umod = '+gam+' %',/normal,color=3,charsize=1.5,charthick=1.5
     endif
     if elabCode eq 74 then begin

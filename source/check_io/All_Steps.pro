@@ -1432,7 +1432,7 @@ if itmod eq 1 then begin
     if inqYr.datatype ne 'UNKNOWN' then begin
       ncdf_attget,id,'Year',YearMOD,/global
     endif
-    if icase eq 0 then begin
+    if icase eq 0 then begin  ; variable is Station_PM10 ( ntimes) 
       for i=0,n_elements(statnames)-1 do begin
         for is=0,n_elements(spec)-1 do begin
           idname=statnames(i)+'_'+spec(is)
@@ -1441,7 +1441,7 @@ if itmod eq 1 then begin
             if inqStHr.datatype eq 'UNKNOWN' and inqEnHr.datatype eq 'UNKNOWN' then begin
               ncdf_varget, Id, idname, var
               dimVar=n_elements(var)
-              if dimvar ne 8760 then begin
+              if dimvar ne 8760 and dimvar ne 8784 then begin
                 printf,11,'Incorrect nb of time elements in variable '+idname+' in MODfile'
                 iprob=1
               endif
@@ -1477,7 +1477,7 @@ if itmod eq 1 then begin
           endif
           if inqStHr.datatype eq 'UNKNOWN' and inqEnHr.datatype eq 'UNKNOWN' then begin
             dimVar=n_elements(var)
-            if dimvar[1] ne 8760 then begin
+            if dimvar ne 8760 and dimvar ne 8784 then begin
               printf,11,'Incorrect nb of time elements in variable '+idname+' in MODfile'
               iprob=1
             endif
