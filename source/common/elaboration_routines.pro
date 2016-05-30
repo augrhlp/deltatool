@@ -938,10 +938,10 @@ PRO SG_Computing, $
             ;obshlp = obsTemp(sort(obsTemp))
             for ii=0,n_elements(obsTemp) -1 do begin
                if extraVal(1) eq 999 then begin
-                  if parCodes eq 'PM10' then uncertainty=0.280*sqrt( (1.-0.018)*obsTemp(ii)^2+0.018*50.^2)
-                  if parCodes eq 'PM25' then uncertainty=0.360*sqrt( (1.-0.035)*obsTemp(ii)^2+0.035*25.^2)
-                  if parCodes eq 'O3'   then uncertainty=0.126*sqrt( (1.-0.620)*obsTemp(ii)^2+0.620*120.^2)
-                  if parCodes eq 'NO2'  then uncertainty=0.240*sqrt( (1.-0.040)*obsTemp(ii)^2+0.040*200.^2)
+                  if parCodes eq 'PM10' then uncertainty=0.280*sqrt( (1.-0.13^2)*obsTemp(ii)^2+0.13^2*50.^2)
+                  if parCodes eq 'PM25' then uncertainty=0.360*sqrt( (1.-0.30^2)*obsTemp(ii)^2+0.30^2*25.^2)
+                  if parCodes eq 'O3'   then uncertainty=0.180*sqrt( (1.-0.79^2)*obsTemp(ii)^2+0.79^2*120.^2)
+                  if parCodes eq 'NO2'  then uncertainty=0.240*sqrt( (1.-0.20^2)*obsTemp(ii)^2+0.24^2*200.^2)
                endif else begin
                   uncertainty=obsTemp(ii)*extraval(1)/100.
                endelse
@@ -997,7 +997,7 @@ PRO SG_Computing, $
 
           if elabCode eq 74 then begin
 
-            if countMiAlarm+countFaAlarm gt 0 then far=float(countGAplus)/float((CountGaPlus+countMiAlarm+countFaAlarm))
+            if countMiAlarm+countFaAlarm gt 0 then far=float(countFaAlarm)/float((CountGaPlus+countFaAlarm))
             if countMiAlarm+countFaAlarm eq 0 then far=1
             if countFaAlarm ge countMiAlarm then sign=1
             if countFaAlarm lt countMiAlarm then sign=-1  ;only for target

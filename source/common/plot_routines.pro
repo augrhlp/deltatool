@@ -3510,7 +3510,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       ;      xyouts,0.18,0.88,strtrim(percentageCrit,2)+'%',color=colorPerc,/normal,$
       ;        charthick=4,charsize=3*psFact
       xyouts,0.10,0.88,'MQI = '+strtrim(strmid(MQO90thperc,4,6),2),color=colorPerc,/normal,charsize=3*psFact
-      xyouts,0.20,0.84,'Y='+strtrim(strmid(MQO90thpercYear,4,6),2),color=colorPercYear,/normal,charsize=1.5*psFact
+      if elabCode ne 74 then xyouts,0.20,0.84,'Y='+strtrim(strmid(MQO90thpercYear,4,6),2),color=colorPercYear,/normal,charsize=1.5*psFact
       ;setUserFont, lastUserFont
       if resPoscript eq 0 then begin
         ;!p.font=0
