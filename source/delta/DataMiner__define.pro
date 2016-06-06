@@ -200,16 +200,24 @@ FUNCTION DataMiner::readMonitoringYearCsvData, request, fileName, statCode, para
   ; MM 01APR2016 restore error raising
   catch, error_status
   ;print, systime()
+  
   if error_status NE 0 THEN BEGIN
     ERROR=1
     catch, /CANCEL
-    errMsg=dialog_message('problem with file: <'+fileName+'> check existence or read permission.', /ERROR)
+    ;print, 'problem with file: <'+fileName+'> check existence or read permission.', /ERROR)
+    NOTPRESENT=1
+    return, -1
   endif
+;  if error_status NE 0 THEN BEGIN
+;    ERROR=1
+;    catch, /CANCEL
+;    errMsg=dialog_message('problem with file: <'+fileName+'> check existence or read permission.', /ERROR)
+;  endif
   
   NOTPRESENT=0
   
 ; KeesC 03MAR2016  
-  if ~file_test(filename) then return,0
+;if ~file_test(filename) then return,0
   openr, unit, fileName, /GET_LUN
   bufferString=''
   RowNr=0
