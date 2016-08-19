@@ -380,7 +380,8 @@ pro obs_run_nan, request,result,obsValues, runValues
       res_start=fix(strsplit(start_hour_hlp,'*',/extract))
       res_end=fix(strsplit(end_hour_hlp,'*',/extract))
       for j=0,n_elements(res_start)-1 do begin
-        for i=0,364 do begin
+;Phil 18/08/2016  Add iyear in the "i" loop for leap years
+        for i=0,364+iyear do begin
           bhlp(24*i+res_start(j):24*i+res_end(j))=1
         endfor
       endfor

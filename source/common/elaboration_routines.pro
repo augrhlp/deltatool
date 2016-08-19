@@ -1901,7 +1901,7 @@ if isSingleSelection then begin
     statXYResultS(i,2)=(mean(runTemp)-mean(obsTemp))/(betafac*CriteriaOU)
     ;    if elabCode eq 31 or elabCode eq 83 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 0,alpha,criteriaOrig,LV,nobsAv
     ;    if elabCode eq 32 or elabCode eq 84 then CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp, 1,alpha,criteriaOrig,LV,nobsAv
-    statXYResultS(i,3)=sqrt((1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(obsTemp))/(betafac*CriteriaOU)
+    statXYResultS(i,3)=2.*(1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(runTemp)/(betafac*CriteriaOU)^2
     statXYResultS(i,4)=(stddevOM(runTemp)-stddevOM(obsTemp))/(betafac*CriteriaOU)
     
     if strupcase(frequency) eq 'YEAR' then statXYResultS(i,7)=0.
@@ -1934,9 +1934,6 @@ if isSingleSelection then begin
     runTempSort=runTemp(sort(runTemp))
     percentileThreshold=0.95
     if strupcase(parCodes) eq 'NO2' then percentileThreshold=0.998
-    ;    if strupcase(parCodes) eq 'O3' then percentileThreshold=0.904
-    ;    if strupcase(parCodes) eq 'PM10' then percentileThreshold=0.931
-    ;    if strupcase(parCodes) eq 'PM25' then percentileThreshold=0.931
     if strupcase(parCodes) eq 'O3' then percentileThreshold=0.929
     if strupcase(parCodes) eq 'PM10' then percentileThreshold=0.901
     if strupcase(parCodes) eq 'PM25' then percentileThreshold=0.901
@@ -1966,7 +1963,8 @@ if isSingleSelection then begin
     kees6=reform(statXYResultS(cc,6))
     kc=where(finite(kees0) eq 1 and finite(kees6) eq 1,nc)
     if nc ge 2 then begin
-      statXYResultS(*,6)=(1.-correlate(kees0(kc),kees6(kc)))/(2*(sqrt(sumsquare(uncertaintyAverage))/stddevOM(kees0(kc)))^2)
+      ;  2.*(1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(runTemp)/(betafac*CriteriaOU)^2
+      statXYResultS(*,6)=2.*(1.-correlate(kees0(kc),kees6(kc)))*stddevOM(kees0(kc))*stddevOM(kees6(kc))/(betafac*sqrt(sumsquare(uncertaintyAverage))^2)
       statXYResultS(*,7)=(stddevOM(kees0(kc))-stddevOM(kees6(kc)))/(2.*sqrt(sumsquare(uncertaintyAverage)))
     endif else begin
       statXYResultS(*,6)=!values.f_nan
@@ -2029,7 +2027,7 @@ if isGroupSelection then begin
       if statType gt 0 then statXYResultInt(j,5)=statXYResultInt(j,5)/24.
       if statType gt 0 then statXYResultInt(j,1)=statXYResultInt(j,1)/24.
       statXYResultInt(j,2)=(mean(runTemp)-mean(obsTemp))/(betafac*CriteriaOU)
-      statXYResultInt(j,3)=(1.-correlate(obsTemp, runTemp))/(betafac*(CriteriaOU/stddevOM(obsTemp))^2)
+      statXYResultInt(j,3)=2.*(1.-correlate(obsTemp, runTemp))*stddevOM(obsTemp)*stddevOM(runTemp)/(betafac*CriteriaOU)^2
       statXYResultInt(j,4)=(stddevOM(obsTemp)-stddevOM(runTemp))/(betafac*CriteriaOU)
       
       obsTempSort=obsTemp(sort(obsTemp))
@@ -2083,7 +2081,7 @@ if isGroupSelection then begin
       ;CheckCriteria, request, result, request->getElaborationOCStat(), criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv
       ;CheckCriteria, request, result, 'OU', criteria, adummy, 1,alpha,criteriaOrig,LV,nobsAv
       ;MM summer 2012 End
-      statXYResultG(*,6)=(1.-correlate(statXYResultInt(ccFin,0), statXYResultInt(ccFin,6)))/(betafac*(CriteriaOU/stddevOM(statXYResultInt(ccFin,0)))^2)
+      statXYResultG(*,6)=2.*(1.-correlate(statXYResultInt(ccFin,0), statXYResultInt(ccFin,6)))*stddevOM(statXYResultInt(ccFin,0))*stddevOM(statXYResultInt(ccFin,6))/(betafac*CriteriaOU)^2
       statXYResultG(*,7)=(stddevOM(statXYResultInt(ccFin,0))-stddevOM(statXYResultInt(ccFin,6)))/(betafac*CriteriaOU)
     endif else begin
       statXYResultG(i,6)=!values.f_nan

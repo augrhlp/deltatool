@@ -1839,7 +1839,10 @@ PRO FM_PlotScatter, plotter, request, result
             ;            ;add Phil 22/04/2014
             crit=UrLV/100.*sqrt( (1.-alpha^2)*(abs(allDataXY[cc,0])^2)/Neff +alpha^2*LV^2/Nnp)
             MQOtest=abs(allDataXY[cc,0] - allDataXY[cc,1])/(betafac*crit)
-            gammaV=sqrt((abs(allDataXY[cc,0] - allDataXY[cc,1])/(crit))^2-1)
+            ahlp=(abs(allDataXY[cc,0] - allDataXY[cc,1])/(crit))^2-1
+            xx=where(ahlp lt 0., count1)
+            if count1 gt 0 then ahlp(xx)=0.
+            gammaV=sqrt(ahlp)
             result1=sort(MQOtest)
             MQOtest=MQOtest(result1)
             gammaV=gammaV(result1)
@@ -1969,7 +1972,7 @@ PRO FM_PlotScatter, plotter, request, result
       xyouts,.81,.81,'Np = '+npstr,/normal,color=0
       xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0
       xyouts,.81,.75,'Urv = '+ustr+' %',/normal,color=0
-      xyouts,.81,.69,'Umod = '+gstr+' %',/normal,color=3
+      xyouts,.81,.69,'Umod (RV) = '+gstr+' %',/normal,color=3
     endif
   endif
   
@@ -3475,7 +3478,10 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     psFact=plotter->getPSCharSizeFactor()
     cc=where(finite(allDataXY[*, 0]) eq 1,countValidStations)
     if countValidStations gt 0 then begin
-      gammaV = sqrt(4.*sqrt(allDataXY[cc, 0]^2+allDataXY[cc, 1]^2)-1.)
+      ahlp=4.*(allDataXY[cc, 0]^2+allDataXY[cc, 1]^2)-1.
+      xx=where(ahlp eq 0, count1)
+      if count1 gt 0 then ahlp(xx)=0.
+      gammaV = sqrt(ahlp)
       MQOtest=sqrt(allDataXY[cc,0]^2+allDataXY[cc,1]^2)
       MQOtestYear=abs(allDataXY[cc,2])
       result2=sort(MQOtestYear)
@@ -3538,7 +3544,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       xyouts,.83,.87,'Alpha = '+astr,/normal,color=0,charsize=1.5,charthick=1.5
       xyouts,.83,.84,'RV = '+rstr+' '+mus[0],/normal,color=0,charsize=1.5,charthick=1.5
       xyouts,.83,.90,'Beta = '+betastr,/normal,color=0,charsize=1.5,charthick=1.5
-      if nmod eq 1 then xyouts,.83,.76,'Umod = '+gam+' %',/normal,color=3,charsize=1.5,charthick=1.5
+      if nmod eq 1 then xyouts,.83,.76,'Umod (RV)= '+gam+' %',/normal,color=3,charsize=1.5,charthick=1.5
     endif
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
@@ -5306,7 +5312,7 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   LV=0
   alpha=0
   criteriaOrig=0
-; KeesC 17JUN2016: nesxt line set 0 to -1  
+; KeesC 17JUN2016: next line set 0 to -1  
   criteria=-1
   Neff=1
   Nnp=1
