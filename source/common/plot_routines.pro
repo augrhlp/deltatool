@@ -5306,7 +5306,8 @@ pro CheckCriteria, request, result, statistics, criteria, obsTimeSeries,alpha,cr
   LV=0
   alpha=0
   criteriaOrig=0
-  criteria=0
+; KeesC 17JUN2016: nesxt line set 0 to -1  
+  criteria=-1
   Neff=1
   Nnp=1
   beta=2.0

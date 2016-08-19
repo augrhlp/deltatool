@@ -1,9 +1,9 @@
 function csv2cdf, startUpFile, $
-    startHour, endHour, inputDir, outputDir, $
-    prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, $
-    ; KeesC 17FEB2015
-    logWin=logWin, PROGRESSBAR=PROGRESSBAR,progWIN=progWIN
-    
+  startHour, endHour, inputDir, outputDir, $
+  prefixId, modelName, fulloutFileName, stringStartHour, stringEndHour, $
+  ; KeesC 17FEB2015
+  logWin=logWin, PROGRESSBAR=PROGRESSBAR,progWIN=progWIN
+
   ; change this value where you're sure that everything went good and a right cdf was created.
   ERROR=0
   catch, error_status
@@ -11,10 +11,11 @@ function csv2cdf, startUpFile, $
   if error_status ne 0 THEN BEGIN
     ERROR=1
     catch, /CANCEL
-    a=dialog_message([[fulloutFileName], ['Already in use, please change your output name or execute conversion as first action of the tool']], title='Error')
+    ; KeesC 27JUN2016: error output text changed
+    a=dialog_message([[fulloutFileName], ['Problem in csv2cdf routine']], title='Error')
     return, 0
   endif
-  
+
   processOK=0
   checkInputDir=strpos(inputDir, path_sep(), /REVERSE_SEARCH)
   checkOutputDir=strpos(outputDir, path_sep(), /REVERSE_SEARCH)
@@ -25,13 +26,13 @@ function csv2cdf, startUpFile, $
   ;  outFile=dir_out+model   ; d:\DeltaTool\data\cdf_out\2009_MODEL_TIME.cdf'
   ;  startHour=hour0
   ;  endHour=hour1
-  
+
   if keyword_set(PROGRESS_BAR) then a=dialog_message(title='Csv to Cdf', 'Now start cdf conversion of observation...')
   atxt=' '
   iyear=0 ; normal year
   year=fix(strmid(stringStartHour,0,4))
   day_sum=[0,31,60,91,121,152,182,213,244,274,305,335,366]
-  
+
   species=ReadSpecStats(startUpFile, logWin=logWin, statnames=statnames, spec_stations=spec_stations, fileyear=fileyear)
   if year ne fileyear then begin
     txt=['STOP','Year from Input Window <> Year from Startup.ini']
@@ -39,20 +40,23 @@ function csv2cdf, startUpFile, $
     ierror=1
     return, 0
   endif
-  
+
   if 4*(year/4) eq year then iyear=1
   hour0=fix(startHour)
   hour1=fix(endHour)
   nspec=n_elements(species) & nstat=n_elements(statnames)
   ;Kees 11 Sept 2015
   polls=fltarr(nspec)
-  
+
   ;tempFullOutFileName='temp_'+fulloutFileName
   fNamePos=strpos(fulloutFileName, path_sep(), /REVERSE_SEARCH)
   fName=strmid(fulloutFileName, fNamePos+1, strlen(fulloutFileName)-fNamePos)
+
   folder=strmid(fulloutFileName, 0, fNamePos+1)
-  tempFullOutFileName=folder+'temp_'+fName
-  idout=ncdf_create(tempFullOutFileName,/clobber)
+  ; KeesC 27JUN2016: write directly to FullOutFileName, temp* is not used anymore; problem in file_remove
+  ;  tempFullOutFileName=folder+'temp_'+fName
+  ;  idout=ncdf_create(tempFullOutFileName,/clobber)
+  idout=ncdf_create(FullOutFileName,/clobber)
   dim_nv=ncdf_dimdef(idout,'V',nspec)
   dim_nt=ncdf_dimdef(idout,'T',hour1-hour0+1)
   vardim=[dim_nv,dim_nt]
@@ -68,7 +72,7 @@ function csv2cdf, startUpFile, $
   ncdf_attput,idout,'StartHour',hour0,/global
   ncdf_attput,idout,'EndHour',hour1,/global
   ncdf_control,idout,/endef
-  
+
   ;Kees 11 sept 2015
   polls=fltarr(nspec)
   for is=0,nstat-1 do begin
@@ -95,7 +99,7 @@ function csv2cdf, startUpFile, $
           addLogText, logWin, txt
           ;txtall=['STOP',txt,txtall]
           ;widget_control,labcom_txt,set_value=txtall
-          
+
           ierror=1
           break
           return, 0
@@ -121,7 +125,7 @@ function csv2cdf, startUpFile, $
             if strupcase(info[0]) eq 'YEARLYAVG' then begin
               specStat=info(2:n_elements(info)-1)
               fileTime='Y'
-            ; read the next -valid- single line
+              ; read the next -valid- single line
             endif else begin
               specStat=info(4:n_elements(info)-1)
               fileTime='H'
@@ -164,12 +168,14 @@ function csv2cdf, startUpFile, $
   endfor
   ncdf_close,idout
   ; only if everything goes fine rename...
-  if processOK then begin
-    ;close, /all
-    file_move, tempFullOutFileName, fulloutFileName, /OVERWRITE
-  endif else begin
+  ;KeesC 27JUN2016: changes in next lines, writing directly to FullOutFileName
+  ;  if processOK then begin
+  ;close, /all
+  ;    file_move, tempFullOutFileName, fulloutFileName, /OVERWRITE
+  ;  endif else begin
+  if processOK eq 0 then begin
     a=dialog_message(title='Wrong conversion', ['Delta can''t proceed, check your conversion settings.'], /ERROR)
-    file_delete, tempFullOutFileName
+    ;    file_delete, tempFullOutFileName
     return, 0
   endelse
   ;widget_control,labpr_txt,set_value=' '
@@ -178,7 +184,7 @@ function csv2cdf, startUpFile, $
   print,'End CSV_to_CDF'
   if keyword_set(PROGRESS_BAR) then a=dialog_message(title='Csv to Cdf', 'Done')
   return, 1
-  
+
 end
 
 

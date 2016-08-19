@@ -574,6 +574,9 @@ PRO SG_Computing, $
           longshort=0
           ;          if elabCode eq 10 or elabCode eq 75 then longshort=1
           CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV
+; KeesC 17JUN2016: demo 2 stations group 100% => criteriaOU=0, criteriaOrig=0.   Next line (5)  
+; KeesC 17JUN2016: demo 2 stations group 90 % => criteriaOU=-1, criteriaOrig=0.   Next line ok  
+; KeesC 17JUN2016: demo 2 stations single     => criteriaOU=-1, criteriaOrig=0.   Next line is ok        
           if criteriaOU ne -1 then betafac=criteriaOrig(5)
           if elabcode eq 0 then begin
             statXYResult[i1,i2,i3,i4,0]=mean(obsTemp)
