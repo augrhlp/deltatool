@@ -177,7 +177,7 @@ function csv2cdf, startUpFile, $
     a=dialog_message(title='Wrong conversion', ['Delta can''t proceed, check your conversion settings.'], /ERROR)
     ;    file_delete, tempFullOutFileName
     return, 0
-  endelse
+  endif
   ;widget_control,labpr_txt,set_value=' '
   txt='End CSV_to_CDF'
   addLogText, logWin, txt
