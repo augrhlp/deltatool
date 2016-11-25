@@ -1972,7 +1972,8 @@ PRO FM_PlotScatter, plotter, request, result
       xyouts,.81,.81,'Np = '+npstr,/normal,color=0
       xyouts,.81,.78,'Nnp = '+nnpstr,/normal,color=0
       xyouts,.81,.75,'Urv = '+ustr+' %',/normal,color=0
-      xyouts,.81,.69,'Umod (RV) = '+gstr+' %',/normal,color=3
+      if gstr ge gammaValue*criteriaOrig[0] then xyouts,.81,.69,'Umod (RV) = '+gstr+' %',/normal,color=3
+      if gstr lt gammaValue*criteriaOrig[0] then xyouts,.81,.69,'Umod (RV) OK',/normal,color=3
     endif
   endif
   
@@ -3479,7 +3480,7 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
     cc=where(finite(allDataXY[*, 0]) eq 1,countValidStations)
     if countValidStations gt 0 then begin
       ahlp=4.*(allDataXY[cc, 0]^2+allDataXY[cc, 1]^2)-1.
-      xx=where(ahlp eq 0, count1)
+      xx=where(ahlp lt 0., count1)
       if count1 gt 0 then ahlp(xx)=0.
       gammaV = sqrt(ahlp)
       MQOtest=sqrt(allDataXY[cc,0]^2+allDataXY[cc,1]^2)
@@ -3544,7 +3545,10 @@ PRO FM_PlotTarget, plotter, request, result, allDataXY, allDataColor, allDataSym
       xyouts,.83,.87,'Alpha = '+astr,/normal,color=0,charsize=1.5,charthick=1.5
       xyouts,.83,.84,'RV = '+rstr+' '+mus[0],/normal,color=0,charsize=1.5,charthick=1.5
       xyouts,.83,.90,'Beta = '+betastr,/normal,color=0,charsize=1.5,charthick=1.5
-      if nmod eq 1 then xyouts,.83,.76,'Umod (RV)= '+gam+' %',/normal,color=3,charsize=1.5,charthick=1.5
+      if nmod eq 1 then begin
+         if gam lt criteriaOrig[0] then xyouts,.83,.76,'Umod (RV) OK',/normal,color=3,charsize=1.5,charthick=1.5
+         if gam ge criteriaOrig[0] then xyouts,.83,.76,'Umod (RV)= '+gam+' %',/normal,color=3,charsize=1.5,charthick=1.5
+      endif
     endif
     if elabCode eq 74 then begin
       extraValNumber=request->getExtraValuesNumber()
