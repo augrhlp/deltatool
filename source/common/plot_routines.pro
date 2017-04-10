@@ -108,7 +108,9 @@ PRO FM_PlotBars, plotter, request, result
   
   !y.range=[min([0,min(allDataXY,/nan)])*1.1, max([0,max(allDataXY,/nan)])*1.1]
   obsbar=1
-  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,91,92,93,94,95])) ge 0 then begin
+;KeesC 06MAR2017  
+;  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,91,92,93,94,95])) ge 0 then begin
+  if total(where(elabCode eq [2,3,4,5,7,8,14,23,24,28,30,33,54,92,93,94,95])) ge 0 then begin
     allDataXY(*,*,*,*,0)=0.
     obsbar=0
     if ifree eq '1101' then begin
@@ -261,6 +263,9 @@ PRO FM_PlotBars, plotter, request, result
   if elabCode eq 26 then ytitle='[mg/m3*hrs] '
   if elabCode eq 27 then ytitle='[mg/m3*days] '
   if elabCode eq 89 or elabCode eq 90 then ytitle='[Nb] '
+;KeesC 06MAR2017
+  if elabCode ge 92 and elabCode le 95 then ytitle='[1]'  
+  
   cumulstr=''
   if elabCode eq 38 then begin
     ytitle=musstr

@@ -1010,11 +1010,23 @@ PRO Plotter::wsetMainDataDraw, request, result, PROGRESS=PROGRESS
           infoToShow[6]='Group Obs: '+mult
         endif
         ;infoToShow[6]='UseObservedModel: '+request->getUseObservedModel()  ; 0=0ld case; 1=no obs
-        infoToShow[7]='ModelCodes: '+request->getModelCodes()
-        ;infoToShow[8]='ScenarioCodes: '+request->getScenarioCodes()
-        for i=0, n_elements(infoToShow)-2 do begin
-          if i eq 5 and strlen(infoToShow[5]) gt 50 then infoToShow[5]=strmid(infoToShow[i],0,20) 
-          xyouts, 0.2, 0.2+float(i)/n_elements(infoToShow), infoToShow[i], ALIGN=0.5, /NORM, CHARSIZE=3., CHARTHICK=3., FONT=0
+        ;KeesC 12MAR2017: Pb next line 'request->getModelCodes()' is string array and can not be assigned to infotoshow[7]
+        hlp=request->getModelCodes()
+        hlp0=hlp[0]
+        if n_elements(hlp) ge 2 then begin
+          for ih=1,n_elements(hlp)-1 do hlp0=hlp0+';'+hlp[ih]
+        endif
+        infoToShow[7]='ModelCodes: '+hlp0     ;'ModelCodes: '+request->getModelCodes()
+        hlp=request->getScenarioCodes()
+        hlp0=hlp[0]
+        if n_elements(hlp) ge 2 then begin
+          for ih=1,n_elements(hlp)-1 do hlp0=hlp0+';'+hlp[ih]
+        endif
+        infoToShow[8]='ScenarioCodes: '+hlp0  ;'ScenarioCodes: '+request->getScenarioCodes()
+        for i=0, n_elements(infoToShow)-1 do begin
+          if i eq 5 and strlen(infoToShow[5]) gt 150 then infoToShow[5]=strmid(infoToShow[i],0,150) 
+ ;         xyouts, 0.2, 0.2+float(i)/n_elements(infoToShow), infoToShow[i], ALIGN=0.5, /NORM, CHARSIZE=3., CHARTHICK=3., FONT=0
+          xyouts, 0.05, 0.1+0.75*float(i)/n_elements(infoToShow), infoToShow[i], /NORM, CHARSIZE=3., CHARTHICK=3., FONT=0
         endfor
       endif
     ;      DEVICE, GET_FONTNAMES=fnames, SET_FONT='*'
