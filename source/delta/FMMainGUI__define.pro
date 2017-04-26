@@ -974,10 +974,11 @@ PRO FMMainGUI::buildMainDrawSection, base, dims
   mainDraw = WIDGET_DRAW(mainDrawBase,RETAIN=2,SCR_XSIZE=self->xGraphSize(),SCR_YSIZE=self->yGraphSize()-self->getTitleYDim(), $
     /BUTTON_EVENTS, event_pro=self.eventPrefix+'mapDrawMouse', UNAME='MAINDRAW')
   ;/MOTION_EVENTS, /BUTTON_EVENTS, event_pro=self.eventPrefix+'mapDrawMouse', UNAME='MAINDRAW')
-    
+
+;KeesC 15APR2017: version hardwired here !!    
   titleLabel = Widget_Label(mainDrawBase, UNAME='STATUSBARMAP', $
     XOFFSET=0 ,YOFFSET=0 ,SCR_XSIZE=self->xGraphSize() ,SCR_YSIZE=self->getTitleYDim() ,/ALIGN_LEFT, $
-    VALUE='---Info about plot data---', /SUNKEN_FRAME, font=self.labelFont)
+    VALUE='---DeltaTool version 5.5---Info about plot data---', /SUNKEN_FRAME, font=self.labelFont)
     
 END
 
