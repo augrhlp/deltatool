@@ -866,7 +866,7 @@ PRO SG_Computing, $
             statXYResult[i1,i2,i3,i4,1]=runCU/1000.
             statXYGroup[i1,i2,i3,i4]=abs(nmb(obsTemp,runTemp))
           endif
-          if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then begin ;OU Target
+          if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then begin ;OU Target           
             signNum=2*stddevOM(obstemp)*stddevOM(runTemp)*(1.-correlate(obsTemp,runTemp))
             signDen=(stddevOM(obstemp)-stddevOM(runTemp))^2
             sign=0.
@@ -880,6 +880,7 @@ PRO SG_Computing, $
               statXYGroup[i1,i2,i3,i4]=rmse(obsTemp,runTemp)/(CriteriaOU*betafac)
               ;Phil 04/12/2015  attempt to introduce yearly evaluations
               CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV, overwritefrequency='YEAR'
+; KeesC 15APR2017 ???
               statXYResult[i1,i2,i3,i4,2]=abs(mean(obsTemp)-mean(runTemp))/(CriteriaOU*betafac)
               CheckCriteria, request, result, request->getElaborationOCStat(), criteriaOU, obsTemp,alpha,criteriaOrig,LV, overwritefrequency='HOUR'
               ;Phil
@@ -1124,6 +1125,7 @@ PRO SG_Computing, $
             statXYGroupHlp=reform(statXYGroup(i1,i2,i3,nobsS+currNumber))
             statXY0=reform(statXYResult(i1,i2,i3,nobsS+currNumber,0))
             statXY1=reform(statXYResult(i1,i2,i3,nobsS+currNumber,1))
+; KeesC 15APR2017 ???            
             statXY2=reform(statXYResult(i1,i2,i3,nobsS+currNumber,2))
             ; 10xdump: Decomment next lines
             ;            statXY3=reform(statXYResult(i1,i2,i3,nobsS+currNumber,3))
@@ -1136,7 +1138,7 @@ PRO SG_Computing, $
             if iUseObserveModel eq 0 then ccFin=where(finite(statXY0) eq 1 and finite(statXY1) eq 1,countfinite)
             if iUseObserveModel eq 1 then ccFin=where(finite(statXY1) eq 1,countfinite)
             ;Mean 100% group
-            if groupStatToApplyCode eq 0 then begin
+            if groupStatToApplyCode eq 0 then begin  ;100% group
               if countFinite gt 0 then begin
                 obsGroupStatResult=reform(statXY0(ccFin))
                 runGroupStatResult=reform(statXY1(ccFin))
@@ -1150,7 +1152,17 @@ PRO SG_Computing, $
                 ;                run8GroupStatResult=reform(statXY8(ccFin))
                 ;                run9GroupStatResult=reform(statXY9(ccFin))
                 if elabCode ne 14 then begin
-                  obsStatResult=mean(obsGroupStatResult)
+;KeesC 15APR2017                  
+;                  if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then begin ;OU Target
+;                    obsStatResult=mean(abs(obsGroupStatResult))
+;                    ccOUng=where(obsGroupStatResult lt 0.,nOUng)
+;                    ccOUpl=where(obsGroupStatResult ge 0.,nOUpl)
+;                    signOUgroup=1.
+;                    if nOUng gt nOUpl then signOUgroup=-1
+;                    obsStatResult=signOUgroup*obsStatResult
+;                  endif else begin
+                    obsStatResult=mean(obsGroupStatResult)
+;                  endelse
                   runStatResult=mean(runGroupStatResult)
                   run2StatResult=mean(run2GroupStatResult)
                   ; 10xdump: Decomment next lines
@@ -1164,10 +1176,6 @@ PRO SG_Computing, $
                 endif
                 if elabCode eq 14 then begin
                   if ncurrNames ge 2 then begin
-                    ;                  if ncurrNames ge 2 and $
-                    ;                    n_elements(obsGroupStatResult) ge 2 and $
-                    ;                  n_elements(runGroupStatResult) ge 2 $
-                    ;                    then begin
                     spatCorr=correlate(obsGroupStatResult,runGroupStatResult)
                     regres=regress(obsGroupStatResult,runGroupStatResult,const=regcnst,correlation=spatCorr)
                     regres=regres[0]
@@ -1207,29 +1215,30 @@ PRO SG_Computing, $
                 ;                Run9StatResult=!values.f_nan
               endelse
             endif
-            ;Worst 90%% group
-            if groupStatToApplyCode eq 1 then begin
+; KeesC 26APR2017            
+            if groupStatToApplyCode eq 1 then begin  ;Worst 90%% group
               if countFinite gt 0 then begin
-                obsGroupStatResult=reform(statXY0(ccFin))
-                runGroupStatResult=reform(statXY1(ccFin))
+                obsGroupStatResult=reform(statXY0(ccFin))  ;Target: +/- crmse
+                runGroupStatResult=reform(statXY1(ccFin))  ;Target: bias
                 ;KeesC 10SEP2012
-                run2GroupStatResult=reform(statXY2(ccFin))
-                GroupStatResult=reform(statXYGroupHlp(ccFin))
+                run2GroupStatResult=reform(statXY2(ccFin))  ; Target: not used             
+                GroupStatResult=reform(statXYGroupHlp(ccFin))  ; Target: rmse
                 resSort=sort(GroupStatResult)
                 if total(where(elabCode eq [2,7,11,15,78,18,33,76])) ge 0 then resSort=reverse(resSort)
                 ; PHIL change (-1) which means that for groups having less than 10 stations, 1 station is left out. For groups
+;                example: if n_elements(resSort) is 9, then fix(0.9*n_elements(resSort)) = 8 => No stations left out ?? 
                 ; between 10 and 20 two stations are left out...
-                medIdx=resSort[fix(0.9*n_elements(resSort))]
-                obsStatResult=obsGroupStatResult(medIdx)
-                runStatResult=runGroupStatResult(medIdx)
+                medIdx=resSort[fix(0.9*n_elements(resSort))]   ; if <
+                obsStatResult=obsGroupStatResult(medIdx)  ; value for a specific station
+                runStatResult=runGroupStatResult(medIdx)  ; value for a specific station
                 if elabcode eq 52 or elabcode eq 21 or elabCode eq 81 then begin
-                  ccNeg=where(obsGroupStatResult lt 0.,countNeg)
-                  ccPos=where(obsGroupStatResult gt 0.,countPos)
-                  runStatResult=mean(runGroupStatResult)
-                  obsStatResult=mean(abs(obsGroupStatResult))
-                  distmean=sqrt(runStatResult^2+obsStatResult^2)
-                  runStatResult=runStatResult*GroupStatResult(medIdx)/distmean
-                  obsStatResult=obsStatResult*GroupStatResult(medIdx)/distmean
+                  ccNeg=where(obsGroupStatResult lt 0.,countNeg)  ; Target: number of stations left
+                  ccPos=where(obsGroupStatResult gt 0.,countPos)  ; Target: number of stations right
+                  runStatResult=mean(runGroupStatResult)   ; mean bias
+                  obsStatResult=mean(abs(obsGroupStatResult))   ; mean crmse 
+                  distmean=sqrt(runStatResult^2+obsStatResult^2)  ; rmse for the 2 above
+                  runStatResult=runStatResult*GroupStatResult(medIdx)/distmean  ; ??
+                  obsStatResult=obsStatResult*GroupStatResult(medIdx)/distmean  ; ??
                   if countNeg gt countPos then obsStatResult=-obsStatResult
                   if countNeg eq countPos then obsStatResult=0
                 endif
